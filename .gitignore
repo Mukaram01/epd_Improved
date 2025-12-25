@@ -1,0 +1,25 @@
+# ROS2 / colcon
+build/
+install/
+log/
+
+# ROS / tooling
+.ros/
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large models / data (adjust as needed)
+*.onnx
+data/model/

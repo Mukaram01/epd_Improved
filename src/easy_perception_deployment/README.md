@@ -30,13 +30,21 @@ cd $HOME
 mkdir -p epd_ros2_ws/src && cd epd_ros2_ws/src
 
 # Download fast and shallow copy of easy_perception_deployment
-git clone https://github.com/ros-industrial/epd_onnxruntime_vendor.git
 git clone https://github.com/ros-industrial/easy_perception_deployment.git
+
+# Fetch vendor dependencies (onnxruntime + jsoncpp)
+vcs import < easy_perception_deployment/onnxruntime.repos
 
 # Install dependencies
 cd $HOME/epd_ros2_ws/
 source /opt/ros/humble/setup.bash
 rosdep install --from-paths src --ignore-src -y
+
+# If jsoncpp_vendor is installed system-wide, point CMake at the install prefix
+# that contains jsoncpp_vendorConfig.cmake (typically <prefix>/share/jsoncpp_vendor).
+export CMAKE_PREFIX_PATH="<prefix>:$CMAKE_PREFIX_PATH"
+# Alternatively:
+# export jsoncpp_vendor_DIR="<prefix>/share/jsoncpp_vendor"
 
 # Build the ROS2 workspace
 colcon build

@@ -110,14 +110,19 @@ elif [[ $input == "n" ]]; then
   launch_script="./root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/launch.sh"
 fi
 
+docker_tty=()
+if [ -t 0 ]; then
+  docker_tty=(-t)
+fi
+
 if [ "$useCPU" = True ] ; then
-  sudo docker run -it --rm \
+  sudo docker run -i "${docker_tty[@]}" --rm \
   --name epd_test_container \
   -v $(pwd):/root/epd_ros2_ws/src/easy_perception_deployment \
   cardboardcode/epd-humble-base:CPU \
   $launch_script
 else
-  sudo docker run -it --rm \
+  sudo docker run -i "${docker_tty[@]}" --rm \
   --name epd_test_container \
   -v $(pwd):/root/epd_ros2_ws/src/easy_perception_deployment \
   --gpus all \

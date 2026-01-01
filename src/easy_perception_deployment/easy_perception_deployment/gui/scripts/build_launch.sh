@@ -5,7 +5,17 @@ msg2="Sourcing [Local Package/Workspace]"
 msg3="Deploying package."
 
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
-cd $SCRIPTPATH
+cd "$SCRIPTPATH"
+
+workspace_search_path="$SCRIPTPATH"
+WORKSPACE_ROOT=""
+while [ "$workspace_search_path" != "/" ]; do
+  if [ "$(basename "$workspace_search_path")" = "epd_ros2_ws" ]; then
+    WORKSPACE_ROOT="$workspace_search_path"
+    break
+  fi
+  workspace_search_path="$(dirname "$workspace_search_path")"
+done
 
 # Source ROS distro
 ROS_DISTRO="${ROS_DISTRO:-humble}"
@@ -18,26 +28,24 @@ echo $msg1
 source /opt/ros/${ROS_DISTRO}/setup.bash
 
 echo $msg2
-# Check if the current easy_perception workspace has been built or not.
-# If true, run selective colcon build.
-# Otherwise, pass
-cd ../../
-echo "Building epd_msgs package"
-# Source the epd_msgs workspace
-cd ../epd_msgs
-if [ -d "build" ] || [ -d "install" ] || [ -d "log" ] ; then
-  rm -r build install log
+if [ -z "$WORKSPACE_ROOT" ]; then
+  echo "Unable to locate epd_ros2_ws workspace root from ${SCRIPTPATH}."
+  exit 1
 fi
-colcon build
-source install/setup.bash
 
-# Source the main workspace
-cd ../easy_perception_deployment
+cd "$WORKSPACE_ROOT"
 if [ -d "build" ] || [ -d "install" ] || [ -d "log" ] ; then
   rm -r build install log
 fi
 colcon build
-source install/setup.bash
+
+if [ -f "${WORKSPACE_ROOT}/install/setup.bash" ]; then
+  source "${WORKSPACE_ROOT}/install/setup.bash"
+else
+  echo "Workspace install/setup.bash not found at ${WORKSPACE_ROOT}/install/setup.bash."
+  echo "Please build the workspace before launching."
+  exit 1
+fi
 
 
 # Launch easy_perception_deployment.

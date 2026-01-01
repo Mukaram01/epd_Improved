@@ -233,18 +233,18 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   localize_image_rgb = message_filters::Subscriber<sensor_msgs::msg::Image>(
     this,
     rgb_topic,
-    rclcpp::SensorDataQoS(),
+    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
   localize_image_depth = message_filters::Subscriber<sensor_msgs::msg::Image>(
     this,
     depth_topic,
-    rclcpp::SensorDataQoS(),
+    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
   localize_cam_info =
     message_filters::Subscriber<sensor_msgs::msg::CameraInfo>(
     this,
     camera_info_topic,
-    rclcpp::SensorDataQoS(),
+    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
 
   auto handle_emd_request =

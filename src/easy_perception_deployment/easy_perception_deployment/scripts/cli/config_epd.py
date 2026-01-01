@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 
 # Copyright 2022 Advanced Remanufacturing and Technology Centre
 # Copyright 2022 ROS-Industrial Consortium Asia Pacific Team

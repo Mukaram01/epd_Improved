@@ -360,11 +360,11 @@ void EasyPerceptionDeployment::process_localize_callback(
   } else {
     epd_msgs::msg::EPDObjectLocalization output_msg;
 
-    output_msg.header = std_msgs::msg::Header();
-    output_msg.header.frame_id = "camera_color_optical_frame";
+    output_msg.header = msg->header;
     output_msg.frame_width = img.cols;
     output_msg.frame_height = img.rows;
     output_msg.depth_image = *depth_msg;
+    output_msg.depth_image.header = depth_msg->header;
 
     output_msg.ppx = camera_info->k.at(2);
     output_msg.fx  = camera_info->k.at(0);
@@ -378,8 +378,9 @@ void EasyPerceptionDeployment::process_localize_callback(
 
       sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
         std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
+      mask_ptr->header.stamp = msg->header.stamp;
+      mask_ptr->header.frame_id = msg->header.frame_id;
       object.segmented_binary_mask = *mask_ptr;
-      object.segmented_binary_mask.header.frame_id = "camera_color_optical_frame";
 
       object.centroid = result.objects[i].centroid;
       object.length   = result.objects[i].length;
@@ -469,11 +470,11 @@ void EasyPerceptionDeployment::process_tracking_callback(
   } else {
     epd_msgs::msg::EPDObjectTracking output_msg;
 
-    output_msg.header = std_msgs::msg::Header();
-    output_msg.header.frame_id = "camera_color_optical_frame";
+    output_msg.header = msg->header;
     output_msg.frame_width = img.cols;
     output_msg.frame_height = img.rows;
     output_msg.depth_image = *depth_msg;
+    output_msg.depth_image.header = depth_msg->header;
 
     output_msg.ppx = camera_info->k.at(2);
     output_msg.fx  = camera_info->k.at(0);
@@ -487,8 +488,9 @@ void EasyPerceptionDeployment::process_tracking_callback(
 
       sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
         std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
+      mask_ptr->header.stamp = msg->header.stamp;
+      mask_ptr->header.frame_id = msg->header.frame_id;
       object.segmented_binary_mask = *mask_ptr;
-      object.segmented_binary_mask.header.frame_id = "camera_color_optical_frame";
 
       object.centroid = result.objects[i].centroid;
       object.length   = result.objects[i].length;
@@ -568,6 +570,7 @@ void EasyPerceptionDeployment::process_image_callback(
           visual_pub->publish(*output_msg);
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;
+          output_msg.header = msg->header;
           for (size_t i = 0; i < output_obj.data_size; i++) {
             output_msg.class_indices.push_back(output_obj.classIndices[i]);
             output_msg.scores.push_back(output_obj.scores[i]);
@@ -611,6 +614,7 @@ void EasyPerceptionDeployment::process_image_callback(
           visual_pub->publish(*output_msg);
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;
+          output_msg.header = msg->header;
           for (size_t i = 0; i < output_obj.data_size; i++) {
             output_msg.class_indices.push_back(output_obj.classIndices[i]);
             output_msg.scores.push_back(output_obj.scores[i]);
@@ -625,6 +629,8 @@ void EasyPerceptionDeployment::process_image_callback(
 
             sensor_msgs::msg::Image::SharedPtr mask =
               cv_bridge::CvImage(std_msgs::msg::Header(), "32FC1", output_obj.masks[i]).toImageMsg();
+            mask->header.stamp = msg->header.stamp;
+            mask->header.frame_id = msg->header.frame_id;
             output_msg.masks.push_back(*mask);
           }
           p3_pub->publish(output_msg);
@@ -644,4 +650,3 @@ void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::Sha
 }
 
 #endif  // EPD_UTILS_LIB__EASY_PERCEPTION_DEPLOYMENT_HPP_
-

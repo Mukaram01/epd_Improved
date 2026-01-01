@@ -24,6 +24,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/image_encodings.hpp"
 
 #include "opencv2/opencv.hpp"
 
@@ -78,8 +79,8 @@ int ImageViewer::encoding2mat_type(const std::string & encoding) const
     return CV_8UC1;
   } else if (encoding == "bgr8") {
     return CV_8UC3;
-  } else if (encoding == "mono16") {
-    return CV_16SC1;
+  } else if (encoding == sensor_msgs::image_encodings::MONO16) {
+    return CV_16UC1;
   } else if (encoding == "rgba8") {
     return CV_8UC4;
   } else if (encoding == "bgra8") {

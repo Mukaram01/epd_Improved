@@ -22,7 +22,7 @@ This package claims to be in the **Quality Level 4** category, see the [**Qualit
 
 ## **Setup**
 
-This section lists steps on how to build **easy_perception_deployment** package using ROS2 build tools.
+This section lists steps on how to build **easy_perception_deployment** package using ROS2 build tools. The instructions assume ROS 2 Humble on Ubuntu 22.04 (Jammy).
 
 ``` bash
 # Create ROS2 workspace
@@ -35,7 +35,7 @@ git clone https://github.com/ros-industrial/easy_perception_deployment.git
 
 # Install dependencies
 cd $HOME/epd_ros2_ws/
-source /opt/ros/foxy/setup.bash
+source /opt/ros/humble/setup.bash
 rosdep install --from-paths src --ignore-src -y
 
 # Build the ROS2 workspace

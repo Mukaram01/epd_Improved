@@ -897,6 +897,8 @@ void P3OrtBase::tracking_evaluate(
 	}
 
 
+    constexpr float kIouMatchThreshold = 0.5f;
+
     if (tracker_results.size() > bboxes.size()) {
       // Remove tracked objects that have been removed out of frame.
       // Scan through all detection results.
@@ -920,7 +922,7 @@ void P3OrtBase::tracking_evaluate(
           // If detection results boxes has more than 0.5 intersection over union
           // (IoU), update tracker results boxes with detection results boxes.
           float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > 0.5 && iouScore > trackerIOUScore[j]) {
+          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
             tracked_box = detected_box;
             trackerIOUScore[j] = iouScore;
             updatedTrackers[j] = true;
@@ -929,7 +931,7 @@ void P3OrtBase::tracking_evaluate(
         }
       }
       // Remove all trackers that are not updated.
-      for (size_t i = 0; i < tracker_results.size(); i++) {
+      for (size_t i = tracker_results.size(); i-- > 0;) {
         if (updatedTrackers[i] == false) {
           trackers.erase(trackers.begin() + i);
           tracker_results.erase(tracker_results.begin() + i);
@@ -963,7 +965,7 @@ void P3OrtBase::tracking_evaluate(
           // If detection results boxes has more than 0.5 intersection over union
           // (IoU), update tracker results boxes with detection results boxes.
           float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > 0.5 && iouScore > trackerIOUScore[j]) {
+          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
             tracked_box = detected_box;
             trackerIOUScore[j] = iouScore;
             isNewDetection = false;
@@ -1018,7 +1020,7 @@ void P3OrtBase::tracking_evaluate(
           // If detection results boxes has more than 0.5 intersection over union
           // (IoU), update tracker results boxes with detection results boxes.
           float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > 0.5 && iouScore > trackerIOUScore[j]) {
+          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
             tracked_box = detected_box;
             isNewDetection = false;
             updatedTrackers[j] = true;
@@ -1055,7 +1057,7 @@ void P3OrtBase::tracking_evaluate(
       }
 
       // Remove all trackers that are not updated.
-      for (size_t i = 0; i < tracker_results.size(); i++) {
+      for (size_t i = tracker_results.size(); i-- > 0;) {
         if (updatedTrackers[i] == false) {
           trackers.erase(trackers.begin() + i);
           tracker_results.erase(tracker_results.begin() + i);
@@ -1069,7 +1071,11 @@ void P3OrtBase::tracking_evaluate(
 double P3OrtBase::getIOU(cv::Rect2d detected_box, cv::Rect2d tracked_box) const
 {
   cv::Rect2d intersection = detected_box & tracked_box;
-  return intersection.area();
+  const double union_area = detected_box.area() + tracked_box.area() - intersection.area();
+  if (union_area <= 0.0) {
+    return 0.0;
+  }
+  return intersection.area() / union_area;
 }
 
 void P3OrtBase::create_tracker_tag(std::vector<int> & tracker_logs)
@@ -1087,13 +1093,13 @@ cv::Ptr<cv::Tracker> P3OrtBase::create_tracker(std::string tracker_type)
   if (tracker_type == "KCF") {
     return cv::TrackerKCF::create();
   } else if (tracker_type == "MEDIANFLOW") {
-    return cv::TrackerKCF::create();
+    return cv::TrackerMedianFlow::create();
   } else if (tracker_type == "CSRT") {
     return cv::TrackerCSRT::create();
   } else {
     throw std::runtime_error(
             "Invalid OpenCV Tracker name given in usecase_config.json. "
-            "Please use [KCF, MedianFlow, CSRT] only.");
+            "Please use [KCF, MEDIANFLOW, CSRT] only.");
   }
 }
 

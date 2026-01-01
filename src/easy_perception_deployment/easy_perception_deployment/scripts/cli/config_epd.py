@@ -76,7 +76,7 @@ class EPDConfigurator():
             self.print_help()
             sys.exit(1)
 
-        opt_files = self.parse_args(args[1:])
+        self.parse_args(args[1:])
 
         self.write_out(
             self.session_config_filepath,
@@ -84,14 +84,14 @@ class EPDConfigurator():
 
     def print_help(self):
         print('config_epd.py [--visualize ] [--action ] [--cpu ] [--gpu ] ' +
-              '[--model ] [--label ]')
+              '[--model ] [--label ] [-m ] [-l ]')
         print()
         print('-v --visualize   Sets EPD to Visualize Mode.')
         print('-a --action   Sets EPD to Action Mode.')
         print('-g --gpu   Sets EPD to GPU Mode.')
         print('-c --cpu   Sets EPD to CPU Mode.')
-        print('--model   Sets new onnx model to be deployed via EPD.')
-        print('--label   Sets new label list to be deployed via EPD.')
+        print('-m --model   Sets new onnx model to be deployed via EPD.')
+        print('-l --label   Sets new label list to be deployed via EPD.')
         print('--use   Sets usecase mode to be deployed via EPD. ' +
               'Eg. [0,1,2,3,4].')
         print('--topic   Sets the subscriber topic name EPD uses ' +
@@ -111,7 +111,7 @@ class EPDConfigurator():
     def parse_args(self, args):
         # TODO(cardboardcode): Add options for usecase_config.json
         # CLI configuration.
-        opts, opt_files = getopt.getopt(args, 'hvagc',
+        opts, _ = getopt.getopt(args, 'hvagcm:l:',
                                         ['visualize',
                                          'action',
                                          'gpu',

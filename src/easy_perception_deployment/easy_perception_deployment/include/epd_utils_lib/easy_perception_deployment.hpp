@@ -370,7 +370,12 @@ void EasyPerceptionDeployment::process_localize_callback(
 
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO(this->get_logger(), "[-FPS-]= %f\n", 1000.0 / elapsedTime.count());
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      2000,
+      "[-FPS-]= %f\n",
+      1000.0 / elapsedTime.count());
 
   } else {
     epd_msgs::msg::EPDObjectLocalization output_msg;
@@ -412,7 +417,12 @@ void EasyPerceptionDeployment::process_localize_callback(
 
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO(this->get_logger(), "[-FPS-]= %f\n", 1000.0 / elapsedTime.count());
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      2000,
+      "[-FPS-]= %f\n",
+      1000.0 / elapsedTime.count());
 
     output_msg.process_time = elapsedTime.count();
     localize_pub->publish(output_msg);
@@ -480,7 +490,12 @@ void EasyPerceptionDeployment::process_tracking_callback(
 
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO(this->get_logger(), "[-FPS-]= %f\n", 1000.0 / elapsedTime.count());
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      2000,
+      "[-FPS-]= %f\n",
+      1000.0 / elapsedTime.count());
 
   } else {
     epd_msgs::msg::EPDObjectTracking output_msg;
@@ -523,7 +538,12 @@ void EasyPerceptionDeployment::process_tracking_callback(
 
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO(this->get_logger(), "[-FPS-]= %f\n", 1000.0 / elapsedTime.count());
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      2000,
+      "[-FPS-]= %f\n",
+      1000.0 / elapsedTime.count());
 
     output_msg.process_time = elapsedTime.count();
     tracking_pub->publish(output_msg);
@@ -656,7 +676,12 @@ void EasyPerceptionDeployment::process_image_callback(
 
   auto end = std::chrono::high_resolution_clock::now();
   auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-  RCLCPP_INFO(this->get_logger(), "[-FPS-]= %f\n", 1000.0 / elapsedTime.count());
+  RCLCPP_INFO_THROTTLE(
+    this->get_logger(),
+    *this->get_clock(),
+    2000,
+    "[-FPS-]= %f\n",
+    1000.0 / elapsedTime.count());
 }
 
 void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg) const

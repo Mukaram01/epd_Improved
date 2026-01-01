@@ -1,0 +1,22 @@
+# dependencies
+easy_perception_deployment/build/*
+easy_perception_deployment/log/*
+easy_perception_deployment/install/*
+easy_perception_deployment/gui/p2_trainer/
+easy_perception_deployment/gui/p3_trainer/
+easy_perception_deployment/gui/p2_exporter/
+easy_perception_deployment/gui/p3_exporter/
+epd_msgs/build/*
+epd_msgs/log/*
+epd_msgs/install/*
+easy_perception_deployment/gui/log/*.log
+
+# testing or other data
+*.mp4
+*.mkv
+*.pyc
+*.pth
+*.onnx
+easy_perception_deployment/data/usecase_config.txt
+easy_perception_deployment/data/session_config.txt
+easy_perception_deployment/data/datasets/custom_dataset

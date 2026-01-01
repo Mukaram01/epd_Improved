@@ -152,41 +152,53 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   localize_cam_info(this, "/camera/color/camera_info"),
   sync_(SyncPolicy(10), localize_image_rgb, localize_image_depth, localize_cam_info)
 {
+  rclcpp::SubscriptionOptions subscription_options;
+  subscription_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+  rclcpp::PublisherOptions publisher_options;
+  publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+
   // Creating Subscriber to get Input Image.
   image_sub = this->create_subscription<sensor_msgs::msg::Image>(
     "/easy_perception_deployment/image_input",
     rclcpp::SensorDataQoS(),
-    std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1));
+    std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
+    subscription_options);
 
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
   visual_pub = this->create_publisher<sensor_msgs::msg::Image>(
     "/easy_perception_deployment/image_output",
-    10);
+    10,
+    publisher_options);
 
   // Creating Publisher to output Action P1 Detection Results.
   p1_pub = this->create_publisher<epd_msgs::msg::EPDImageClassification>(
     "/easy_perception_deployment/epd_p1_output",
-    10);
+    10,
+    publisher_options);
 
   // Creating Publisher to output Action P2 Detection Results.
   p2_pub = this->create_publisher<epd_msgs::msg::EPDObjectDetection>(
     "/easy_perception_deployment/epd_p2_output",
-    10);
+    10,
+    publisher_options);
 
   // Creating Publisher to output Action P3 Detection Results.
   p3_pub = this->create_publisher<epd_msgs::msg::EPDObjectDetection>(
     "/easy_perception_deployment/epd_p3_output",
-    10);
+    10,
+    publisher_options);
 
   // Creating Publisher to output Action P3 and Localization Detection Results.
   localize_pub = this->create_publisher<epd_msgs::msg::EPDObjectLocalization>(
     "/easy_perception_deployment/epd_localize_output",
-    10);
+    10,
+    publisher_options);
 
   // Creating Publisher to output Action P3 and Tracking Detection Results.
   tracking_pub = this->create_publisher<epd_msgs::msg::EPDObjectTracking>(
     "/easy_perception_deployment/epd_tracking_output",
-    10);
+    10,
+    publisher_options);
 
   // If useCaseMode is detected to be Localization or Tracking,
   // Subscribe to all synchronized ROS2 topics.
@@ -218,13 +230,25 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   const std::string depth_topic = this->get_parameter("depth_topic").as_string();
   const std::string camera_info_topic = this->get_parameter("camera_info_topic").as_string();
 
-  localize_image_rgb = message_filters::Subscriber<sensor_msgs::msg::Image>(this, rgb_topic);
-  localize_image_depth = message_filters::Subscriber<sensor_msgs::msg::Image>(this, depth_topic);
+  localize_image_rgb = message_filters::Subscriber<sensor_msgs::msg::Image>(
+    this,
+    rgb_topic,
+    rclcpp::SensorDataQoS(),
+    subscription_options);
+  localize_image_depth = message_filters::Subscriber<sensor_msgs::msg::Image>(
+    this,
+    depth_topic,
+    rclcpp::SensorDataQoS(),
+    subscription_options);
   localize_cam_info =
-    message_filters::Subscriber<sensor_msgs::msg::CameraInfo>(this, camera_info_topic);
+    message_filters::Subscriber<sensor_msgs::msg::CameraInfo>(
+    this,
+    camera_info_topic,
+    rclcpp::SensorDataQoS(),
+    subscription_options);
 
   auto handle_emd_request =
-    [this](
+    [this, subscription_options](
     const std::shared_ptr<epd_msgs::srv::Perception::Request> request,
     std::shared_ptr<epd_msgs::srv::Perception::Response> response) -> void
     {
@@ -248,7 +272,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         image_sub = this->create_subscription<sensor_msgs::msg::Image>(
           "/easy_perception_deployment/image_input",
           rclcpp::SensorDataQoS(),
-          std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1));
+          std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
+          subscription_options);
       }
 
       ortAgent_.requestAddressed = false;

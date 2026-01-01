@@ -18,7 +18,7 @@ import json
 import subprocess
 import logging
 
-from PySide2.QtCore import QSize
+from PySide2.QtCore import QSize, QTimer
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QComboBox, QFileDialog, QLabel, QTextEdit
 from PySide2.QtWidgets import QMessageBox, QPushButton, QWidget
@@ -60,6 +60,8 @@ class DeployWindow(QWidget):
 
         self._deploy_process = None
         self._kill_process = None
+        self._deploy_timer = None
+        self._kill_timer = None
 
         self.visualizeFlag = True
 
@@ -278,6 +280,13 @@ class DeployWindow(QWidget):
                                     self._DEPLOY_WIN_W,
                                     self._DEPLOY_WIN_H/4)
 
+        self.status_label = QLabel('Stopped', self)
+        self.status_label.setGeometry(
+            10,
+            self._DEPLOY_WIN_H * 3/4 - 30,
+            self._DEPLOY_WIN_W - 20,
+            20)
+
         self.visualize_button.clicked.connect(self.setVisualizeFlag)
         self.docker_button.clicked.connect(self.setDockerFlag)
         self.model_button.clicked.connect(self.setModel)
@@ -296,22 +305,79 @@ class DeployWindow(QWidget):
         processes remotely.
         '''
         if not self._is_running:
-            self._deploy_process = subprocess.Popen(['./scripts/deploy.sh',
-                                                     str(self.useCPU),
-                                                     str(self.visualizeFlag)])
+            self._deploy_process, self._deploy_timer = self._start_process(
+                ['./scripts/deploy.sh',
+                 str(self.useCPU),
+                 str(self.visualizeFlag)],
+                'deploy')
             self.run_button.setText('Stop')
             self.run_button.setIcon(QIcon('img/quit.png'))
             self.run_button.setIconSize(QSize(100, 100))
             self.run_button.updateGeometry()
             self._is_running = True
+            self.status_label.setText('Running...')
         else:
             self.deploy_logger.info("Killing epd_test_container docker.")
-            self._kill_process = subprocess.Popen(['./scripts/kill.sh'])
+            self._kill_process, self._kill_timer = self._start_process(
+                ['./scripts/kill.sh'],
+                'kill')
             self.run_button.setText('Run')
             self.run_button.setIcon(QIcon('img/go.png'))
             self.run_button.setIconSize(QSize(100, 100))
             self.run_button.updateGeometry()
             self._is_running = False
+            self.status_label.setText('Stopped')
+
+    def _start_process(self, args, process_type):
+        process = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True)
+        timer = QTimer(self)
+        timer.setInterval(200)
+        timer.timeout.connect(
+            lambda: self._check_process(process, timer, process_type))
+        timer.start()
+        return process, timer
+
+    def _check_process(self, process, timer, process_type):
+        if process.poll() is None:
+            return
+
+        timer.stop()
+        stdout, stderr = process.communicate()
+        if process.returncode != 0:
+            self._handle_process_error(process_type, stdout, stderr)
+            return
+
+        if process_type == 'kill':
+            self.status_label.setText('Stopped')
+        elif process_type == 'deploy':
+            self.status_label.setText('Running...')
+
+    def _handle_process_error(self, process_type, stdout, stderr):
+        self.run_button.setText('Run')
+        self.run_button.setIcon(QIcon('img/go.png'))
+        self.run_button.setIconSize(QSize(100, 100))
+        self.run_button.updateGeometry()
+        self._is_running = False
+        self.status_label.setText('Error')
+
+        stdout_text = stdout.strip()
+        stderr_text = stderr.strip()
+        message_lines = [
+            f"{process_type.capitalize()} failed.",
+            "",
+            "stdout:",
+            stdout_text if stdout_text else "(empty)",
+            "",
+            "stderr:",
+            stderr_text if stderr_text else "(empty)"
+        ]
+        msgBox = QMessageBox()
+        msgBox.setText('\n'.join(message_lines))
+        msgBox.exec()
 
     def setImageInput(self):
         '''

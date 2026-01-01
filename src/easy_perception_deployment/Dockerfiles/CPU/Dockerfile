@@ -1,4 +1,4 @@
-FROM ros:foxy-ros-base-focal
+FROM ros:humble-ros-base-jammy
 
 MAINTAINER Bey Hao Yun <beyhy@artc.a-star.edu.sg>
 ENV DEBIAN_FRONTEND noninteractive
@@ -30,13 +30,13 @@ RUN git clone https://github.com/Microsoft/onnxruntime . \
     make install -C ./build/Linux/"${BUILDTYPE}" && \
     rm -rf ./*
 
-# Install wget, OpenCV, libboost-dev, ros-foxy-cv-bridge, ros-foxy-pcl-conversions
+# Install wget, OpenCV, libboost-dev, ros-humble-cv-bridge, ros-humble-pcl-conversions
 RUN apt-get update && \
     apt-get install -y wget && \
     apt-get install -y libopencv-dev && \
     apt-get install -y libboost-dev && \
-    apt-get install -y ros-foxy-cv-bridge && \
-    apt-get install -y ros-foxy-pcl-conversions && \
+    apt-get install -y ros-humble-cv-bridge && \
+    apt-get install -y ros-humble-pcl-conversions && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /

@@ -17,6 +17,15 @@ while [ "$workspace_search_path" != "/" ]; do
   workspace_search_path="$(dirname "$workspace_search_path")"
 done
 
+WORKSPACE_ROOT="$(cd "$SCRIPTPATH/../../../../.." >/dev/null 2>&1 ; pwd -P)"
+WORKSPACE_SRC="${WORKSPACE_ROOT}/src"
+VENDOR_DIR="${WORKSPACE_SRC}/epd_onnxruntime_vendor"
+if [ ! -d "$VENDOR_DIR" ]; then
+  echo "Missing epd_onnxruntime_vendor at ${VENDOR_DIR}."
+  echo "Please ensure epd_onnxruntime_vendor exists in ${WORKSPACE_SRC}."
+  exit 1
+fi
+
 # Source ROS distro
 ROS_DISTRO="${ROS_DISTRO:-humble}"
 if [ ! -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]; then
@@ -28,6 +37,7 @@ echo $msg1
 source /opt/ros/${ROS_DISTRO}/setup.bash
 
 echo $msg2
+# Build the workspace so vendor packages are available.
 if [ -z "$WORKSPACE_ROOT" ]; then
   echo "Unable to locate epd_ros2_ws workspace root from ${SCRIPTPATH}."
   exit 1

@@ -36,14 +36,13 @@ find_package(pcl_conversions REQUIRED)
 find_package(tf2 REQUIRED)
 
 # JsonCPP libraries via pkg-config
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+find_package(jsoncpp_vendor REQUIRED)
+find_package(jsoncpp REQUIRED)
 
 # Include paths
 include_directories(
   include
   ${PCL_INCLUDE_DIRS}
-  ${JSONCPP_INCLUDE_DIRS}
 )
 
 # Add all custom library headers for compilation.
@@ -173,8 +172,8 @@ if(BUILD_TESTING)
   # Helper to apply common link deps to tests
   macro(epd_configure_test tgt)
     ament_target_dependencies(${tgt} ${EPD_COMMON_DEPS})
-    target_include_directories(${tgt} PRIVATE ${JSONCPP_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
-    target_link_libraries(${tgt} ${JSONCPP_LIBRARIES} ${PCL_LIBRARIES})
+    target_include_directories(${tgt} PRIVATE ${PCL_INCLUDE_DIRS})
+    target_link_libraries(${tgt} jsoncpp::jsoncpp ${PCL_LIBRARIES})
   endmacro()
 
   ament_add_gtest(epd_test_init test/test_init.cpp ${EPD_UTILS})
@@ -226,8 +225,8 @@ if(BUILD_TESTING)
     pcl_conversions
     tf2
   )
-  target_include_directories(epd_test_easy_perception_deployment PRIVATE ${JSONCPP_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
-  target_link_libraries(epd_test_easy_perception_deployment ${PCL_LIBRARIES} ${JSONCPP_LIBRARIES})
+  target_include_directories(epd_test_easy_perception_deployment PRIVATE ${PCL_INCLUDE_DIRS})
+  target_link_libraries(epd_test_easy_perception_deployment ${PCL_LIBRARIES} jsoncpp::jsoncpp)
 
 endif()
 
@@ -251,8 +250,8 @@ ament_target_dependencies(
   tf2
 )
 
-target_include_directories(easy_perception_deployment PRIVATE ${JSONCPP_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
-target_link_libraries(easy_perception_deployment ${PCL_LIBRARIES} ${JSONCPP_LIBRARIES})
+target_include_directories(easy_perception_deployment PRIVATE ${PCL_INCLUDE_DIRS})
+target_link_libraries(easy_perception_deployment ${PCL_LIBRARIES} jsoncpp::jsoncpp)
 
 install(TARGETS
   easy_perception_deployment

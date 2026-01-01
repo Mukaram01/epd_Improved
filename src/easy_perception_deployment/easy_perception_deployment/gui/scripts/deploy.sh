@@ -108,18 +108,22 @@ elif [[ $input == "n" ]]; then
   launch_script="/root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/launch.sh"
 fi
 
+docker_tty=()
+if [ -t 0 ]; then
+  docker_tty=(-t)
+fi
 container_workspace="/root/epd_ros2_ws"
 vendor_path="${container_workspace}/src/epd_onnxruntime_vendor"
 container_cmd="if [ ! -d \"${vendor_path}\" ]; then echo \"ERROR: Missing ${vendor_path}. Ensure the workspace is mounted to ${container_workspace} and includes epd_onnxruntime_vendor.\" >&2; exit 1; fi; exec ${launch_script}"
 
 if [ "$useCPU" = True ] ; then
-  sudo docker run -it --rm \
+  sudo docker run -i "${docker_tty[@]}" --rm \
   --name epd_test_container \
   -v "${WORKSPACE_ROOT}:${container_workspace}" \
   cardboardcode/epd-humble-base:CPU \
   bash -lc "${container_cmd}"
 else
-  sudo docker run -it --rm \
+  sudo docker run -i "${docker_tty[@]}" --rm \
   --name epd_test_container \
   -v "${WORKSPACE_ROOT}:${container_workspace}" \
   --gpus all \

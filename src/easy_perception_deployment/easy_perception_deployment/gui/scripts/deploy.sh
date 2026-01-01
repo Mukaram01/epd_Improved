@@ -88,6 +88,14 @@ if [ "$showImage" = True ] ; then
   # Source local ROS2 distro
   source /opt/ros/${ROS_DISTRO}/setup.bash
 
+  ros_setup="/opt/ros/$ros_distro/setup.bash"
+  if [ ! -f "$ros_setup" ]; then
+    echo "ROS 2 setup file not found: $ros_setup" >&2
+    exit 1
+  fi
+
+  source "$ros_setup"
+
   ros2 run image_tools showimage --ros-args --remap /image:=/easy_perception_deployment/output > /dev/null 2>&1 &
 fi
 

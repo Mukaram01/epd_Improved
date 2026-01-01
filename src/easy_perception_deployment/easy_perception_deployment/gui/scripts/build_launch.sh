@@ -7,6 +7,15 @@ msg3="Deploying package."
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 
+WORKSPACE_ROOT="$(cd "$SCRIPTPATH/../../../../.." >/dev/null 2>&1 ; pwd -P)"
+WORKSPACE_SRC="${WORKSPACE_ROOT}/src"
+VENDOR_DIR="${WORKSPACE_SRC}/epd_onnxruntime_vendor"
+if [ ! -d "$VENDOR_DIR" ]; then
+  echo "Missing epd_onnxruntime_vendor at ${VENDOR_DIR}."
+  echo "Please ensure epd_onnxruntime_vendor exists in ${WORKSPACE_SRC}."
+  exit 1
+fi
+
 # Source ROS distro
 ROS_DISTRO="${ROS_DISTRO:-humble}"
 if [ ! -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]; then
@@ -18,26 +27,13 @@ echo $msg1
 source /opt/ros/${ROS_DISTRO}/setup.bash
 
 echo $msg2
-# Check if the current easy_perception workspace has been built or not.
-# If true, run selective colcon build.
-# Otherwise, pass
-cd ../../
-echo "Building epd_msgs package"
-# Source the epd_msgs workspace
-cd ../epd_msgs
+# Build the workspace so vendor packages are available.
+cd "$WORKSPACE_ROOT"
 if [ -d "build" ] || [ -d "install" ] || [ -d "log" ] ; then
   rm -r build install log
 fi
 colcon build
-source install/setup.bash
-
-# Source the main workspace
-cd ../easy_perception_deployment
-if [ -d "build" ] || [ -d "install" ] || [ -d "log" ] ; then
-  rm -r build install log
-fi
-colcon build
-source install/setup.bash
+source "${WORKSPACE_ROOT}/install/setup.bash"
 
 
 # Launch easy_perception_deployment.

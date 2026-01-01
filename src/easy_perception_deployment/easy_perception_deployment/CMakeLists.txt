@@ -38,7 +38,9 @@ find_package(tf2 REQUIRED)
 
 # JsonCPP libraries via pkg-config
 find_package(jsoncpp_vendor REQUIRED)
-find_package(jsoncpp REQUIRED)
+if(NOT TARGET JsonCpp::JsonCpp AND NOT TARGET jsoncpp::jsoncpp)
+  find_package(jsoncpp REQUIRED)
+endif()
 
 # Include paths
 include_directories(

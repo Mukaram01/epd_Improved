@@ -57,19 +57,70 @@ set(EPD_UTILS
 # -----------------------------
 # Model downloads
 # -----------------------------
-if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/data/model/MaskRCNN-10.onnx")
-  message(AUTHOR_WARNING "Pretrained models are downloaded.")
-else()
-  message(AUTHOR_WARNING "Downloading pretrained ONNX model from ONNX Model Zoo.")
-  file(DOWNLOAD
-    https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx
-    ${CMAKE_CURRENT_LIST_DIR}/data/model/squeezenet1.1-7.onnx)
-  file(DOWNLOAD
-    https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx
-    ${CMAKE_CURRENT_LIST_DIR}/data/model/FasterRCNN-10.onnx)
-  file(DOWNLOAD
-    https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx
-    ${CMAKE_CURRENT_LIST_DIR}/data/model/MaskRCNN-10.onnx)
+option(EPD_DOWNLOAD_MODELS "Download pretrained ONNX models at configure time" ON)
+
+set(EPD_MODEL_DIR "${CMAKE_CURRENT_LIST_DIR}/data/model")
+set(EPD_MODEL_SQUEEZENET "${EPD_MODEL_DIR}/squeezenet1.1-7.onnx")
+set(EPD_MODEL_FASTER_RCNN "${EPD_MODEL_DIR}/FasterRCNN-10.onnx")
+set(EPD_MODEL_MASK_RCNN "${EPD_MODEL_DIR}/MaskRCNN-10.onnx")
+
+set(EPD_MODEL_SQUEEZENET_URL "https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx")
+set(EPD_MODEL_FASTER_RCNN_URL "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx")
+set(EPD_MODEL_MASK_RCNN_URL "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx")
+
+set(EPD_MODEL_SQUEEZENET_SHA256 "1eeff551a67ae8d565ca33b572fc4b66e3ef357b0eb2863bb9ff47a918cc4088")
+set(EPD_MODEL_FASTER_RCNN_SHA256 "dfb81423efbea52e45df242ade64cfca0ba05fae78e00cf0c68a0979987f87eb")
+set(EPD_MODEL_MASK_RCNN_SHA256 "a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757")
+
+set(EPD_MISSING_MODELS "")
+
+function(epd_verify_model model_path expected_hash)
+  if(EXISTS "${model_path}")
+    file(SHA256 "${model_path}" model_hash)
+    if(NOT model_hash STREQUAL expected_hash)
+      message(FATAL_ERROR
+        "Model checksum mismatch for ${model_path}\n"
+        "Expected SHA256: ${expected_hash}\n"
+        "Actual SHA256:   ${model_hash}\n"
+        "Delete the file and re-download to continue.")
+    endif()
+  endif()
+endfunction()
+
+foreach(model_spec
+    "${EPD_MODEL_SQUEEZENET}|${EPD_MODEL_SQUEEZENET_URL}|${EPD_MODEL_SQUEEZENET_SHA256}"
+    "${EPD_MODEL_FASTER_RCNN}|${EPD_MODEL_FASTER_RCNN_URL}|${EPD_MODEL_FASTER_RCNN_SHA256}"
+    "${EPD_MODEL_MASK_RCNN}|${EPD_MODEL_MASK_RCNN_URL}|${EPD_MODEL_MASK_RCNN_SHA256}")
+  string(REPLACE "|" ";" model_parts "${model_spec}")
+  list(GET model_parts 0 model_path)
+  list(GET model_parts 1 model_url)
+  list(GET model_parts 2 model_hash)
+
+  if(EXISTS "${model_path}")
+    epd_verify_model("${model_path}" "${model_hash}")
+  else()
+    if(EPD_DOWNLOAD_MODELS)
+      message(STATUS "Downloading pretrained ONNX model: ${model_url}")
+      file(DOWNLOAD
+        "${model_url}"
+        "${model_path}"
+        EXPECTED_HASH "SHA256=${model_hash}")
+    else()
+      list(APPEND EPD_MISSING_MODELS "${model_path}")
+    endif()
+  endif()
+endforeach()
+
+if(EPD_MISSING_MODELS)
+  string(JOIN "\n  - " EPD_MISSING_MODELS_TEXT ${EPD_MISSING_MODELS})
+  message(FATAL_ERROR
+    "Missing pretrained ONNX models and EPD_DOWNLOAD_MODELS is OFF.\n"
+    "Expected files:\n  - ${EPD_MISSING_MODELS_TEXT}\n"
+    "To pre-download models, run the following commands from the repository root:\n"
+    "  mkdir -p ${EPD_MODEL_DIR}\n"
+    "  curl -L \"${EPD_MODEL_SQUEEZENET_URL}\" -o \"${EPD_MODEL_SQUEEZENET}\"\n"
+    "  curl -L \"${EPD_MODEL_FASTER_RCNN_URL}\" -o \"${EPD_MODEL_FASTER_RCNN}\"\n"
+    "  curl -L \"${EPD_MODEL_MASK_RCNN_URL}\" -o \"${EPD_MODEL_MASK_RCNN}\"")
 endif()
 
 # -----------------------------
@@ -215,4 +266,3 @@ install(DIRECTORY
 )
 
 ament_package()
-

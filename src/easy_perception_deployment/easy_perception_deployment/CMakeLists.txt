@@ -36,10 +36,17 @@ find_package(pcl_conversions REQUIRED)
 # FIX: missing Quaternion header comes from tf2
 find_package(tf2 REQUIRED)
 
-# JsonCPP libraries via pkg-config
-find_package(jsoncpp_vendor REQUIRED)
-if(NOT TARGET JsonCpp::JsonCpp AND NOT TARGET jsoncpp::jsoncpp)
-  find_package(jsoncpp REQUIRED)
+# JsonCPP libraries - use system jsoncpp directly via pkg-config
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+
+# Create the jsoncpp::jsoncpp target that the code expects
+if(NOT TARGET jsoncpp::jsoncpp)
+  add_library(jsoncpp::jsoncpp INTERFACE IMPORTED)
+  set_target_properties(jsoncpp::jsoncpp PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${JSONCPP_INCLUDE_DIRS}"
+    INTERFACE_LINK_LIBRARIES "${JSONCPP_LIBRARIES}"
+  )
 endif()
 
 # Include paths

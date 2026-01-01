@@ -85,10 +85,7 @@ fi
 
 # Call ROS2 image_tool showimage.
 if [ "$showImage" = True ] ; then
-  # Source local ROS2 distro
-  source /opt/ros/${ROS_DISTRO}/setup.bash
-
-  ros_setup="/opt/ros/$ros_distro/setup.bash"
+  ros_setup="/opt/ros/${ROS_DISTRO}/setup.bash"
   if [ ! -f "$ros_setup" ]; then
     echo "ROS 2 setup file not found: $ros_setup" >&2
     exit 1

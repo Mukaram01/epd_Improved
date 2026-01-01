@@ -40,10 +40,8 @@ cd $HOME/epd_ros2_ws/
 source /opt/ros/humble/setup.bash
 rosdep install --from-paths src --ignore-src -y
 
-# jsoncpp_vendor is included in this repository under src/jsoncpp_vendor and
-# will be built as part of the workspace. If you are using a system-wide
-# install of jsoncpp_vendor, point CMake at the install prefix that contains
-# jsoncpp_vendorConfig.cmake (typically <prefix>/share/jsoncpp_vendor).
+# If jsoncpp_vendor is installed system-wide, point CMake at the install prefix
+# that contains jsoncpp_vendorConfig.cmake (typically <prefix>/share/jsoncpp_vendor).
 export CMAKE_PREFIX_PATH="<prefix>:$CMAKE_PREFIX_PATH"
 # Alternatively:
 # export jsoncpp_vendor_DIR="<prefix>/share/jsoncpp_vendor"

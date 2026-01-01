@@ -159,6 +159,7 @@ class DeployWindow(QWidget):
         self.setFixedSize(self._DEPLOY_WIN_W, self._DEPLOY_WIN_H)
 
         self.setButtons()
+        self.validateDeployInputs()
         self.printDeployConfig()
 
     def printDeployConfig(self):
@@ -278,6 +279,14 @@ class DeployWindow(QWidget):
                                     self._DEPLOY_WIN_W,
                                     self._DEPLOY_WIN_H/4)
 
+        self.validation_label = QLabel(self)
+        self.validation_label.setGeometry(
+            0,
+            self._DEPLOY_WIN_H * 11/16,
+            self._DEPLOY_WIN_W,
+            self._DEPLOY_WIN_H/16)
+        self.validation_label.setWordWrap(True)
+
         self.visualize_button.clicked.connect(self.setVisualizeFlag)
         self.docker_button.clicked.connect(self.setDockerFlag)
         self.model_button.clicked.connect(self.setModel)
@@ -328,6 +337,9 @@ class DeployWindow(QWidget):
 
         with open(self._path_to_input_image_json_file, 'w') as outfile:
             outfile.write(json_object)
+
+        self._input_image_topic = new_image_topic
+        self.validateDeployInputs()
 
     def doesFileExist(self, input_filepath):
         ''' A Getter function that checks if a given file exists.'''
@@ -476,6 +488,7 @@ class DeployWindow(QWidget):
         self.model_button.setStyleSheet(
             'background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
+        self.validateDeployInputs()
 
     def setLabelList(self):
         '''A function is triggered by the button labelled, Label List.'''
@@ -501,3 +514,42 @@ class DeployWindow(QWidget):
 
         self.list_button.setStyleSheet('background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
+        self.validateDeployInputs()
+
+    def resolveFilePath(self, input_filepath):
+        '''Resolve a file path for validation.'''
+        if not input_filepath:
+            return ''
+        expanded_path = os.path.expandvars(os.path.expanduser(input_filepath))
+        return os.path.abspath(expanded_path)
+
+    def validateDeployInputs(self):
+        '''Validate inputs and update the Run button state.'''
+        if self._is_running:
+            self.run_button.setEnabled(True)
+            self.run_button.setToolTip('')
+            self.validation_label.setText('')
+            return
+
+        missing_items = []
+
+        model_path = self.resolveFilePath(self._path_to_model)
+        if not model_path or not os.path.isfile(model_path):
+            missing_items.append('ONNX model file')
+
+        label_list_path = self.resolveFilePath(self._path_to_label_list)
+        if not label_list_path or not os.path.isfile(label_list_path):
+            missing_items.append('label list file')
+
+        if not self._input_image_topic.strip():
+            missing_items.append('input image topic')
+
+        if missing_items:
+            message = 'Missing: ' + ', '.join(missing_items)
+            self.run_button.setEnabled(False)
+            self.run_button.setToolTip(message)
+            self.validation_label.setText(message)
+        else:
+            self.run_button.setEnabled(True)
+            self.run_button.setToolTip('')
+            self.validation_label.setText('')

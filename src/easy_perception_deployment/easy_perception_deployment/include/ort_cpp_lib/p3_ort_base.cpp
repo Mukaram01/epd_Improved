@@ -931,7 +931,7 @@ void P3OrtBase::tracking_evaluate(
         }
       }
       // Remove all trackers that are not updated.
-      for (size_t i = 0; i < tracker_results.size(); i++) {
+      for (size_t i = tracker_results.size(); i-- > 0;) {
         if (updatedTrackers[i] == false) {
           trackers.erase(trackers.begin() + i);
           tracker_results.erase(tracker_results.begin() + i);
@@ -1057,7 +1057,7 @@ void P3OrtBase::tracking_evaluate(
       }
 
       // Remove all trackers that are not updated.
-      for (size_t i = 0; i < tracker_results.size(); i++) {
+      for (size_t i = tracker_results.size(); i-- > 0;) {
         if (updatedTrackers[i] == false) {
           trackers.erase(trackers.begin() + i);
           tracker_results.erase(tracker_results.begin() + i);

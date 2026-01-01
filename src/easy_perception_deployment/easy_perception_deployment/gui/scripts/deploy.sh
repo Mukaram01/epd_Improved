@@ -78,14 +78,37 @@ fi
 # Call ROS2 image_tool showimage.
 if [ "$showImage" = True ] ; then
   # Source local ROS2 distro
-  is_bionic=$(cat /etc/issue.net | grep 20)
-
-  if [ -z "$is_bionic" ]
-  then
-      source /opt/ros/eloquent/setup.bash
+  if [ -n "$ROS_DISTRO" ]; then
+    ros_distro="$ROS_DISTRO"
   else
-      source /opt/ros/foxy/setup.bash
+    os_version=""
+    if [ -f /etc/os-release ]; then
+      os_version=$( . /etc/os-release && echo "$VERSION_ID" )
+    elif command -v lsb_release >/dev/null 2>&1; then
+      os_version=$(lsb_release -rs)
+    fi
+
+    case "$os_version" in
+      "22.04")
+        ros_distro="humble"
+        ;;
+      "20.04")
+        ros_distro="foxy"
+        ;;
+      *)
+        echo "Unsupported OS version '$os_version'. Set ROS_DISTRO to a supported ROS 2 distribution." >&2
+        exit 1
+        ;;
+    esac
   fi
+
+  ros_setup="/opt/ros/$ros_distro/setup.bash"
+  if [ ! -f "$ros_setup" ]; then
+    echo "ROS 2 setup file not found: $ros_setup" >&2
+    exit 1
+  fi
+
+  source "$ros_setup"
 
   ros2 run image_tools showimage --ros-args --remap /image:=/easy_perception_deployment/output > /dev/null 2>&1 &
 fi

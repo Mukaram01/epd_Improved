@@ -18,7 +18,7 @@ import json
 import subprocess
 import logging
 
-from PySide2.QtCore import QSize
+from PySide2.QtCore import QSize, QTimer
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QComboBox, QFileDialog, QLabel, QTextEdit
 from PySide2.QtWidgets import QMessageBox, QPushButton, QWidget
@@ -60,6 +60,8 @@ class DeployWindow(QWidget):
 
         self._deploy_process = None
         self._kill_process = None
+        self._deploy_timer = None
+        self._kill_timer = None
 
         self.visualizeFlag = True
 
@@ -203,10 +205,11 @@ class DeployWindow(QWidget):
         self.list_button = QPushButton('Label List', self)
         self.list_button.setIcon(QIcon('img/label_list.png'))
         self.list_button.setIconSize(QSize(75, 75))
-        self.list_button.setGeometry(self._DEPLOY_WIN_W/2,
-                                     0,
-                                     self._DEPLOY_WIN_W/2,
-                                     self._DEPLOY_WIN_H/4)
+        self.list_button.setGeometry(
+            self._DEPLOY_WIN_W/2,
+            0,
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4)
 
         index = self._path_to_label_list.find('data/label_list')
         if index == -1:
@@ -222,10 +225,11 @@ class DeployWindow(QWidget):
 
         # UseCase Config Dropdown to select usecase mode
         self.usecase_config_button = QComboBox(self)
-        self.usecase_config_button.setGeometry(self._DEPLOY_WIN_W/2,
-                                               self._DEPLOY_WIN_H/4,
-                                               self._DEPLOY_WIN_W/2,
-                                               self._DEPLOY_WIN_H/4)
+        self.usecase_config_button.setGeometry(
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4,
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4)
         for usecase in self.usecase_list:
             self.usecase_config_button.addItem(usecase)
 
@@ -237,10 +241,11 @@ class DeployWindow(QWidget):
                 'background-color: rgba(200,10,0,255);')
 
         self.visualize_button = QPushButton(self)
-        self.visualize_button.setGeometry(0,
-                                          self._DEPLOY_WIN_H/4,
-                                          self._DEPLOY_WIN_W/2,
-                                          self._DEPLOY_WIN_H/4)
+        self.visualize_button.setGeometry(
+            0,
+            self._DEPLOY_WIN_H/4,
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4)
         if self.visualizeFlag:
             self.visualize_button.setText('Visualize')
         else:
@@ -251,7 +256,7 @@ class DeployWindow(QWidget):
             0,
             self._DEPLOY_WIN_H * 2/4,
             self._DEPLOY_WIN_W * 3/8,
-            self._DEPLOY_WIN_H/8)
+            self._DEPLOY_WIN_H/16)
         self.register_topic_button.setText('Register Topic')
 
         self.topic_button = QTextEdit(self)
@@ -259,42 +264,49 @@ class DeployWindow(QWidget):
             self._DEPLOY_WIN_W * 3/8,
             self._DEPLOY_WIN_H * 2/4,
             self._DEPLOY_WIN_W * 5/8,
-            self._DEPLOY_WIN_H/8)
-        # Replace use of button with QTextEdit.
-        # Read the run.launch.py file.
-        # Read line 25 in the file and get the input image topic.
-        # Print out the input image topic below.
-
+            self._DEPLOY_WIN_H/16)
         self.topic_button.setText(self._input_image_topic)
 
         self.docker_button = QPushButton(self)
-        self.docker_button.setGeometry(0,
-                                       self._DEPLOY_WIN_H * 5/8,
-                                       self._DEPLOY_WIN_W,
-                                       self._DEPLOY_WIN_H/8)
+        self.docker_button.setGeometry(
+            0,
+            self._DEPLOY_WIN_H * 9/16,
+            self._DEPLOY_WIN_W,
+            self._DEPLOY_WIN_H/16)
         if self.useCPU is True:
             self.docker_button.setText('CPU')
         else:
             self.docker_button.setText('GPU')
+
+        # Validation label - shows validation messages
+        self.validation_label = QLabel(self)
+        self.validation_label.setGeometry(
+            0,
+            self._DEPLOY_WIN_H * 10/16,
+            self._DEPLOY_WIN_W,
+            self._DEPLOY_WIN_H/16)
+        self.validation_label.setWordWrap(True)
+
+        # Status label - shows run status (Stopped/Running)
+        self.status_label = QLabel('Stopped', self)
+        self.status_label.setGeometry(
+            10,
+            self._DEPLOY_WIN_H * 11/16,
+            self._DEPLOY_WIN_W - 20,
+            self._DEPLOY_WIN_H/16)
 
         # Run button to deploy ROS2 package with info
         # from usecase_config.json and session_config.json
         self.run_button = QPushButton('Run', self)
         self.run_button.setIcon(QIcon('img/go.png'))
         self.run_button.setIconSize(QSize(100, 100))
-        self.run_button.setGeometry(0,
-                                    self._DEPLOY_WIN_H * 3/4,
-                                    self._DEPLOY_WIN_W,
-                                    self._DEPLOY_WIN_H/4)
-
-        self.validation_label = QLabel(self)
-        self.validation_label.setGeometry(
+        self.run_button.setGeometry(
             0,
-            self._DEPLOY_WIN_H * 11/16,
+            self._DEPLOY_WIN_H * 3/4,
             self._DEPLOY_WIN_W,
-            self._DEPLOY_WIN_H/16)
-        self.validation_label.setWordWrap(True)
+            self._DEPLOY_WIN_H/4)
 
+        # Connect signals to slots
         self.visualize_button.clicked.connect(self.setVisualizeFlag)
         self.docker_button.clicked.connect(self.setDockerFlag)
         self.model_button.clicked.connect(self.setModel)
@@ -313,22 +325,79 @@ class DeployWindow(QWidget):
         processes remotely.
         '''
         if not self._is_running:
-            self._deploy_process = subprocess.Popen(['./scripts/deploy.sh',
-                                                     str(self.useCPU),
-                                                     str(self.visualizeFlag)])
+            self._deploy_process, self._deploy_timer = self._start_process(
+                ['./scripts/deploy.sh',
+                 str(self.useCPU),
+                 str(self.visualizeFlag)],
+                'deploy')
             self.run_button.setText('Stop')
             self.run_button.setIcon(QIcon('img/quit.png'))
             self.run_button.setIconSize(QSize(100, 100))
             self.run_button.updateGeometry()
             self._is_running = True
+            self.status_label.setText('Running...')
         else:
             self.deploy_logger.info("Killing epd_test_container docker.")
-            self._kill_process = subprocess.Popen(['./scripts/kill.sh'])
+            self._kill_process, self._kill_timer = self._start_process(
+                ['./scripts/kill.sh'],
+                'kill')
             self.run_button.setText('Run')
             self.run_button.setIcon(QIcon('img/go.png'))
             self.run_button.setIconSize(QSize(100, 100))
             self.run_button.updateGeometry()
             self._is_running = False
+            self.status_label.setText('Stopped')
+
+    def _start_process(self, args, process_type):
+        process = subprocess.Popen(
+            args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True)
+        timer = QTimer(self)
+        timer.setInterval(200)
+        timer.timeout.connect(
+            lambda: self._check_process(process, timer, process_type))
+        timer.start()
+        return process, timer
+
+    def _check_process(self, process, timer, process_type):
+        if process.poll() is None:
+            return
+
+        timer.stop()
+        stdout, stderr = process.communicate()
+        if process.returncode != 0:
+            self._handle_process_error(process_type, stdout, stderr)
+            return
+
+        if process_type == 'kill':
+            self.status_label.setText('Stopped')
+        elif process_type == 'deploy':
+            self.status_label.setText('Running...')
+
+    def _handle_process_error(self, process_type, stdout, stderr):
+        self.run_button.setText('Run')
+        self.run_button.setIcon(QIcon('img/go.png'))
+        self.run_button.setIconSize(QSize(100, 100))
+        self.run_button.updateGeometry()
+        self._is_running = False
+        self.status_label.setText('Error')
+
+        stdout_text = stdout.strip()
+        stderr_text = stderr.strip()
+        message_lines = [
+            f"{process_type.capitalize()} failed.",
+            "",
+            "stdout:",
+            stdout_text if stdout_text else "(empty)",
+            "",
+            "stderr:",
+            stderr_text if stderr_text else "(empty)"
+        ]
+        msgBox = QMessageBox()
+        msgBox.setText('\n'.join(message_lines))
+        msgBox.exec()
 
     def setImageInput(self):
         '''

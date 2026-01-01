@@ -210,6 +210,18 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 
   // FIX: Humble requires declare_parameter<T>(name, default)
   this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
+  this->declare_parameter<std::string>("rgb_topic", "/camera/color/image_raw");
+  this->declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
+  this->declare_parameter<std::string>("camera_info_topic", "/camera/color/camera_info");
+
+  const std::string rgb_topic = this->get_parameter("rgb_topic").as_string();
+  const std::string depth_topic = this->get_parameter("depth_topic").as_string();
+  const std::string camera_info_topic = this->get_parameter("camera_info_topic").as_string();
+
+  localize_image_rgb = message_filters::Subscriber<sensor_msgs::msg::Image>(this, rgb_topic);
+  localize_image_depth = message_filters::Subscriber<sensor_msgs::msg::Image>(this, depth_topic);
+  localize_cam_info =
+    message_filters::Subscriber<sensor_msgs::msg::CameraInfo>(this, camera_info_topic);
 
   auto handle_emd_request =
     [this](
@@ -269,12 +281,15 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       break;
     case EPD::LOCALISATION_MODE:
       RCLCPP_INFO(this->get_logger(), "[-Use Case-] - EPD::LOCALISATION_MODE");
-      RCLCPP_INFO(this->get_logger(), "[- Input RGB Image Topic -] - /camera/color/image_raw");
+      RCLCPP_INFO(this->get_logger(), "[- Input RGB Image Topic -] - %s", rgb_topic.c_str());
       RCLCPP_INFO(
         this->get_logger(),
-        "[- Input Depth Image Topic -] - "
-        "/camera/aligned_depth_to_color/image_raw");
-      RCLCPP_INFO(this->get_logger(), "[- Camera Info Topic -] - /camera/color/camera_info");
+        "[- Input Depth Image Topic -] - %s",
+        depth_topic.c_str());
+      RCLCPP_INFO(
+        this->get_logger(),
+        "[- Camera Info Topic -] - %s",
+        camera_info_topic.c_str());
       break;
     case EPD::TRACKING_MODE:
       RCLCPP_INFO(this->get_logger(), "[-Use Case-] - EPD::TRACKING_MODE");

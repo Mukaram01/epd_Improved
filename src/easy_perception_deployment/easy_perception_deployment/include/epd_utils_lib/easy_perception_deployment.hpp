@@ -335,11 +335,20 @@ void EasyPerceptionDeployment::process_localize_callback(
     return;
   }
 
-  std::shared_ptr<cv_bridge::CvImage> imgptr = cv_bridge::toCvCopy(msg, "bgr8");
+  cv_bridge::CvImageConstPtr imgptr;
+  if (msg->encoding == sensor_msgs::image_encodings::BGR8) {
+    imgptr = cv_bridge::toCvShare(msg);
+  } else {
+    imgptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+  }
   cv::Mat img = imgptr->image;
 
-  std::shared_ptr<cv_bridge::CvImage> depth_imageptr =
-    cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+  cv_bridge::CvImageConstPtr depth_imageptr;
+  if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
+    depth_imageptr = cv_bridge::toCvShare(depth_msg);
+  } else {
+    depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+  }
   cv::Mat depth_img = depth_imageptr->image;
 
   checkOrtAgentIsInitialized(img.rows, img.cols);
@@ -448,11 +457,20 @@ void EasyPerceptionDeployment::process_tracking_callback(
     return;
   }
 
-  std::shared_ptr<cv_bridge::CvImage> imgptr = cv_bridge::toCvCopy(msg, "bgr8");
+  cv_bridge::CvImageConstPtr imgptr;
+  if (msg->encoding == sensor_msgs::image_encodings::BGR8) {
+    imgptr = cv_bridge::toCvShare(msg);
+  } else {
+    imgptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+  }
   cv::Mat img = imgptr->image;
 
-  std::shared_ptr<cv_bridge::CvImage> depth_imageptr =
-    cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+  cv_bridge::CvImageConstPtr depth_imageptr;
+  if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
+    depth_imageptr = cv_bridge::toCvShare(depth_msg);
+  } else {
+    depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+  }
   cv::Mat depth_img = depth_imageptr->image;
 
   checkOrtAgentIsInitialized(img.rows, img.cols);
@@ -550,7 +568,12 @@ void EasyPerceptionDeployment::process_image_callback(
     return;
   }
 
-  std::shared_ptr<cv_bridge::CvImage> imgptr = cv_bridge::toCvCopy(msg, "bgr8");
+  cv_bridge::CvImageConstPtr imgptr;
+  if (msg->encoding == sensor_msgs::image_encodings::BGR8) {
+    imgptr = cv_bridge::toCvShare(msg);
+  } else {
+    imgptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+  }
   cv::Mat img = imgptr->image;
 
   checkOrtAgentIsInitialized(img.rows, img.cols);

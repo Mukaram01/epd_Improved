@@ -897,6 +897,8 @@ void P3OrtBase::tracking_evaluate(
 	}
 
 
+    constexpr float kIouMatchThreshold = 0.5f;
+
     if (tracker_results.size() > bboxes.size()) {
       // Remove tracked objects that have been removed out of frame.
       // Scan through all detection results.
@@ -920,7 +922,7 @@ void P3OrtBase::tracking_evaluate(
           // If detection results boxes has more than 0.5 intersection over union
           // (IoU), update tracker results boxes with detection results boxes.
           float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > 0.5 && iouScore > trackerIOUScore[j]) {
+          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
             tracked_box = detected_box;
             trackerIOUScore[j] = iouScore;
             updatedTrackers[j] = true;
@@ -963,7 +965,7 @@ void P3OrtBase::tracking_evaluate(
           // If detection results boxes has more than 0.5 intersection over union
           // (IoU), update tracker results boxes with detection results boxes.
           float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > 0.5 && iouScore > trackerIOUScore[j]) {
+          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
             tracked_box = detected_box;
             trackerIOUScore[j] = iouScore;
             isNewDetection = false;
@@ -1018,7 +1020,7 @@ void P3OrtBase::tracking_evaluate(
           // If detection results boxes has more than 0.5 intersection over union
           // (IoU), update tracker results boxes with detection results boxes.
           float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > 0.5 && iouScore > trackerIOUScore[j]) {
+          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
             tracked_box = detected_box;
             isNewDetection = false;
             updatedTrackers[j] = true;
@@ -1069,7 +1071,11 @@ void P3OrtBase::tracking_evaluate(
 double P3OrtBase::getIOU(cv::Rect2d detected_box, cv::Rect2d tracked_box) const
 {
   cv::Rect2d intersection = detected_box & tracked_box;
-  return intersection.area();
+  const double union_area = detected_box.area() + tracked_box.area() - intersection.area();
+  if (union_area <= 0.0) {
+    return 0.0;
+  }
+  return intersection.area() / union_area;
 }
 
 void P3OrtBase::create_tracker_tag(std::vector<int> & tracker_logs)

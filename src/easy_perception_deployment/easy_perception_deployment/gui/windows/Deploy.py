@@ -161,6 +161,7 @@ class DeployWindow(QWidget):
         self.setFixedSize(self._DEPLOY_WIN_W, self._DEPLOY_WIN_H)
 
         self.setButtons()
+        self.validateDeployInputs()
         self.printDeployConfig()
 
     def printDeployConfig(self):
@@ -188,7 +189,11 @@ class DeployWindow(QWidget):
             self._DEPLOY_WIN_H/4)
 
         index = self._path_to_model.find('data/model')
-        if self.doesFileExist('../' + self._path_to_model[index:]):
+        if index == -1:
+            model_path = self._path_to_model
+        else:
+            model_path = '../' + self._path_to_model[index:]
+        if self.doesFileExist(model_path):
             self.model_button.setStyleSheet(
                 'background-color: rgba(0,150,10,255);')
         else:
@@ -200,13 +205,18 @@ class DeployWindow(QWidget):
         self.list_button = QPushButton('Label List', self)
         self.list_button.setIcon(QIcon('img/label_list.png'))
         self.list_button.setIconSize(QSize(75, 75))
-        self.list_button.setGeometry(self._DEPLOY_WIN_W/2,
-                                     0,
-                                     self._DEPLOY_WIN_W/2,
-                                     self._DEPLOY_WIN_H/4)
+        self.list_button.setGeometry(
+            self._DEPLOY_WIN_W/2,
+            0,
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4)
 
         index = self._path_to_label_list.find('data/label_list')
-        if self.doesFileExist('../' + self._path_to_label_list[index:]):
+        if index == -1:
+            label_list_path = self._path_to_label_list
+        else:
+            label_list_path = '../' + self._path_to_label_list[index:]
+        if self.doesFileExist(label_list_path):
             self.list_button.setStyleSheet(
                 'background-color: rgba(0,150,10,255);')
         else:
@@ -215,10 +225,11 @@ class DeployWindow(QWidget):
 
         # UseCase Config Dropdown to select usecase mode
         self.usecase_config_button = QComboBox(self)
-        self.usecase_config_button.setGeometry(self._DEPLOY_WIN_W/2,
-                                               self._DEPLOY_WIN_H/4,
-                                               self._DEPLOY_WIN_W/2,
-                                               self._DEPLOY_WIN_H/4)
+        self.usecase_config_button.setGeometry(
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4,
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4)
         for usecase in self.usecase_list:
             self.usecase_config_button.addItem(usecase)
 
@@ -230,10 +241,11 @@ class DeployWindow(QWidget):
                 'background-color: rgba(200,10,0,255);')
 
         self.visualize_button = QPushButton(self)
-        self.visualize_button.setGeometry(0,
-                                          self._DEPLOY_WIN_H/4,
-                                          self._DEPLOY_WIN_W/2,
-                                          self._DEPLOY_WIN_H/4)
+        self.visualize_button.setGeometry(
+            0,
+            self._DEPLOY_WIN_H/4,
+            self._DEPLOY_WIN_W/2,
+            self._DEPLOY_WIN_H/4)
         if self.visualizeFlag:
             self.visualize_button.setText('Visualize')
         else:
@@ -244,7 +256,7 @@ class DeployWindow(QWidget):
             0,
             self._DEPLOY_WIN_H * 2/4,
             self._DEPLOY_WIN_W * 3/8,
-            self._DEPLOY_WIN_H/8)
+            self._DEPLOY_WIN_H/16)
         self.register_topic_button.setText('Register Topic')
 
         self.topic_button = QTextEdit(self)
@@ -252,41 +264,49 @@ class DeployWindow(QWidget):
             self._DEPLOY_WIN_W * 3/8,
             self._DEPLOY_WIN_H * 2/4,
             self._DEPLOY_WIN_W * 5/8,
-            self._DEPLOY_WIN_H/8)
-        # Replace use of button with QTextEdit.
-        # Read the run.launch.py file.
-        # Read line 25 in the file and get the input image topic.
-        # Print out the input image topic below.
-
+            self._DEPLOY_WIN_H/16)
         self.topic_button.setText(self._input_image_topic)
 
         self.docker_button = QPushButton(self)
-        self.docker_button.setGeometry(0,
-                                       self._DEPLOY_WIN_H * 5/8,
-                                       self._DEPLOY_WIN_W,
-                                       self._DEPLOY_WIN_H/8)
+        self.docker_button.setGeometry(
+            0,
+            self._DEPLOY_WIN_H * 9/16,
+            self._DEPLOY_WIN_W,
+            self._DEPLOY_WIN_H/16)
         if self.useCPU is True:
             self.docker_button.setText('CPU')
         else:
             self.docker_button.setText('GPU')
+
+        # Validation label - shows validation messages
+        self.validation_label = QLabel(self)
+        self.validation_label.setGeometry(
+            0,
+            self._DEPLOY_WIN_H * 10/16,
+            self._DEPLOY_WIN_W,
+            self._DEPLOY_WIN_H/16)
+        self.validation_label.setWordWrap(True)
+
+        # Status label - shows run status (Stopped/Running)
+        self.status_label = QLabel('Stopped', self)
+        self.status_label.setGeometry(
+            10,
+            self._DEPLOY_WIN_H * 11/16,
+            self._DEPLOY_WIN_W - 20,
+            self._DEPLOY_WIN_H/16)
 
         # Run button to deploy ROS2 package with info
         # from usecase_config.json and session_config.json
         self.run_button = QPushButton('Run', self)
         self.run_button.setIcon(QIcon('img/go.png'))
         self.run_button.setIconSize(QSize(100, 100))
-        self.run_button.setGeometry(0,
-                                    self._DEPLOY_WIN_H * 3/4,
-                                    self._DEPLOY_WIN_W,
-                                    self._DEPLOY_WIN_H/4)
+        self.run_button.setGeometry(
+            0,
+            self._DEPLOY_WIN_H * 3/4,
+            self._DEPLOY_WIN_W,
+            self._DEPLOY_WIN_H/4)
 
-        self.status_label = QLabel('Stopped', self)
-        self.status_label.setGeometry(
-            10,
-            self._DEPLOY_WIN_H * 3/4 - 30,
-            self._DEPLOY_WIN_W - 20,
-            20)
-
+        # Connect signals to slots
         self.visualize_button.clicked.connect(self.setVisualizeFlag)
         self.docker_button.clicked.connect(self.setDockerFlag)
         self.model_button.clicked.connect(self.setModel)
@@ -394,6 +414,9 @@ class DeployWindow(QWidget):
 
         with open(self._path_to_input_image_json_file, 'w') as outfile:
             outfile.write(json_object)
+
+        self._input_image_topic = new_image_topic
+        self.validateDeployInputs()
 
     def doesFileExist(self, input_filepath):
         ''' A Getter function that checks if a given file exists.'''
@@ -533,8 +556,10 @@ class DeployWindow(QWidget):
             self._path_to_model = input_model_filepath
 
             index = input_model_filepath.find('/data/model')
-
-            self._path_to_model = '.' + input_model_filepath[index:]
+            if index == -1:
+                self._path_to_model = input_model_filepath
+            else:
+                self._path_to_model = '.' + input_model_filepath[index:]
         else:
             self.deploy_logger.warning('No ONNX model set.')
             return
@@ -542,6 +567,7 @@ class DeployWindow(QWidget):
         self.model_button.setStyleSheet(
             'background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
+        self.validateDeployInputs()
 
     def setLabelList(self):
         '''A function is triggered by the button labelled, Label List.'''
@@ -559,11 +585,52 @@ class DeployWindow(QWidget):
             self._path_to_label_list = input_classes_filepath
 
             index = input_classes_filepath.find('/data/label_list')
-
-            self._path_to_label_list = '.' + input_classes_filepath[index:]
+            if index == -1:
+                self._path_to_label_list = input_classes_filepath
+            else:
+                self._path_to_label_list = '.' + input_classes_filepath[index:]
         else:
             self.deploy_logger.warning('No label list set.')
             return
 
         self.list_button.setStyleSheet('background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
+        self.validateDeployInputs()
+
+    def resolveFilePath(self, input_filepath):
+        '''Resolve a file path for validation.'''
+        if not input_filepath:
+            return ''
+        expanded_path = os.path.expandvars(os.path.expanduser(input_filepath))
+        return os.path.abspath(expanded_path)
+
+    def validateDeployInputs(self):
+        '''Validate inputs and update the Run button state.'''
+        if self._is_running:
+            self.run_button.setEnabled(True)
+            self.run_button.setToolTip('')
+            self.validation_label.setText('')
+            return
+
+        missing_items = []
+
+        model_path = self.resolveFilePath(self._path_to_model)
+        if not model_path or not os.path.isfile(model_path):
+            missing_items.append('ONNX model file')
+
+        label_list_path = self.resolveFilePath(self._path_to_label_list)
+        if not label_list_path or not os.path.isfile(label_list_path):
+            missing_items.append('label list file')
+
+        if not self._input_image_topic.strip():
+            missing_items.append('input image topic')
+
+        if missing_items:
+            message = 'Missing: ' + ', '.join(missing_items)
+            self.run_button.setEnabled(False)
+            self.run_button.setToolTip(message)
+            self.validation_label.setText(message)
+        else:
+            self.run_button.setEnabled(True)
+            self.run_button.setToolTip('')
+            self.validation_label.setText('')

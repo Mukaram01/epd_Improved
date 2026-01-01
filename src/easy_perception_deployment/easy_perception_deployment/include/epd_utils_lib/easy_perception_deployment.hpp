@@ -64,7 +64,7 @@ public:
   /*! \brief A Constructor function*/
   EasyPerceptionDeployment(void);
   /*! \brief A function that abstracts processing of input image in image_callback.*/
-  void process_image_callback(const sensor_msgs::msg::Image::SharedPtr msg) const;
+  void process_image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
   /*! \brief A function that abstracts processing of input image in localize_callback.*/
   void process_localize_callback(
     const sensor_msgs::msg::Image::SharedPtr msg,
@@ -134,7 +134,7 @@ private:
     const sensor_msgs::msg::Image::SharedPtr depth_msg,
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
 
-  void image_callback(const sensor_msgs::msg::Image::SharedPtr msg) const;
+  void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
 
   void hasCameraChanged(
     const int img_height,
@@ -230,18 +230,17 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   const std::string depth_topic = this->get_parameter("depth_topic").as_string();
   const std::string camera_info_topic = this->get_parameter("camera_info_topic").as_string();
 
-  localize_image_rgb = message_filters::Subscriber<sensor_msgs::msg::Image>(
+  localize_image_rgb.subscribe(
     this,
     rgb_topic,
     rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
-  localize_image_depth = message_filters::Subscriber<sensor_msgs::msg::Image>(
+  localize_image_depth.subscribe(
     this,
     depth_topic,
     rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
-  localize_cam_info =
-    message_filters::Subscriber<sensor_msgs::msg::CameraInfo>(
+  localize_cam_info.subscribe(
     this,
     camera_info_topic,
     rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
@@ -606,7 +605,7 @@ void EasyPerceptionDeployment::tracking_callback(
 }
 
 void EasyPerceptionDeployment::process_image_callback(
-  const sensor_msgs::msg::Image::SharedPtr msg) const
+  const sensor_msgs::msg::Image::SharedPtr msg)
 {
   if (msg->height == 0) {
     RCLCPP_WARN(this->get_logger(), "Input image empty. Discarding.");
@@ -732,7 +731,7 @@ void EasyPerceptionDeployment::process_image_callback(
     1000.0 / elapsedTime.count());
 }
 
-void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg) const
+void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
   this->process_image_callback(msg);
 }

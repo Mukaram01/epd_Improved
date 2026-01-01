@@ -100,29 +100,34 @@ if [ "$showImage" = True ] ; then
 fi
 
 START_DIR=$(pwd)
-cd ../../
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+WORKSPACE_ROOT=$(cd "${SCRIPT_DIR}/../../../../.." && pwd)
 
 read -p "Do you wish to rebuild? [y/n]: " input
 
 if [[ $input == "y" ]]; then
-  launch_script="./root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/build_launch.sh"
+  launch_script="/root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/build_launch.sh"
 elif [[ $input == "n" ]]; then
-  launch_script="./root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/launch.sh"
+  launch_script="/root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/launch.sh"
 fi
+
+container_workspace="/root/epd_ros2_ws"
+vendor_path="${container_workspace}/src/epd_onnxruntime_vendor"
+container_cmd="if [ ! -d \"${vendor_path}\" ]; then echo \"ERROR: Missing ${vendor_path}. Ensure the workspace is mounted to ${container_workspace} and includes epd_onnxruntime_vendor.\" >&2; exit 1; fi; exec ${launch_script}"
 
 if [ "$useCPU" = True ] ; then
   sudo docker run -it --rm \
   --name epd_test_container \
-  -v $(pwd):/root/epd_ros2_ws/src/easy_perception_deployment \
+  -v "${WORKSPACE_ROOT}:${container_workspace}" \
   cardboardcode/epd-humble-base:CPU \
-  $launch_script
+  bash -lc "${container_cmd}"
 else
   sudo docker run -it --rm \
   --name epd_test_container \
-  -v $(pwd):/root/epd_ros2_ws/src/easy_perception_deployment \
+  -v "${WORKSPACE_ROOT}:${container_workspace}" \
   --gpus all \
   cardboardcode/epd-humble-base:GPU \
-  $launch_script
+  bash -lc "${container_cmd}"
 fi
 
 unset input

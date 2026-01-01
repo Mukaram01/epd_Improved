@@ -186,7 +186,11 @@ class DeployWindow(QWidget):
             self._DEPLOY_WIN_H/4)
 
         index = self._path_to_model.find('data/model')
-        if self.doesFileExist('../' + self._path_to_model[index:]):
+        if index == -1:
+            model_path = self._path_to_model
+        else:
+            model_path = '../' + self._path_to_model[index:]
+        if self.doesFileExist(model_path):
             self.model_button.setStyleSheet(
                 'background-color: rgba(0,150,10,255);')
         else:
@@ -204,7 +208,11 @@ class DeployWindow(QWidget):
                                      self._DEPLOY_WIN_H/4)
 
         index = self._path_to_label_list.find('data/label_list')
-        if self.doesFileExist('../' + self._path_to_label_list[index:]):
+        if index == -1:
+            label_list_path = self._path_to_label_list
+        else:
+            label_list_path = '../' + self._path_to_label_list[index:]
+        if self.doesFileExist(label_list_path):
             self.list_button.setStyleSheet(
                 'background-color: rgba(0,150,10,255);')
         else:
@@ -467,8 +475,10 @@ class DeployWindow(QWidget):
             self._path_to_model = input_model_filepath
 
             index = input_model_filepath.find('/data/model')
-
-            self._path_to_model = '.' + input_model_filepath[index:]
+            if index == -1:
+                self._path_to_model = input_model_filepath
+            else:
+                self._path_to_model = '.' + input_model_filepath[index:]
         else:
             self.deploy_logger.warning('No ONNX model set.')
             return
@@ -493,8 +503,10 @@ class DeployWindow(QWidget):
             self._path_to_label_list = input_classes_filepath
 
             index = input_classes_filepath.find('/data/label_list')
-
-            self._path_to_label_list = '.' + input_classes_filepath[index:]
+            if index == -1:
+                self._path_to_label_list = input_classes_filepath
+            else:
+                self._path_to_label_list = '.' + input_classes_filepath[index:]
         else:
             self.deploy_logger.warning('No label list set.')
             return

@@ -1,4 +1,4 @@
-FROM vistart/cuda:10.2-cudnn7-devel-ubuntu20.04
+FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu22.04
 
 MAINTAINER Bey Hao Yun <beyhy@artc.a-star.edu.sg>
 
@@ -21,17 +21,17 @@ RUN apt-get update && apt-get install -q -y --no-install-recommends \
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 
 # Set up sources.list
-RUN echo "deb http://packages.ros.org/ros2/ubuntu focal main" > /etc/apt/sources.list.d/ros2-latest.list
+RUN echo "deb http://packages.ros.org/ros2/ubuntu jammy main" > /etc/apt/sources.list.d/ros2-latest.list
 
 # Set up environment
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 ENV DEBIAN_FRONTEND noninteractive
-ENV ROS_DISTRO foxy
+ENV ROS_DISTRO humble
 
 # Install ros2 packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-foxy-ros-core=0.9.2-1* \
+    ros-humble-ros-core \
     && rm -rf /var/lib/apt/lists/*
 
 # Install bootstrap tools
@@ -58,7 +58,7 @@ RUN colcon mixin add default \
 
 # Install ros2 packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-foxy-ros-base=0.9.2-1*  && \
+    ros-humble-ros-base  && \
     rm -rf /var/lib/apt/lists/*
 
 # Install gcc 8.4.0 and make default
@@ -94,12 +94,12 @@ RUN git clone https://github.com/Microsoft/onnxruntime . \
     make install -C ./build/Linux/"${BUILDTYPE}" && \
     rm -rf ./*
 
-# Install OpenCV, libboost-dev, ros-foxy-cv-bridge libpcl-dev
+# Install OpenCV, libboost-dev, ros-humble-cv-bridge libpcl-dev
 RUN apt-get update && \
     apt-get install -y libopencv-dev && \
     apt-get install -y libboost-dev && \
-    apt-get install -y ros-foxy-cv-bridge && \
-    apt-get install -y ros-foxy-pcl-conversions && \
+    apt-get install -y ros-humble-cv-bridge && \
+    apt-get install -y ros-humble-pcl-conversions && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /

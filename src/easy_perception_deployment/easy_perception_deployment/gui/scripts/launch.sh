@@ -7,10 +7,15 @@ msg3="Deploying package."
 SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd $SCRIPTPATH
 
-# Source ROS Foxy
-# TODO Run check if folder exist.
+# Source ROS distro
+ROS_DISTRO="${ROS_DISTRO:-humble}"
+if [ ! -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]; then
+  echo "ROS2 ${ROS_DISTRO} is not installed or setup.bash is missing."
+  echo "Please install ROS2 ${ROS_DISTRO} and ensure /opt/ros/${ROS_DISTRO}/setup.bash exists."
+  exit 1
+fi
 echo $msg1
-source /opt/ros/foxy/setup.bash
+source /opt/ros/${ROS_DISTRO}/setup.bash
 
 echo $msg2
 # Check if the current easy_perception workspace has been built or not.

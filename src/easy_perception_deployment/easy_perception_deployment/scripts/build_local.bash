@@ -18,14 +18,14 @@
 # Function: Source all required setup.bash and build both epd_msgs easy_perception_deployment
 # Static Analysis: shellcheck build_local.bash -x -e SC1091
 
-# Sourcing [ ROS2 Foxy ]
-if [ ! -f "/opt/ros/foxy/setup.bash" ]; then
-  echo "ROS2 Foxy is not installed."
-  echo "Please install it via this link: "
-  echo "https://index.ros.org/doc/ros2/Installation/Foxy/"
+# Sourcing [ ROS2 ]
+ROS_DISTRO="${ROS_DISTRO:-humble}"
+if [ ! -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]; then
+  echo "ROS2 ${ROS_DISTRO} is not installed or setup.bash is missing."
+  echo "Please install ROS2 ${ROS_DISTRO} and ensure /opt/ros/${ROS_DISTRO}/setup.bash exists."
   exit 1
 else
-  source /opt/ros/foxy/setup.bash
+  source /opt/ros/${ROS_DISTRO}/setup.bash
 fi
 
 # Build epd_msgs ROS2 package.

@@ -105,21 +105,21 @@ void EPDContainer::initORTSessionHandler()
 
 void EPDContainer::setModelConfigFile()
 {
-  Json::Reader reader;
   Json::Value obj;
   std::ifstream ifs_1(PATH_TO_SESSION_CONFIG);
 
-  if (ifs_1) {
-    try {
-      ifs_1 >> obj;
-    } catch (const std::exception & e) {
-      std::cerr << e.what() << std::endl;
-    }
-  } else {
-    std::cerr << "File not found!" << std::endl;
+  if (!ifs_1.is_open()) {
+    throw std::runtime_error(
+            std::string("Config file not found: ") + PATH_TO_SESSION_CONFIG);
   }
 
-  reader.parse(ifs_1, obj);
+  Json::CharReaderBuilder reader_builder;
+  std::string parse_errors;
+  if (!Json::parseFromStream(reader_builder, ifs_1, &obj, &parse_errors)) {
+    throw std::runtime_error(
+            std::string("Failed to parse config file: ") +
+            PATH_TO_SESSION_CONFIG + " Errors: " + parse_errors);
+  }
 
   onnx_model_path = obj["path_to_model"].asString();
   class_label_path = obj["path_to_label_list"].asString();

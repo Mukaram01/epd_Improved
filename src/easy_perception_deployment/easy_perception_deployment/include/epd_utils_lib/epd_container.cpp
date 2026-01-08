@@ -16,6 +16,7 @@
 #include <jsoncpp/json/json.h>
 
 #include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <string>
 #include <vector>
@@ -25,6 +26,56 @@
 
 namespace
 {
+unsigned int parseColorHistogramMetric(const Json::Value & obj, const std::string & usecase_config_path)
+{
+  if (!obj.isMember("color_match_histogram_metric")) {
+    return EPD::COLOR_HISTOGRAM_CORRELATION;
+  }
+
+  const Json::Value & metric_value = obj["color_match_histogram_metric"];
+  if (metric_value.isInt()) {
+    const int metric = metric_value.asInt();
+    if (metric < 0 || metric > 3) {
+      throw std::runtime_error(
+        "Invalid color_match_histogram_metric in use case config file: " +
+        usecase_config_path + ". Expected 0-3."
+      );
+    }
+    return static_cast<unsigned int>(metric);
+  }
+
+  if (!metric_value.isString()) {
+    throw std::runtime_error(
+      "Invalid color_match_histogram_metric type in use case config file: " +
+      usecase_config_path + ". Expected string or integer."
+    );
+  }
+
+  std::string metric = metric_value.asString();
+  std::transform(metric.begin(), metric.end(), metric.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+
+  if (metric == "correlation") {
+    return EPD::COLOR_HISTOGRAM_CORRELATION;
+  }
+  if (metric == "chi-square" || metric == "chisquare" || metric == "chi_square") {
+    return EPD::COLOR_HISTOGRAM_CHI_SQUARE;
+  }
+  if (metric == "intersection") {
+    return EPD::COLOR_HISTOGRAM_INTERSECTION;
+  }
+  if (metric == "bhattacharyya") {
+    return EPD::COLOR_HISTOGRAM_BHATTACHARYYA;
+  }
+
+  throw std::runtime_error(
+    "Invalid color_match_histogram_metric in use case config file: " +
+    usecase_config_path +
+    ". Expected Correlation, Chi-square, Intersection, or Bhattacharyya."
+  );
+}
+
 bool clampBboxToImage(
   int left,
   int top,
@@ -57,6 +108,7 @@ EPDContainer::EPDContainer(void)
 {
   hasInitialized = false;
   onlyVisualize = true;
+  color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
 
   this->setModelConfigFile();
   this->setPrecisionLevel();
@@ -197,6 +249,7 @@ void EPDContainer::setUseCaseConfigFile()
 
   if (useCaseMode == EPD::COLOR_MATCHING_MODE) {
     template_color_path = obj["path_to_color_template"].asString();
+    color_match_histogram_metric = parseColorHistogramMetric(obj, usecase_config_path);
   }
 
   // Localization Mode

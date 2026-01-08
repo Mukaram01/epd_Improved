@@ -640,7 +640,8 @@ void EasyPerceptionDeployment::process_image_callback(
           ortAgent_.classNames,
           ortAgent_.useCaseMode,
           ortAgent_.countClassNames,
-          ortAgent_.template_color_path);
+          ortAgent_.template_color_path,
+          ortAgent_.color_match_histogram_metric);
 
         EPD::EPDObjectDetection output_obj(result.bboxes.size());
         output_obj.bboxes = result.bboxes;
@@ -683,7 +684,8 @@ void EasyPerceptionDeployment::process_image_callback(
           ortAgent_.classNames,
           ortAgent_.useCaseMode,
           ortAgent_.countClassNames,
-          ortAgent_.template_color_path);
+          ortAgent_.template_color_path,
+          ortAgent_.color_match_histogram_metric);
 
         EPD::EPDObjectDetection output_obj(result.bboxes.size());
         output_obj.bboxes = result.bboxes;

@@ -476,7 +476,8 @@ class DeployWindow(QWidget):
             self.deploy_logger.info('Wrote to ../data/usecase_config.json')
             dict = {
                 "usecase_mode": 2,
-                "path_to_color_template": path_to_color_template
+                "path_to_color_template": path_to_color_template,
+                "color_match_histogram_metric": "Correlation"
                 }
             json_object = json.dumps(dict, indent=4)
 

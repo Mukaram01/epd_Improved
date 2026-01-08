@@ -46,8 +46,9 @@ P3OrtBase::P3OrtBase(
   const uint16_t numClasses,
   const std::string & modelPath,
   const boost::optional<size_t> & gpuIdx,
+  const boost::optional<int> & intraOpNumThreads,
   const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes)
-: OrtBase(modelPath, gpuIdx, inputShapes),
+: OrtBase(modelPath, gpuIdx, intraOpNumThreads, inputShapes),
   m_numClasses(numClasses),
   m_ratio(ratio),
   m_newW(newW),

@@ -67,6 +67,7 @@ class DeployWindow(QWidget):
         self.visualizeFlag = True
 
         self.useCPU = True
+        self._intra_op_num_threads = 0
 
         self._path_to_session_config = ('../config/session_config.json')
         self._path_to_usecase_config = ('../config/usecase_config.json')
@@ -107,6 +108,9 @@ class DeployWindow(QWidget):
         try:
             self._path_to_model = session_config["path_to_model"]
             self._path_to_label_list = session_config["path_to_label_list"]
+            self._intra_op_num_threads = session_config.get(
+                "intra_op_num_threads",
+                0)
             if session_config["visualizeFlag"] == "visualize":
                 self.visualizeFlag = True
             else:
@@ -123,6 +127,7 @@ class DeployWindow(QWidget):
             self._path_to_label_list = 'filepath/to/classes/list/txt'
             self.visualizeFlag = True
             self.useCPU = True
+            self._intra_op_num_threads = 0
 
         try:
             self.usecase_mode = int(usecase_config["usecase_mode"])
@@ -506,7 +511,8 @@ class DeployWindow(QWidget):
             "path_to_model": self._path_to_model,
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
-            "useCPU": useCPU_string
+            "useCPU": useCPU_string,
+            "intra_op_num_threads": self._intra_op_num_threads
             }
         json_object = json.dumps(dict, indent=4)
 

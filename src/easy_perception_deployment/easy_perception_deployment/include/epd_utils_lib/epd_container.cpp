@@ -112,6 +112,7 @@ void EPDContainer::initORTSessionHandler()
         classNames.size(),
         onnx_model_path,
         0,
+        intra_op_num_threads,
         std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}}
       );
       p2_ort_session->initClassNames(classNames);
@@ -122,6 +123,7 @@ void EPDContainer::initORTSessionHandler()
         classNames.size(),
         onnx_model_path,
         0,
+        intra_op_num_threads,
         std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}}
       );
       p3_ort_session->initClassNames(classNames);
@@ -156,6 +158,22 @@ void EPDContainer::setModelConfigFile()
     onlyVisualize = true;
   } else {
     onlyVisualize = false;
+  }
+
+  if (obj.isMember("intra_op_num_threads")) {
+    if (!obj["intra_op_num_threads"].isInt()) {
+      throw std::runtime_error(
+              "Config 'intra_op_num_threads' must be an integer in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    const int thread_count = obj["intra_op_num_threads"].asInt();
+    if (thread_count > 0) {
+      intra_op_num_threads = thread_count;
+    } else if (thread_count < 0) {
+      throw std::runtime_error(
+              "Config 'intra_op_num_threads' must be >= 0 in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
   }
 
   ifs_1.close();
@@ -235,7 +253,7 @@ void EPDContainer::setPrecisionLevel()
 {
   std::vector<std::vector<int64_t>> empty_inputShapes;
 
-  Ort::OrtBase ort_session(onnx_model_path, 0, empty_inputShapes);
+  Ort::OrtBase ort_session(onnx_model_path, 0, intra_op_num_threads, empty_inputShapes);
 
   switch (ort_session.getNumOutputs()) {
     case 1:

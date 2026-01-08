@@ -211,11 +211,20 @@ void EPDContainer::setLabelList()
   std::fstream infile;
   infile.open(class_label_path);
 
+  if (!infile.is_open()) {
+    throw std::runtime_error("Label list file not found: " + class_label_path);
+  }
+
   while (std::getline(infile, label)) {
     classNames.emplace_back(label);
   }
 
   infile.close();
+
+  if (classNames.empty()) {
+    throw std::runtime_error(
+      "Label list is empty. Please provide at least one class label in: " + class_label_path);
+  }
 }
 
 cv::Mat EPDContainer::visualize(

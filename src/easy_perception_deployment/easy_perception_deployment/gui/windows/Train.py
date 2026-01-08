@@ -406,15 +406,6 @@ class TrainWindow(QWidget):
 
         if not self._is_dataset_labelled:
             self.train_logger.warning(
-                'Dataset not properly restructured.' +
-                'Please restructure Dataset.')
-            self.train_button.setStyleSheet(
-                'background-color: rgba(180,180,180,255);')
-            self.disconnectTrainingButton()
-            return
-
-        if not self._is_dataset_labelled:
-            self.train_logger.warning(
                 'Dataset not labelled properly. ' +
                 'Please label Dataset.')
             self.train_button.setStyleSheet(

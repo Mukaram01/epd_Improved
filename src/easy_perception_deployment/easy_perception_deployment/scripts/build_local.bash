@@ -45,8 +45,11 @@ else
     sudo rm -rf log/
   fi
   echo "Building and Sourcing [ epd_msgs ]"
-  colcon build && source install/setup.bash
-  # TODO (cardboardcode): Put in safeguard against failed colcon build.
+  if ! colcon build; then
+    echo "Error: colcon build failed for [ epd_msgs ]."
+    exit 1
+  fi
+  source install/setup.bash
 fi
 
 # Build easy_perception_deployment ROS2 package.
@@ -61,5 +64,8 @@ if [ -d  "log/" ]; then
   sudo rm -rf log/
 fi
 echo "Building and Sourcing [ easy_perception_deployment ]"
-colcon build && source install/setup.bash
-# TODO (cardboardcode): Put in safeguard against failed colcon build.
+if ! colcon build; then
+  echo "Error: colcon build failed for [ easy_perception_deployment ]."
+  exit 1
+fi
+source install/setup.bash

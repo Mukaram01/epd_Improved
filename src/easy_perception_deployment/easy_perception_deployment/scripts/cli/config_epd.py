@@ -94,6 +94,11 @@ class EPDConfigurator():
         print('-l --label   Sets new label list to be deployed via EPD.')
         print('--use   Sets usecase mode to be deployed via EPD. ' +
               'Eg. [0,1,2,3,4].')
+        print('--class-list   Sets class names for COUNTING use case ' +
+              '(comma-separated).')
+        print('--color-template   Sets color template file path for ' +
+              'COLOR-MATCHING use case.')
+        print('--track-type   Sets tracker type for TRACKING use case.')
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
 
@@ -119,6 +124,9 @@ class EPDConfigurator():
                                          'model=',
                                          'label=',
                                          'use=',
+                                         'class-list=',
+                                         'color-template=',
+                                         'track-type=',
                                          'topic='])
 
         for opt, arg in opts:
@@ -153,10 +161,24 @@ class EPDConfigurator():
                 self._path_to_label_list = arg
             elif opt in ('--use'):
                 self.set_use_case_from_cli(int(arg))
+            elif opt in ('--class-list'):
+                class_list = [item.strip() for item in arg.split(',')
+                              if item.strip()]
+                if not class_list:
+                    print("[ config_epd ] - ERROR." +
+                          " class list cannot be empty.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.count_class_list = class_list
+            elif opt in ('--color-template'):
+                self.path_to_color_template = arg
+            elif opt in ('--track-type'):
+                self.track_type = arg
             elif opt in ('--topic'):
                 print("[ session_config.json ] - Setting new input " +
                       "image topic to", arg)
                 self.input_image_topic = arg
+        self.validate_usecase_inputs()
 
     def parse_session_config(self, session_config_filepath):
 
@@ -214,28 +236,55 @@ class EPDConfigurator():
         elif usecase_mode == 1:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to COUNTING.")
-            n = int(input("Please enter number of object class names : "))
-            self.count_class_list.clear()
-            for i in range(0, n):
-                ele = input("Please enter class name: ")
-                self.count_class_list.append(ele)
         elif usecase_mode == 2:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to COLOR-MATCHING.")
-            self.path_to_color_template = input("Please enter \
-                Color Image File Path: ")
         elif usecase_mode == 3:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to LOCALIZATION.")
         elif usecase_mode == 4:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to TRACKING.")
-            self.track_type = input("Please enter Tracker Type \
-                [KCF, MEDIANFLOW, CSRT]: ")
         else:
             print("[ session_config.json ] - " +
                   "Invalid Use Case Mode provided. Exiting...")
             sys.exit(1)
+
+    def validate_usecase_inputs(self):
+        is_interactive = sys.stdin.isatty()
+        if self.usecase_mode == 1:
+            if not self.count_class_list:
+                if not is_interactive:
+                    print("[ config_epd ] - ERROR." +
+                          " --class-list is required for COUNTING " +
+                          "use case in non-interactive mode.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                n = int(input("Please enter number of object class names : "))
+                self.count_class_list.clear()
+                for _ in range(0, n):
+                    ele = input("Please enter class name: ")
+                    self.count_class_list.append(ele)
+        elif self.usecase_mode == 2:
+            if not self.path_to_color_template:
+                if not is_interactive:
+                    print("[ config_epd ] - ERROR." +
+                          " --color-template is required for " +
+                          "COLOR-MATCHING use case in non-interactive mode.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.path_to_color_template = input(
+                    "Please enter Color Image File Path: ")
+        elif self.usecase_mode == 4:
+            if not self.track_type:
+                if not is_interactive:
+                    print("[ config_epd ] - ERROR." +
+                          " --track-type is required for TRACKING " +
+                          "use case in non-interactive mode.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.track_type = input(
+                    "Please enter Tracker Type [KCF, MEDIANFLOW, CSRT]: ")
 
     def write_out(self, session_config_filepath, usecase_config_filepath):
 

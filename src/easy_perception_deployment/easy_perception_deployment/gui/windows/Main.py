@@ -14,7 +14,7 @@
 
 from PySide2.QtCore import QSize
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QPushButton, QWidget
+from PySide2.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
 
 from windows.Deploy import DeployWindow
 from windows.Train import TrainWindow
@@ -81,20 +81,30 @@ class MainWindow(QWidget):
         self.train_button = QPushButton('Train', self)
         self.train_button.setIcon(QIcon('img/train.png'))
         self.train_button.setIconSize(QSize(100, 100))
-        self.train_button.setGeometry(0, 0, self._WINDOW_WIDTH/2, 250)
+        self.train_button.setFixedHeight(250)
 
         self.deploy_button = QPushButton('Deploy', self)
         self.deploy_button.setIcon(QIcon('img/deploy.png'))
         self.deploy_button.setIconSize(QSize(100, 100))
-        self.deploy_button.setGeometry(self._WINDOW_WIDTH/2,
-                                       0,
-                                       self._WINDOW_WIDTH/2,
-                                       250)
+        self.deploy_button.setFixedHeight(250)
 
         self.quit_button = QPushButton('Quit', self)
         self.quit_button.setIcon(QIcon('img/quit.png'))
         self.quit_button.setIconSize(QSize(250, 250))
-        self.quit_button.setGeometry(0, 250, self._WINDOW_WIDTH, 125)
+        self.quit_button.setFixedHeight(125)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        top_layout = QGridLayout()
+        top_layout.setContentsMargins(0, 0, 0, 0)
+        top_layout.setSpacing(0)
+        top_layout.addWidget(self.train_button, 0, 0)
+        top_layout.addWidget(self.deploy_button, 0, 1)
+        top_layout.setColumnStretch(0, 1)
+        top_layout.setColumnStretch(1, 1)
+        layout.addLayout(top_layout)
+        layout.addWidget(self.quit_button)
 
         self.train_button.clicked.connect(self.openTrainWindow)
         self.deploy_button.clicked.connect(self.deployPackage)

@@ -52,6 +52,7 @@ public:
   OrtBaseImpl(
     const std::string & modelPath,         //
     const boost::optional<size_t> & gpuIdx,  //
+    const boost::optional<int> & intraOpNumThreads,
     const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes);
   ~OrtBaseImpl();
 
@@ -67,6 +68,7 @@ private:
   Ort::AllocatorWithDefaultOptions m_ortAllocator;
 
   boost::optional<size_t> m_gpuIdx;
+  boost::optional<int> m_intraOpNumThreads;
 
   std::vector<char *> m_inputNodeNames;
   std::vector<char *> m_outputNodeNames;
@@ -86,8 +88,9 @@ private:
 OrtBase::OrtBase(
   const std::string & modelPath,
   const boost::optional<size_t> & gpuIdx,
+  const boost::optional<int> & intraOpNumThreads,
   const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes)
-: base_impl_(std::make_unique<OrtBaseImpl>(modelPath, gpuIdx, inputShapes))
+: base_impl_(std::make_unique<OrtBaseImpl>(modelPath, gpuIdx, intraOpNumThreads, inputShapes))
 {}
 
 // Destructor
@@ -107,11 +110,13 @@ int OrtBase::getNumOutputs()
 OrtBase::OrtBaseImpl::OrtBaseImpl(
   const std::string & modelPath,         //
   const boost::optional<size_t> & gpuIdx,  //
+  const boost::optional<int> & intraOpNumThreads,
   const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes)
 : m_session(nullptr),
   m_env(nullptr),
   m_ortAllocator(),
   m_gpuIdx(gpuIdx),
+  m_intraOpNumThreads(intraOpNumThreads),
   m_inputNodeNames(),
   m_outputNodeNames(),
   m_inputShapes(),
@@ -155,10 +160,12 @@ void OrtBase::OrtBaseImpl::initSession()
   m_env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Ort");
   Ort::SessionOptions sessionOptions;
 
-  /* TODO(cardboardcode) Need to take care of the following line
-  as it is related to CPU
-  consumption using openmp */
-  // sessionOptions.SetIntraOpNumThreads(1);
+  if (m_intraOpNumThreads.is_initialized()) {
+    const int thread_count = m_intraOpNumThreads.value();
+    if (thread_count > 0) {
+      sessionOptions.SetIntraOpNumThreads(thread_count);
+    }
+  }
 
   #if USE_GPU
   if (m_gpuIdx.is_initialized()) {

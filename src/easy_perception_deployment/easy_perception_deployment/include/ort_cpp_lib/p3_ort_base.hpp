@@ -52,6 +52,7 @@ public:
     const uint16_t numClasses,
     const std::string & modelPath,
     const boost::optional<size_t> & gpuIdx = boost::none,
+    const boost::optional<int> & intraOpNumThreads = boost::none,
     const boost::optional<std::vector<std::vector<int64_t>>> &
     inputShapes = boost::none);
   /*! \brief A Destructor function*/

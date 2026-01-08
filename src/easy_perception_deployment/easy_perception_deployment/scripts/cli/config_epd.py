@@ -34,6 +34,7 @@ class EPDConfigurator():
         self._input_image_topic = ''
         self.visualizeFlag = True
         self.useCPU = True
+        self.intra_op_num_threads = 0
 
         self.usecase_mode = 0
 
@@ -101,6 +102,7 @@ class EPDConfigurator():
         print('--track-type   Sets tracker type for TRACKING use case.')
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
+        print('--intra-op-threads   Sets intra-op thread count for ORT.')
 
     def isInEPDPackageRoot(self, start_dirpath):
         if (os.path.isdir(start_dirpath + "/scripts") and
@@ -127,7 +129,8 @@ class EPDConfigurator():
                                          'class-list=',
                                          'color-template=',
                                          'track-type=',
-                                         'topic='])
+                                         'topic=',
+                                         'intra-op-threads='])
 
         for opt, arg in opts:
             if opt == '-h':
@@ -182,6 +185,20 @@ class EPDConfigurator():
                 print("[ session_config.json ] - Setting new input " +
                       "image topic to", arg)
                 self.input_image_topic = arg
+            elif opt in ('--intra-op-threads'):
+                try:
+                    thread_count = int(arg)
+                except ValueError:
+                    print("[ session_config.json ] - ERROR." +
+                          " intra-op-threads must be an integer.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                if thread_count < 0:
+                    print("[ session_config.json ] - ERROR." +
+                          " intra-op-threads must be >= 0.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.intra_op_num_threads = thread_count
         self.validate_usecase_inputs()
 
     def parse_session_config(self, session_config_filepath):
@@ -190,6 +207,7 @@ class EPDConfigurator():
         data = json.load(f)
         self._path_to_model = data["path_to_model"]
         self._path_to_label_list = data["path_to_label_list"]
+        self.intra_op_num_threads = data.get("intra_op_num_threads", 0)
         if data["useCPU"] == "CPU":
             self.useCPU = True
         else:
@@ -306,7 +324,8 @@ class EPDConfigurator():
             "path_to_model": self._path_to_model,
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
-            "useCPU": useCPU_string
+            "useCPU": useCPU_string,
+            "intra_op_num_threads": self.intra_op_num_threads
             }
         json_object_1 = json.dumps(dict, indent=4)
 

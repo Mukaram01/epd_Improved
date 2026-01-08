@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "boost/optional.hpp"
+
 #include "ort_cpp_lib/ort_base.hpp"
 #include "ort_cpp_lib/p2_ort_base.hpp"
 #include "ort_cpp_lib/p3_ort_base.hpp"
@@ -141,6 +143,8 @@ private:
   *  the variable, classNames.
   */
   void setLabelList();
+
+  boost::optional<int> intra_op_num_threads;
 };
 
 }  // namespace EPD

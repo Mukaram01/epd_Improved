@@ -23,6 +23,32 @@
 #include "epd_container.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 
+namespace
+{
+bool clampBboxToImage(
+  int left,
+  int top,
+  int right,
+  int bottom,
+  const cv::Mat & input_image,
+  cv::Rect * clamped_rect)
+{
+  const int clamped_left = std::clamp(left, 0, input_image.cols);
+  const int clamped_top = std::clamp(top, 0, input_image.rows);
+  const int clamped_right = std::clamp(right, 0, input_image.cols);
+  const int clamped_bottom = std::clamp(bottom, 0, input_image.rows);
+
+  if (clamped_right <= clamped_left || clamped_bottom <= clamped_top) {
+    return false;
+  }
+
+  *clamped_rect = cv::Rect(
+    cv::Point(clamped_left, clamped_top),
+    cv::Point(clamped_right, clamped_bottom));
+  return true;
+}
+}  // namespace
+
 
 namespace EPD
 {
@@ -282,11 +308,10 @@ cv::Mat EPDContainer::visualize(
       continue;
     }
 
-    if (curBbox[0] - curBbox[2] == 0) {
-      continue;
-    }
-
-    if (curBbox[1] - curBbox[3] == 0) {
+    cv::Rect curBoxRect;
+    if (!clampBboxToImage(
+        curBbox[0], curBbox[1], curBbox[2], curBbox[3], input_image, &curBoxRect))
+    {
       continue;
     }
 
@@ -294,24 +319,20 @@ cv::Mat EPDContainer::visualize(
     const std::string curLabel = classNames[result.classIndices[i]];
 
     cv::rectangle(
-      output_image, cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]), curColor, 2);
+      output_image, curBoxRect.tl(),
+      curBoxRect.br(), curColor, 2);
 
     int baseLine = 0;
     cv::Size labelSize =
       cv::getTextSize(curLabel, cv::FONT_HERSHEY_COMPLEX, 0.35, 1, &baseLine);
     cv::rectangle(
-      output_image, cv::Point(
-        curBbox[0], curBbox[1]),
+      output_image, curBoxRect.tl(),
       cv::Point(
-        curBbox[0] + labelSize.width,
-        curBbox[1] + static_cast<int>(1.3 * labelSize.height)),
+        curBoxRect.x + labelSize.width,
+        curBoxRect.y + static_cast<int>(1.3 * labelSize.height)),
       curColor, -1);
 
     // Visualizing masks
-    const cv::Rect curBoxRect(cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]));
-
     if (!noMasksFound) {
       cv::resize(curMask, curMask, curBoxRect.size());
       // Assigning masks that exceed the maskThreshold.
@@ -340,7 +361,7 @@ cv::Mat EPDContainer::visualize(
 
     cv::putText(
       output_image, curLabel,
-      cv::Point(curBbox[0], curBbox[1] + labelSize.height),
+      cv::Point(curBoxRect.x, curBoxRect.y + labelSize.height),
       cv::FONT_HERSHEY_COMPLEX, 0.35, cv::Scalar(255, 255, 255));
   }
 
@@ -371,11 +392,15 @@ cv::Mat EPDContainer::visualize(
       continue;
     }
 
-    if (curBbox[0] - curBbox[2] == 0) {
-      continue;
-    }
-
-    if (curBbox[1] - curBbox[3] == 0) {
+    cv::Rect curBoxRect;
+    if (!clampBboxToImage(
+        static_cast<int>(curBbox[0]),
+        static_cast<int>(curBbox[1]),
+        static_cast<int>(curBbox[2]),
+        static_cast<int>(curBbox[3]),
+        input_image,
+        &curBoxRect))
+    {
       continue;
     }
 
@@ -384,8 +409,8 @@ cv::Mat EPDContainer::visualize(
 
     cv::rectangle(
       output_image,
-      cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]),
+      curBoxRect.tl(),
+      curBoxRect.br(),
       curColor,
       2);
 
@@ -393,10 +418,10 @@ cv::Mat EPDContainer::visualize(
     cv::Size labelSize =
       cv::getTextSize(curLabel, cv::FONT_HERSHEY_COMPLEX, 0.35, 1, &baseLine);
     cv::rectangle(
-      output_image, cv::Point(curBbox[0], curBbox[1]),
+      output_image, curBoxRect.tl(),
       cv::Point(
-        curBbox[0] + labelSize.width,
-        curBbox[1] + static_cast<int>(1.3 * labelSize.height)),
+        curBoxRect.x + labelSize.width,
+        curBoxRect.y + static_cast<int>(1.3 * labelSize.height)),
       curColor, -1);
 
     if (result.object_ids.size() != 0) {
@@ -404,8 +429,6 @@ cv::Mat EPDContainer::visualize(
     }
 
     // Visualizing masks
-    const cv::Rect curBoxRect(cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]));
     cv::resize(curMask, curMask, curBoxRect.size());
     // Assigning masks that exceed the maskThreshold.
     cv::Mat finalMask = (curMask > 0.5);
@@ -428,7 +451,7 @@ cv::Mat EPDContainer::visualize(
 
     cv::putText(
       output_image, curLabel,
-      cv::Point(curBbox[0], curBbox[1] + labelSize.height),
+      cv::Point(curBoxRect.x, curBoxRect.y + labelSize.height),
       cv::FONT_HERSHEY_COMPLEX, 0.35, cv::Scalar(255, 255, 255));
   }
 

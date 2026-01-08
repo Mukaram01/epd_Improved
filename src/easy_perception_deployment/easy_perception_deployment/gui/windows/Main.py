@@ -16,12 +16,12 @@ from PySide2.QtCore import QSize
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
 
-from windows.Deploy import DeployWindow
-from windows.Train import TrainWindow
-
 import logging
+import os
 from datetime import datetime
 
+from windows.Deploy import DeployWindow
+from windows.Train import TrainWindow
 
 class MainWindow(QWidget):
     '''
@@ -39,12 +39,14 @@ class MainWindow(QWidget):
         timestamp = datetime.now()
         timestamp_string = timestamp.strftime("%d-%m-%Y-%H-%M-%S")
 
+        os.makedirs("log", exist_ok=True)
         logging.basicConfig(
             level=logging.NOTSET,
             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
             datefmt='%m-%d %H:%M',
             filename='log/' + timestamp_string + '.log',
             filemode='w')
+        root_logger = logging.getLogger('')
         warn_console = logging.StreamHandler()
         warn_console.setLevel(logging.WARN)
         info_console = logging.StreamHandler()
@@ -57,9 +59,21 @@ class MainWindow(QWidget):
         warn_console.setFormatter(formatter)
         info_console.setFormatter(formatter)
         error_console.setFormatter(formatter)
-        logging.getLogger('').addHandler(warn_console)
-        logging.getLogger('').addHandler(info_console)
-        logging.getLogger('').addHandler(error_console)
+        if not any(
+                isinstance(handler, logging.StreamHandler)
+                and handler.level == logging.WARN
+                for handler in root_logger.handlers):
+            root_logger.addHandler(warn_console)
+        if not any(
+                isinstance(handler, logging.StreamHandler)
+                and handler.level == logging.INFO
+                for handler in root_logger.handlers):
+            root_logger.addHandler(info_console)
+        if not any(
+                isinstance(handler, logging.StreamHandler)
+                and handler.level == logging.ERROR
+                for handler in root_logger.handlers):
+            root_logger.addHandler(error_console)
 
         self.train_window = TrainWindow(False)
         self.deploy_window = DeployWindow(False)

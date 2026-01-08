@@ -40,6 +40,7 @@ class EPDConfigurator():
 
         self.count_class_list = []
         self.path_to_color_template = ''
+        self.color_match_histogram_metric = 'Correlation'
         self.track_type = ''
         self.input_image_topic = ''
 
@@ -99,6 +100,9 @@ class EPDConfigurator():
               '(comma-separated).')
         print('--color-template   Sets color template file path for ' +
               'COLOR-MATCHING use case.')
+        print('--color-hist-metric   Sets histogram comparison metric for ' +
+              'COLOR-MATCHING use case. Acceptable values: ' +
+              'Correlation, Chi-square, Intersection, Bhattacharyya.')
         print('--track-type   Sets tracker type for TRACKING use case.')
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
@@ -128,6 +132,7 @@ class EPDConfigurator():
                                          'use=',
                                          'class-list=',
                                          'color-template=',
+                                         'color-hist-metric=',
                                          'track-type=',
                                          'topic=',
                                          'intra-op-threads='])
@@ -179,6 +184,9 @@ class EPDConfigurator():
                 self.count_class_list = class_list
             elif opt in ('--color-template'):
                 self.path_to_color_template = arg
+            elif opt in ('--color-hist-metric'):
+                self.color_match_histogram_metric = \
+                    self.normalize_color_histogram_metric(arg)
             elif opt in ('--track-type'):
                 self.track_type = arg
             elif opt in ('--topic'):
@@ -231,6 +239,10 @@ class EPDConfigurator():
         elif self.usecase_mode == 2:
             print("[ Use Case ] - COLOR-MATCHING")
             self.path_to_color_template = data["path_to_color_template"]
+            if "color_match_histogram_metric" in data:
+                self.color_match_histogram_metric = \
+                    self.normalize_color_histogram_metric(
+                        data["color_match_histogram_metric"])
         elif self.usecase_mode == 3:
             print("[ Use Case ] - LOCALIZATION")
         elif self.usecase_mode == 4:
@@ -248,6 +260,43 @@ class EPDConfigurator():
         data = json.load(f)
         self.input_image_topic = data["input_image_topic"]
         f.close()
+
+    def normalize_color_histogram_metric(self, metric):
+        if isinstance(metric, int):
+            metric_value = metric
+        else:
+            metric_str = str(metric).strip()
+            if metric_str.isdigit():
+                metric_value = int(metric_str)
+            else:
+                metric_lower = metric_str.lower()
+                if metric_lower == "correlation":
+                    return "Correlation"
+                if metric_lower in ("chi-square", "chisquare", "chi_square"):
+                    return "Chi-square"
+                if metric_lower == "intersection":
+                    return "Intersection"
+                if metric_lower == "bhattacharyya":
+                    return "Bhattacharyya"
+                print("[ config_epd ] - ERROR." +
+                      " Invalid color-hist-metric provided. " +
+                      "Expected Correlation, Chi-square, Intersection, " +
+                      "or Bhattacharyya.")
+                sys.exit(2)
+
+        if metric_value == 0:
+            return "Correlation"
+        if metric_value == 1:
+            return "Chi-square"
+        if metric_value == 2:
+            return "Intersection"
+        if metric_value == 3:
+            return "Bhattacharyya"
+        print("[ config_epd ] - ERROR." +
+              " Invalid color-hist-metric provided. " +
+              "Expected 0-3 or Correlation, Chi-square, Intersection, " +
+              "or Bhattacharyya.")
+        sys.exit(2)
 
     def set_use_case_from_cli(self, usecase_mode):
         self.usecase_mode = usecase_mode
@@ -297,6 +346,9 @@ class EPDConfigurator():
                     sys.exit(2)
                 self.path_to_color_template = input(
                     "Please enter Color Image File Path: ")
+            self.color_match_histogram_metric = \
+                self.normalize_color_histogram_metric(
+                    self.color_match_histogram_metric)
         elif self.usecase_mode == 4:
             if not self.track_type:
                 if not is_interactive:
@@ -350,7 +402,9 @@ class EPDConfigurator():
         elif self.usecase_mode == 2:
             dict = {
                 "usecase_mode": self.usecase_mode,
-                "path_to_color_template": self.path_to_color_template
+                "path_to_color_template": self.path_to_color_template,
+                "color_match_histogram_metric":
+                    self.color_match_histogram_metric
             }
             json_object_2 = json.dumps(dict, indent=4)
             with open(usecase_config_filepath, 'w') as outfile_2:

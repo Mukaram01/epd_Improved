@@ -34,6 +34,10 @@ const unsigned int COUNTING_MODE = 1;
 const unsigned int COLOR_MATCHING_MODE = 2;
 const unsigned int LOCALISATION_MODE = 3;
 const unsigned int TRACKING_MODE = 4;
+const unsigned int COLOR_HISTOGRAM_CORRELATION = 0;
+const unsigned int COLOR_HISTOGRAM_CHI_SQUARE = 1;
+const unsigned int COLOR_HISTOGRAM_INTERSECTION = 2;
+const unsigned int COLOR_HISTOGRAM_BHATTACHARYYA = 3;
 
 /*! \brief A Mutator function that takes the base inference results from a P3
 inference engine and excludes any bounding boxes, classIndices and score
@@ -103,7 +107,8 @@ inline void matchColor(
   std::vector<float> & scores,
   std::vector<cv::Mat> & masks,
   std::vector<std::string> allClassNames,
-  const std::string filepath_to_refcolor)
+  const std::string filepath_to_refcolor,
+  const unsigned int histogram_metric)
 {
   bool noMasksFound = false;
   if (masks.size() == 0) {
@@ -152,10 +157,7 @@ inline void matchColor(
       hist_test1, hist_test1, 0, 1,
       cv::NORM_MINMAX, -1, cv::Mat());
 
-    /* Can change 3rd arg in compareHist function call to [0,1,2,3],
-    [Correlation, Chi-square, Intersection, Bhattacharyya]
-    TODO(cardboardcode) Require benchmark to justify use of metric 0: Correlation.*/
-    base_base = compareHist(hist_base, hist_test1, 0);
+    base_base = compareHist(hist_base, hist_test1, histogram_metric);
     if (base_base > 0.8) {
       local_bboxes.push_back(curBbox);
       local_classIndices.push_back(classIdx);
@@ -187,7 +189,8 @@ inline void activateUseCase(
   std::vector<std::string> allClassNames,
   const unsigned int useCaseMode,
   const std::vector<std::string> countClassNames,
-  const std::string filepath_to_refcolor)
+  const std::string filepath_to_refcolor,
+  const unsigned int histogram_metric)
 {
   // If default CLASSIFICATION_MODE is selected, do not alter anything and return.
   if (useCaseMode == EPD::CLASSIFICATION_MODE) {
@@ -197,7 +200,9 @@ inline void activateUseCase(
     EPD::count(bboxes, classIndices, scores, masks, allClassNames, countClassNames);
   } else if (useCaseMode == EPD::COLOR_MATCHING_MODE) {
     printf("Use Case: [Color-Matching] selected.\n");
-    EPD::matchColor(img, bboxes, classIndices, scores, masks, allClassNames, filepath_to_refcolor);
+    EPD::matchColor(
+      img, bboxes, classIndices, scores, masks, allClassNames,
+      filepath_to_refcolor, histogram_metric);
   } else {
     throw std::runtime_error("Invalid Use Case. Can only be [0, 1, 2].");
   }

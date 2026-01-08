@@ -138,19 +138,23 @@ class EPDConfigurator():
                 print("[ session_config.json ] - Setting to CPU Mode.")
                 self.useCPU = True
             elif opt in ('-m', '--model'):
-                if not os.path.isfile(os.getcwd() + "/" + arg):
+                resolved_path = os.path.abspath(os.path.expanduser(arg))
+                if not os.path.isfile(resolved_path):
                     print("[ config_epd ] - ERROR." +
-                          " input model file does not exist.")
+                          " input model file does not exist at " +
+                          resolved_path + ".")
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
-                self._path_to_model = arg
+                self._path_to_model = resolved_path
             elif opt in ('-l', '--label'):
-                if not os.path.isfile(os.getcwd() + "/" + arg):
+                resolved_path = os.path.abspath(os.path.expanduser(arg))
+                if not os.path.isfile(resolved_path):
                     print("[ config_epd ] - ERROR." +
-                          " input label list does not exist.")
+                          " input label list does not exist at " +
+                          resolved_path + ".")
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
-                self._path_to_label_list = arg
+                self._path_to_label_list = resolved_path
             elif opt in ('--use'):
                 self.set_use_case_from_cli(int(arg))
             elif opt in ('--topic'):

@@ -268,11 +268,13 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         localize_cam_info.subscribe();
         sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
       } else {
-        image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-          "/easy_perception_deployment/image_input",
-          rclcpp::SensorDataQoS(),
-          std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
-          subscription_options);
+        if (!image_sub) {
+          image_sub = this->create_subscription<sensor_msgs::msg::Image>(
+            "/easy_perception_deployment/image_input",
+            rclcpp::SensorDataQoS(),
+            std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
+            subscription_options);
+        }
       }
 
       ortAgent_.requestAddressed = false;

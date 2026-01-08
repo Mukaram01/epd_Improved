@@ -139,8 +139,24 @@ void EPDContainer::setUseCaseConfigFile()
 {
   Json::Reader reader;
   Json::Value obj;
-  std::ifstream ifs_1(PATH_TO_USECASE_CONFIG);
-  reader.parse(ifs_1, obj);
+  const std::string usecase_config_path = PATH_TO_USECASE_CONFIG;
+  std::ifstream ifs_1(usecase_config_path);
+  if (!ifs_1.is_open()) {
+    throw std::runtime_error("Use case config file not found: " + usecase_config_path);
+  }
+
+  if (!reader.parse(ifs_1, obj)) {
+    throw std::runtime_error(
+      "Failed to parse use case config file: " + usecase_config_path + ". " +
+      reader.getFormattedErrorMessages()
+    );
+  }
+
+  if (!obj.isMember("usecase_mode")) {
+    throw std::runtime_error(
+      "Missing required key 'usecase_mode' in use case config file: " + usecase_config_path
+    );
+  }
 
   useCaseMode = obj["usecase_mode"].asInt();
 
@@ -172,6 +188,11 @@ void EPDContainer::setUseCaseConfigFile()
     // If true, issue critical error and close program.
     if (precision_level != 3) {
       throw std::runtime_error("Please use a Precision-Level 3 ONNX model.");
+    }
+    if (!obj.isMember("track_type")) {
+      throw std::runtime_error(
+        "Missing required key 'track_type' in use case config file: " + usecase_config_path
+      );
     }
     tracker_type = obj["track_type"].asString();
   }

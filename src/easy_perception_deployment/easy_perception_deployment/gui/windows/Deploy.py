@@ -20,7 +20,7 @@ import logging
 
 from PySide2.QtCore import QSize, QTimer
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QComboBox, QFileDialog, QLabel, QTextEdit
+from PySide2.QtWidgets import QComboBox, QFileDialog, QLabel, QLineEdit
 from PySide2.QtWidgets import QMessageBox, QPushButton, QWidget
 
 from windows.Counting import CountingWindow
@@ -259,7 +259,7 @@ class DeployWindow(QWidget):
             self._DEPLOY_WIN_H/16)
         self.register_topic_button.setText('Register Topic')
 
-        self.topic_button = QTextEdit(self)
+        self.topic_button = QLineEdit(self)
         self.topic_button.setGeometry(
             self._DEPLOY_WIN_W * 3/8,
             self._DEPLOY_WIN_H * 2/4,
@@ -326,10 +326,11 @@ class DeployWindow(QWidget):
         '''
         if not self._is_running:
             self._deploy_process, self._deploy_timer = self._start_process(
-                ['./scripts/deploy.sh',
+                [self._deploy_script_path(),
                  str(self.useCPU),
                  str(self.visualizeFlag)],
-                'deploy')
+                'deploy',
+                cwd=self._scripts_dir())
             self.run_button.setText('Stop')
             self.run_button.setIcon(QIcon('img/quit.png'))
             self.run_button.setIconSize(QSize(100, 100))
@@ -339,8 +340,9 @@ class DeployWindow(QWidget):
         else:
             self.deploy_logger.info("Killing epd_test_container docker.")
             self._kill_process, self._kill_timer = self._start_process(
-                ['./scripts/kill.sh'],
-                'kill')
+                [self._kill_script_path()],
+                'kill',
+                cwd=self._scripts_dir())
             self.run_button.setText('Run')
             self.run_button.setIcon(QIcon('img/go.png'))
             self.run_button.setIconSize(QSize(100, 100))
@@ -348,12 +350,23 @@ class DeployWindow(QWidget):
             self._is_running = False
             self.status_label.setText('Stopped')
 
-    def _start_process(self, args, process_type):
+    def _scripts_dir(self):
+        return os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "scripts"))
+
+    def _deploy_script_path(self):
+        return os.path.join(self._scripts_dir(), "deploy.sh")
+
+    def _kill_script_path(self):
+        return os.path.join(self._scripts_dir(), "kill.sh")
+
+    def _start_process(self, args, process_type, cwd=None):
         process = subprocess.Popen(
             args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True)
+            text=True,
+            cwd=cwd)
         timer = QTimer(self)
         timer.setInterval(200)
         timer.timeout.connect(
@@ -404,7 +417,7 @@ class DeployWindow(QWidget):
         A Mutator function that writes to line 25 of
         run.launch.py file based on new image topic.
         '''
-        new_image_topic = self.topic_button.toPlainText()
+        new_image_topic = self.topic_button.text()
         self.deploy_logger.info(
             'Rewriting Input Image Topic to: ' +
             new_image_topic)

@@ -66,7 +66,13 @@ set(EPD_UTILS
 # -----------------------------
 # Model downloads
 # -----------------------------
-option(EPD_DOWNLOAD_MODELS "Download pretrained ONNX models at configure time" ON)
+option(EPD_DOWNLOAD_MODELS "Download pretrained ONNX models at configure time" OFF)
+
+if(NOT EPD_DOWNLOAD_MODELS)
+  message(WARNING
+    "Network model downloads are disabled by default for ROS 2 Humble buildfarm compatibility. "
+    "Set -DEPD_DOWNLOAD_MODELS=ON to enable downloads or pre-download the models manually.")
+endif()
 
 set(EPD_MODEL_DIR "${CMAKE_CURRENT_LIST_DIR}/data/model")
 set(EPD_MODEL_SQUEEZENET "${EPD_MODEL_DIR}/squeezenet1.1-7.onnx")
@@ -125,11 +131,12 @@ if(EPD_MISSING_MODELS)
   message(FATAL_ERROR
     "Missing pretrained ONNX models and EPD_DOWNLOAD_MODELS is OFF.\n"
     "Expected files:\n  - ${EPD_MISSING_MODELS_TEXT}\n"
-    "To pre-download models, run the following commands from the repository root:\n"
+    "To download models manually, run the following commands from the repository root:\n"
     "  mkdir -p ${EPD_MODEL_DIR}\n"
     "  curl -L \"${EPD_MODEL_SQUEEZENET_URL}\" -o \"${EPD_MODEL_SQUEEZENET}\"\n"
     "  curl -L \"${EPD_MODEL_FASTER_RCNN_URL}\" -o \"${EPD_MODEL_FASTER_RCNN}\"\n"
-    "  curl -L \"${EPD_MODEL_MASK_RCNN_URL}\" -o \"${EPD_MODEL_MASK_RCNN}\"")
+    "  curl -L \"${EPD_MODEL_MASK_RCNN_URL}\" -o \"${EPD_MODEL_MASK_RCNN}\"\n"
+    "Alternatively, reconfigure with -DEPD_DOWNLOAD_MODELS=ON to download at configure time.")
 endif()
 
 # -----------------------------

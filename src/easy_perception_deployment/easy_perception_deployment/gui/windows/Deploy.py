@@ -20,8 +20,9 @@ import logging
 
 from PySide2.QtCore import QSize, QTimer
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QComboBox, QFileDialog, QLabel, QLineEdit
-from PySide2.QtWidgets import QMessageBox, QPushButton, QWidget
+from PySide2.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
+                               QMessageBox, QPushButton, QTextEdit,
+                               QWidget)
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
@@ -66,6 +67,7 @@ class DeployWindow(QWidget):
         self.visualizeFlag = True
 
         self.useCPU = True
+        self._intra_op_num_threads = 0
 
         self._path_to_session_config = ('../config/session_config.json')
         self._path_to_usecase_config = ('../config/usecase_config.json')
@@ -106,6 +108,9 @@ class DeployWindow(QWidget):
         try:
             self._path_to_model = session_config["path_to_model"]
             self._path_to_label_list = session_config["path_to_label_list"]
+            self._intra_op_num_threads = session_config.get(
+                "intra_op_num_threads",
+                0)
             if session_config["visualizeFlag"] == "visualize":
                 self.visualizeFlag = True
             else:
@@ -122,6 +127,7 @@ class DeployWindow(QWidget):
             self._path_to_label_list = 'filepath/to/classes/list/txt'
             self.visualizeFlag = True
             self.useCPU = True
+            self._intra_op_num_threads = 0
 
         try:
             self.usecase_mode = int(usecase_config["usecase_mode"])
@@ -182,11 +188,7 @@ class DeployWindow(QWidget):
         self.model_button = QPushButton('ONNX Model', self)
         self.model_button.setIcon(QIcon('img/model.png'))
         self.model_button.setIconSize(QSize(75, 75))
-        self.model_button.setGeometry(
-            0,
-            0,
-            self._DEPLOY_WIN_W/2,
-            self._DEPLOY_WIN_H/4)
+        self.model_button.setMinimumHeight(80)
 
         index = self._path_to_model.find('data/model')
         if index == -1:
@@ -205,11 +207,7 @@ class DeployWindow(QWidget):
         self.list_button = QPushButton('Label List', self)
         self.list_button.setIcon(QIcon('img/label_list.png'))
         self.list_button.setIconSize(QSize(75, 75))
-        self.list_button.setGeometry(
-            self._DEPLOY_WIN_W/2,
-            0,
-            self._DEPLOY_WIN_W/2,
-            self._DEPLOY_WIN_H/4)
+        self.list_button.setMinimumHeight(80)
 
         index = self._path_to_label_list.find('data/label_list')
         if index == -1:
@@ -225,11 +223,6 @@ class DeployWindow(QWidget):
 
         # UseCase Config Dropdown to select usecase mode
         self.usecase_config_button = QComboBox(self)
-        self.usecase_config_button.setGeometry(
-            self._DEPLOY_WIN_W/2,
-            self._DEPLOY_WIN_H/4,
-            self._DEPLOY_WIN_W/2,
-            self._DEPLOY_WIN_H/4)
         for usecase in self.usecase_list:
             self.usecase_config_button.addItem(usecase)
 
@@ -241,38 +234,20 @@ class DeployWindow(QWidget):
                 'background-color: rgba(200,10,0,255);')
 
         self.visualize_button = QPushButton(self)
-        self.visualize_button.setGeometry(
-            0,
-            self._DEPLOY_WIN_H/4,
-            self._DEPLOY_WIN_W/2,
-            self._DEPLOY_WIN_H/4)
+        self.visualize_button.setMinimumHeight(80)
         if self.visualizeFlag:
             self.visualize_button.setText('Visualize')
         else:
             self.visualize_button.setText('Action')
 
         self.register_topic_button = QPushButton(self)
-        self.register_topic_button.setGeometry(
-            0,
-            self._DEPLOY_WIN_H * 2/4,
-            self._DEPLOY_WIN_W * 3/8,
-            self._DEPLOY_WIN_H/16)
         self.register_topic_button.setText('Register Topic')
 
-        self.topic_button = QLineEdit(self)
-        self.topic_button.setGeometry(
-            self._DEPLOY_WIN_W * 3/8,
-            self._DEPLOY_WIN_H * 2/4,
-            self._DEPLOY_WIN_W * 5/8,
-            self._DEPLOY_WIN_H/16)
+        self.topic_button = QTextEdit(self)
+        self.topic_button.setFixedHeight(28)
         self.topic_button.setText(self._input_image_topic)
 
         self.docker_button = QPushButton(self)
-        self.docker_button.setGeometry(
-            0,
-            self._DEPLOY_WIN_H * 9/16,
-            self._DEPLOY_WIN_W,
-            self._DEPLOY_WIN_H/16)
         if self.useCPU is True:
             self.docker_button.setText('CPU')
         else:
@@ -280,31 +255,34 @@ class DeployWindow(QWidget):
 
         # Validation label - shows validation messages
         self.validation_label = QLabel(self)
-        self.validation_label.setGeometry(
-            0,
-            self._DEPLOY_WIN_H * 10/16,
-            self._DEPLOY_WIN_W,
-            self._DEPLOY_WIN_H/16)
         self.validation_label.setWordWrap(True)
 
         # Status label - shows run status (Stopped/Running)
         self.status_label = QLabel('Stopped', self)
-        self.status_label.setGeometry(
-            10,
-            self._DEPLOY_WIN_H * 11/16,
-            self._DEPLOY_WIN_W - 20,
-            self._DEPLOY_WIN_H/16)
+        self.status_label.setIndent(10)
 
         # Run button to deploy ROS2 package with info
         # from usecase_config.json and session_config.json
         self.run_button = QPushButton('Run', self)
         self.run_button.setIcon(QIcon('img/go.png'))
         self.run_button.setIconSize(QSize(100, 100))
-        self.run_button.setGeometry(
-            0,
-            self._DEPLOY_WIN_H * 3/4,
-            self._DEPLOY_WIN_W,
-            self._DEPLOY_WIN_H/4)
+        self.run_button.setMinimumHeight(100)
+
+        layout = QGridLayout(self)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(6)
+        layout.addWidget(self.model_button, 0, 0)
+        layout.addWidget(self.list_button, 0, 1)
+        layout.addWidget(self.visualize_button, 1, 0)
+        layout.addWidget(self.usecase_config_button, 1, 1)
+        layout.addWidget(self.register_topic_button, 2, 0)
+        layout.addWidget(self.topic_button, 2, 1)
+        layout.addWidget(self.docker_button, 3, 0, 1, 2)
+        layout.addWidget(self.validation_label, 4, 0, 1, 2)
+        layout.addWidget(self.status_label, 5, 0, 1, 2)
+        layout.addWidget(self.run_button, 6, 0, 1, 2)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 1)
 
         # Connect signals to slots
         self.visualize_button.clicked.connect(self.setVisualizeFlag)
@@ -516,7 +494,8 @@ class DeployWindow(QWidget):
             self.deploy_logger.info('Wrote to ../data/usecase_config.json')
             dict = {
                 "usecase_mode": 2,
-                "path_to_color_template": path_to_color_template
+                "path_to_color_template": path_to_color_template,
+                "color_match_histogram_metric": "Correlation"
                 }
             json_object = json.dumps(dict, indent=4)
 
@@ -546,7 +525,8 @@ class DeployWindow(QWidget):
             "path_to_model": self._path_to_model,
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
-            "useCPU": useCPU_string
+            "useCPU": useCPU_string,
+            "intra_op_num_threads": self._intra_op_num_threads
             }
         json_object = json.dumps(dict, indent=4)
 

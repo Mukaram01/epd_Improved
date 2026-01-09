@@ -18,8 +18,9 @@ import logging
 
 from PySide2.QtCore import QSize
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QComboBox, QLabel
-from PySide2.QtWidgets import QMessageBox, QPushButton, QWidget
+from PySide2.QtWidgets import (QComboBox, QGridLayout, QHBoxLayout, QLabel,
+                               QMessageBox, QPushButton, QVBoxLayout,
+                               QWidget)
 
 
 class CountingWindow(QWidget):
@@ -50,7 +51,15 @@ class CountingWindow(QWidget):
         self._select_list = []
         self._path_to_usecase_config = _path_to_usecase_config
 
-        path_to_label_list = '.' + path_to_label_list
+        gui_base_path = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..'))
+        expanded_path = os.path.expandvars(
+            os.path.expanduser(path_to_label_list))
+        if os.path.isabs(expanded_path):
+            path_to_label_list = os.path.abspath(expanded_path)
+        else:
+            path_to_label_list = os.path.abspath(
+                os.path.join(gui_base_path, expanded_path))
 
         # Check if label-list file exits.
         if not os.path.exists(path_to_label_list):
@@ -78,47 +87,47 @@ class CountingWindow(QWidget):
         '''A Mutator function that defines all buttons in CountingWindow.'''
         # Label List Menu for showing and adding objects-to-count
         self.label_list_dropdown = QComboBox(self)
-        self.label_list_dropdown.setGeometry(self._COUNTING_WIN_W/2,
-                                             self._COUNTING_WIN_H/3,
-                                             self._COUNTING_WIN_W/3,
-                                             50)
+        self.label_list_dropdown.setMinimumHeight(40)
         for label in self._label_list:
             self.label_list_dropdown.addItem(label)
 
         self.label_list_dropdown_label = QLabel(self)
         self.label_list_dropdown_label.setText('Available Objects')
-        self.label_list_dropdown_label.move(self._COUNTING_WIN_W/2,
-                                            self._COUNTING_WIN_H/3 - 25)
 
         # Selected List Menu for showing and removing objects-to-count
         self.selected_list_menu = QComboBox(self)
-        self.selected_list_menu.setGeometry(0,
-                                            self._COUNTING_WIN_H/3,
-                                            self._COUNTING_WIN_W/3,
-                                            50)
+        self.selected_list_menu.setMinimumHeight(40)
 
         self.selected_list_menu_label = QLabel(self)
         self.selected_list_menu_label.setText('Selected Objects')
-        self.selected_list_menu_label.move(0,
-                                           self._COUNTING_WIN_H/3 - 25)
 
         # Finish button to save the stored counting and
         # write to usecase_config.json
         self.finish_button = QPushButton('Finish', self)
         self.finish_button.setIcon(QIcon('img/go.png'))
         self.finish_button.setIconSize(QSize(75, 75))
-        self.finish_button.setGeometry(self._COUNTING_WIN_W/2,
-                                       self._COUNTING_WIN_H*2/3,
-                                       self._COUNTING_WIN_W/2,
-                                       self._COUNTING_WIN_H/3)
         # Cancel button to exit USE CASE: COUNTING
         self.cancel_button = QPushButton('Cancel', self)
         self.cancel_button.setIcon(QIcon('img/quit.png'))
         self.cancel_button.setIconSize(QSize(75, 75))
-        self.cancel_button.setGeometry(0,
-                                       self._COUNTING_WIN_H*2/3,
-                                       self._COUNTING_WIN_W/2,
-                                       self._COUNTING_WIN_H/3)
+
+        grid_layout = QGridLayout()
+        grid_layout.addWidget(self.selected_list_menu_label, 0, 0)
+        grid_layout.addWidget(self.label_list_dropdown_label, 0, 1)
+        grid_layout.addWidget(self.selected_list_menu, 1, 0)
+        grid_layout.addWidget(self.label_list_dropdown, 1, 1)
+        grid_layout.setColumnStretch(0, 1)
+        grid_layout.setColumnStretch(1, 1)
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.cancel_button)
+        button_layout.addWidget(self.finish_button)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+        layout.addLayout(grid_layout)
+        layout.addLayout(button_layout)
 
         self.finish_button.clicked.connect(self.writeToUseCaseConfig)
         self.cancel_button.clicked.connect(self.closeWindow)

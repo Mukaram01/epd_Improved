@@ -18,8 +18,8 @@ import logging
 
 from PySide2.QtCore import QSize
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QComboBox, QLabel
-from PySide2.QtWidgets import QMessageBox, QPushButton, QWidget
+from PySide2.QtWidgets import (QComboBox, QHBoxLayout, QPushButton,
+                               QVBoxLayout, QWidget)
 
 
 class TrackingWindow(QWidget):
@@ -68,10 +68,7 @@ class TrackingWindow(QWidget):
         '''A Mutator function that defines all buttons in TrackingWindow.'''
         # Label List Menu for showing and adding objects-to-count
         self.label_list_dropdown = QComboBox(self)
-        self.label_list_dropdown.setGeometry(0,
-                                             0,
-                                             self._TRACKING_WIN_W,
-                                             50)
+        self.label_list_dropdown.setMinimumHeight(40)
         for label in self._tracker_description_list:
             self.label_list_dropdown.addItem(label)
 
@@ -80,18 +77,20 @@ class TrackingWindow(QWidget):
         self.finish_button = QPushButton('Done', self)
         self.finish_button.setIcon(QIcon('img/go.png'))
         self.finish_button.setIconSize(QSize(75, 75))
-        self.finish_button.setGeometry(self._TRACKING_WIN_W/2,
-                                       50,
-                                       self._TRACKING_WIN_W/2,
-                                       100)
         # Cancel button to exit USE CASE: TRACKING
         self.cancel_button = QPushButton('Cancel', self)
         self.cancel_button.setIcon(QIcon('img/quit.png'))
         self.cancel_button.setIconSize(QSize(75, 75))
-        self.cancel_button.setGeometry(0,
-                                       50,
-                                       self._TRACKING_WIN_W/2,
-                                       100)
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.cancel_button)
+        button_layout.addWidget(self.finish_button)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+        layout.addWidget(self.label_list_dropdown)
+        layout.addLayout(button_layout)
 
         self.finish_button.clicked.connect(self.writeToUseCaseConfig)
         self.cancel_button.clicked.connect(self.closeWindow)

@@ -19,10 +19,11 @@ import subprocess
 import logging
 from ast import literal_eval as make_tuple
 
-from PySide2.QtCore import QSize
+from PySide2.QtCore import QSize, Qt
 from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import (QComboBox, QFileDialog, QInputDialog, QLabel,
-                               QLineEdit, QPushButton, QWidget)
+from PySide2.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
+                               QHBoxLayout, QInputDialog, QLabel, QLineEdit,
+                               QPushButton, QVBoxLayout, QWidget)
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
 
@@ -90,20 +91,15 @@ class TrainWindow(QWidget):
         '''A Mutator function that defines all buttons in TrainWindow.'''
 
         self.p2_button = QPushButton('P2', self)
-        self.p2_button.setGeometry(0, 0, 50, 100)
+        self.p2_button.setFixedSize(50, 100)
         self.p2_button.setStyleSheet(
             'background-color: rgba(180,180,180,255);')
 
         self.p3_button = QPushButton('P3', self)
-        self.p3_button.setGeometry(50, 0, 50, 100)
+        self.p3_button.setFixedSize(50, 100)
 
         # Model dropdown menu to select Precision Level specific model
         self.model_selector = QComboBox(self)
-        self.model_selector.setGeometry(
-            self._TRAIN_WIN_W-150,
-            0,
-            150,
-            self._ROW_THICKNESS)
         self.model_selector.setStyleSheet('background-color: red;')
         self.populateModelSelector()
 
@@ -111,11 +107,7 @@ class TrainWindow(QWidget):
         self.label_button = QPushButton('Label Dataset', self)
         self.label_button.setIcon(QIcon('img/label_labelme.png'))
         self.label_button.setIconSize(QSize(50, 50))
-        self.label_button.setGeometry(
-            0,
-            200,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS)
+        self.label_button.setFixedHeight(self._ROW_THICKNESS)
         self.label_button.setStyleSheet(
             'background-color: rgba(0,200,10,255);')
         if self._precision_level == 1:
@@ -124,11 +116,7 @@ class TrainWindow(QWidget):
         self.generate_button = QPushButton('Generate Dataset', self)
         self.generate_button.setIcon(QIcon('img/label_generate.png'))
         self.generate_button.setIconSize(QSize(50, 50))
-        self.generate_button.setGeometry(
-            self._TRAIN_WIN_W/2,
-            200,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS)
+        self.generate_button.setFixedHeight(self._ROW_THICKNESS)
         self.generate_button.setStyleSheet(
             'background-color: rgba(0,200,10,255);')
 
@@ -136,32 +124,20 @@ class TrainWindow(QWidget):
         self.validate_button = QPushButton('Validate Training', self)
         self.validate_button.setIcon(QIcon('img/validate.png'))
         self.validate_button.setIconSize(QSize(50, 50))
-        self.validate_button.setGeometry(
-            self._TRAIN_WIN_W/2,
-            300,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS)
+        self.validate_button.setFixedHeight(self._ROW_THICKNESS)
 
         # Dataset button to prompt input via FileDialogue
         self.dataset_button = QPushButton('Choose Dataset', self)
         self.dataset_button.setIcon(QIcon('img/dataset.png'))
         self.dataset_button.setIconSize(QSize(50, 50))
-        self.dataset_button.setGeometry(
-            0,
-            300,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS)
+        self.dataset_button.setFixedHeight(self._ROW_THICKNESS)
         self.dataset_button.setStyleSheet('background-color: red;')
 
         # Start Training button to start and display training process
         self.train_button = QPushButton('Train', self)
         self.train_button.setIcon(QIcon('img/train.png'))
         self.train_button.setIconSize(QSize(75, 75))
-        self.train_button.setGeometry(
-            0,
-            self._TRAIN_WIN_H-100,
-            self._TRAIN_WIN_W,
-            self._ROW_THICKNESS)
+        self.train_button.setFixedHeight(self._ROW_THICKNESS)
         self.train_button.setStyleSheet(
             'background-color: rgba(180,180,180,255);')
 
@@ -169,42 +145,58 @@ class TrainWindow(QWidget):
         self.list_button = QPushButton('Choose Label List', self)
         self.list_button.setIcon(QIcon('img/label_list.png'))
         self.list_button.setIconSize(QSize(75, 75))
-        self.list_button.setGeometry(
-            0,
-            100,
-            self._TRAIN_WIN_W,
-            self._ROW_THICKNESS)
+        self.list_button.setFixedHeight(self._ROW_THICKNESS)
         self.list_button.setStyleSheet(
             'background-color: rgba(200,10,0,255);')
 
         self.training_config_label = QLabel(self)
         self.training_config_label.setText('Training Parameters')
-        self.training_config_label.move(self._TRAIN_WIN_W/2 - 65, 415)
 
         self.maxiter_button = QPushButton('MAX ITERATION', self)
-        self.maxiter_button.setGeometry(
-            0,
-            450,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS/2)
+        self.maxiter_button.setFixedHeight(self._ROW_THICKNESS // 2)
         self.checkpointp_button = QPushButton('CHECKPOINT PERIOD', self)
-        self.checkpointp_button.setGeometry(
-            self._TRAIN_WIN_W/2,
-            450,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS/2)
+        self.checkpointp_button.setFixedHeight(self._ROW_THICKNESS // 2)
         self.steps_button = QPushButton('STEPS', self)
-        self.steps_button.setGeometry(
-            0,
-            500,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS/2)
+        self.steps_button.setFixedHeight(self._ROW_THICKNESS // 2)
         self.testp_button = QPushButton('TEST PERIOD', self)
-        self.testp_button.setGeometry(
-            self._TRAIN_WIN_W/2,
-            500,
-            self._TRAIN_WIN_W/2,
-            self._ROW_THICKNESS/2)
+        self.testp_button.setFixedHeight(self._ROW_THICKNESS // 2)
+
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(self.p2_button)
+        top_layout.addWidget(self.p3_button)
+        top_layout.addStretch(1)
+        top_layout.addWidget(self.model_selector)
+
+        dataset_layout = QGridLayout()
+        dataset_layout.setHorizontalSpacing(10)
+        dataset_layout.setVerticalSpacing(10)
+        dataset_layout.addWidget(self.label_button, 0, 0)
+        dataset_layout.addWidget(self.generate_button, 0, 1)
+        dataset_layout.addWidget(self.dataset_button, 1, 0)
+        dataset_layout.addWidget(self.validate_button, 1, 1)
+        dataset_layout.setColumnStretch(0, 1)
+        dataset_layout.setColumnStretch(1, 1)
+
+        training_params_layout = QGridLayout()
+        training_params_layout.setHorizontalSpacing(10)
+        training_params_layout.setVerticalSpacing(10)
+        training_params_layout.addWidget(self.maxiter_button, 0, 0)
+        training_params_layout.addWidget(self.checkpointp_button, 0, 1)
+        training_params_layout.addWidget(self.steps_button, 1, 0)
+        training_params_layout.addWidget(self.testp_button, 1, 1)
+        training_params_layout.setColumnStretch(0, 1)
+        training_params_layout.setColumnStretch(1, 1)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
+        layout.addLayout(top_layout)
+        layout.addWidget(self.list_button)
+        layout.addLayout(dataset_layout)
+        layout.addWidget(self.training_config_label,
+                         alignment=Qt.AlignHCenter)
+        layout.addLayout(training_params_layout)
+        layout.addWidget(self.train_button)
 
         self.p2_button.clicked.connect(self.setP2)
         self.p3_button.clicked.connect(self.setP3)
@@ -399,15 +391,6 @@ class TrainWindow(QWidget):
             self.train_logger.warning(
                 'No label List provided. ' +
                 'Please choose Label List.')
-            self.train_button.setStyleSheet(
-                'background-color: rgba(180,180,180,255);')
-            self.disconnectTrainingButton()
-            return
-
-        if not self._is_dataset_labelled:
-            self.train_logger.warning(
-                'Dataset not properly restructured.' +
-                'Please restructure Dataset.')
             self.train_button.setStyleSheet(
                 'background-color: rgba(180,180,180,255);')
             self.disconnectTrainingButton()

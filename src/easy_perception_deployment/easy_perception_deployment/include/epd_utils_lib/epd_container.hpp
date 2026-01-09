@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "boost/optional.hpp"
+
 #include "ort_cpp_lib/ort_base.hpp"
 #include "ort_cpp_lib/p2_ort_base.hpp"
 #include "ort_cpp_lib/p3_ort_base.hpp"
@@ -55,6 +57,8 @@ public:
   * filter.
   */
   std::string template_color_path;
+  /*! \brief The histogram comparison metric for Color-Matching use-case.*/
+  unsigned int color_match_histogram_metric;
   /*! \brief The filepath to the essential class label list, that maps classIndices
   * to human-understandable object text labels.
   */
@@ -141,6 +145,8 @@ private:
   *  the variable, classNames.
   */
   void setLabelList();
+
+  boost::optional<int> intra_op_num_threads;
 };
 
 }  // namespace EPD

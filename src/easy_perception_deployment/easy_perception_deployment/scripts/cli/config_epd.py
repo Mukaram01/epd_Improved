@@ -34,11 +34,13 @@ class EPDConfigurator():
         self._input_image_topic = ''
         self.visualizeFlag = True
         self.useCPU = True
+        self.intra_op_num_threads = 0
 
         self.usecase_mode = 0
 
         self.count_class_list = []
         self.path_to_color_template = ''
+        self.color_match_histogram_metric = 'Correlation'
         self.track_type = ''
         self.input_image_topic = ''
 
@@ -94,8 +96,17 @@ class EPDConfigurator():
         print('-l --label   Sets new label list to be deployed via EPD.')
         print('--use   Sets usecase mode to be deployed via EPD. ' +
               'Eg. [0,1,2,3,4].')
+        print('--class-list   Sets class names for COUNTING use case ' +
+              '(comma-separated).')
+        print('--color-template   Sets color template file path for ' +
+              'COLOR-MATCHING use case.')
+        print('--color-hist-metric   Sets histogram comparison metric for ' +
+              'COLOR-MATCHING use case. Acceptable values: ' +
+              'Correlation, Chi-square, Intersection, Bhattacharyya.')
+        print('--track-type   Sets tracker type for TRACKING use case.')
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
+        print('--intra-op-threads   Sets intra-op thread count for ORT.')
 
     def isInEPDPackageRoot(self, start_dirpath):
         if (os.path.isdir(start_dirpath + "/scripts") and
@@ -119,7 +130,12 @@ class EPDConfigurator():
                                          'model=',
                                          'label=',
                                          'use=',
-                                         'topic='])
+                                         'class-list=',
+                                         'color-template=',
+                                         'color-hist-metric=',
+                                         'track-type=',
+                                         'topic=',
+                                         'intra-op-threads='])
 
         for opt, arg in opts:
             if opt == '-h':
@@ -138,25 +154,60 @@ class EPDConfigurator():
                 print("[ session_config.json ] - Setting to CPU Mode.")
                 self.useCPU = True
             elif opt in ('-m', '--model'):
-                if not os.path.isfile(os.getcwd() + "/" + arg):
+                resolved_path = os.path.abspath(os.path.expanduser(arg))
+                if not os.path.isfile(resolved_path):
                     print("[ config_epd ] - ERROR." +
-                          " input model file does not exist.")
+                          " input model file does not exist at " +
+                          resolved_path + ".")
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
-                self._path_to_model = arg
+                self._path_to_model = resolved_path
             elif opt in ('-l', '--label'):
-                if not os.path.isfile(os.getcwd() + "/" + arg):
+                resolved_path = os.path.abspath(os.path.expanduser(arg))
+                if not os.path.isfile(resolved_path):
                     print("[ config_epd ] - ERROR." +
-                          " input label list does not exist.")
+                          " input label list does not exist at " +
+                          resolved_path + ".")
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
-                self._path_to_label_list = arg
+                self._path_to_label_list = resolved_path
             elif opt in ('--use'):
                 self.set_use_case_from_cli(int(arg))
+            elif opt in ('--class-list'):
+                class_list = [item.strip() for item in arg.split(',')
+                              if item.strip()]
+                if not class_list:
+                    print("[ config_epd ] - ERROR." +
+                          " class list cannot be empty.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.count_class_list = class_list
+            elif opt in ('--color-template'):
+                self.path_to_color_template = arg
+            elif opt in ('--color-hist-metric'):
+                self.color_match_histogram_metric = \
+                    self.normalize_color_histogram_metric(arg)
+            elif opt in ('--track-type'):
+                self.track_type = arg
             elif opt in ('--topic'):
                 print("[ session_config.json ] - Setting new input " +
                       "image topic to", arg)
                 self.input_image_topic = arg
+            elif opt in ('--intra-op-threads'):
+                try:
+                    thread_count = int(arg)
+                except ValueError:
+                    print("[ session_config.json ] - ERROR." +
+                          " intra-op-threads must be an integer.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                if thread_count < 0:
+                    print("[ session_config.json ] - ERROR." +
+                          " intra-op-threads must be >= 0.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.intra_op_num_threads = thread_count
+        self.validate_usecase_inputs()
 
     def parse_session_config(self, session_config_filepath):
 
@@ -164,6 +215,7 @@ class EPDConfigurator():
         data = json.load(f)
         self._path_to_model = data["path_to_model"]
         self._path_to_label_list = data["path_to_label_list"]
+        self.intra_op_num_threads = data.get("intra_op_num_threads", 0)
         if data["useCPU"] == "CPU":
             self.useCPU = True
         else:
@@ -187,6 +239,10 @@ class EPDConfigurator():
         elif self.usecase_mode == 2:
             print("[ Use Case ] - COLOR-MATCHING")
             self.path_to_color_template = data["path_to_color_template"]
+            if "color_match_histogram_metric" in data:
+                self.color_match_histogram_metric = \
+                    self.normalize_color_histogram_metric(
+                        data["color_match_histogram_metric"])
         elif self.usecase_mode == 3:
             print("[ Use Case ] - LOCALIZATION")
         elif self.usecase_mode == 4:
@@ -205,6 +261,43 @@ class EPDConfigurator():
         self.input_image_topic = data["input_image_topic"]
         f.close()
 
+    def normalize_color_histogram_metric(self, metric):
+        if isinstance(metric, int):
+            metric_value = metric
+        else:
+            metric_str = str(metric).strip()
+            if metric_str.isdigit():
+                metric_value = int(metric_str)
+            else:
+                metric_lower = metric_str.lower()
+                if metric_lower == "correlation":
+                    return "Correlation"
+                if metric_lower in ("chi-square", "chisquare", "chi_square"):
+                    return "Chi-square"
+                if metric_lower == "intersection":
+                    return "Intersection"
+                if metric_lower == "bhattacharyya":
+                    return "Bhattacharyya"
+                print("[ config_epd ] - ERROR." +
+                      " Invalid color-hist-metric provided. " +
+                      "Expected Correlation, Chi-square, Intersection, " +
+                      "or Bhattacharyya.")
+                sys.exit(2)
+
+        if metric_value == 0:
+            return "Correlation"
+        if metric_value == 1:
+            return "Chi-square"
+        if metric_value == 2:
+            return "Intersection"
+        if metric_value == 3:
+            return "Bhattacharyya"
+        print("[ config_epd ] - ERROR." +
+              " Invalid color-hist-metric provided. " +
+              "Expected 0-3 or Correlation, Chi-square, Intersection, " +
+              "or Bhattacharyya.")
+        sys.exit(2)
+
     def set_use_case_from_cli(self, usecase_mode):
         self.usecase_mode = usecase_mode
 
@@ -214,28 +307,58 @@ class EPDConfigurator():
         elif usecase_mode == 1:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to COUNTING.")
-            n = int(input("Please enter number of object class names : "))
-            self.count_class_list.clear()
-            for i in range(0, n):
-                ele = input("Please enter class name: ")
-                self.count_class_list.append(ele)
         elif usecase_mode == 2:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to COLOR-MATCHING.")
-            self.path_to_color_template = input("Please enter \
-                Color Image File Path: ")
         elif usecase_mode == 3:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to LOCALIZATION.")
         elif usecase_mode == 4:
             print("[ session_config.json ] - " +
                   "Setting Use Case Mode to TRACKING.")
-            self.track_type = input("Please enter Tracker Type \
-                [KCF, MEDIANFLOW, CSRT]: ")
         else:
             print("[ session_config.json ] - " +
                   "Invalid Use Case Mode provided. Exiting...")
             sys.exit(1)
+
+    def validate_usecase_inputs(self):
+        is_interactive = sys.stdin.isatty()
+        if self.usecase_mode == 1:
+            if not self.count_class_list:
+                if not is_interactive:
+                    print("[ config_epd ] - ERROR." +
+                          " --class-list is required for COUNTING " +
+                          "use case in non-interactive mode.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                n = int(input("Please enter number of object class names : "))
+                self.count_class_list.clear()
+                for _ in range(0, n):
+                    ele = input("Please enter class name: ")
+                    self.count_class_list.append(ele)
+        elif self.usecase_mode == 2:
+            if not self.path_to_color_template:
+                if not is_interactive:
+                    print("[ config_epd ] - ERROR." +
+                          " --color-template is required for " +
+                          "COLOR-MATCHING use case in non-interactive mode.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.path_to_color_template = input(
+                    "Please enter Color Image File Path: ")
+            self.color_match_histogram_metric = \
+                self.normalize_color_histogram_metric(
+                    self.color_match_histogram_metric)
+        elif self.usecase_mode == 4:
+            if not self.track_type:
+                if not is_interactive:
+                    print("[ config_epd ] - ERROR." +
+                          " --track-type is required for TRACKING " +
+                          "use case in non-interactive mode.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.track_type = input(
+                    "Please enter Tracker Type [KCF, MEDIANFLOW, CSRT]: ")
 
     def write_out(self, session_config_filepath, usecase_config_filepath):
 
@@ -253,7 +376,8 @@ class EPDConfigurator():
             "path_to_model": self._path_to_model,
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
-            "useCPU": useCPU_string
+            "useCPU": useCPU_string,
+            "intra_op_num_threads": self.intra_op_num_threads
             }
         json_object_1 = json.dumps(dict, indent=4)
 
@@ -278,7 +402,9 @@ class EPDConfigurator():
         elif self.usecase_mode == 2:
             dict = {
                 "usecase_mode": self.usecase_mode,
-                "path_to_color_template": self.path_to_color_template
+                "path_to_color_template": self.path_to_color_template,
+                "color_match_histogram_metric":
+                    self.color_match_histogram_metric
             }
             json_object_2 = json.dumps(dict, indent=4)
             with open(usecase_config_filepath, 'w') as outfile_2:

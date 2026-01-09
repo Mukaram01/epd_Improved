@@ -16,12 +16,89 @@
 #include <jsoncpp/json/json.h>
 
 #include <algorithm>
+#include <cctype>
 #include <fstream>
 #include <string>
 #include <vector>
 
 #include "epd_container.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
+
+namespace
+{
+unsigned int parseColorHistogramMetric(const Json::Value & obj, const std::string & usecase_config_path)
+{
+  if (!obj.isMember("color_match_histogram_metric")) {
+    return EPD::COLOR_HISTOGRAM_CORRELATION;
+  }
+
+  const Json::Value & metric_value = obj["color_match_histogram_metric"];
+  if (metric_value.isInt()) {
+    const int metric = metric_value.asInt();
+    if (metric < 0 || metric > 3) {
+      throw std::runtime_error(
+        "Invalid color_match_histogram_metric in use case config file: " +
+        usecase_config_path + ". Expected 0-3."
+      );
+    }
+    return static_cast<unsigned int>(metric);
+  }
+
+  if (!metric_value.isString()) {
+    throw std::runtime_error(
+      "Invalid color_match_histogram_metric type in use case config file: " +
+      usecase_config_path + ". Expected string or integer."
+    );
+  }
+
+  std::string metric = metric_value.asString();
+  std::transform(metric.begin(), metric.end(), metric.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+
+  if (metric == "correlation") {
+    return EPD::COLOR_HISTOGRAM_CORRELATION;
+  }
+  if (metric == "chi-square" || metric == "chisquare" || metric == "chi_square") {
+    return EPD::COLOR_HISTOGRAM_CHI_SQUARE;
+  }
+  if (metric == "intersection") {
+    return EPD::COLOR_HISTOGRAM_INTERSECTION;
+  }
+  if (metric == "bhattacharyya") {
+    return EPD::COLOR_HISTOGRAM_BHATTACHARYYA;
+  }
+
+  throw std::runtime_error(
+    "Invalid color_match_histogram_metric in use case config file: " +
+    usecase_config_path +
+    ". Expected Correlation, Chi-square, Intersection, or Bhattacharyya."
+  );
+}
+
+bool clampBboxToImage(
+  int left,
+  int top,
+  int right,
+  int bottom,
+  const cv::Mat & input_image,
+  cv::Rect * clamped_rect)
+{
+  const int clamped_left = std::clamp(left, 0, input_image.cols);
+  const int clamped_top = std::clamp(top, 0, input_image.rows);
+  const int clamped_right = std::clamp(right, 0, input_image.cols);
+  const int clamped_bottom = std::clamp(bottom, 0, input_image.rows);
+
+  if (clamped_right <= clamped_left || clamped_bottom <= clamped_top) {
+    return false;
+  }
+
+  *clamped_rect = cv::Rect(
+    cv::Point(clamped_left, clamped_top),
+    cv::Point(clamped_right, clamped_bottom));
+  return true;
+}
+}  // namespace
 
 
 namespace EPD
@@ -31,6 +108,7 @@ EPDContainer::EPDContainer(void)
 {
   hasInitialized = false;
   onlyVisualize = true;
+  color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
 
   this->setModelConfigFile();
   this->setPrecisionLevel();
@@ -86,6 +164,7 @@ void EPDContainer::initORTSessionHandler()
         classNames.size(),
         onnx_model_path,
         0,
+        intra_op_num_threads,
         std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}}
       );
       p2_ort_session->initClassNames(classNames);
@@ -96,6 +175,7 @@ void EPDContainer::initORTSessionHandler()
         classNames.size(),
         onnx_model_path,
         0,
+        intra_op_num_threads,
         std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}}
       );
       p3_ort_session->initClassNames(classNames);
@@ -130,6 +210,22 @@ void EPDContainer::setModelConfigFile()
     onlyVisualize = true;
   } else {
     onlyVisualize = false;
+  }
+
+  if (obj.isMember("intra_op_num_threads")) {
+    if (!obj["intra_op_num_threads"].isInt()) {
+      throw std::runtime_error(
+              "Config 'intra_op_num_threads' must be an integer in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    const int thread_count = obj["intra_op_num_threads"].asInt();
+    if (thread_count > 0) {
+      intra_op_num_threads = thread_count;
+    } else if (thread_count < 0) {
+      throw std::runtime_error(
+              "Config 'intra_op_num_threads' must be >= 0 in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
   }
 
   ifs_1.close();
@@ -171,6 +267,7 @@ void EPDContainer::setUseCaseConfigFile()
 
   if (useCaseMode == EPD::COLOR_MATCHING_MODE) {
     template_color_path = obj["path_to_color_template"].asString();
+    color_match_histogram_metric = parseColorHistogramMetric(obj, usecase_config_path);
   }
 
   // Localization Mode
@@ -209,7 +306,7 @@ void EPDContainer::setPrecisionLevel()
 {
   std::vector<std::vector<int64_t>> empty_inputShapes;
 
-  Ort::OrtBase ort_session(onnx_model_path, 0, empty_inputShapes);
+  Ort::OrtBase ort_session(onnx_model_path, 0, intra_op_num_threads, empty_inputShapes);
 
   switch (ort_session.getNumOutputs()) {
     case 1:
@@ -282,11 +379,10 @@ cv::Mat EPDContainer::visualize(
       continue;
     }
 
-    if (curBbox[0] - curBbox[2] == 0) {
-      continue;
-    }
-
-    if (curBbox[1] - curBbox[3] == 0) {
+    cv::Rect curBoxRect;
+    if (!clampBboxToImage(
+        curBbox[0], curBbox[1], curBbox[2], curBbox[3], input_image, &curBoxRect))
+    {
       continue;
     }
 
@@ -294,24 +390,20 @@ cv::Mat EPDContainer::visualize(
     const std::string curLabel = classNames[result.classIndices[i]];
 
     cv::rectangle(
-      output_image, cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]), curColor, 2);
+      output_image, curBoxRect.tl(),
+      curBoxRect.br(), curColor, 2);
 
     int baseLine = 0;
     cv::Size labelSize =
       cv::getTextSize(curLabel, cv::FONT_HERSHEY_COMPLEX, 0.35, 1, &baseLine);
     cv::rectangle(
-      output_image, cv::Point(
-        curBbox[0], curBbox[1]),
+      output_image, curBoxRect.tl(),
       cv::Point(
-        curBbox[0] + labelSize.width,
-        curBbox[1] + static_cast<int>(1.3 * labelSize.height)),
+        curBoxRect.x + labelSize.width,
+        curBoxRect.y + static_cast<int>(1.3 * labelSize.height)),
       curColor, -1);
 
     // Visualizing masks
-    const cv::Rect curBoxRect(cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]));
-
     if (!noMasksFound) {
       cv::resize(curMask, curMask, curBoxRect.size());
       // Assigning masks that exceed the maskThreshold.
@@ -340,7 +432,7 @@ cv::Mat EPDContainer::visualize(
 
     cv::putText(
       output_image, curLabel,
-      cv::Point(curBbox[0], curBbox[1] + labelSize.height),
+      cv::Point(curBoxRect.x, curBoxRect.y + labelSize.height),
       cv::FONT_HERSHEY_COMPLEX, 0.35, cv::Scalar(255, 255, 255));
   }
 
@@ -371,11 +463,15 @@ cv::Mat EPDContainer::visualize(
       continue;
     }
 
-    if (curBbox[0] - curBbox[2] == 0) {
-      continue;
-    }
-
-    if (curBbox[1] - curBbox[3] == 0) {
+    cv::Rect curBoxRect;
+    if (!clampBboxToImage(
+        static_cast<int>(curBbox[0]),
+        static_cast<int>(curBbox[1]),
+        static_cast<int>(curBbox[2]),
+        static_cast<int>(curBbox[3]),
+        input_image,
+        &curBoxRect))
+    {
       continue;
     }
 
@@ -384,8 +480,8 @@ cv::Mat EPDContainer::visualize(
 
     cv::rectangle(
       output_image,
-      cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]),
+      curBoxRect.tl(),
+      curBoxRect.br(),
       curColor,
       2);
 
@@ -393,10 +489,10 @@ cv::Mat EPDContainer::visualize(
     cv::Size labelSize =
       cv::getTextSize(curLabel, cv::FONT_HERSHEY_COMPLEX, 0.35, 1, &baseLine);
     cv::rectangle(
-      output_image, cv::Point(curBbox[0], curBbox[1]),
+      output_image, curBoxRect.tl(),
       cv::Point(
-        curBbox[0] + labelSize.width,
-        curBbox[1] + static_cast<int>(1.3 * labelSize.height)),
+        curBoxRect.x + labelSize.width,
+        curBoxRect.y + static_cast<int>(1.3 * labelSize.height)),
       curColor, -1);
 
     if (result.object_ids.size() != 0) {
@@ -404,8 +500,6 @@ cv::Mat EPDContainer::visualize(
     }
 
     // Visualizing masks
-    const cv::Rect curBoxRect(cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]));
     cv::resize(curMask, curMask, curBoxRect.size());
     // Assigning masks that exceed the maskThreshold.
     cv::Mat finalMask = (curMask > 0.5);
@@ -428,7 +522,7 @@ cv::Mat EPDContainer::visualize(
 
     cv::putText(
       output_image, curLabel,
-      cv::Point(curBbox[0], curBbox[1] + labelSize.height),
+      cv::Point(curBoxRect.x, curBoxRect.y + labelSize.height),
       cv::FONT_HERSHEY_COMPLEX, 0.35, cv::Scalar(255, 255, 255));
   }
 

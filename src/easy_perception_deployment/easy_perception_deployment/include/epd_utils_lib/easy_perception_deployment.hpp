@@ -21,6 +21,9 @@
 #include <memory>
 #include <functional>
 #include <stdexcept>  // FIX: for std::runtime_error
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 // OpenCV LIB
 #include "opencv2/opencv.hpp"
@@ -58,12 +61,18 @@
     This class object inherits rclcpp::Node object and acts the main bridge
     between the ROS2 interface and the underlying ort_cpp_lib library that is
     based on ONNXRuntime Library.
+    The node now uses a background worker thread to run ONNX Runtime inference.
+    ROS callbacks only enqueue the latest incoming frames, and the worker thread
+    drains the most recent data for each mode (image, localization, or tracking)
+    with mutex/condition_variable synchronization to avoid races with shared
+    state such as frame buffers and ORT session initialization.
 */
 class EasyPerceptionDeployment : public rclcpp::Node
 {
 public:
   /*! \brief A Constructor function*/
   EasyPerceptionDeployment(void);
+  ~EasyPerceptionDeployment(void);
   /*! \brief A function that abstracts processing of input image in image_callback.*/
   void process_image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
   /*! \brief A function that abstracts processing of input image in localize_callback.*/
@@ -145,6 +154,30 @@ private:
   void checkOrtAgentIsInitialized(
     const int img_height,
     const int img_width) const;
+
+  void process_image_work(const sensor_msgs::msg::Image::SharedPtr msg);
+  void process_localize_work(
+    const sensor_msgs::msg::Image::SharedPtr msg,
+    const sensor_msgs::msg::Image::SharedPtr depth_msg,
+    const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
+  void process_tracking_work(
+    const sensor_msgs::msg::Image::SharedPtr msg,
+    const sensor_msgs::msg::Image::SharedPtr depth_msg,
+    const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
+  void worker_loop();
+
+  std::mutex data_mutex_;
+  std::condition_variable data_cv_;
+  std::thread worker_thread_;
+  bool worker_stop_{false};
+  bool image_pending_{false};
+  bool localize_pending_{false};
+  bool tracking_pending_{false};
+  sensor_msgs::msg::Image::SharedPtr latest_image_;
+  sensor_msgs::msg::Image::SharedPtr latest_depth_image_;
+  sensor_msgs::msg::CameraInfo::SharedPtr latest_camera_info_;
+
+  std::mutex ort_mutex_;
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
@@ -263,14 +296,23 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       RCLCPP_INFO(this->get_logger(), "[ RECEIVED ] - EMD Grasp-Planner Request");
       response->success = true;
 
-      response->tracking_enabled = (ortAgent_.useCaseMode == 4);
+      {
+        std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+        response->tracking_enabled = (ortAgent_.useCaseMode == 4);
+      }
 
-      if (ortAgent_.useCaseMode == 3) {
+      int use_case_mode = 0;
+      {
+        std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+        use_case_mode = ortAgent_.useCaseMode;
+      }
+
+      if (use_case_mode == 3) {
         localize_image_rgb.subscribe();
         localize_image_depth.subscribe();
         localize_cam_info.subscribe();
         sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
-      } else if (ortAgent_.useCaseMode == 4) {
+      } else if (use_case_mode == 4) {
         localize_image_rgb.subscribe();
         localize_image_depth.subscribe();
         localize_cam_info.subscribe();
@@ -285,7 +327,10 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         }
       }
 
-      ortAgent_.requestAddressed = false;
+      {
+        std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+        ortAgent_.requestAddressed = false;
+      }
     };
 
   srv_ = this->create_service<epd_msgs::srv::Perception>(
@@ -329,6 +374,20 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       RCLCPP_INFO(this->get_logger(), "[-Use Case-] - EPD::TRACKING_MODE");
       break;
   }
+
+  worker_thread_ = std::thread(&EasyPerceptionDeployment::worker_loop, this);
+}
+
+EasyPerceptionDeployment::~EasyPerceptionDeployment(void)
+{
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    worker_stop_ = true;
+  }
+  data_cv_.notify_all();
+  if (worker_thread_.joinable()) {
+    worker_thread_.join();
+  }
 }
 
 void EasyPerceptionDeployment::hasCameraChanged(const int img_height, const int img_width) const
@@ -357,9 +416,73 @@ void EasyPerceptionDeployment::process_localize_callback(
   const sensor_msgs::msg::Image::SharedPtr depth_msg,
   const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    latest_image_ = msg;
+    latest_depth_image_ = depth_msg;
+    latest_camera_info_ = camera_info;
+    localize_pending_ = true;
+  }
+  data_cv_.notify_one();
+}
+
+void EasyPerceptionDeployment::localize_callback(
+  const sensor_msgs::msg::Image::SharedPtr msg,
+  const sensor_msgs::msg::Image::SharedPtr depth_msg,
+  const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
+{
+  this->process_localize_callback(msg, depth_msg, camera_info);
+}
+
+void EasyPerceptionDeployment::process_tracking_callback(
+  const sensor_msgs::msg::Image::SharedPtr msg,
+  const sensor_msgs::msg::Image::SharedPtr depth_msg,
+  const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
+{
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    latest_image_ = msg;
+    latest_depth_image_ = depth_msg;
+    latest_camera_info_ = camera_info;
+    tracking_pending_ = true;
+  }
+  data_cv_.notify_one();
+}
+
+void EasyPerceptionDeployment::tracking_callback(
+  const sensor_msgs::msg::Image::SharedPtr msg,
+  const sensor_msgs::msg::Image::SharedPtr depth_msg,
+  const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
+{
+  this->process_tracking_callback(msg, depth_msg, camera_info);
+}
+
+void EasyPerceptionDeployment::process_image_callback(
+  const sensor_msgs::msg::Image::SharedPtr msg)
+{
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    latest_image_ = msg;
+    image_pending_ = true;
+  }
+  data_cv_.notify_one();
+}
+
+void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+{
+  this->process_image_callback(msg);
+}
+
+void EasyPerceptionDeployment::process_localize_work(
+  const sensor_msgs::msg::Image::SharedPtr msg,
+  const sensor_msgs::msg::Image::SharedPtr depth_msg,
+  const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
+{
+  std::unique_lock<std::mutex> ort_lock(ort_mutex_);
   if (ortAgent_.requestAddressed) {
     return;
   }
+  ort_lock.unlock();
 
   const double camera_to_plane_distance_mm =
     this->get_parameter("camera_to_plane_distance_mm").as_double();
@@ -385,19 +508,32 @@ void EasyPerceptionDeployment::process_localize_callback(
   }
   cv::Mat depth_img = depth_imageptr->image;
 
-  checkOrtAgentIsInitialized(img.rows, img.cols);
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    checkOrtAgentIsInitialized(img.rows, img.cols);
+  }
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  EPD::EPDObjectLocalization result = ortAgent_.p3_ort_session->infer(
-    img,
-    depth_img,
-    *camera_info,
-    camera_to_plane_distance_mm);
+  EPD::EPDObjectLocalization result;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    result = ortAgent_.p3_ort_session->infer(
+      img,
+      depth_img,
+      *camera_info,
+      camera_to_plane_distance_mm);
+  }
 
   cv::Mat resultImg;
 
-  if (ortAgent_.isVisualize()) {
+  bool visualize = false;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    visualize = ortAgent_.isVisualize();
+  }
+
+  if (visualize) {
     EPD::EPDObjectTracking converted_result(result.data_size);
     converted_result.object_ids.clear();
     for (size_t i = 0; i < result.data_size; i++) {
@@ -405,7 +541,10 @@ void EasyPerceptionDeployment::process_localize_callback(
     }
 
     // FIX: don't redeclare resultImg (avoid shadowing)
-    resultImg = ortAgent_.visualize(converted_result, img);
+    {
+      std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+      resultImg = ortAgent_.visualize(converted_result, img);
+    }
 
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
@@ -483,27 +622,24 @@ void EasyPerceptionDeployment::process_localize_callback(
     pose_pub->publish(pose_array);
   }
 
-  if (ortAgent_.isService()) {
-    ortAgent_.requestAddressed = true;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    if (ortAgent_.isService()) {
+      ortAgent_.requestAddressed = true;
+    }
   }
 }
 
-void EasyPerceptionDeployment::localize_callback(
+void EasyPerceptionDeployment::process_tracking_work(
   const sensor_msgs::msg::Image::SharedPtr msg,
   const sensor_msgs::msg::Image::SharedPtr depth_msg,
   const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
-  this->process_localize_callback(msg, depth_msg, camera_info);
-}
-
-void EasyPerceptionDeployment::process_tracking_callback(
-  const sensor_msgs::msg::Image::SharedPtr msg,
-  const sensor_msgs::msg::Image::SharedPtr depth_msg,
-  const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
-{
+  std::unique_lock<std::mutex> ort_lock(ort_mutex_);
   if (ortAgent_.requestAddressed) {
     return;
   }
+  ort_lock.unlock();
 
   const double camera_to_plane_distance_mm =
     this->get_parameter("camera_to_plane_distance_mm").as_double();
@@ -529,24 +665,40 @@ void EasyPerceptionDeployment::process_tracking_callback(
   }
   cv::Mat depth_img = depth_imageptr->image;
 
-  checkOrtAgentIsInitialized(img.rows, img.cols);
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    checkOrtAgentIsInitialized(img.rows, img.cols);
+  }
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  EPD::EPDObjectTracking result = ortAgent_.p3_ort_session->infer(
-    img,
-    depth_img,
-    *camera_info,
-    camera_to_plane_distance_mm,
-    ortAgent_.tracker_type,
-    ortAgent_.trackers,
-    ortAgent_.tracker_logs,
-    ortAgent_.tracker_results);
+  EPD::EPDObjectTracking result;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    result = ortAgent_.p3_ort_session->infer(
+      img,
+      depth_img,
+      *camera_info,
+      camera_to_plane_distance_mm,
+      ortAgent_.tracker_type,
+      ortAgent_.trackers,
+      ortAgent_.tracker_logs,
+      ortAgent_.tracker_results);
+  }
 
   cv::Mat resultImg;
 
-  if (ortAgent_.isVisualize()) {
-    resultImg = ortAgent_.visualize(result, img);
+  bool visualize = false;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    visualize = ortAgent_.isVisualize();
+  }
+
+  if (visualize) {
+    {
+      std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+      resultImg = ortAgent_.visualize(result, img);
+    }
 
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
@@ -625,20 +777,15 @@ void EasyPerceptionDeployment::process_tracking_callback(
     pose_pub->publish(pose_array);
   }
 
-  if (ortAgent_.isService()) {
-    ortAgent_.requestAddressed = true;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    if (ortAgent_.isService()) {
+      ortAgent_.requestAddressed = true;
+    }
   }
 }
 
-void EasyPerceptionDeployment::tracking_callback(
-  const sensor_msgs::msg::Image::SharedPtr msg,
-  const sensor_msgs::msg::Image::SharedPtr depth_msg,
-  const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
-{
-  this->process_tracking_callback(msg, depth_msg, camera_info);
-}
-
-void EasyPerceptionDeployment::process_image_callback(
+void EasyPerceptionDeployment::process_image_work(
   const sensor_msgs::msg::Image::SharedPtr msg)
 {
   if (msg->height == 0) {
@@ -654,34 +801,52 @@ void EasyPerceptionDeployment::process_image_callback(
   }
   cv::Mat img = imgptr->image;
 
-  checkOrtAgentIsInitialized(img.rows, img.cols);
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    checkOrtAgentIsInitialized(img.rows, img.cols);
+  }
 
   auto begin = std::chrono::high_resolution_clock::now();
 
   cv::Mat resultImg;
-  switch (ortAgent_.precision_level) {
+  int precision_level = 0;
+  bool visualize = false;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    precision_level = ortAgent_.precision_level;
+    visualize = ortAgent_.isVisualize();
+  }
+
+  switch (precision_level) {
     case 2:
       {
-        EPD::EPDObjectDetection result = ortAgent_.p2_ort_session->infer(img);
-        EPD::activateUseCase(
-          img,
-          result.bboxes,
-          result.classIndices,
-          result.scores,
-          result.masks,
-          ortAgent_.classNames,
-          ortAgent_.useCaseMode,
-          ortAgent_.countClassNames,
-          ortAgent_.template_color_path,
-          ortAgent_.color_match_histogram_metric);
+        EPD::EPDObjectDetection result;
+        {
+          std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+          result = ortAgent_.p2_ort_session->infer(img);
+          EPD::activateUseCase(
+            img,
+            result.bboxes,
+            result.classIndices,
+            result.scores,
+            result.masks,
+            ortAgent_.classNames,
+            ortAgent_.useCaseMode,
+            ortAgent_.countClassNames,
+            ortAgent_.template_color_path,
+            ortAgent_.color_match_histogram_metric);
+        }
 
         EPD::EPDObjectDetection output_obj(result.bboxes.size());
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
 
-        if (ortAgent_.isVisualize()) {
-          resultImg = ortAgent_.visualize(output_obj, img);
+        if (visualize) {
+          {
+            std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+            resultImg = ortAgent_.visualize(output_obj, img);
+          }
           sensor_msgs::msg::Image::SharedPtr output_msg =
             cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
           visual_pub->publish(*output_msg);
@@ -706,18 +871,22 @@ void EasyPerceptionDeployment::process_image_callback(
       }
     case 3:
       {
-        EPD::EPDObjectDetection result = ortAgent_.p3_ort_session->infer(img);
-        EPD::activateUseCase(
-          img,
-          result.bboxes,
-          result.classIndices,
-          result.scores,
-          result.masks,
-          ortAgent_.classNames,
-          ortAgent_.useCaseMode,
-          ortAgent_.countClassNames,
-          ortAgent_.template_color_path,
-          ortAgent_.color_match_histogram_metric);
+        EPD::EPDObjectDetection result;
+        {
+          std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+          result = ortAgent_.p3_ort_session->infer(img);
+          EPD::activateUseCase(
+            img,
+            result.bboxes,
+            result.classIndices,
+            result.scores,
+            result.masks,
+            ortAgent_.classNames,
+            ortAgent_.useCaseMode,
+            ortAgent_.countClassNames,
+            ortAgent_.template_color_path,
+            ortAgent_.color_match_histogram_metric);
+        }
 
         EPD::EPDObjectDetection output_obj(result.bboxes.size());
         output_obj.bboxes = result.bboxes;
@@ -725,8 +894,11 @@ void EasyPerceptionDeployment::process_image_callback(
         output_obj.scores = result.scores;
         output_obj.masks = result.masks;
 
-        if (ortAgent_.isVisualize()) {
-          resultImg = ortAgent_.visualize(output_obj, img);
+        if (visualize) {
+          {
+            std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+            resultImg = ortAgent_.visualize(output_obj, img);
+          }
           sensor_msgs::msg::Image::SharedPtr output_msg =
             cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
           visual_pub->publish(*output_msg);
@@ -773,9 +945,63 @@ void EasyPerceptionDeployment::process_image_callback(
     1000.0 / elapsedTime.count());
 }
 
-void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+void EasyPerceptionDeployment::worker_loop()
 {
-  this->process_image_callback(msg);
+  while (rclcpp::ok()) {
+    sensor_msgs::msg::Image::SharedPtr image_msg;
+    sensor_msgs::msg::Image::SharedPtr depth_msg;
+    sensor_msgs::msg::CameraInfo::SharedPtr camera_info;
+    bool do_localize = false;
+    bool do_tracking = false;
+    bool do_image = false;
+
+    {
+      std::unique_lock<std::mutex> lock(data_mutex_);
+      data_cv_.wait(lock, [this]() {
+        return worker_stop_ || image_pending_ || localize_pending_ || tracking_pending_;
+      });
+
+      if (worker_stop_) {
+        return;
+      }
+
+      if (localize_pending_) {
+        image_msg = latest_image_;
+        depth_msg = latest_depth_image_;
+        camera_info = latest_camera_info_;
+        localize_pending_ = false;
+        do_localize = true;
+      } else if (tracking_pending_) {
+        image_msg = latest_image_;
+        depth_msg = latest_depth_image_;
+        camera_info = latest_camera_info_;
+        tracking_pending_ = false;
+        do_tracking = true;
+      } else if (image_pending_) {
+        image_msg = latest_image_;
+        image_pending_ = false;
+        do_image = true;
+      }
+    }
+
+    if (do_localize) {
+      if (image_msg && depth_msg && camera_info) {
+        process_localize_work(image_msg, depth_msg, camera_info);
+      }
+      continue;
+    }
+
+    if (do_tracking) {
+      if (image_msg && depth_msg && camera_info) {
+        process_tracking_work(image_msg, depth_msg, camera_info);
+      }
+      continue;
+    }
+
+    if (do_image && image_msg) {
+      process_image_work(image_msg);
+    }
+  }
 }
 
 #endif  // EPD_UTILS_LIB__EASY_PERCEPTION_DEPLOYMENT_HPP_

@@ -49,6 +49,11 @@ export CMAKE_PREFIX_PATH="<prefix>:$CMAKE_PREFIX_PATH"
 # Build the ROS2 workspace
 colcon build
 
+# Source the workspace after building so EPD/EMD can see custom messages.
+# Ensure epd_msgs is built and sourced so its interfaces are available
+# (historical issue #15).
+source install/setup.bash
+
 # Start up GUI interface.
 cd src/easy_perception_deployment/easy_perception_deployment
 bash run.bash

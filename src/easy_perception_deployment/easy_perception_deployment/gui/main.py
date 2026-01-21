@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import signal
 import sys
 
@@ -21,6 +22,8 @@ from PySide2.QtWidgets import QApplication
 from windows.Main import MainWindow
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
+if os.environ.get("XDG_SESSION_TYPE") == "wayland":
+    os.environ.setdefault("QT_QPA_PLATFORM", "xcb")
 myapp = QApplication(sys.argv)
 
 

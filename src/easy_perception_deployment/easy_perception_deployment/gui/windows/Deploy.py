@@ -21,8 +21,7 @@ import logging
 from PySide2.QtCore import QSize, QTimer
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
-                               QMessageBox, QPushButton, QTextEdit,
-                               QWidget)
+                               QMessageBox, QPushButton, QWidget)
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
@@ -240,12 +239,14 @@ class DeployWindow(QWidget):
         else:
             self.visualize_button.setText('Action')
 
-        self.register_topic_button = QPushButton(self)
-        self.register_topic_button.setText('Register Topic')
+        self.refresh_topics_button = QPushButton(self)
+        self.refresh_topics_button.setText('Refresh topics')
 
-        self.topic_button = QTextEdit(self)
+        self.topic_button = QComboBox(self)
+        self.topic_button.setEditable(True)
+        self.topic_button.setInsertPolicy(QComboBox.NoInsert)
         self.topic_button.setFixedHeight(28)
-        self.topic_button.setText(self._input_image_topic)
+        self.refreshImageTopics(select_topic=self._input_image_topic)
 
         self.docker_button = QPushButton(self)
         if self.useCPU is True:
@@ -275,7 +276,7 @@ class DeployWindow(QWidget):
         layout.addWidget(self.list_button, 0, 1)
         layout.addWidget(self.visualize_button, 1, 0)
         layout.addWidget(self.usecase_config_button, 1, 1)
-        layout.addWidget(self.register_topic_button, 2, 0)
+        layout.addWidget(self.refresh_topics_button, 2, 0)
         layout.addWidget(self.topic_button, 2, 1)
         layout.addWidget(self.docker_button, 3, 0, 1, 2)
         layout.addWidget(self.validation_label, 4, 0, 1, 2)
@@ -291,7 +292,62 @@ class DeployWindow(QWidget):
         self.list_button.clicked.connect(self.setLabelList)
         self.usecase_config_button.activated.connect(self.setUseCase)
         self.run_button.clicked.connect(self.deployPackage)
-        self.register_topic_button.clicked.connect(self.setImageInput)
+        self.refresh_topics_button.clicked.connect(self.refreshImageTopics)
+        self.topic_button.currentTextChanged.connect(self.setImageInput)
+
+    def _query_image_topics(self):
+        topics = []
+        try:
+            result = subprocess.run(
+                ['ros2', 'topic', 'list', '-t'],
+                capture_output=True,
+                text=True,
+                check=False)
+        except FileNotFoundError:
+            self.deploy_logger.warning('ros2 command not found.')
+            return topics
+
+        if result.returncode != 0:
+            self.deploy_logger.warning(
+                'Failed to query ROS2 topics: %s', result.stderr.strip())
+            return topics
+
+        for line in result.stdout.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if 'sensor_msgs/msg/Image' not in stripped:
+                continue
+            topic_name = stripped.split()[0]
+            topics.append(topic_name)
+        return topics
+
+    def refreshImageTopics(self, select_topic=None):
+        topics = self._query_image_topics()
+        current_topic = (
+            select_topic
+            if select_topic is not None
+            else self.topic_button.currentText().strip())
+
+        self.topic_button.blockSignals(True)
+        self.topic_button.clear()
+
+        if topics:
+            self.topic_button.addItems(topics)
+        elif current_topic:
+            self.topic_button.addItem(current_topic)
+
+        if current_topic:
+            index = self.topic_button.findText(current_topic)
+            if index != -1:
+                self.topic_button.setCurrentIndex(index)
+            else:
+                self.topic_button.setEditText(current_topic)
+        elif self.topic_button.count() > 0:
+            self.topic_button.setCurrentIndex(0)
+
+        self.topic_button.blockSignals(False)
+        self.setImageInput()
 
     def deployPackage(self):
         '''
@@ -395,10 +451,17 @@ class DeployWindow(QWidget):
         A Mutator function that writes to line 25 of
         run.launch.py file based on new image topic.
         '''
-        new_image_topic = self.topic_button.text()
+        new_image_topic = self.topic_button.currentText().strip()
+        if new_image_topic and self.topic_button.findText(new_image_topic) == -1:
+            self.topic_button.addItem(new_image_topic)
         self.deploy_logger.info(
             'Rewriting Input Image Topic to: ' +
             new_image_topic)
+
+        if not new_image_topic:
+            self._input_image_topic = ''
+            self.validateDeployInputs()
+            return
 
         dict = {"input_image_topic": new_image_topic}
         json_object = json.dumps(dict, indent=4)

@@ -17,14 +17,126 @@ import sys
 import json
 import subprocess
 import logging
+import threading
+import time
+from collections import deque
 
-from PySide2.QtCore import QSize, QTimer
+import rclpy
+from rclpy.node import Node
+from rclpy.time import Time
+
+from epd_msgs.msg import EPDObjectDetection, EPDObjectLocalization, EPDObjectTracking
+from PySide2.QtCore import QSize, QTimer, QThread, Signal, Slot
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget)
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
+
+
+class FPSMonitorThread(QThread):
+    fps_updated = Signal(str)
+
+    def __init__(self, usecase_mode, parent=None):
+        super().__init__(parent)
+        self._usecase_mode = usecase_mode
+        self._requested_mode = usecase_mode
+        self._node = None
+        self._subscription = None
+        self._stamps = deque(maxlen=30)
+        self._running = True
+        self._lock = threading.Lock()
+
+    def stop(self):
+        self._running = False
+
+    def set_usecase_mode(self, usecase_mode):
+        with self._lock:
+            self._requested_mode = usecase_mode
+
+    def run(self):
+        if not rclpy.ok():
+            rclpy.init(args=None)
+        self._node = Node('epd_fps_monitor')
+        self._update_subscription(self._usecase_mode)
+        while rclpy.ok() and self._running:
+            self._maybe_update_subscription()
+            rclpy.spin_once(self._node, timeout_sec=0.1)
+        if self._subscription is not None:
+            self._node.destroy_subscription(self._subscription)
+            self._subscription = None
+        if self._node is not None:
+            self._node.destroy_node()
+            self._node = None
+        if rclpy.ok():
+            rclpy.shutdown()
+
+    def _maybe_update_subscription(self):
+        with self._lock:
+            requested = self._requested_mode
+        if requested != self._usecase_mode:
+            self._usecase_mode = requested
+            self._update_subscription(self._usecase_mode)
+
+    def _update_subscription(self, usecase_mode):
+        if self._node is None:
+            return
+        if self._subscription is not None:
+            self._node.destroy_subscription(self._subscription)
+            self._subscription = None
+        topic, msg_type = self._topic_for_usecase(usecase_mode)
+        self._stamps.clear()
+        if topic is None:
+            self.fps_updated.emit('FPS: -- | Latency: --')
+            return
+        self._subscription = self._node.create_subscription(
+            msg_type,
+            topic,
+            self._message_callback,
+            10)
+
+    def _topic_for_usecase(self, usecase_mode):
+        if usecase_mode in (0, 1):
+            return '/easy_perception_deployment/p2_inference', EPDObjectDetection
+        if usecase_mode == 2:
+            return '/easy_perception_deployment/p3_inference', EPDObjectDetection
+        if usecase_mode == 3:
+            return '/easy_perception_deployment/localization', EPDObjectLocalization
+        if usecase_mode == 4:
+            return '/easy_perception_deployment/tracking', EPDObjectTracking
+        return None, None
+
+    def _message_callback(self, msg):
+        timestamp = self._timestamp_from_msg(msg)
+        if timestamp is not None:
+            self._stamps.append(timestamp)
+        fps = self._compute_fps()
+        latency_ms = self._process_time_ms(msg)
+        fps_text = f'{fps:.1f}' if fps is not None else '--'
+        latency_text = f'{latency_ms:.1f} ms' if latency_ms is not None else '--'
+        self.fps_updated.emit(f'FPS: {fps_text} | Latency: {latency_text}')
+
+    def _timestamp_from_msg(self, msg):
+        if not hasattr(msg, 'header'):
+            return None
+        stamp = msg.header.stamp
+        if stamp.sec == 0 and stamp.nanosec == 0:
+            return time.time()
+        return Time.from_msg(stamp).nanoseconds / 1e9
+
+    def _compute_fps(self):
+        if len(self._stamps) < 2:
+            return None
+        delta = self._stamps[-1] - self._stamps[0]
+        if delta <= 0:
+            return None
+        return (len(self._stamps) - 1) / delta
+
+    def _process_time_ms(self, msg):
+        if hasattr(msg, 'process_time') and msg.process_time:
+            return float(msg.process_time)
+        return None
 
 
 class DeployWindow(QWidget):
@@ -62,6 +174,7 @@ class DeployWindow(QWidget):
         self._kill_process = None
         self._deploy_timer = None
         self._kill_timer = None
+        self._fps_monitor = None
 
         self.visualizeFlag = True
 
@@ -166,6 +279,7 @@ class DeployWindow(QWidget):
         self.setFixedSize(self._DEPLOY_WIN_W, self._DEPLOY_WIN_H)
 
         self.setButtons()
+        self._start_fps_monitor()
         self.validateDeployInputs()
         self.printDeployConfig()
 
@@ -262,6 +376,10 @@ class DeployWindow(QWidget):
         self.status_label = QLabel('Stopped', self)
         self.status_label.setIndent(10)
 
+        # FPS/Latency label
+        self.fps_label = QLabel('FPS: -- | Latency: --', self)
+        self.fps_label.setIndent(10)
+
         # Run button to deploy ROS2 package with info
         # from usecase_config.json and session_config.json
         self.run_button = QPushButton('Run', self)
@@ -281,7 +399,8 @@ class DeployWindow(QWidget):
         layout.addWidget(self.docker_button, 3, 0, 1, 2)
         layout.addWidget(self.validation_label, 4, 0, 1, 2)
         layout.addWidget(self.status_label, 5, 0, 1, 2)
-        layout.addWidget(self.run_button, 6, 0, 1, 2)
+        layout.addWidget(self.fps_label, 6, 0, 1, 2)
+        layout.addWidget(self.run_button, 7, 0, 1, 2)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
 
@@ -348,6 +467,26 @@ class DeployWindow(QWidget):
 
         self.topic_button.blockSignals(False)
         self.setImageInput()
+
+    def _start_fps_monitor(self):
+        self._fps_monitor = FPSMonitorThread(self.usecase_mode, self)
+        self._fps_monitor.fps_updated.connect(self._update_fps_label)
+        self._fps_monitor.start()
+
+    @Slot(str)
+    def _update_fps_label(self, text):
+        self.fps_label.setText(text)
+
+    def _update_fps_monitor_mode(self, usecase_mode):
+        if self._fps_monitor is not None:
+            self._fps_monitor.set_usecase_mode(usecase_mode)
+
+    def _stop_fps_monitor(self):
+        if self._fps_monitor is None:
+            return
+        self._fps_monitor.stop()
+        self._fps_monitor.wait(1000)
+        self._fps_monitor = None
 
     def deployPackage(self):
         '''
@@ -509,6 +648,7 @@ class DeployWindow(QWidget):
         selected_usecase = self.usecase_list[index]
 
         if selected_usecase == 'Classification':
+            self.usecase_mode = 0
             if not self.debug:
                 msgBox = QMessageBox()
                 msgBox.setText('[Classification] Selected.'
@@ -522,18 +662,22 @@ class DeployWindow(QWidget):
                 outfile.write(json_object)
 
         elif selected_usecase == 'Counting':
+            self.usecase_mode = 1
             self.counting_window = CountingWindow(self._path_to_label_list,
                                                   self._path_to_usecase_config)
             self.counting_window.show()
         elif selected_usecase == 'Localization':
+            self.usecase_mode = 3
             dict = {"usecase_mode": 3}
             json_object = json.dumps(dict, indent=4)
             with open(self._path_to_usecase_config, 'w') as outfile:
                 outfile.write(json_object)
         elif selected_usecase == 'Tracking':
+            self.usecase_mode = 4
             self.tracking_window = TrackingWindow(self._path_to_usecase_config)
             self.tracking_window.show()
         elif selected_usecase == 'Color-Matching':
+            self.usecase_mode = 2
             if not self.debug:
                 input_refimage_filepath, ok = (
                     QFileDialog.getOpenFileName(
@@ -570,6 +714,7 @@ class DeployWindow(QWidget):
 
         self.usecase_config_button.setStyleSheet(
             'background-color: rgba(0,150,10,255);')
+        self._update_fps_monitor_mode(self.usecase_mode)
 
     def updateSessionConfig(self):
         '''A Mutator function that updates the session_config.json file.'''
@@ -690,3 +835,7 @@ class DeployWindow(QWidget):
             self.run_button.setEnabled(True)
             self.run_button.setToolTip('')
             self.validation_label.setText('')
+
+    def closeEvent(self, event):
+        self._stop_fps_monitor()
+        super().closeEvent(event)

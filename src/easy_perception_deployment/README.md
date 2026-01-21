@@ -54,6 +54,41 @@ cd src/easy_perception_deployment/easy_perception_deployment
 bash run.bash
 ```
 
+## **Dependencies (Humble/Ubuntu 22.04)**
+
+Install the core vision stack and ROS image-related dependencies that EPD uses (OpenCV, cv_bridge, and ROS image messages) via apt:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  ros-humble-vision-opencv \
+  ros-humble-cv-bridge \
+  ros-humble-pcl-conversions \
+  ros-humble-sensor-msgs \
+  ros-humble-message-filters \
+  ros-humble-geometry-msgs \
+  ros-humble-tf2 \
+  libopencv-dev
+```
+
+Fetch the ONNX Runtime vendor package from `onnxruntime.repos` (it should build on Ubuntu 22.04). If the vendor build fails, make sure standard build prerequisites are installed:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential cmake python3-dev python3-pip
+vcs import < easy_perception_deployment/onnxruntime.repos
+```
+
+The GUI is built with **PySide2**. If you are using the included `run.bash` workflow, it installs PySide2 into a conda environment. For a system Python install, use either apt or pip:
+
+```bash
+# Option A (apt, system Python)
+sudo apt install -y python3-pyside2
+
+# Option B (pip, matches run.bash)
+python3 -m pip install --user PySide2==5.15.0
+```
+
 ## **Docs**
 
 [Check out the full documentation here.](https://easy-perception-deployment.readthedocs.io/en/latest/)

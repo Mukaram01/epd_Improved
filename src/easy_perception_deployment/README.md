@@ -58,6 +58,23 @@ bash run.bash
 
 [Check out the full documentation here.](https://easy-perception-deployment.readthedocs.io/en/latest/)
 
+## **Use Cases & ROS 2 Outputs**
+
+EPD supports multiple use cases via `config/usecase_config.json`:
+
+* **Classification (usecase_mode = 0)**: Runs standard detection and publishes per-object labels and ROIs on the P2/P3 topics (see below). This mode does **not** run a standalone image-classification (P1) model yet; those models currently do not emit ROS 2 outputs in this repo.
+* **Counting (usecase_mode = 1)**: Filters detections to user-selected classes for counting.
+* **Color-Matching (usecase_mode = 2)**: Filters detections based on a reference color template.
+* **Localization (usecase_mode = 3)**: Requires a P3 model and depth + camera info topics.
+* **Tracking (usecase_mode = 4)**: Requires a P3 model and depth + camera info topics.
+
+Key ROS 2 topics:
+
+* `/easy_perception_deployment/epd_p2_output` (P2 detections) and `/easy_perception_deployment/epd_p3_output` (P3 detections).
+* `/easy_perception_deployment/epd_localize_output` for localization (3D centroids, dimensions, masks, and point clouds).
+* `/easy_perception_deployment/epd_tracking_output` for tracking.
+* `/easy_perception_deployment/epd_pose_output` for a `geometry_msgs/PoseArray` of 3D object poses in the camera frame (position from the localized centroid; orientation is identity).
+
 ## **Contributions & Feedback**
 
 **We welcome contributions!** Please see the [contribution guidelines](https://github.com/ros-industrial/easy_perception_deployment/blob/master/CONTRIBUTING.md).

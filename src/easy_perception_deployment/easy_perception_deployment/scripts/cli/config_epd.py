@@ -35,6 +35,7 @@ class EPDConfigurator():
         self.visualizeFlag = True
         self.useCPU = True
         self.intra_op_num_threads = 0
+        self.image_transport = "raw"
 
         self.usecase_mode = 0
 
@@ -107,6 +108,7 @@ class EPDConfigurator():
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
         print('--intra-op-threads   Sets intra-op thread count for ORT.')
+        print('--image-transport   Sets ROS image transport (raw/compressed).')
 
     def isInEPDPackageRoot(self, start_dirpath):
         if (os.path.isdir(start_dirpath + "/scripts") and
@@ -135,7 +137,8 @@ class EPDConfigurator():
                                          'color-hist-metric=',
                                          'track-type=',
                                          'topic=',
-                                         'intra-op-threads='])
+                                         'intra-op-threads=',
+                                         'image-transport='])
 
         for opt, arg in opts:
             if opt == '-h':
@@ -207,6 +210,15 @@ class EPDConfigurator():
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
                 self.intra_op_num_threads = thread_count
+            elif opt in ('--image-transport'):
+                transport = arg.strip().lower()
+                if transport not in ("raw", "compressed", "compresseddepth"):
+                    print("[ session_config.json ] - ERROR." +
+                          " image-transport must be raw, compressed, " +
+                          "or compressedDepth.")
+                    print("[ config_epd ] - Exiting.")
+                    sys.exit(2)
+                self.image_transport = transport
         self.validate_usecase_inputs()
 
     def parse_session_config(self, session_config_filepath):
@@ -216,6 +228,7 @@ class EPDConfigurator():
         self._path_to_model = data["path_to_model"]
         self._path_to_label_list = data["path_to_label_list"]
         self.intra_op_num_threads = data.get("intra_op_num_threads", 0)
+        self.image_transport = data.get("image_transport", "raw").lower()
         if data["useCPU"] == "CPU":
             self.useCPU = True
         else:
@@ -377,7 +390,8 @@ class EPDConfigurator():
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
             "useCPU": useCPU_string,
-            "intra_op_num_threads": self.intra_op_num_threads
+            "intra_op_num_threads": self.intra_op_num_threads,
+            "image_transport": self.image_transport
             }
         json_object_1 = json.dumps(dict, indent=4)
 

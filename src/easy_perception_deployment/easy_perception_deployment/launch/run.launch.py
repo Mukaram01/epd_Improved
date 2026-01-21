@@ -8,6 +8,7 @@ def generate_launch_description():
     rgb_topic = LaunchConfiguration("rgb_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     depth_topic = LaunchConfiguration("depth_topic")
+    image_transport = LaunchConfiguration("image_transport")
     log_level = LaunchConfiguration("log_level")
 
     return LaunchDescription([
@@ -25,6 +26,11 @@ def generate_launch_description():
             "depth_topic",
             default_value="/camera/camera/aligned_depth_to_color/image_raw",
             description="Aligned depth topic"
+        ),
+        DeclareLaunchArgument(
+            "image_transport",
+            default_value="raw",
+            description="Image transport plugin (raw/compressed)"
         ),
         DeclareLaunchArgument(
             "log_level",
@@ -48,7 +54,9 @@ def generate_launch_description():
                 # Keep for safety if code also uses this name internally
                 ("/camera/aligned_depth_to_color/image_raw", depth_topic),
             ],
+            parameters=[{
+                "image_transport": image_transport,
+            }],
             arguments=["--ros-args", "--log-level", log_level],
         ),
     ])
-

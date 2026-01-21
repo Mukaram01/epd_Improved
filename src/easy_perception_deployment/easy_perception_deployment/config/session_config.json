@@ -3,5 +3,6 @@
     "path_to_label_list": "./data/label_list/coco_classes.txt",
     "visualizeFlag": "robot",
     "useCPU": "CPU",
-    "intra_op_num_threads": 0
+    "intra_op_num_threads": 0,
+    "image_transport": "raw"
 }

@@ -18,7 +18,8 @@
 # Function: Create desktop shortcut to EPD on the Desktop.
 # Static Analysis: shellcheck create_desktop_shortcut.bash
 
-path_to_gui_run_script="$PWD/run.bash"
+path_to_workspace="$PWD"
+path_to_gui_run_script="$path_to_workspace/run.bash"
 path_to_gui_icon_file="$PWD/gui/img/epd_desktop.png"
 
 outputdir1="$HOME/Desktop/"
@@ -35,7 +36,7 @@ if [ -f "$path_to_gui_run_script" ]; then
       echo "[Desktop Entry]"
       echo "Name=easy_perception_deployment"
       echo "Comment=A ROS2 package that accelerates the training and deployment of CV models in industries."
-      echo "Exec=$path_to_gui_run_script"
+      echo "Exec=bash -lc 'ROS_DISTRO=${ROS_DISTRO:-humble}; source /opt/ros/${ROS_DISTRO}/setup.bash && source \"$path_to_workspace/install/setup.bash\" && \"$path_to_gui_run_script\"'"
       echo "Icon=$path_to_gui_icon_file"
       echo "Terminal=true"
       echo "Type=Application"
@@ -50,4 +51,4 @@ else
     exit 1
 fi
 
-unset path_to_gui_py_file outputdir1 outputdir2 path_to_gui_run_script path_to_gui_icon_file
+unset path_to_gui_py_file outputdir1 outputdir2 path_to_workspace path_to_gui_run_script path_to_gui_icon_file

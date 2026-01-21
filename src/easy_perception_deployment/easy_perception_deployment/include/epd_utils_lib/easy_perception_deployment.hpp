@@ -35,6 +35,7 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/image_encodings.hpp"  // FIX: for sensor_msgs::image_encodings::TYPE_16UC1
 #include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
@@ -117,6 +118,7 @@ private:
   rclcpp::Publisher<epd_msgs::msg::EPDObjectLocalization>::SharedPtr localize_pub;
 
   rclcpp::Publisher<epd_msgs::msg::EPDObjectTracking>::SharedPtr tracking_pub;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_pub;
 
   rclcpp::Service<epd_msgs::srv::Perception>::SharedPtr srv_;
   /*! \brief A singular EPDContainer object that deploys a user-defined
@@ -197,6 +199,12 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   // Creating Publisher to output Action P3 and Tracking Detection Results.
   tracking_pub = this->create_publisher<epd_msgs::msg::EPDObjectTracking>(
     "/easy_perception_deployment/epd_tracking_output",
+    10,
+    publisher_options);
+
+  // Creating Publisher to output 3D poses of localized/tracked objects.
+  pose_pub = this->create_publisher<geometry_msgs::msg::PoseArray>(
+    "/easy_perception_deployment/epd_pose_output",
     10,
     publisher_options);
 
@@ -402,54 +410,56 @@ void EasyPerceptionDeployment::process_localize_callback(
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
     visual_pub->publish(*output_msg);
+  }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO_THROTTLE(
-      this->get_logger(),
-      *this->get_clock(),
-      2000,
-      "[-FPS-]= %f\n",
-      1000.0 / elapsedTime.count());
+  epd_msgs::msg::EPDObjectLocalization output_msg;
 
-  } else {
-    epd_msgs::msg::EPDObjectLocalization output_msg;
+  output_msg.header = msg->header;
+  output_msg.frame_width = img.cols;
+  output_msg.frame_height = img.rows;
+  output_msg.depth_image = *depth_msg;
+  output_msg.depth_image.header = depth_msg->header;
 
-    output_msg.header = msg->header;
-    output_msg.frame_width = img.cols;
-    output_msg.frame_height = img.rows;
-    output_msg.depth_image = *depth_msg;
-    output_msg.depth_image.header = depth_msg->header;
+  output_msg.ppx = camera_info->k.at(2);
+  output_msg.fx  = camera_info->k.at(0);
+  output_msg.ppy = camera_info->k.at(5);
+  output_msg.fy  = camera_info->k.at(4);
 
-    output_msg.ppx = camera_info->k.at(2);
-    output_msg.fx  = camera_info->k.at(0);
-    output_msg.ppy = camera_info->k.at(5);
-    output_msg.fy  = camera_info->k.at(4);
+  for (size_t i = 0; i < result.data_size; i++) {
+    epd_msgs::msg::LocalizedObject object;
+    object.name = result.objects[i].name;
+    object.roi = result.objects[i].roi;
 
-    for (size_t i = 0; i < result.data_size; i++) {
-      epd_msgs::msg::LocalizedObject object;
-      object.name = result.objects[i].name;
-      object.roi = result.objects[i].roi;
+    sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
+      std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
+    mask_ptr->header.stamp = msg->header.stamp;
+    mask_ptr->header.frame_id = msg->header.frame_id;
+    object.segmented_binary_mask = *mask_ptr;
 
-      sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
-        std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
-      mask_ptr->header.stamp = msg->header.stamp;
-      mask_ptr->header.frame_id = msg->header.frame_id;
-      object.segmented_binary_mask = *mask_ptr;
+    object.centroid = result.objects[i].centroid;
+    object.length   = result.objects[i].length;
+    object.breadth  = result.objects[i].breadth;
+    object.height   = result.objects[i].height;
+    object.axis     = result.objects[i].axis;
 
-      object.centroid = result.objects[i].centroid;
-      object.length   = result.objects[i].length;
-      object.breadth  = result.objects[i].breadth;
-      object.height   = result.objects[i].height;
-      object.axis     = result.objects[i].axis;
+    sensor_msgs::msg::PointCloud2 output_segmented_pcl;
+    pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
+    object.segmented_pcl = output_segmented_pcl;
 
-      sensor_msgs::msg::PointCloud2 output_segmented_pcl;
-      pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
-      object.segmented_pcl = output_segmented_pcl;
+    output_msg.objects.push_back(object);
+  }
 
-      output_msg.objects.push_back(object);
-    }
+  auto end = std::chrono::high_resolution_clock::now();
+  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  RCLCPP_INFO_THROTTLE(
+    this->get_logger(),
+    *this->get_clock(),
+    2000,
+    "[-FPS-]= %f\n",
+    1000.0 / elapsedTime.count());
 
+  output_msg.process_time = elapsedTime.count();
+  localize_pub->publish(output_msg);
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
     RCLCPP_INFO_THROTTLE(
@@ -461,6 +471,16 @@ void EasyPerceptionDeployment::process_localize_callback(
 
     output_msg.process_time = elapsedTime.count();
     localize_pub->publish(output_msg);
+
+    geometry_msgs::msg::PoseArray pose_array;
+    pose_array.header = msg->header;
+    for (size_t i = 0; i < result.data_size; i++) {
+      geometry_msgs::msg::Pose pose;
+      pose.position = result.objects[i].centroid;
+      pose.orientation.w = 1.0;
+      pose_array.poses.push_back(pose);
+    }
+    pose_pub->publish(pose_array);
   }
 
   if (ortAgent_.isService()) {
@@ -531,55 +551,57 @@ void EasyPerceptionDeployment::process_tracking_callback(
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
     visual_pub->publish(*output_msg);
+  }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO_THROTTLE(
-      this->get_logger(),
-      *this->get_clock(),
-      2000,
-      "[-FPS-]= %f\n",
-      1000.0 / elapsedTime.count());
+  epd_msgs::msg::EPDObjectTracking output_msg;
 
-  } else {
-    epd_msgs::msg::EPDObjectTracking output_msg;
+  output_msg.header = msg->header;
+  output_msg.frame_width = img.cols;
+  output_msg.frame_height = img.rows;
+  output_msg.depth_image = *depth_msg;
+  output_msg.depth_image.header = depth_msg->header;
 
-    output_msg.header = msg->header;
-    output_msg.frame_width = img.cols;
-    output_msg.frame_height = img.rows;
-    output_msg.depth_image = *depth_msg;
-    output_msg.depth_image.header = depth_msg->header;
+  output_msg.ppx = camera_info->k.at(2);
+  output_msg.fx  = camera_info->k.at(0);
+  output_msg.ppy = camera_info->k.at(5);
+  output_msg.fy  = camera_info->k.at(4);
 
-    output_msg.ppx = camera_info->k.at(2);
-    output_msg.fx  = camera_info->k.at(0);
-    output_msg.ppy = camera_info->k.at(5);
-    output_msg.fy  = camera_info->k.at(4);
+  for (size_t i = 0; i < result.data_size; i++) {
+    epd_msgs::msg::LocalizedObject object;
+    object.name = result.objects[i].name;
+    object.roi = result.objects[i].roi;
 
-    for (size_t i = 0; i < result.data_size; i++) {
-      epd_msgs::msg::LocalizedObject object;
-      object.name = result.objects[i].name;
-      object.roi = result.objects[i].roi;
+    sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
+      std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
+    mask_ptr->header.stamp = msg->header.stamp;
+    mask_ptr->header.frame_id = msg->header.frame_id;
+    object.segmented_binary_mask = *mask_ptr;
 
-      sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
-        std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
-      mask_ptr->header.stamp = msg->header.stamp;
-      mask_ptr->header.frame_id = msg->header.frame_id;
-      object.segmented_binary_mask = *mask_ptr;
+    object.centroid = result.objects[i].centroid;
+    object.length   = result.objects[i].length;
+    object.breadth  = result.objects[i].breadth;
+    object.height   = result.objects[i].height;
+    object.axis     = result.objects[i].axis;
 
-      object.centroid = result.objects[i].centroid;
-      object.length   = result.objects[i].length;
-      object.breadth  = result.objects[i].breadth;
-      object.height   = result.objects[i].height;
-      object.axis     = result.objects[i].axis;
+    sensor_msgs::msg::PointCloud2 output_segmented_pcl;
+    pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
+    object.segmented_pcl = output_segmented_pcl;
 
-      sensor_msgs::msg::PointCloud2 output_segmented_pcl;
-      pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
-      object.segmented_pcl = output_segmented_pcl;
+    output_msg.object_ids.push_back(result.object_ids[i]);
+    output_msg.objects.push_back(object);
+  }
 
-      output_msg.object_ids.push_back(result.object_ids[i]);
-      output_msg.objects.push_back(object);
-    }
+  auto end = std::chrono::high_resolution_clock::now();
+  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  RCLCPP_INFO_THROTTLE(
+    this->get_logger(),
+    *this->get_clock(),
+    2000,
+    "[-FPS-]= %f\n",
+    1000.0 / elapsedTime.count());
 
+  output_msg.process_time = elapsedTime.count();
+  tracking_pub->publish(output_msg);
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
     RCLCPP_INFO_THROTTLE(
@@ -591,6 +613,16 @@ void EasyPerceptionDeployment::process_tracking_callback(
 
     output_msg.process_time = elapsedTime.count();
     tracking_pub->publish(output_msg);
+
+    geometry_msgs::msg::PoseArray pose_array;
+    pose_array.header = msg->header;
+    for (size_t i = 0; i < result.data_size; i++) {
+      geometry_msgs::msg::Pose pose;
+      pose.position = result.objects[i].centroid;
+      pose.orientation.w = 1.0;
+      pose_array.poses.push_back(pose);
+    }
+    pose_pub->publish(pose_array);
   }
 
   if (ortAgent_.isService()) {
@@ -653,23 +685,23 @@ void EasyPerceptionDeployment::process_image_callback(
           sensor_msgs::msg::Image::SharedPtr output_msg =
             cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
           visual_pub->publish(*output_msg);
-        } else {
-          epd_msgs::msg::EPDObjectDetection output_msg;
-          output_msg.header = msg->header;
-          for (size_t i = 0; i < output_obj.data_size; i++) {
-            output_msg.class_indices.push_back(output_obj.classIndices[i]);
-            output_msg.scores.push_back(output_obj.scores[i]);
-
-            sensor_msgs::msg::RegionOfInterest roi;
-            roi.x_offset = output_obj.bboxes[i][0];
-            roi.y_offset = output_obj.bboxes[i][1];
-            roi.width = output_obj.bboxes[i][2] - output_obj.bboxes[i][0];
-            roi.height = output_obj.bboxes[i][3] - output_obj.bboxes[i][1];
-            roi.do_rectify = false;
-            output_msg.bboxes.push_back(roi);
-          }
-          p2_pub->publish(output_msg);
         }
+
+        epd_msgs::msg::EPDObjectDetection output_msg;
+        output_msg.header = msg->header;
+        for (size_t i = 0; i < output_obj.data_size; i++) {
+          output_msg.class_indices.push_back(output_obj.classIndices[i]);
+          output_msg.scores.push_back(output_obj.scores[i]);
+
+          sensor_msgs::msg::RegionOfInterest roi;
+          roi.x_offset = output_obj.bboxes[i][0];
+          roi.y_offset = output_obj.bboxes[i][1];
+          roi.width = output_obj.bboxes[i][2] - output_obj.bboxes[i][0];
+          roi.height = output_obj.bboxes[i][3] - output_obj.bboxes[i][1];
+          roi.do_rectify = false;
+          output_msg.bboxes.push_back(roi);
+        }
+        p2_pub->publish(output_msg);
         break;
       }
     case 3:
@@ -698,31 +730,37 @@ void EasyPerceptionDeployment::process_image_callback(
           sensor_msgs::msg::Image::SharedPtr output_msg =
             cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
           visual_pub->publish(*output_msg);
-        } else {
-          epd_msgs::msg::EPDObjectDetection output_msg;
-          output_msg.header = msg->header;
-          for (size_t i = 0; i < output_obj.data_size; i++) {
-            output_msg.class_indices.push_back(output_obj.classIndices[i]);
-            output_msg.scores.push_back(output_obj.scores[i]);
-
-            sensor_msgs::msg::RegionOfInterest roi;
-            roi.x_offset = output_obj.bboxes[i][0];
-            roi.y_offset = output_obj.bboxes[i][1];
-            roi.width = output_obj.bboxes[i][2] - output_obj.bboxes[i][0];
-            roi.height = output_obj.bboxes[i][3] - output_obj.bboxes[i][1];
-            roi.do_rectify = false;
-            output_msg.bboxes.push_back(roi);
-
-            sensor_msgs::msg::Image::SharedPtr mask =
-              cv_bridge::CvImage(std_msgs::msg::Header(), "32FC1", output_obj.masks[i]).toImageMsg();
-            mask->header.stamp = msg->header.stamp;
-            mask->header.frame_id = msg->header.frame_id;
-            output_msg.masks.push_back(*mask);
-          }
-          p3_pub->publish(output_msg);
         }
+
+        epd_msgs::msg::EPDObjectDetection output_msg;
+        output_msg.header = msg->header;
+        for (size_t i = 0; i < output_obj.data_size; i++) {
+          output_msg.class_indices.push_back(output_obj.classIndices[i]);
+          output_msg.scores.push_back(output_obj.scores[i]);
+
+          sensor_msgs::msg::RegionOfInterest roi;
+          roi.x_offset = output_obj.bboxes[i][0];
+          roi.y_offset = output_obj.bboxes[i][1];
+          roi.width = output_obj.bboxes[i][2] - output_obj.bboxes[i][0];
+          roi.height = output_obj.bboxes[i][3] - output_obj.bboxes[i][1];
+          roi.do_rectify = false;
+          output_msg.bboxes.push_back(roi);
+
+          sensor_msgs::msg::Image::SharedPtr mask =
+            cv_bridge::CvImage(std_msgs::msg::Header(), "32FC1", output_obj.masks[i]).toImageMsg();
+          mask->header.stamp = msg->header.stamp;
+          mask->header.frame_id = msg->header.frame_id;
+          output_msg.masks.push_back(*mask);
+        }
+        p3_pub->publish(output_msg);
         break;
       }
+    default:
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "Unsupported precision level %u for image classification/detection.",
+        ortAgent_.precision_level);
+      break;
   }
 
   auto end = std::chrono::high_resolution_clock::now();

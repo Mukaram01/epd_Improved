@@ -148,3 +148,8 @@ class MainWindow(QWidget):
         self.close()
         self.train_window.close()
         self.deploy_window.close()
+
+    def closeEvent(self, event):
+        self.deploy_window.shutdown()
+        self.train_window.close()
+        event.accept()

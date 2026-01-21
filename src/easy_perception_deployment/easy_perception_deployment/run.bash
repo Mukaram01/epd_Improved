@@ -47,6 +47,15 @@ if [ ! -f "$P3FILE" ]; then
 fi
 unset P3FILE
 
+P1FILE=./data/model/ssd_mobilenet_v1_12.onnx
+if [ ! -f "$P1FILE" ]; then
+    echo "Downloading $P1FILE."
+    wget \
+    https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/ssd-mobilenetv1/model/ssd_mobilenet_v1_12.onnx \
+    --directory-prefix=./data/model/
+fi
+unset P1FILE
+
 # Checking if the epd_gui_env conda environment has been installed.
 env_exists=$(conda env list | grep epd_gui_env)
 

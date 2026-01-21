@@ -2,6 +2,10 @@
 Changelog for package easy_perception_deployment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Unreleased
+-----------
+* Removed deprecated Precision-Level 1 (P1) output topic from the node interface.
+
 0.0.2 (2022-07-30)
 -------------------
 * Updated copyright date in root LICENSE file.

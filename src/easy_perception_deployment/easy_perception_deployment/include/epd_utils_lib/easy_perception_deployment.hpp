@@ -41,7 +41,6 @@
 
 // EPD_UTILS LIB
 #include "epd_utils_lib/epd_container.hpp"
-#include "epd_msgs/msg/epd_image_classification.hpp"
 #include "epd_msgs/msg/epd_object_detection.hpp"
 #include "epd_msgs/msg/epd_object_localization.hpp"
 #include "epd_msgs/msg/epd_object_tracking.hpp"
@@ -103,9 +102,6 @@ private:
   /*! \brief A publisher member variable to output visualization of inference
   results*/
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr visual_pub;
-  /*! \brief A publisher member variable to output Precision-Level 1 (P1)
-  specific inference output suitable for external agents.*/
-  rclcpp::Publisher<epd_msgs::msg::EPDImageClassification>::SharedPtr p1_pub;
   /*! \brief A publisher member variable to output Precision-Level 2 (P2)
   specific inference output suitable for external agents.*/
   rclcpp::Publisher<epd_msgs::msg::EPDObjectDetection>::SharedPtr p2_pub;
@@ -167,12 +163,6 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
   visual_pub = this->create_publisher<sensor_msgs::msg::Image>(
     "/easy_perception_deployment/image_output",
-    10,
-    publisher_options);
-
-  // Creating Publisher to output Action P1 Detection Results.
-  p1_pub = this->create_publisher<epd_msgs::msg::EPDImageClassification>(
-    "/easy_perception_deployment/epd_p1_output",
     10,
     publisher_options);
 

@@ -35,6 +35,7 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/image_encodings.hpp"  // FIX: for sensor_msgs::image_encodings::TYPE_16UC1
 #include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/pose_array.hpp"
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
@@ -117,6 +118,7 @@ private:
   rclcpp::Publisher<epd_msgs::msg::EPDObjectLocalization>::SharedPtr localize_pub;
 
   rclcpp::Publisher<epd_msgs::msg::EPDObjectTracking>::SharedPtr tracking_pub;
+  rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_pub;
 
   rclcpp::Service<epd_msgs::srv::Perception>::SharedPtr srv_;
   /*! \brief A singular EPDContainer object that deploys a user-defined
@@ -197,6 +199,12 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   // Creating Publisher to output Action P3 and Tracking Detection Results.
   tracking_pub = this->create_publisher<epd_msgs::msg::EPDObjectTracking>(
     "/easy_perception_deployment/epd_tracking_output",
+    10,
+    publisher_options);
+
+  // Creating Publisher to output 3D poses of localized/tracked objects.
+  pose_pub = this->create_publisher<geometry_msgs::msg::PoseArray>(
+    "/easy_perception_deployment/epd_pose_output",
     10,
     publisher_options);
 
@@ -452,6 +460,28 @@ void EasyPerceptionDeployment::process_localize_callback(
 
   output_msg.process_time = elapsedTime.count();
   localize_pub->publish(output_msg);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      2000,
+      "[-FPS-]= %f\n",
+      1000.0 / elapsedTime.count());
+
+    output_msg.process_time = elapsedTime.count();
+    localize_pub->publish(output_msg);
+
+    geometry_msgs::msg::PoseArray pose_array;
+    pose_array.header = msg->header;
+    for (size_t i = 0; i < result.data_size; i++) {
+      geometry_msgs::msg::Pose pose;
+      pose.position = result.objects[i].centroid;
+      pose.orientation.w = 1.0;
+      pose_array.poses.push_back(pose);
+    }
+    pose_pub->publish(pose_array);
+  }
 
   if (ortAgent_.isService()) {
     ortAgent_.requestAddressed = true;
@@ -572,6 +602,28 @@ void EasyPerceptionDeployment::process_tracking_callback(
 
   output_msg.process_time = elapsedTime.count();
   tracking_pub->publish(output_msg);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      2000,
+      "[-FPS-]= %f\n",
+      1000.0 / elapsedTime.count());
+
+    output_msg.process_time = elapsedTime.count();
+    tracking_pub->publish(output_msg);
+
+    geometry_msgs::msg::PoseArray pose_array;
+    pose_array.header = msg->header;
+    for (size_t i = 0; i < result.data_size; i++) {
+      geometry_msgs::msg::Pose pose;
+      pose.position = result.objects[i].centroid;
+      pose.orientation.w = 1.0;
+      pose_array.poses.push_back(pose);
+    }
+    pose_pub->publish(pose_array);
+  }
 
   if (ortAgent_.isService()) {
     ortAgent_.requestAddressed = true;
@@ -703,6 +755,12 @@ void EasyPerceptionDeployment::process_image_callback(
         p3_pub->publish(output_msg);
         break;
       }
+    default:
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "Unsupported precision level %u for image classification/detection.",
+        ortAgent_.precision_level);
+      break;
   }
 
   auto end = std::chrono::high_resolution_clock::now();

@@ -146,6 +146,7 @@ private:
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
 
   void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void image_worker_loop();
 
   void hasCameraChanged(
     const int img_height,
@@ -191,11 +192,13 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   subscription_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+  const auto image_qos = rclcpp::SensorDataQoS().keep_last(1).best_effort();
+  const auto camera_info_qos = rclcpp::SensorDataQoS().keep_last(1);
 
   // Creating Subscriber to get Input Image.
   image_sub = this->create_subscription<sensor_msgs::msg::Image>(
     "/easy_perception_deployment/image_input",
-    rclcpp::SensorDataQoS(),
+    image_qos,
     std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
     subscription_options);
 
@@ -274,17 +277,17 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   localize_image_rgb.subscribe(
     this,
     rgb_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
+    image_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
   localize_image_depth.subscribe(
     this,
     depth_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
+    image_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
   localize_cam_info.subscribe(
     this,
     camera_info_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
+    camera_info_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
 
   auto handle_emd_request =
@@ -321,7 +324,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         if (!image_sub) {
           image_sub = this->create_subscription<sensor_msgs::msg::Image>(
             "/easy_perception_deployment/image_input",
-            rclcpp::SensorDataQoS(),
+            rclcpp::SensorDataQoS().keep_last(1).best_effort(),
             std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
             subscription_options);
         }

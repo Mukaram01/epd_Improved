@@ -511,17 +511,20 @@ class DeployWindow(QWidget):
             self._is_running = True
             self.status_label.setText('Running...')
         else:
-            self.deploy_logger.info("Killing epd_test_container docker.")
-            self._kill_process, self._kill_timer = self._start_process(
-                [self._kill_script_path()],
-                'kill',
-                cwd=self._scripts_dir())
-            self.run_button.setText('Run')
-            self.run_button.setIcon(QIcon('img/go.png'))
-            self.run_button.setIconSize(QSize(100, 100))
-            self.run_button.updateGeometry()
-            self._is_running = False
-            self.status_label.setText('Stopped')
+            self._stop_deployment()
+
+    def _stop_deployment(self):
+        self.deploy_logger.info("Killing epd_test_container docker.")
+        self._kill_process, self._kill_timer = self._start_process(
+            [self._kill_script_path()],
+            'kill',
+            cwd=self._scripts_dir())
+        self.run_button.setText('Run')
+        self.run_button.setIcon(QIcon('img/go.png'))
+        self.run_button.setIconSize(QSize(100, 100))
+        self.run_button.updateGeometry()
+        self._is_running = False
+        self.status_label.setText('Stopped')
 
     def _scripts_dir(self):
         return os.path.abspath(
@@ -584,6 +587,41 @@ class DeployWindow(QWidget):
         msgBox = QMessageBox()
         msgBox.setText('\n'.join(message_lines))
         msgBox.exec()
+
+    def _terminate_process(self, process, timer):
+        if timer is not None and timer.isActive():
+            timer.stop()
+        if process is None:
+            return
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+
+    def shutdown(self):
+        if self._is_running:
+            self._stop_deployment()
+
+        if self._kill_process is not None and self._kill_process.poll() is None:
+            try:
+                self._kill_process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self._terminate_process(self._kill_process, self._kill_timer)
+        else:
+            self._terminate_process(self._kill_process, self._kill_timer)
+
+        self._terminate_process(self._deploy_process, self._deploy_timer)
+        self._deploy_process = None
+        self._kill_process = None
+        self._deploy_timer = None
+        self._kill_timer = None
+
+    def closeEvent(self, event):
+        self.shutdown()
+        event.accept()
 
     def setImageInput(self):
         '''

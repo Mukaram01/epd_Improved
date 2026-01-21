@@ -54,6 +54,9 @@ cd src/easy_perception_deployment/easy_perception_deployment
 bash run.bash
 ```
 
+Wayland note: on Wayland sessions, set the Qt backend to X11 by exporting `QT_QPA_PLATFORM=xcb`
+(for example, `export QT_QPA_PLATFORM=xcb`) before launching the GUI.
+
 ## **Docs**
 
 [Check out the full documentation here.](https://easy-perception-deployment.readthedocs.io/en/latest/)

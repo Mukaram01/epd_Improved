@@ -26,6 +26,7 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(epd_msgs REQUIRED)
@@ -167,6 +168,7 @@ set(EPD_COMMON_DEPS
   epd_onnxruntime_vendor
   OpenCV
   cv_bridge
+  image_transport
   tf2
 )
 
@@ -235,6 +237,7 @@ if(BUILD_TESTING)
     rclcpp
     std_msgs
     sensor_msgs
+    image_transport
     epd_msgs
     OpenCV
     cv_bridge
@@ -258,6 +261,7 @@ ament_target_dependencies(
   rclcpp
   std_msgs
   sensor_msgs
+  image_transport
   geometry_msgs
   epd_msgs
   OpenCV

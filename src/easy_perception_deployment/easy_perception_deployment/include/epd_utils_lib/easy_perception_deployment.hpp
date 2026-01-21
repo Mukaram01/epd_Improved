@@ -17,6 +17,8 @@
 #define EPD_UTILS_LIB__EASY_PERCEPTION_DEPLOYMENT_HPP_
 
 #include <chrono>
+#include <algorithm>
+#include <cctype>
 #include <string>
 #include <memory>
 #include <functional>
@@ -35,6 +37,8 @@
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/image_encodings.hpp"  // FIX: for sensor_msgs::image_encodings::TYPE_16UC1
 #include "geometry_msgs/msg/point.hpp"
+#include "image_transport/image_transport.hpp"
+#include "image_transport/subscriber_filter.hpp"
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
@@ -78,7 +82,7 @@ public:
 
 private:
   /*! \brief A subscriber member variable to receive 2D RGB images to receive.*/
-  rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr image_sub;
+  image_transport::Subscriber image_sub;
 
   /*! \brief An alias definition for SyncPolicy that is used below for sync_ object.*/
   typedef message_filters::sync_policies::ApproximateTime
@@ -88,11 +92,11 @@ private:
   /*! \brief A policy-synchronized subscriber member variable
   to receive rectified 2D RGB images.
   */
-  message_filters::Subscriber<sensor_msgs::msg::Image> localize_image_rgb;
+  image_transport::SubscriberFilter localize_image_rgb;
   /*! \brief A policy-synchronized subscriber member variable
   to receive rectified 2D Depth images.
   */
-  message_filters::Subscriber<sensor_msgs::msg::Image> localize_image_depth;
+  image_transport::SubscriberFilter localize_image_depth;
   /*! \brief A policy-synchronized subscriber member variable
   to receive camera information.
   */
@@ -102,7 +106,7 @@ private:
 
   /*! \brief A publisher member variable to output visualization of inference
   results*/
-  rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr visual_pub;
+  image_transport::Publisher visual_pub;
   /*! \brief A publisher member variable to output Precision-Level 1 (P1)
   specific inference output suitable for external agents.*/
   rclcpp::Publisher<epd_msgs::msg::EPDImageClassification>::SharedPtr p1_pub;
@@ -143,32 +147,63 @@ private:
   void checkOrtAgentIsInitialized(
     const int img_height,
     const int img_width) const;
+
+  void subscribeImageInput();
+  void subscribeLocalizeInputs();
+  std::string resolveDepthTransport(const std::string & transport) const;
+
+  std::string rgb_topic_;
+  std::string depth_topic_;
+  std::string camera_info_topic_;
+  std::string image_transport_;
+  std::string depth_transport_;
+  rmw_qos_profile_t sensor_qos_profile_;
+  bool image_input_active_{false};
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 : Node("easy_perception_deployment"),
-  localize_image_rgb(this, "/camera/color/image_raw"),
-  localize_image_depth(this, "/camera/depth/image_rect_raw"),
-  localize_cam_info(this, "/camera/color/camera_info"),
-  sync_(SyncPolicy(10), localize_image_rgb, localize_image_depth, localize_cam_info)
+  sync_(SyncPolicy(10), localize_image_rgb, localize_image_depth, localize_cam_info),
+  sensor_qos_profile_(rclcpp::SensorDataQoS().get_rmw_qos_profile())
 {
-  rclcpp::SubscriptionOptions subscription_options;
-  subscription_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
 
-  // Creating Subscriber to get Input Image.
-  image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-    "/easy_perception_deployment/image_input",
-    rclcpp::SensorDataQoS(),
-    std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
-    subscription_options);
+  // FIX: Humble requires declare_parameter<T>(name, default)
+  this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
+  this->declare_parameter<std::string>("rgb_topic", "/camera/color/image_raw");
+  this->declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
+  this->declare_parameter<std::string>("camera_info_topic", "/camera/color/camera_info");
+  this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
+
+  rgb_topic_ = this->get_parameter("rgb_topic").as_string();
+  depth_topic_ = this->get_parameter("depth_topic").as_string();
+  camera_info_topic_ = this->get_parameter("camera_info_topic").as_string();
+  image_transport_ = this->get_parameter("image_transport").as_string();
+  std::transform(
+    image_transport_.begin(),
+    image_transport_.end(),
+    image_transport_.begin(),
+    [](unsigned char c) {return static_cast<char>(std::tolower(c));});
+  if (image_transport_.empty() ||
+    (image_transport_ != "raw" && image_transport_ != "compressed" &&
+    image_transport_ != "compresseddepth"))
+  {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Invalid image_transport '%s'. Falling back to 'raw'.",
+      image_transport_.c_str());
+    image_transport_ = "raw";
+  }
+  depth_transport_ = resolveDepthTransport(image_transport_);
+
+  subscribeImageInput();
 
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
-  visual_pub = this->create_publisher<sensor_msgs::msg::Image>(
+  visual_pub = image_transport::create_publisher(
+    this,
     "/easy_perception_deployment/image_output",
-    10,
-    publisher_options);
+    rclcpp::QoS(10).get_rmw_qos_profile());
 
   // Creating Publisher to output Action P1 Detection Results.
   p1_pub = this->create_publisher<epd_msgs::msg::EPDImageClassification>(
@@ -203,51 +238,27 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   // If useCaseMode is detected to be Localization or Tracking,
   // Subscribe to all synchronized ROS2 topics.
   if (ortAgent_.useCaseMode == 3) {
-    localize_image_rgb.subscribe();
-    localize_image_depth.subscribe();
-    localize_cam_info.subscribe();
+    subscribeLocalizeInputs();
     sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
-    image_sub.reset();
+    if (image_input_active_) {
+      image_sub.shutdown();
+      image_input_active_ = false;
+    }
   } else if (ortAgent_.useCaseMode == 4) {
-    localize_image_rgb.subscribe();
-    localize_image_depth.subscribe();
-    localize_cam_info.subscribe();
+    subscribeLocalizeInputs();
     sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
-    image_sub.reset();
+    if (image_input_active_) {
+      image_sub.shutdown();
+      image_input_active_ = false;
+    }
   } else {
     localize_image_rgb.unsubscribe();
     localize_image_depth.unsubscribe();
     localize_cam_info.unsubscribe();
   }
 
-  // FIX: Humble requires declare_parameter<T>(name, default)
-  this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
-  this->declare_parameter<std::string>("rgb_topic", "/camera/color/image_raw");
-  this->declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
-  this->declare_parameter<std::string>("camera_info_topic", "/camera/color/camera_info");
-
-  const std::string rgb_topic = this->get_parameter("rgb_topic").as_string();
-  const std::string depth_topic = this->get_parameter("depth_topic").as_string();
-  const std::string camera_info_topic = this->get_parameter("camera_info_topic").as_string();
-
-  localize_image_rgb.subscribe(
-    this,
-    rgb_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
-    subscription_options);
-  localize_image_depth.subscribe(
-    this,
-    depth_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
-    subscription_options);
-  localize_cam_info.subscribe(
-    this,
-    camera_info_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
-    subscription_options);
-
   auto handle_emd_request =
-    [this, subscription_options](
+    [this](
     const std::shared_ptr<epd_msgs::srv::Perception::Request> request,
     std::shared_ptr<epd_msgs::srv::Perception::Response> response) -> void
     {
@@ -258,22 +269,22 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       response->tracking_enabled = (ortAgent_.useCaseMode == 4);
 
       if (ortAgent_.useCaseMode == 3) {
-        localize_image_rgb.subscribe();
-        localize_image_depth.subscribe();
-        localize_cam_info.subscribe();
+        subscribeLocalizeInputs();
         sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
+        if (image_input_active_) {
+          image_sub.shutdown();
+          image_input_active_ = false;
+        }
       } else if (ortAgent_.useCaseMode == 4) {
-        localize_image_rgb.subscribe();
-        localize_image_depth.subscribe();
-        localize_cam_info.subscribe();
+        subscribeLocalizeInputs();
         sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
+        if (image_input_active_) {
+          image_sub.shutdown();
+          image_input_active_ = false;
+        }
       } else {
-        if (!image_sub) {
-          image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-            "/easy_perception_deployment/image_input",
-            rclcpp::SensorDataQoS(),
-            std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
-            subscription_options);
+        if (!image_input_active_) {
+          subscribeImageInput();
         }
       }
 
@@ -288,6 +299,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   RCLCPP_INFO(this->get_logger(), "[-ONNX Model-] - %s", ortAgent_.onnx_model_path.c_str());
   RCLCPP_INFO(this->get_logger(), "[-Label List-] - %s", ortAgent_.class_label_path.c_str());
   RCLCPP_INFO(this->get_logger(), "[-Precision Level-] - %d", ortAgent_.precision_level);
+  RCLCPP_INFO(this->get_logger(), "[-Image Transport-] - %s", image_transport_.c_str());
 
   if (ortAgent_.isVisualize()) {
     RCLCPP_INFO(this->get_logger(), "[-Mode-] - VISUALISE");
@@ -307,20 +319,64 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       break;
     case EPD::LOCALISATION_MODE:
       RCLCPP_INFO(this->get_logger(), "[-Use Case-] - EPD::LOCALISATION_MODE");
-      RCLCPP_INFO(this->get_logger(), "[- Input RGB Image Topic -] - %s", rgb_topic.c_str());
+      RCLCPP_INFO(this->get_logger(), "[- Input RGB Image Topic -] - %s", rgb_topic_.c_str());
       RCLCPP_INFO(
         this->get_logger(),
         "[- Input Depth Image Topic -] - %s",
-        depth_topic.c_str());
+        depth_topic_.c_str());
       RCLCPP_INFO(
         this->get_logger(),
         "[- Camera Info Topic -] - %s",
-        camera_info_topic.c_str());
+        camera_info_topic_.c_str());
       break;
     case EPD::TRACKING_MODE:
       RCLCPP_INFO(this->get_logger(), "[-Use Case-] - EPD::TRACKING_MODE");
       break;
   }
+}
+
+std::string EasyPerceptionDeployment::resolveDepthTransport(const std::string & transport) const
+{
+  if (transport == "compressed") {
+    return "compressedDepth";
+  }
+  if (transport == "compresseddepth") {
+    return "compressedDepth";
+  }
+  return transport;
+}
+
+void EasyPerceptionDeployment::subscribeImageInput()
+{
+  image_sub = image_transport::create_subscription(
+    this,
+    "/easy_perception_deployment/image_input",
+    std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
+    image_transport_,
+    sensor_qos_profile_);
+  image_input_active_ = true;
+}
+
+void EasyPerceptionDeployment::subscribeLocalizeInputs()
+{
+  rclcpp::SubscriptionOptions subscription_options;
+  subscription_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+
+  localize_image_rgb.subscribe(
+    this,
+    rgb_topic_,
+    image_transport_,
+    sensor_qos_profile_);
+  localize_image_depth.subscribe(
+    this,
+    depth_topic_,
+    depth_transport_,
+    sensor_qos_profile_);
+  localize_cam_info.subscribe(
+    this,
+    camera_info_topic_,
+    sensor_qos_profile_,
+    subscription_options);
 }
 
 void EasyPerceptionDeployment::hasCameraChanged(const int img_height, const int img_width) const
@@ -401,7 +457,7 @@ void EasyPerceptionDeployment::process_localize_callback(
 
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
-    visual_pub->publish(*output_msg);
+    visual_pub.publish(*output_msg);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
@@ -530,7 +586,7 @@ void EasyPerceptionDeployment::process_tracking_callback(
 
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
-    visual_pub->publish(*output_msg);
+    visual_pub.publish(*output_msg);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
@@ -652,7 +708,7 @@ void EasyPerceptionDeployment::process_image_callback(
           resultImg = ortAgent_.visualize(output_obj, img);
           sensor_msgs::msg::Image::SharedPtr output_msg =
             cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
-          visual_pub->publish(*output_msg);
+          visual_pub.publish(*output_msg);
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;
           output_msg.header = msg->header;
@@ -697,7 +753,7 @@ void EasyPerceptionDeployment::process_image_callback(
           resultImg = ortAgent_.visualize(output_obj, img);
           sensor_msgs::msg::Image::SharedPtr output_msg =
             cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
-          visual_pub->publish(*output_msg);
+          visual_pub.publish(*output_msg);
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;
           output_msg.header = msg->header;

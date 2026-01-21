@@ -65,6 +65,8 @@ public:
   std::string class_label_path;
   /*! \brief The filepath to an input ONNX model file*/
   std::string onnx_model_path;
+  /*! \brief The image transport plugin to use for ROS image topics. */
+  std::string image_transport;
 
   /*! \brief The selected use-case mode. Values can only be 0,1,2.\n
   *  See usecase_config.hpp for more details.\n

@@ -58,6 +58,43 @@ bash run.bash
 
 [Check out the full documentation here.](https://easy-perception-deployment.readthedocs.io/en/latest/)
 
+## **Image Transport Configuration**
+
+EPD can subscribe/publish using ROS image transport plugins. Set
+`image_transport` in `config/session_config.json` (or override via ROS params)
+to switch between raw and compressed image topics.
+
+**Recommended settings for high-rate pipelines**
+* Set `"visualizeFlag": "robot"` to reduce visualization overhead.
+* Set `"image_transport": "compressed"` to reduce RGB bandwidth.
+* Depth inputs automatically map `compressed` to the `compressedDepth` transport.
+
+**Session config example**
+```json
+{
+  "path_to_model": "./data/model/MaskRCNN-10.onnx",
+  "path_to_label_list": "./data/label_list/coco_classes.txt",
+  "visualizeFlag": "robot",
+  "useCPU": "CPU",
+  "intra_op_num_threads": 0,
+  "image_transport": "compressed"
+}
+```
+
+**ROS parameter override**
+```bash
+ros2 run easy_perception_deployment easy_perception_deployment \
+  --ros-args -p image_transport:=compressed
+```
+
+When `image_transport` is set to `compressed`, EPD expects:
+* `/easy_perception_deployment/image_input/compressed`
+* `/camera/color/image_raw/compressed` (localization/tracking RGB)
+* `/camera/depth/image_rect_raw/compressedDepth` (localization/tracking depth)
+
+Visualization output uses the same transport, so subscribe to
+`/easy_perception_deployment/image_output/compressed` as needed.
+
 ## **Contributions & Feedback**
 
 **We welcome contributions!** Please see the [contribution guidelines](https://github.com/ros-industrial/easy_perception_deployment/blob/master/CONTRIBUTING.md).

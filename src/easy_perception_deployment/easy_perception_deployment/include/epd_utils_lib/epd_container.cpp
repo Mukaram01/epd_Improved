@@ -98,6 +98,37 @@ bool clampBboxToImage(
     cv::Point(clamped_right, clamped_bottom));
   return true;
 }
+
+std::string parseImageTransport(const Json::Value & obj, const std::string & config_path)
+{
+  if (!obj.isMember("image_transport")) {
+    return "raw";
+  }
+
+  const Json::Value & transport_value = obj["image_transport"];
+  if (!transport_value.isString()) {
+    throw std::runtime_error(
+      "Invalid image_transport type in config file: " +
+      config_path + ". Expected string.");
+  }
+
+  std::string transport = transport_value.asString();
+  std::transform(transport.begin(), transport.end(), transport.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+
+  if (transport.empty()) {
+    return "raw";
+  }
+
+  if (transport == "raw" || transport == "compressed" || transport == "compresseddepth") {
+    return transport;
+  }
+
+  throw std::runtime_error(
+    "Invalid image_transport in config file: " + config_path +
+    ". Expected raw, compressed, or compressedDepth.");
+}
 }  // namespace
 
 
@@ -109,6 +140,7 @@ EPDContainer::EPDContainer(void)
   hasInitialized = false;
   onlyVisualize = true;
   color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
+  image_transport = "raw";
 
   this->setModelConfigFile();
   this->setPrecisionLevel();
@@ -227,6 +259,8 @@ void EPDContainer::setModelConfigFile()
               PATH_TO_SESSION_CONFIG);
     }
   }
+
+  image_transport = parseImageTransport(obj, PATH_TO_SESSION_CONFIG);
 
   ifs_1.close();
 }

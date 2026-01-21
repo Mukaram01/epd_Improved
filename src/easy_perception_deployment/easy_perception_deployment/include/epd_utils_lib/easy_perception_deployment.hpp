@@ -21,6 +21,11 @@
 #include <memory>
 #include <functional>
 #include <stdexcept>  // FIX: for std::runtime_error
+#include <atomic>
+#include <condition_variable>
+#include <cinttypes>
+#include <mutex>
+#include <thread>
 
 // OpenCV LIB
 #include "opencv2/opencv.hpp"
@@ -63,6 +68,7 @@ class EasyPerceptionDeployment : public rclcpp::Node
 public:
   /*! \brief A Constructor function*/
   EasyPerceptionDeployment(void);
+  ~EasyPerceptionDeployment(void);
   /*! \brief A function that abstracts processing of input image in image_callback.*/
   void process_image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
   /*! \brief A function that abstracts processing of input image in localize_callback.*/
@@ -135,6 +141,7 @@ private:
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
 
   void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void image_worker_loop();
 
   void hasCameraChanged(
     const int img_height,
@@ -143,6 +150,13 @@ private:
   void checkOrtAgentIsInitialized(
     const int img_height,
     const int img_width) const;
+
+  std::mutex image_mutex_;
+  std::condition_variable image_cv_;
+  sensor_msgs::msg::Image::SharedPtr latest_image_;
+  std::thread image_worker_;
+  std::atomic<bool> image_worker_stop_{false};
+  std::atomic<uint64_t> dropped_frames_{0};
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
@@ -156,11 +170,13 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   subscription_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+  const auto image_qos = rclcpp::SensorDataQoS().keep_last(1).best_effort();
+  const auto camera_info_qos = rclcpp::SensorDataQoS().keep_last(1);
 
   // Creating Subscriber to get Input Image.
   image_sub = this->create_subscription<sensor_msgs::msg::Image>(
     "/easy_perception_deployment/image_input",
-    rclcpp::SensorDataQoS(),
+    image_qos,
     std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
     subscription_options);
 
@@ -233,17 +249,17 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   localize_image_rgb.subscribe(
     this,
     rgb_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
+    image_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
   localize_image_depth.subscribe(
     this,
     depth_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
+    image_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
   localize_cam_info.subscribe(
     this,
     camera_info_topic,
-    rclcpp::SensorDataQoS().get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
+    camera_info_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
     subscription_options);
 
   auto handle_emd_request =
@@ -271,7 +287,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         if (!image_sub) {
           image_sub = this->create_subscription<sensor_msgs::msg::Image>(
             "/easy_perception_deployment/image_input",
-            rclcpp::SensorDataQoS(),
+            rclcpp::SensorDataQoS().keep_last(1).best_effort(),
             std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
             subscription_options);
         }
@@ -320,6 +336,17 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     case EPD::TRACKING_MODE:
       RCLCPP_INFO(this->get_logger(), "[-Use Case-] - EPD::TRACKING_MODE");
       break;
+  }
+
+  image_worker_ = std::thread(&EasyPerceptionDeployment::image_worker_loop, this);
+}
+
+EasyPerceptionDeployment::~EasyPerceptionDeployment(void)
+{
+  image_worker_stop_.store(true);
+  image_cv_.notify_all();
+  if (image_worker_.joinable()) {
+    image_worker_.join();
   }
 }
 
@@ -737,7 +764,39 @@ void EasyPerceptionDeployment::process_image_callback(
 
 void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
-  this->process_image_callback(msg);
+  {
+    std::lock_guard<std::mutex> lock(image_mutex_);
+    if (latest_image_) {
+      const uint64_t dropped = dropped_frames_.fetch_add(1) + 1;
+      RCLCPP_WARN_THROTTLE(
+        this->get_logger(),
+        *this->get_clock(),
+        5000,
+        "Dropping frames to keep the newest one (%" PRIu64 " dropped).",
+        dropped);
+    }
+    latest_image_ = msg;
+  }
+  image_cv_.notify_one();
+}
+
+void EasyPerceptionDeployment::image_worker_loop()
+{
+  while (!image_worker_stop_.load()) {
+    sensor_msgs::msg::Image::SharedPtr msg;
+    {
+      std::unique_lock<std::mutex> lock(image_mutex_);
+      image_cv_.wait(lock, [this]() { return image_worker_stop_.load() || latest_image_; });
+      if (image_worker_stop_.load()) {
+        return;
+      }
+      msg = latest_image_;
+      latest_image_.reset();
+    }
+    if (msg) {
+      process_image_callback(msg);
+    }
+  }
 }
 
 #endif  // EPD_UTILS_LIB__EASY_PERCEPTION_DEPLOYMENT_HPP_

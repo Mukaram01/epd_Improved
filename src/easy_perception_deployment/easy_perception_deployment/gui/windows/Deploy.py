@@ -17,15 +17,126 @@ import sys
 import json
 import subprocess
 import logging
+import threading
+import time
+from collections import deque
 
-from PySide2.QtCore import QSize, QTimer
+import rclpy
+from rclpy.node import Node
+from rclpy.time import Time
+
+from epd_msgs.msg import EPDObjectDetection, EPDObjectLocalization, EPDObjectTracking
+from PySide2.QtCore import QSize, QTimer, QThread, Signal, Slot
 from PySide2.QtGui import QIcon
 from PySide2.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
-                               QMessageBox, QPushButton, QTextEdit,
-                               QWidget)
+                               QMessageBox, QPushButton, QWidget)
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
+
+
+class FPSMonitorThread(QThread):
+    fps_updated = Signal(str)
+
+    def __init__(self, usecase_mode, parent=None):
+        super().__init__(parent)
+        self._usecase_mode = usecase_mode
+        self._requested_mode = usecase_mode
+        self._node = None
+        self._subscription = None
+        self._stamps = deque(maxlen=30)
+        self._running = True
+        self._lock = threading.Lock()
+
+    def stop(self):
+        self._running = False
+
+    def set_usecase_mode(self, usecase_mode):
+        with self._lock:
+            self._requested_mode = usecase_mode
+
+    def run(self):
+        if not rclpy.ok():
+            rclpy.init(args=None)
+        self._node = Node('epd_fps_monitor')
+        self._update_subscription(self._usecase_mode)
+        while rclpy.ok() and self._running:
+            self._maybe_update_subscription()
+            rclpy.spin_once(self._node, timeout_sec=0.1)
+        if self._subscription is not None:
+            self._node.destroy_subscription(self._subscription)
+            self._subscription = None
+        if self._node is not None:
+            self._node.destroy_node()
+            self._node = None
+        if rclpy.ok():
+            rclpy.shutdown()
+
+    def _maybe_update_subscription(self):
+        with self._lock:
+            requested = self._requested_mode
+        if requested != self._usecase_mode:
+            self._usecase_mode = requested
+            self._update_subscription(self._usecase_mode)
+
+    def _update_subscription(self, usecase_mode):
+        if self._node is None:
+            return
+        if self._subscription is not None:
+            self._node.destroy_subscription(self._subscription)
+            self._subscription = None
+        topic, msg_type = self._topic_for_usecase(usecase_mode)
+        self._stamps.clear()
+        if topic is None:
+            self.fps_updated.emit('FPS: -- | Latency: --')
+            return
+        self._subscription = self._node.create_subscription(
+            msg_type,
+            topic,
+            self._message_callback,
+            10)
+
+    def _topic_for_usecase(self, usecase_mode):
+        if usecase_mode in (0, 1):
+            return '/easy_perception_deployment/p2_inference', EPDObjectDetection
+        if usecase_mode == 2:
+            return '/easy_perception_deployment/p3_inference', EPDObjectDetection
+        if usecase_mode == 3:
+            return '/easy_perception_deployment/localization', EPDObjectLocalization
+        if usecase_mode == 4:
+            return '/easy_perception_deployment/tracking', EPDObjectTracking
+        return None, None
+
+    def _message_callback(self, msg):
+        timestamp = self._timestamp_from_msg(msg)
+        if timestamp is not None:
+            self._stamps.append(timestamp)
+        fps = self._compute_fps()
+        latency_ms = self._process_time_ms(msg)
+        fps_text = f'{fps:.1f}' if fps is not None else '--'
+        latency_text = f'{latency_ms:.1f} ms' if latency_ms is not None else '--'
+        self.fps_updated.emit(f'FPS: {fps_text} | Latency: {latency_text}')
+
+    def _timestamp_from_msg(self, msg):
+        if not hasattr(msg, 'header'):
+            return None
+        stamp = msg.header.stamp
+        if stamp.sec == 0 and stamp.nanosec == 0:
+            return time.time()
+        return Time.from_msg(stamp).nanoseconds / 1e9
+
+    def _compute_fps(self):
+        if len(self._stamps) < 2:
+            return None
+        delta = self._stamps[-1] - self._stamps[0]
+        if delta <= 0:
+            return None
+        return (len(self._stamps) - 1) / delta
+
+    def _process_time_ms(self, msg):
+        if hasattr(msg, 'process_time') and msg.process_time:
+            return float(msg.process_time)
+        return None
 
 
 class DeployWindow(QWidget):
@@ -64,6 +175,7 @@ class DeployWindow(QWidget):
         self._kill_process = None
         self._deploy_timer = None
         self._kill_timer = None
+        self._fps_monitor = None
 
         self.visualizeFlag = True
 
@@ -185,6 +297,7 @@ class DeployWindow(QWidget):
         self.setFixedSize(self._DEPLOY_WIN_W, self._DEPLOY_WIN_H)
 
         self.setButtons()
+        self._start_fps_monitor()
         self.validateDeployInputs()
         self.printDeployConfig()
 
@@ -260,12 +373,14 @@ class DeployWindow(QWidget):
         else:
             self.visualize_button.setText('Action')
 
-        self.register_topic_button = QPushButton(self)
-        self.register_topic_button.setText('Register Topic')
+        self.refresh_topics_button = QPushButton(self)
+        self.refresh_topics_button.setText('Refresh topics')
 
-        self.topic_button = QTextEdit(self)
+        self.topic_button = QComboBox(self)
+        self.topic_button.setEditable(True)
+        self.topic_button.setInsertPolicy(QComboBox.NoInsert)
         self.topic_button.setFixedHeight(28)
-        self.topic_button.setText(self._input_image_topic)
+        self.refreshImageTopics(select_topic=self._input_image_topic)
 
         self.transport_label = QLabel('Image Transport', self)
         self.transport_combo = QComboBox(self)
@@ -286,6 +401,10 @@ class DeployWindow(QWidget):
         self.status_label = QLabel('Stopped', self)
         self.status_label.setIndent(10)
 
+        # FPS/Latency label
+        self.fps_label = QLabel('FPS: -- | Latency: --', self)
+        self.fps_label.setIndent(10)
+
         # Run button to deploy ROS2 package with info
         # from usecase_config.json and session_config.json
         self.run_button = QPushButton('Run', self)
@@ -300,13 +419,17 @@ class DeployWindow(QWidget):
         layout.addWidget(self.list_button, 0, 1)
         layout.addWidget(self.visualize_button, 1, 0)
         layout.addWidget(self.usecase_config_button, 1, 1)
-        layout.addWidget(self.register_topic_button, 2, 0)
+        layout.addWidget(self.refresh_topics_button, 2, 0)
         layout.addWidget(self.topic_button, 2, 1)
         layout.addWidget(self.transport_label, 3, 0)
         layout.addWidget(self.transport_combo, 3, 1)
         layout.addWidget(self.docker_button, 4, 0, 1, 2)
         layout.addWidget(self.validation_label, 5, 0, 1, 2)
         layout.addWidget(self.status_label, 6, 0, 1, 2)
+        layout.addWidget(self.docker_button, 3, 0, 1, 2)
+        layout.addWidget(self.validation_label, 4, 0, 1, 2)
+        layout.addWidget(self.status_label, 5, 0, 1, 2)
+        layout.addWidget(self.fps_label, 6, 0, 1, 2)
         layout.addWidget(self.run_button, 7, 0, 1, 2)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
@@ -320,6 +443,82 @@ class DeployWindow(QWidget):
         self.run_button.clicked.connect(self.deployPackage)
         self.register_topic_button.clicked.connect(self.setImageInput)
         self.transport_combo.activated.connect(self.setImageTransport)
+        self.refresh_topics_button.clicked.connect(self.refreshImageTopics)
+        self.topic_button.currentTextChanged.connect(self.setImageInput)
+
+    def _query_image_topics(self):
+        topics = []
+        try:
+            result = subprocess.run(
+                ['ros2', 'topic', 'list', '-t'],
+                capture_output=True,
+                text=True,
+                check=False)
+        except FileNotFoundError:
+            self.deploy_logger.warning('ros2 command not found.')
+            return topics
+
+        if result.returncode != 0:
+            self.deploy_logger.warning(
+                'Failed to query ROS2 topics: %s', result.stderr.strip())
+            return topics
+
+        for line in result.stdout.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if 'sensor_msgs/msg/Image' not in stripped:
+                continue
+            topic_name = stripped.split()[0]
+            topics.append(topic_name)
+        return topics
+
+    def refreshImageTopics(self, select_topic=None):
+        topics = self._query_image_topics()
+        current_topic = (
+            select_topic
+            if select_topic is not None
+            else self.topic_button.currentText().strip())
+
+        self.topic_button.blockSignals(True)
+        self.topic_button.clear()
+
+        if topics:
+            self.topic_button.addItems(topics)
+        elif current_topic:
+            self.topic_button.addItem(current_topic)
+
+        if current_topic:
+            index = self.topic_button.findText(current_topic)
+            if index != -1:
+                self.topic_button.setCurrentIndex(index)
+            else:
+                self.topic_button.setEditText(current_topic)
+        elif self.topic_button.count() > 0:
+            self.topic_button.setCurrentIndex(0)
+
+        self.topic_button.blockSignals(False)
+        self.setImageInput()
+
+    def _start_fps_monitor(self):
+        self._fps_monitor = FPSMonitorThread(self.usecase_mode, self)
+        self._fps_monitor.fps_updated.connect(self._update_fps_label)
+        self._fps_monitor.start()
+
+    @Slot(str)
+    def _update_fps_label(self, text):
+        self.fps_label.setText(text)
+
+    def _update_fps_monitor_mode(self, usecase_mode):
+        if self._fps_monitor is not None:
+            self._fps_monitor.set_usecase_mode(usecase_mode)
+
+    def _stop_fps_monitor(self):
+        if self._fps_monitor is None:
+            return
+        self._fps_monitor.stop()
+        self._fps_monitor.wait(1000)
+        self._fps_monitor = None
 
     def deployPackage(self):
         '''
@@ -344,17 +543,20 @@ class DeployWindow(QWidget):
             self._is_running = True
             self.status_label.setText('Running...')
         else:
-            self.deploy_logger.info("Killing epd_test_container docker.")
-            self._kill_process, self._kill_timer = self._start_process(
-                [self._kill_script_path()],
-                'kill',
-                cwd=self._scripts_dir())
-            self.run_button.setText('Run')
-            self.run_button.setIcon(QIcon('img/go.png'))
-            self.run_button.setIconSize(QSize(100, 100))
-            self.run_button.updateGeometry()
-            self._is_running = False
-            self.status_label.setText('Stopped')
+            self._stop_deployment()
+
+    def _stop_deployment(self):
+        self.deploy_logger.info("Killing epd_test_container docker.")
+        self._kill_process, self._kill_timer = self._start_process(
+            [self._kill_script_path()],
+            'kill',
+            cwd=self._scripts_dir())
+        self.run_button.setText('Run')
+        self.run_button.setIcon(QIcon('img/go.png'))
+        self.run_button.setIconSize(QSize(100, 100))
+        self.run_button.updateGeometry()
+        self._is_running = False
+        self.status_label.setText('Stopped')
 
     def _scripts_dir(self):
         return os.path.abspath(
@@ -418,15 +620,57 @@ class DeployWindow(QWidget):
         msgBox.setText('\n'.join(message_lines))
         msgBox.exec()
 
+    def _terminate_process(self, process, timer):
+        if timer is not None and timer.isActive():
+            timer.stop()
+        if process is None:
+            return
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+
+    def shutdown(self):
+        if self._is_running:
+            self._stop_deployment()
+
+        if self._kill_process is not None and self._kill_process.poll() is None:
+            try:
+                self._kill_process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self._terminate_process(self._kill_process, self._kill_timer)
+        else:
+            self._terminate_process(self._kill_process, self._kill_timer)
+
+        self._terminate_process(self._deploy_process, self._deploy_timer)
+        self._deploy_process = None
+        self._kill_process = None
+        self._deploy_timer = None
+        self._kill_timer = None
+
+    def closeEvent(self, event):
+        self.shutdown()
+        event.accept()
+
     def setImageInput(self):
         '''
         A Mutator function that writes to line 25 of
         run.launch.py file based on new image topic.
         '''
-        new_image_topic = self.topic_button.text()
+        new_image_topic = self.topic_button.currentText().strip()
+        if new_image_topic and self.topic_button.findText(new_image_topic) == -1:
+            self.topic_button.addItem(new_image_topic)
         self.deploy_logger.info(
             'Rewriting Input Image Topic to: ' +
             new_image_topic)
+
+        if not new_image_topic:
+            self._input_image_topic = ''
+            self.validateDeployInputs()
+            return
 
         dict = {"input_image_topic": new_image_topic}
         json_object = json.dumps(dict, indent=4)
@@ -474,6 +718,7 @@ class DeployWindow(QWidget):
         selected_usecase = self.usecase_list[index]
 
         if selected_usecase == 'Classification':
+            self.usecase_mode = 0
             if not self.debug:
                 msgBox = QMessageBox()
                 msgBox.setText('[Classification] Selected.'
@@ -487,18 +732,22 @@ class DeployWindow(QWidget):
                 outfile.write(json_object)
 
         elif selected_usecase == 'Counting':
+            self.usecase_mode = 1
             self.counting_window = CountingWindow(self._path_to_label_list,
                                                   self._path_to_usecase_config)
             self.counting_window.show()
         elif selected_usecase == 'Localization':
+            self.usecase_mode = 3
             dict = {"usecase_mode": 3}
             json_object = json.dumps(dict, indent=4)
             with open(self._path_to_usecase_config, 'w') as outfile:
                 outfile.write(json_object)
         elif selected_usecase == 'Tracking':
+            self.usecase_mode = 4
             self.tracking_window = TrackingWindow(self._path_to_usecase_config)
             self.tracking_window.show()
         elif selected_usecase == 'Color-Matching':
+            self.usecase_mode = 2
             if not self.debug:
                 input_refimage_filepath, ok = (
                     QFileDialog.getOpenFileName(
@@ -535,6 +784,7 @@ class DeployWindow(QWidget):
 
         self.usecase_config_button.setStyleSheet(
             'background-color: rgba(0,150,10,255);')
+        self._update_fps_monitor_mode(self.usecase_mode)
 
     def setImageTransport(self, index):
         '''A function triggered by the Image Transport dropdown.'''
@@ -661,3 +911,7 @@ class DeployWindow(QWidget):
             self.run_button.setEnabled(True)
             self.run_button.setToolTip('')
             self.validation_label.setText('')
+
+    def closeEvent(self, event):
+        self._stop_fps_monitor()
+        super().closeEvent(event)

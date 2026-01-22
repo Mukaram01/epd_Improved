@@ -151,6 +151,44 @@ When `image_transport` is set to `compressed`, EPD expects:
 
 Visualization output uses the same transport, so subscribe to
 `/easy_perception_deployment/image_output/compressed` as needed.
+
+## **Performance Telemetry**
+
+EPD publishes per-stage timings (preprocess, inference, postprocess, publish, total)
+to `/easy_perception_deployment/epd_performance` using `epd_msgs/msg/EPDPerformance`.
+Use it to monitor pipeline latency in real time:
+
+```bash
+ros2 topic echo /easy_perception_deployment/epd_performance
+```
+
+**Optional file logging**
+
+Set a log file path in `config/session_config.json` to write performance records.
+Logs are appended to the same file across runs.
+
+```json
+{
+  "performance_log_path": "/tmp/epd_performance.json",
+  "performance_log_format": "json"
+}
+```
+
+Supported formats:
+* `json` (newline-delimited JSON objects)
+* `csv` (CSV header emitted on first write)
+
+**Optional pick counters**
+
+If your grasp planner publishes pick status strings (for example: `attempt`,
+`success`, or `failed`), set `pick_status_topic` in `session_config.json` to
+increment `picks_attempted` and `picks_failed` in the performance stream.
+
+```json
+{
+  "pick_status_topic": "/grasp_planner/pick_status"
+}
+```
 ## **Use Cases & ROS 2 Outputs**
 
 EPD supports multiple use cases via `config/usecase_config.json`:

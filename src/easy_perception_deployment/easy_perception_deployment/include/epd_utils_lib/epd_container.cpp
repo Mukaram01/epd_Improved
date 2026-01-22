@@ -129,6 +129,37 @@ std::string parseImageTransport(const Json::Value & obj, const std::string & con
     "Invalid image_transport in config file: " + config_path +
     ". Expected raw, compressed, or compressedDepth.");
 }
+
+std::string parsePerformanceLogFormat(const Json::Value & obj, const std::string & config_path)
+{
+  if (!obj.isMember("performance_log_format")) {
+    return "json";
+  }
+
+  const Json::Value & format_value = obj["performance_log_format"];
+  if (!format_value.isString()) {
+    throw std::runtime_error(
+      "Invalid performance_log_format type in config file: " +
+      config_path + ". Expected string.");
+  }
+
+  std::string format = format_value.asString();
+  std::transform(format.begin(), format.end(), format.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+
+  if (format.empty()) {
+    return "json";
+  }
+
+  if (format == "json" || format == "csv") {
+    return format;
+  }
+
+  throw std::runtime_error(
+    "Invalid performance_log_format in config file: " + config_path +
+    ". Expected json or csv.");
+}
 }  // namespace
 
 
@@ -141,6 +172,9 @@ EPDContainer::EPDContainer(void)
   onlyVisualize = true;
   color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
   image_transport = "raw";
+  performance_log_path = "";
+  performance_log_format = "json";
+  pick_status_topic = "";
 
   this->setModelConfigFile();
   this->setPrecisionLevel();
@@ -261,6 +295,25 @@ void EPDContainer::setModelConfigFile()
   }
 
   image_transport = parseImageTransport(obj, PATH_TO_SESSION_CONFIG);
+  performance_log_format = parsePerformanceLogFormat(obj, PATH_TO_SESSION_CONFIG);
+
+  if (obj.isMember("performance_log_path")) {
+    if (!obj["performance_log_path"].isString()) {
+      throw std::runtime_error(
+        "Invalid performance_log_path type in config file: " +
+        PATH_TO_SESSION_CONFIG + ". Expected string.");
+    }
+    performance_log_path = obj["performance_log_path"].asString();
+  }
+
+  if (obj.isMember("pick_status_topic")) {
+    if (!obj["pick_status_topic"].isString()) {
+      throw std::runtime_error(
+        "Invalid pick_status_topic type in config file: " +
+        PATH_TO_SESSION_CONFIG + ". Expected string.");
+    }
+    pick_status_topic = obj["pick_status_topic"].asString();
+  }
 
   ifs_1.close();
 }

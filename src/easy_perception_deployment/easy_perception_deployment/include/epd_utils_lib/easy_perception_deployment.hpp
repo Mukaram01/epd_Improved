@@ -26,6 +26,8 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
+#include <fstream>
 
 // OpenCV LIB
 #include "opencv2/opencv.hpp"
@@ -53,6 +55,7 @@
 #include "epd_msgs/msg/epd_object_detection.hpp"
 #include "epd_msgs/msg/epd_object_localization.hpp"
 #include "epd_msgs/msg/epd_object_tracking.hpp"
+#include "epd_msgs/msg/epd_performance.hpp"
 #include "epd_msgs/msg/localized_object.hpp"
 #include "epd_msgs/srv/perception.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
@@ -132,6 +135,7 @@ private:
 
   rclcpp::Publisher<epd_msgs::msg::EPDObjectTracking>::SharedPtr tracking_pub;
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_pub;
+  rclcpp::Publisher<epd_msgs::msg::EPDPerformance>::SharedPtr performance_pub_;
 
   rclcpp::Service<epd_msgs::srv::Perception>::SharedPtr srv_;
   /*! \brief A singular EPDContainer object that deploys a user-defined
@@ -151,6 +155,15 @@ private:
 
   void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
   void image_worker_loop();
+  void publishPerformanceMetrics(
+    const std_msgs::msg::Header & header,
+    const std::string & pipeline,
+    int64_t preprocess_ms,
+    int64_t inference_ms,
+    int64_t postprocess_ms,
+    int64_t publish_ms,
+    int64_t total_ms);
+  void handlePickStatus(const std_msgs::msg::String::SharedPtr msg);
 
   void hasCameraChanged(
     const int img_height,
@@ -194,6 +207,13 @@ private:
   sensor_msgs::msg::CameraInfo::SharedPtr latest_camera_info_;
 
   std::mutex ort_mutex_;
+  std::mutex performance_log_mutex_;
+  std::string performance_log_path_;
+  std::string performance_log_format_;
+  bool performance_log_header_written_{false};
+  std::atomic<uint64_t> picks_attempted_{0};
+  std::atomic<uint64_t> picks_failed_{0};
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr pick_status_sub_;
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
@@ -283,6 +303,21 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     "/easy_perception_deployment/epd_pose_output",
     10,
     publisher_options);
+
+  performance_pub_ = this->create_publisher<epd_msgs::msg::EPDPerformance>(
+    "/easy_perception_deployment/epd_performance",
+    10,
+    publisher_options);
+
+  performance_log_path_ = ortAgent_.performance_log_path;
+  performance_log_format_ = ortAgent_.performance_log_format;
+
+  if (!ortAgent_.pick_status_topic.empty()) {
+    pick_status_sub_ = this->create_subscription<std_msgs::msg::String>(
+      ortAgent_.pick_status_topic,
+      10,
+      std::bind(&EasyPerceptionDeployment::handlePickStatus, this, std::placeholders::_1));
+  }
 
   // If useCaseMode is detected to be Localization or Tracking,
   // Subscribe to all synchronized ROS2 topics.
@@ -402,6 +437,13 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   RCLCPP_INFO(this->get_logger(), "[-Label List-] - %s", ortAgent_.class_label_path.c_str());
   RCLCPP_INFO(this->get_logger(), "[-Precision Level-] - %d", ortAgent_.precision_level);
   RCLCPP_INFO(this->get_logger(), "[-Image Transport-] - %s", image_transport_.c_str());
+  if (!performance_log_path_.empty()) {
+    RCLCPP_INFO(
+      this->get_logger(),
+      "[-Performance Log-] - %s (%s)",
+      performance_log_path_.c_str(),
+      performance_log_format_.c_str());
+  }
 
   if (ortAgent_.isVisualize()) {
     RCLCPP_INFO(this->get_logger(), "[-Mode-] - VISUALISE");
@@ -516,6 +558,119 @@ void EasyPerceptionDeployment::checkOrtAgentIsInitialized(
   }
 }
 
+void EasyPerceptionDeployment::handlePickStatus(const std_msgs::msg::String::SharedPtr msg)
+{
+  std::string status = msg->data;
+  std::transform(status.begin(), status.end(), status.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+
+  const bool is_attempt =
+    status.find("attempt") != std::string::npos ||
+    status.find("success") != std::string::npos ||
+    status.find("fail") != std::string::npos;
+  if (is_attempt) {
+    ++picks_attempted_;
+  }
+  if (status.find("fail") != std::string::npos) {
+    ++picks_failed_;
+  }
+}
+
+void EasyPerceptionDeployment::publishPerformanceMetrics(
+  const std_msgs::msg::Header & header,
+  const std::string & pipeline,
+  int64_t preprocess_ms,
+  int64_t inference_ms,
+  int64_t postprocess_ms,
+  int64_t publish_ms,
+  int64_t total_ms)
+{
+  epd_msgs::msg::EPDPerformance metrics;
+  metrics.header = header;
+  metrics.pipeline = pipeline;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    metrics.precision_level = ortAgent_.precision_level;
+  }
+  metrics.preprocess_ms = preprocess_ms;
+  metrics.inference_ms = inference_ms;
+  metrics.postprocess_ms = postprocess_ms;
+  metrics.publish_ms = publish_ms;
+  metrics.total_ms = total_ms;
+  metrics.picks_attempted = picks_attempted_.load();
+  metrics.picks_failed = picks_failed_.load();
+
+  performance_pub_->publish(metrics);
+
+  if (performance_log_path_.empty()) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> log_guard(performance_log_mutex_);
+  std::ofstream log_stream(performance_log_path_, std::ios::app);
+  if (!log_stream.is_open()) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Failed to open performance log file: %s",
+      performance_log_path_.c_str());
+    return;
+  }
+
+  if (performance_log_format_ == "csv") {
+    if (!performance_log_header_written_) {
+      std::ifstream check_stream(performance_log_path_);
+      if (check_stream.good()) {
+        check_stream.peek();
+        if (check_stream.good() && !check_stream.eof()) {
+          performance_log_header_written_ = true;
+        }
+      }
+      if (!performance_log_header_written_) {
+        log_stream
+          << "stamp_sec,stamp_nanosec,pipeline,precision_level,"
+          << "preprocess_ms,inference_ms,postprocess_ms,publish_ms,total_ms,"
+          << "picks_attempted,picks_failed\n";
+        performance_log_header_written_ = true;
+      }
+    }
+    log_stream
+      << header.stamp.sec << ","
+      << header.stamp.nanosec << ","
+      << pipeline << ","
+      << metrics.precision_level << ","
+      << preprocess_ms << ","
+      << inference_ms << ","
+      << postprocess_ms << ","
+      << publish_ms << ","
+      << total_ms << ","
+      << metrics.picks_attempted << ","
+      << metrics.picks_failed << "\n";
+    return;
+  }
+
+  std::string pipeline_escaped = pipeline;
+  size_t pos = 0;
+  while ((pos = pipeline_escaped.find('\"', pos)) != std::string::npos) {
+    pipeline_escaped.insert(pos, "\\");
+    pos += 2;
+  }
+
+  log_stream << "{"
+             << "\"stamp_sec\":" << header.stamp.sec << ","
+             << "\"stamp_nanosec\":" << header.stamp.nanosec << ","
+             << "\"pipeline\":\"" << pipeline_escaped << "\","
+             << "\"precision_level\":" << metrics.precision_level << ","
+             << "\"preprocess_ms\":" << preprocess_ms << ","
+             << "\"inference_ms\":" << inference_ms << ","
+             << "\"postprocess_ms\":" << postprocess_ms << ","
+             << "\"publish_ms\":" << publish_ms << ","
+             << "\"total_ms\":" << total_ms << ","
+             << "\"picks_attempted\":" << metrics.picks_attempted << ","
+             << "\"picks_failed\":" << metrics.picks_failed
+             << "}\n";
+}
+
 void EasyPerceptionDeployment::process_localize_callback(
   const sensor_msgs::msg::Image::SharedPtr msg,
   const sensor_msgs::msg::Image::SharedPtr depth_msg,
@@ -583,6 +738,7 @@ void EasyPerceptionDeployment::process_localize_work(
   const sensor_msgs::msg::Image::SharedPtr depth_msg,
   const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
+  const auto t_start = std::chrono::high_resolution_clock::now();
   std::unique_lock<std::mutex> ort_lock(ort_mutex_);
   if (ortAgent_.requestAddressed) {
     return;
@@ -618,9 +774,10 @@ void EasyPerceptionDeployment::process_localize_work(
     checkOrtAgentIsInitialized(img.rows, img.cols);
   }
 
-  auto begin = std::chrono::high_resolution_clock::now();
+  const auto t_preprocess_end = std::chrono::high_resolution_clock::now();
 
   EPD::EPDObjectLocalization result;
+  const auto t_infer_start = std::chrono::high_resolution_clock::now();
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
     result = ortAgent_.p3_ort_session->infer(
@@ -629,8 +786,11 @@ void EasyPerceptionDeployment::process_localize_work(
       *camera_info,
       camera_to_plane_distance_mm);
   }
+  const auto t_infer_end = std::chrono::high_resolution_clock::now();
 
+  const auto t_postprocess_start = t_infer_end;
   cv::Mat resultImg;
+  sensor_msgs::msg::Image::SharedPtr visual_output_msg;
 
   bool visualize = false;
   {
@@ -651,10 +811,8 @@ void EasyPerceptionDeployment::process_localize_work(
       resultImg = ortAgent_.visualize(converted_result, img);
     }
 
-    sensor_msgs::msg::Image::SharedPtr output_msg =
+    visual_output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
-    visual_pub.publish(*output_msg);
-    visual_pub->publish(*output_msg);
   }
 
   epd_msgs::msg::EPDObjectLocalization output_msg;
@@ -694,39 +852,53 @@ void EasyPerceptionDeployment::process_localize_work(
     output_msg.objects.push_back(object);
   }
 
-  auto end = std::chrono::high_resolution_clock::now();
-  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  geometry_msgs::msg::PoseArray pose_array;
+  pose_array.header = msg->header;
+  for (size_t i = 0; i < result.data_size; i++) {
+    geometry_msgs::msg::Pose pose;
+    pose.position = result.objects[i].centroid;
+    pose.orientation.w = 1.0;
+    pose_array.poses.push_back(pose);
+  }
+
+  const auto t_postprocess_end = std::chrono::high_resolution_clock::now();
+  const auto process_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_postprocess_end - t_start).count();
+  output_msg.process_time = process_time_ms;
+  const auto t_publish_start = std::chrono::high_resolution_clock::now();
+  if (visual_output_msg) {
+    visual_pub.publish(*visual_output_msg);
+    visual_pub->publish(*visual_output_msg);
+  }
+  localize_pub->publish(output_msg);
+  pose_pub->publish(pose_array);
+  const auto t_publish_end = std::chrono::high_resolution_clock::now();
+
+  const auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_publish_end - t_start);
   RCLCPP_INFO_THROTTLE(
     this->get_logger(),
     *this->get_clock(),
     2000,
     "[-FPS-]= %f\n",
-    1000.0 / elapsedTime.count());
+    1000.0 / elapsed_time.count());
 
-  output_msg.process_time = elapsedTime.count();
-  localize_pub->publish(output_msg);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO_THROTTLE(
-      this->get_logger(),
-      *this->get_clock(),
-      2000,
-      "[-FPS-]= %f\n",
-      1000.0 / elapsedTime.count());
-
-    output_msg.process_time = elapsedTime.count();
-    localize_pub->publish(output_msg);
-
-    geometry_msgs::msg::PoseArray pose_array;
-    pose_array.header = msg->header;
-    for (size_t i = 0; i < result.data_size; i++) {
-      geometry_msgs::msg::Pose pose;
-      pose.position = result.objects[i].centroid;
-      pose.orientation.w = 1.0;
-      pose_array.poses.push_back(pose);
-    }
-    pose_pub->publish(pose_array);
-  }
+  const auto preprocess_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_preprocess_end - t_start).count();
+  const auto inference_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_infer_end - t_infer_start).count();
+  const auto postprocess_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_postprocess_end - t_postprocess_start).count();
+  const auto publish_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_publish_end - t_publish_start).count();
+  publishPerformanceMetrics(
+    msg->header,
+    "localize",
+    preprocess_ms,
+    inference_ms,
+    postprocess_ms,
+    publish_ms,
+    elapsed_time.count());
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -741,6 +913,7 @@ void EasyPerceptionDeployment::process_tracking_work(
   const sensor_msgs::msg::Image::SharedPtr depth_msg,
   const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
+  const auto t_start = std::chrono::high_resolution_clock::now();
   std::unique_lock<std::mutex> ort_lock(ort_mutex_);
   if (ortAgent_.requestAddressed) {
     return;
@@ -776,9 +949,10 @@ void EasyPerceptionDeployment::process_tracking_work(
     checkOrtAgentIsInitialized(img.rows, img.cols);
   }
 
-  auto begin = std::chrono::high_resolution_clock::now();
+  const auto t_preprocess_end = std::chrono::high_resolution_clock::now();
 
   EPD::EPDObjectTracking result;
+  const auto t_infer_start = std::chrono::high_resolution_clock::now();
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
     result = ortAgent_.p3_ort_session->infer(
@@ -791,8 +965,11 @@ void EasyPerceptionDeployment::process_tracking_work(
       ortAgent_.tracker_logs,
       ortAgent_.tracker_results);
   }
+  const auto t_infer_end = std::chrono::high_resolution_clock::now();
 
+  const auto t_postprocess_start = t_infer_end;
   cv::Mat resultImg;
+  sensor_msgs::msg::Image::SharedPtr visual_output_msg;
 
   bool visualize = false;
   {
@@ -806,10 +983,8 @@ void EasyPerceptionDeployment::process_tracking_work(
       resultImg = ortAgent_.visualize(result, img);
     }
 
-    sensor_msgs::msg::Image::SharedPtr output_msg =
+    visual_output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
-    visual_pub.publish(*output_msg);
-    visual_pub->publish(*output_msg);
   }
 
   epd_msgs::msg::EPDObjectTracking output_msg;
@@ -850,39 +1025,53 @@ void EasyPerceptionDeployment::process_tracking_work(
     output_msg.objects.push_back(object);
   }
 
-  auto end = std::chrono::high_resolution_clock::now();
-  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  geometry_msgs::msg::PoseArray pose_array;
+  pose_array.header = msg->header;
+  for (size_t i = 0; i < result.data_size; i++) {
+    geometry_msgs::msg::Pose pose;
+    pose.position = result.objects[i].centroid;
+    pose.orientation.w = 1.0;
+    pose_array.poses.push_back(pose);
+  }
+
+  const auto t_postprocess_end = std::chrono::high_resolution_clock::now();
+  const auto process_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_postprocess_end - t_start).count();
+  output_msg.process_time = process_time_ms;
+  const auto t_publish_start = std::chrono::high_resolution_clock::now();
+  if (visual_output_msg) {
+    visual_pub.publish(*visual_output_msg);
+    visual_pub->publish(*visual_output_msg);
+  }
+  tracking_pub->publish(output_msg);
+  pose_pub->publish(pose_array);
+  const auto t_publish_end = std::chrono::high_resolution_clock::now();
+
+  const auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_publish_end - t_start);
   RCLCPP_INFO_THROTTLE(
     this->get_logger(),
     *this->get_clock(),
     2000,
     "[-FPS-]= %f\n",
-    1000.0 / elapsedTime.count());
+    1000.0 / elapsed_time.count());
 
-  output_msg.process_time = elapsedTime.count();
-  tracking_pub->publish(output_msg);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO_THROTTLE(
-      this->get_logger(),
-      *this->get_clock(),
-      2000,
-      "[-FPS-]= %f\n",
-      1000.0 / elapsedTime.count());
-
-    output_msg.process_time = elapsedTime.count();
-    tracking_pub->publish(output_msg);
-
-    geometry_msgs::msg::PoseArray pose_array;
-    pose_array.header = msg->header;
-    for (size_t i = 0; i < result.data_size; i++) {
-      geometry_msgs::msg::Pose pose;
-      pose.position = result.objects[i].centroid;
-      pose.orientation.w = 1.0;
-      pose_array.poses.push_back(pose);
-    }
-    pose_pub->publish(pose_array);
-  }
+  const auto preprocess_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_preprocess_end - t_start).count();
+  const auto inference_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_infer_end - t_infer_start).count();
+  const auto postprocess_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_postprocess_end - t_postprocess_start).count();
+  const auto publish_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_publish_end - t_publish_start).count();
+  publishPerformanceMetrics(
+    msg->header,
+    "tracking",
+    preprocess_ms,
+    inference_ms,
+    postprocess_ms,
+    publish_ms,
+    elapsed_time.count());
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -895,6 +1084,7 @@ void EasyPerceptionDeployment::process_tracking_work(
 void EasyPerceptionDeployment::process_image_work(
   const sensor_msgs::msg::Image::SharedPtr msg)
 {
+  const auto t_start = std::chrono::high_resolution_clock::now();
   if (msg->height == 0) {
     RCLCPP_WARN(this->get_logger(), "Input image empty. Discarding.");
     return;
@@ -913,7 +1103,13 @@ void EasyPerceptionDeployment::process_image_work(
     checkOrtAgentIsInitialized(img.rows, img.cols);
   }
 
-  auto begin = std::chrono::high_resolution_clock::now();
+  const auto t_preprocess_end = std::chrono::high_resolution_clock::now();
+  auto t_infer_start = t_preprocess_end;
+  auto t_infer_end = t_preprocess_end;
+  auto t_postprocess_start = t_preprocess_end;
+  auto t_postprocess_end = t_preprocess_end;
+  auto t_publish_start = t_preprocess_end;
+  auto t_publish_end = t_preprocess_end;
 
   cv::Mat resultImg;
   int precision_level = 0;
@@ -928,6 +1124,7 @@ void EasyPerceptionDeployment::process_image_work(
     case 2:
       {
         EPD::EPDObjectDetection result;
+        t_infer_start = std::chrono::high_resolution_clock::now();
         {
           std::lock_guard<std::mutex> ort_guard(ort_mutex_);
           result = ortAgent_.p2_ort_session->infer(img);
@@ -943,11 +1140,16 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.template_color_path,
             ortAgent_.color_match_histogram_metric);
         }
+        t_infer_end = std::chrono::high_resolution_clock::now();
+        t_postprocess_start = t_infer_end;
 
         EPD::EPDObjectDetection output_obj(result.bboxes.size());
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
+
+        t_postprocess_end = std::chrono::high_resolution_clock::now();
+        t_publish_start = t_postprocess_end;
 
         if (visualize) {
           {
@@ -991,11 +1193,13 @@ void EasyPerceptionDeployment::process_image_work(
           output_msg.bboxes.push_back(roi);
         }
         p2_pub->publish(output_msg);
+        t_publish_end = std::chrono::high_resolution_clock::now();
         break;
       }
     case 3:
       {
         EPD::EPDObjectDetection result;
+        t_infer_start = std::chrono::high_resolution_clock::now();
         {
           std::lock_guard<std::mutex> ort_guard(ort_mutex_);
           result = ortAgent_.p3_ort_session->infer(img);
@@ -1011,12 +1215,17 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.template_color_path,
             ortAgent_.color_match_histogram_metric);
         }
+        t_infer_end = std::chrono::high_resolution_clock::now();
+        t_postprocess_start = t_infer_end;
 
         EPD::EPDObjectDetection output_obj(result.bboxes.size());
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
         output_obj.masks = result.masks;
+
+        t_postprocess_end = std::chrono::high_resolution_clock::now();
+        t_publish_start = t_postprocess_end;
 
         if (visualize) {
           {
@@ -1072,6 +1281,7 @@ void EasyPerceptionDeployment::process_image_work(
           output_msg.masks.push_back(*mask);
         }
         p3_pub->publish(output_msg);
+        t_publish_end = std::chrono::high_resolution_clock::now();
         break;
       }
     default:
@@ -1079,17 +1289,35 @@ void EasyPerceptionDeployment::process_image_work(
         this->get_logger(),
         "Unsupported precision level %u for image classification/detection.",
         ortAgent_.precision_level);
+      t_publish_end = std::chrono::high_resolution_clock::now();
       break;
   }
 
-  auto end = std::chrono::high_resolution_clock::now();
-  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  const auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_publish_end - t_start);
   RCLCPP_INFO_THROTTLE(
     this->get_logger(),
     *this->get_clock(),
     2000,
     "[-FPS-]= %f\n",
-    1000.0 / elapsedTime.count());
+    1000.0 / elapsed_time.count());
+
+  const auto preprocess_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_preprocess_end - t_start).count();
+  const auto inference_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_infer_end - t_infer_start).count();
+  const auto postprocess_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_postprocess_end - t_postprocess_start).count();
+  const auto publish_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+    t_publish_end - t_publish_start).count();
+  publishPerformanceMetrics(
+    msg->header,
+    "image",
+    preprocess_ms,
+    inference_ms,
+    postprocess_ms,
+    publish_ms,
+    elapsed_time.count());
 }
 
 void EasyPerceptionDeployment::worker_loop()

@@ -67,6 +67,12 @@ public:
   std::string onnx_model_path;
   /*! \brief The image transport plugin to use for ROS image topics. */
   std::string image_transport;
+  /*! \brief Optional performance log file path; empty disables file logging. */
+  std::string performance_log_path;
+  /*! \brief Performance log format ("json" or "csv"). */
+  std::string performance_log_format;
+  /*! \brief Optional pick status topic for attempt/fail counters. */
+  std::string pick_status_topic;
 
   /*! \brief The selected use-case mode. Values can only be 0,1,2.\n
   *  See usecase_config.hpp for more details.\n

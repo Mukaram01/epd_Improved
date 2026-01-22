@@ -1,0 +1,10 @@
+std_msgs/Header header
+string pipeline
+uint32 precision_level
+int64 preprocess_ms
+int64 inference_ms
+int64 postprocess_ms
+int64 publish_ms
+int64 total_ms
+uint64 picks_attempted
+uint64 picks_failed

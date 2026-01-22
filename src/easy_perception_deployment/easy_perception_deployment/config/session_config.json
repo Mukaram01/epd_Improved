@@ -4,5 +4,8 @@
     "visualizeFlag": "robot",
     "useCPU": "CPU",
     "intra_op_num_threads": 0,
-    "image_transport": "raw"
+    "image_transport": "raw",
+    "performance_log_path": "",
+    "performance_log_format": "json",
+    "pick_status_topic": ""
 }

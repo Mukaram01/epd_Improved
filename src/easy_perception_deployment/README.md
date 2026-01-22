@@ -166,7 +166,7 @@ Key ROS 2 topics:
 * `/easy_perception_deployment/epd_p2_output` (P2 detections) and `/easy_perception_deployment/epd_p3_output` (P3 detections).
 * `/easy_perception_deployment/epd_localize_output` for localization (3D centroids, dimensions, masks, and point clouds).
 * `/easy_perception_deployment/epd_tracking_output` for tracking.
-* `/easy_perception_deployment/epd_pose_output` for a `geometry_msgs/PoseArray` of 3D object poses in the camera frame (position from the localized centroid; orientation is identity).
+* `/easy_perception_deployment/epd_pose_output` for a `geometry_msgs/PoseArray` of 3D object poses in the camera frame (position from the localized centroid; orientation aligns +X with the LocalizedObject axis derived from PCA, +Z with the camera optical axis, and +Y to complete a right-handed frame).
 
 ## **Contributions & Feedback**
 

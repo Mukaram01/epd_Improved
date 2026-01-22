@@ -162,10 +162,11 @@ class DeployWindow(QWidget):
         self._path_to_model = ''
         self._path_to_label_list = ''
         self._input_image_topic = ''
+        self._image_transport = 'raw'
 
         self._is_running = False
 
-        self._DEPLOY_WIN_H = 400
+        self._DEPLOY_WIN_H = 460
         self._DEPLOY_WIN_W = 500
 
         self.setWindowIcon(QIcon("img/epd_desktop.png"))
@@ -192,6 +193,9 @@ class DeployWindow(QWidget):
             'Color-Matching',
             'Localization',
             'Tracking']
+        self.image_transport_list = [
+            'raw',
+            'compressed']
 
         session_config = None
         usecase_config = None
@@ -223,6 +227,9 @@ class DeployWindow(QWidget):
             self._intra_op_num_threads = session_config.get(
                 "intra_op_num_threads",
                 0)
+            self._image_transport = session_config.get(
+                "image_transport",
+                "raw").lower()
             if session_config["visualizeFlag"] == "visualize":
                 self.visualizeFlag = True
             else:
@@ -240,6 +247,7 @@ class DeployWindow(QWidget):
             self.visualizeFlag = True
             self.useCPU = True
             self._intra_op_num_threads = 0
+            self._image_transport = 'raw'
 
         try:
             self.usecase_mode = int(usecase_config["usecase_mode"])
@@ -271,6 +279,16 @@ class DeployWindow(QWidget):
         else:
             self._input_image_topic = '/camera/color/image_raw'
 
+        if self._image_transport not in self.image_transport_list:
+            self.deploy_logger.warning(
+                '[ session_config.json ] - Invalid image_transport. '
+                'Defaulting to raw.')
+            self._image_transport = 'raw'
+
+        if self._image_transport in self.image_transport_list:
+            self.image_transport_list.remove(self._image_transport)
+        self.image_transport_list.insert(0, self._image_transport)
+
         self.setWindowTitle('Deploy')
         self.setGeometry(self._DEPLOY_WIN_W,
                          0,
@@ -293,6 +311,8 @@ class DeployWindow(QWidget):
         self.deploy_logger.info('[ Label List ] : ' + self._path_to_label_list)
         self.deploy_logger.info(
             '[ Input Image Topic ] : ' + self._input_image_topic)
+        self.deploy_logger.info(
+            '[ Image Transport ] : ' + self._image_transport)
 
     def setButtons(self):
         '''A Mutator function that defines all buttons in DeployWindow.'''
@@ -362,6 +382,11 @@ class DeployWindow(QWidget):
         self.topic_button.setFixedHeight(28)
         self.refreshImageTopics(select_topic=self._input_image_topic)
 
+        self.transport_label = QLabel('Image Transport', self)
+        self.transport_combo = QComboBox(self)
+        for transport in self.image_transport_list:
+            self.transport_combo.addItem(transport)
+
         self.docker_button = QPushButton(self)
         if self.useCPU is True:
             self.docker_button.setText('CPU')
@@ -396,6 +421,11 @@ class DeployWindow(QWidget):
         layout.addWidget(self.usecase_config_button, 1, 1)
         layout.addWidget(self.refresh_topics_button, 2, 0)
         layout.addWidget(self.topic_button, 2, 1)
+        layout.addWidget(self.transport_label, 3, 0)
+        layout.addWidget(self.transport_combo, 3, 1)
+        layout.addWidget(self.docker_button, 4, 0, 1, 2)
+        layout.addWidget(self.validation_label, 5, 0, 1, 2)
+        layout.addWidget(self.status_label, 6, 0, 1, 2)
         layout.addWidget(self.docker_button, 3, 0, 1, 2)
         layout.addWidget(self.validation_label, 4, 0, 1, 2)
         layout.addWidget(self.status_label, 5, 0, 1, 2)
@@ -411,6 +441,8 @@ class DeployWindow(QWidget):
         self.list_button.clicked.connect(self.setLabelList)
         self.usecase_config_button.activated.connect(self.setUseCase)
         self.run_button.clicked.connect(self.deployPackage)
+        self.register_topic_button.clicked.connect(self.setImageInput)
+        self.transport_combo.activated.connect(self.setImageTransport)
         self.refresh_topics_button.clicked.connect(self.refreshImageTopics)
         self.topic_button.currentTextChanged.connect(self.setImageInput)
 
@@ -754,6 +786,11 @@ class DeployWindow(QWidget):
             'background-color: rgba(0,150,10,255);')
         self._update_fps_monitor_mode(self.usecase_mode)
 
+    def setImageTransport(self, index):
+        '''A function triggered by the Image Transport dropdown.'''
+        self._image_transport = self.image_transport_list[index]
+        self.updateSessionConfig()
+
     def updateSessionConfig(self):
         '''A Mutator function that updates the session_config.json file.'''
 
@@ -772,7 +809,8 @@ class DeployWindow(QWidget):
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
             "useCPU": useCPU_string,
-            "intra_op_num_threads": self._intra_op_num_threads
+            "intra_op_num_threads": self._intra_op_num_threads,
+            "image_transport": self._image_transport
             }
         json_object = json.dumps(dict, indent=4)
 

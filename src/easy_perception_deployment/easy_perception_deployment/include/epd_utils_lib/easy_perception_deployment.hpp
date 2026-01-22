@@ -19,6 +19,7 @@
 #include <chrono>
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <string>
 #include <memory>
 #include <functional>
@@ -26,6 +27,8 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+
+#include <Eigen/Dense>
 
 // OpenCV LIB
 #include "opencv2/opencv.hpp"
@@ -59,6 +62,8 @@
 #include "epd_utils_lib/message_utils.hpp"
 
 #include "pcl_conversions/pcl_conversions.h"
+#include "pcl/common/centroid.h"
+#include "pcl/common/eigen.h"
 
 /*! \class EasyPerceptionDeployment
     \brief An EasyPerceptionDeployment class object.
@@ -181,6 +186,13 @@ private:
     const sensor_msgs::msg::Image::SharedPtr depth_msg,
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
   void worker_loop();
+  geometry_msgs::msg::Pose buildObjectPose(
+    const geometry_msgs::msg::Point & centroid,
+    const geometry_msgs::msg::Vector3 & axis,
+    const pcl::PointCloud<pcl::PointXYZ> & segmented_pcl) const;
+  geometry_msgs::msg::Quaternion buildOrientationFromAxisOrPcl(
+    const geometry_msgs::msg::Vector3 & axis,
+    const pcl::PointCloud<pcl::PointXYZ> & segmented_pcl) const;
 
   std::mutex data_mutex_;
   std::condition_variable data_cv_;
@@ -690,6 +702,10 @@ void EasyPerceptionDeployment::process_localize_work(
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
     object.segmented_pcl = output_segmented_pcl;
+    object.pose = buildObjectPose(
+      object.centroid,
+      object.axis,
+      result.objects[i].segmented_pcl);
 
     output_msg.objects.push_back(object);
   }
@@ -720,10 +736,10 @@ void EasyPerceptionDeployment::process_localize_work(
     geometry_msgs::msg::PoseArray pose_array;
     pose_array.header = msg->header;
     for (size_t i = 0; i < result.data_size; i++) {
-      geometry_msgs::msg::Pose pose;
-      pose.position = result.objects[i].centroid;
-      pose.orientation.w = 1.0;
-      pose_array.poses.push_back(pose);
+      pose_array.poses.push_back(buildObjectPose(
+        result.objects[i].centroid,
+        result.objects[i].axis,
+        result.objects[i].segmented_pcl));
     }
     pose_pub->publish(pose_array);
   }
@@ -845,6 +861,10 @@ void EasyPerceptionDeployment::process_tracking_work(
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
     object.segmented_pcl = output_segmented_pcl;
+    object.pose = buildObjectPose(
+      object.centroid,
+      object.axis,
+      result.objects[i].segmented_pcl);
 
     output_msg.object_ids.push_back(result.object_ids[i]);
     output_msg.objects.push_back(object);
@@ -876,10 +896,10 @@ void EasyPerceptionDeployment::process_tracking_work(
     geometry_msgs::msg::PoseArray pose_array;
     pose_array.header = msg->header;
     for (size_t i = 0; i < result.data_size; i++) {
-      geometry_msgs::msg::Pose pose;
-      pose.position = result.objects[i].centroid;
-      pose.orientation.w = 1.0;
-      pose_array.poses.push_back(pose);
+      pose_array.poses.push_back(buildObjectPose(
+        result.objects[i].centroid,
+        result.objects[i].axis,
+        result.objects[i].segmented_pcl));
     }
     pose_pub->publish(pose_array);
   }
@@ -890,6 +910,76 @@ void EasyPerceptionDeployment::process_tracking_work(
       ortAgent_.requestAddressed = true;
     }
   }
+}
+
+geometry_msgs::msg::Pose EasyPerceptionDeployment::buildObjectPose(
+  const geometry_msgs::msg::Point & centroid,
+  const geometry_msgs::msg::Vector3 & axis,
+  const pcl::PointCloud<pcl::PointXYZ> & segmented_pcl) const
+{
+  geometry_msgs::msg::Pose pose;
+  pose.position = centroid;
+  pose.orientation = buildOrientationFromAxisOrPcl(axis, segmented_pcl);
+  return pose;
+}
+
+geometry_msgs::msg::Quaternion EasyPerceptionDeployment::buildOrientationFromAxisOrPcl(
+  const geometry_msgs::msg::Vector3 & axis,
+  const pcl::PointCloud<pcl::PointXYZ> & segmented_pcl) const
+{
+  Eigen::Vector3f axis_vec(axis.x, axis.y, axis.z);
+  if (axis_vec.norm() < 1e-6f && !segmented_pcl.empty()) {
+    Eigen::Vector4f centerpoint;
+    Eigen::Vector3f eigenvalues;
+    Eigen::Matrix3f eigenvectors;
+    Eigen::Matrix3f covariance_matrix;
+
+    pcl::compute3DCentroid(segmented_pcl, centerpoint);
+    pcl::computeCovarianceMatrix(segmented_pcl, centerpoint, covariance_matrix);
+    pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
+
+    axis_vec = Eigen::Vector3f(
+      eigenvectors.col(2)(0),
+      eigenvectors.col(2)(1),
+      eigenvectors.col(2)(2));
+  }
+
+  if (axis_vec.norm() < 1e-6f) {
+    geometry_msgs::msg::Quaternion identity;
+    identity.w = 1.0;
+    return identity;
+  }
+
+  Eigen::Vector3f x_axis = axis_vec.normalized();
+  Eigen::Vector3f z_reference(0.0f, 0.0f, 1.0f);
+  if (std::abs(x_axis.dot(z_reference)) > 0.95f) {
+    z_reference = Eigen::Vector3f(0.0f, 1.0f, 0.0f);
+  }
+
+  Eigen::Vector3f y_axis = z_reference.cross(x_axis);
+  if (y_axis.norm() < 1e-6f) {
+    geometry_msgs::msg::Quaternion identity;
+    identity.w = 1.0;
+    return identity;
+  }
+  y_axis.normalize();
+  Eigen::Vector3f z_axis = x_axis.cross(y_axis);
+  z_axis.normalize();
+
+  Eigen::Matrix3f rotation;
+  rotation.col(0) = x_axis;
+  rotation.col(1) = y_axis;
+  rotation.col(2) = z_axis;
+
+  Eigen::Quaternionf quat(rotation);
+  quat.normalize();
+
+  geometry_msgs::msg::Quaternion orientation;
+  orientation.x = quat.x();
+  orientation.y = quat.y();
+  orientation.z = quat.z();
+  orientation.w = quat.w();
+  return orientation;
 }
 
 void EasyPerceptionDeployment::process_image_work(

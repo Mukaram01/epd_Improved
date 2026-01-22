@@ -35,6 +35,7 @@ class EPDConfigurator():
         self.visualizeFlag = True
         self.useCPU = True
         self.intra_op_num_threads = 0
+        self.publish_detection_segmentation = True
 
         self.usecase_mode = 0
 
@@ -107,6 +108,8 @@ class EPDConfigurator():
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
         print('--intra-op-threads   Sets intra-op thread count for ORT.')
+        print('--publish-segmentation   Enables detection mask/point-cloud output.')
+        print('--no-publish-segmentation   Disables detection mask/point-cloud output.')
 
     def isInEPDPackageRoot(self, start_dirpath):
         if (os.path.isdir(start_dirpath + "/scripts") and
@@ -135,7 +138,9 @@ class EPDConfigurator():
                                          'color-hist-metric=',
                                          'track-type=',
                                          'topic=',
-                                         'intra-op-threads='])
+                                         'intra-op-threads=',
+                                         'publish-segmentation',
+                                         'no-publish-segmentation'])
 
         for opt, arg in opts:
             if opt == '-h':
@@ -207,6 +212,12 @@ class EPDConfigurator():
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
                 self.intra_op_num_threads = thread_count
+            elif opt in ('--publish-segmentation'):
+                print("[ session_config.json ] - Enabling detection segmentation output.")
+                self.publish_detection_segmentation = True
+            elif opt in ('--no-publish-segmentation'):
+                print("[ session_config.json ] - Disabling detection segmentation output.")
+                self.publish_detection_segmentation = False
         self.validate_usecase_inputs()
 
     def parse_session_config(self, session_config_filepath):
@@ -216,6 +227,9 @@ class EPDConfigurator():
         self._path_to_model = data["path_to_model"]
         self._path_to_label_list = data["path_to_label_list"]
         self.intra_op_num_threads = data.get("intra_op_num_threads", 0)
+        self.publish_detection_segmentation = data.get(
+            "publish_detection_segmentation",
+            True)
         if data["useCPU"] == "CPU":
             self.useCPU = True
         else:
@@ -377,7 +391,8 @@ class EPDConfigurator():
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
             "useCPU": useCPU_string,
-            "intra_op_num_threads": self.intra_op_num_threads
+            "intra_op_num_threads": self.intra_op_num_threads,
+            "publish_detection_segmentation": self.publish_detection_segmentation
             }
         json_object_1 = json.dumps(dict, indent=4)
 

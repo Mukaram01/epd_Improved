@@ -98,6 +98,8 @@ public:
 private:
   /*! \brief A subscriber member variable to receive 2D RGB images to receive.*/
   image_transport::Subscriber image_sub;
+  image_transport::Subscriber depth_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
 
   /*! \brief An alias definition for SyncPolicy that is used below for sync_ object.*/
   typedef message_filters::sync_policies::ApproximateTime
@@ -155,6 +157,8 @@ private:
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
 
   void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void depth_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void camera_info_callback(const sensor_msgs::msg::CameraInfo::SharedPtr msg);
   void image_worker_loop();
 
   void hasCameraChanged(
@@ -167,6 +171,7 @@ private:
 
   void subscribeImageInput();
   void subscribeLocalizeInputs();
+  void subscribeDetectionDepthInputs();
   std::string resolveDepthTransport(const std::string & transport) const;
 
   std::string rgb_topic_;
@@ -176,6 +181,7 @@ private:
   std::string depth_transport_;
   rmw_qos_profile_t sensor_qos_profile_;
   bool image_input_active_{false};
+  bool depth_input_active_{false};
   void process_image_work(const sensor_msgs::msg::Image::SharedPtr msg);
   void process_localize_work(
     const sensor_msgs::msg::Image::SharedPtr msg,
@@ -245,6 +251,12 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     image_transport_ = "raw";
   }
   depth_transport_ = resolveDepthTransport(image_transport_);
+
+  if (ortAgent_.publish_detection_segmentation &&
+    ortAgent_.useCaseMode <= EPD::COLOR_MATCHING_MODE)
+  {
+    subscribeDetectionDepthInputs();
+  }
 
   subscribeImageInput();
   // Creating Subscriber to get Input Image.
@@ -507,6 +519,25 @@ void EasyPerceptionDeployment::subscribeLocalizeInputs()
     subscription_options);
 }
 
+void EasyPerceptionDeployment::subscribeDetectionDepthInputs()
+{
+  if (depth_input_active_) {
+    return;
+  }
+
+  depth_sub_ = image_transport::create_subscription(
+    this,
+    depth_topic_,
+    std::bind(&EasyPerceptionDeployment::depth_callback, this, std::placeholders::_1),
+    depth_transport_,
+    sensor_qos_profile_);
+  camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
+    camera_info_topic_,
+    rclcpp::SensorDataQoS().keep_last(1),
+    std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1));
+  depth_input_active_ = true;
+}
+
 void EasyPerceptionDeployment::hasCameraChanged(const int img_height, const int img_width) const
 {
   // FIX: should trigger if EITHER dimension changed (not only when both changed)
@@ -588,6 +619,23 @@ void EasyPerceptionDeployment::process_image_callback(
 void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
 {
   this->process_image_callback(msg);
+}
+
+void EasyPerceptionDeployment::depth_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+{
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    latest_depth_image_ = msg;
+  }
+}
+
+void EasyPerceptionDeployment::camera_info_callback(
+  const sensor_msgs::msg::CameraInfo::SharedPtr msg)
+{
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    latest_camera_info_ = msg;
+  }
 }
 
 void EasyPerceptionDeployment::process_localize_work(
@@ -1008,10 +1056,19 @@ void EasyPerceptionDeployment::process_image_work(
   cv::Mat resultImg;
   int precision_level = 0;
   bool visualize = false;
+  bool publish_segmentation = false;
+  sensor_msgs::msg::Image::SharedPtr depth_msg;
+  sensor_msgs::msg::CameraInfo::SharedPtr camera_info;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
     precision_level = ortAgent_.precision_level;
     visualize = ortAgent_.isVisualize();
+    publish_segmentation = ortAgent_.publish_detection_segmentation;
+  }
+  if (publish_segmentation) {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    depth_msg = latest_depth_image_;
+    camera_info = latest_camera_info_;
   }
 
   switch (precision_level) {
@@ -1108,6 +1165,117 @@ void EasyPerceptionDeployment::process_image_work(
         output_obj.scores = result.scores;
         output_obj.masks = result.masks;
 
+        std::vector<sensor_msgs::msg::PointCloud2> segmented_pcls;
+        bool has_segmented_pcls = false;
+        bool depth_ready = publish_segmentation && depth_msg && camera_info;
+        cv::Mat depth_img;
+        bool depth_is_float = false;
+        if (depth_ready) {
+          if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1 ||
+            depth_msg->encoding == sensor_msgs::image_encodings::MONO16)
+          {
+            cv_bridge::CvImageConstPtr depth_imageptr =
+              cv_bridge::toCvShare(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+            depth_img = depth_imageptr->image;
+            depth_is_float = false;
+          } else if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1) {
+            cv_bridge::CvImageConstPtr depth_imageptr =
+              cv_bridge::toCvShare(depth_msg, sensor_msgs::image_encodings::TYPE_32FC1);
+            depth_img = depth_imageptr->image;
+            depth_is_float = true;
+          } else {
+            RCLCPP_WARN_THROTTLE(
+              this->get_logger(),
+              *this->get_clock(),
+              2000,
+              "Unsupported depth encoding '%s' for detection segmentation.",
+              depth_msg->encoding.c_str());
+            depth_ready = false;
+          }
+        }
+
+        if (depth_ready && (depth_img.rows != img.rows || depth_img.cols != img.cols)) {
+          RCLCPP_WARN_THROTTLE(
+            this->get_logger(),
+            *this->get_clock(),
+            2000,
+            "Depth image size (%dx%d) does not match RGB image size (%dx%d). Skipping segmentation.",
+            depth_img.cols,
+            depth_img.rows,
+            img.cols,
+            img.rows);
+          depth_ready = false;
+        }
+
+        if (depth_ready) {
+          const double camera_to_plane_distance_mm =
+            this->get_parameter("camera_to_plane_distance_mm").as_double();
+          const double max_depth_m = camera_to_plane_distance_mm * 0.001;
+          const float ppx = static_cast<float>(camera_info->k.at(2));
+          const float fx = static_cast<float>(camera_info->k.at(0));
+          const float ppy = static_cast<float>(camera_info->k.at(5));
+          const float fy = static_cast<float>(camera_info->k.at(4));
+
+          segmented_pcls.reserve(output_obj.data_size);
+          for (size_t i = 0; i < output_obj.data_size; i++) {
+            const auto & bbox = output_obj.bboxes[i];
+            const int left = bbox[0];
+            const int top = bbox[1];
+            const int right = bbox[2];
+            const int bottom = bbox[3];
+            const int width = right - left;
+            const int height = bottom - top;
+
+            sensor_msgs::msg::PointCloud2 cloud_msg;
+            if (width <= 0 || height <= 0) {
+              segmented_pcls.push_back(cloud_msg);
+              continue;
+            }
+
+            cv::Mat resized_mask;
+            cv::resize(output_obj.masks[i], resized_mask, cv::Size(width, height));
+            cv::Mat mask_binary = resized_mask > 0.5;
+            cv::Mat mask_u8;
+            mask_binary.convertTo(mask_u8, CV_8U);
+
+            pcl::PointCloud<pcl::PointXYZ>::Ptr segmented_cloud(
+              new pcl::PointCloud<pcl::PointXYZ>);
+            segmented_cloud->header.frame_id = depth_msg->header.frame_id;
+            segmented_cloud->is_dense = true;
+
+            for (int row = 0; row < height; row++) {
+              for (int col = 0; col < width; col++) {
+                if (mask_u8.at<uchar>(row, col) == 0) {
+                  continue;
+                }
+
+                const int pixel_x = left + col;
+                const int pixel_y = top + row;
+
+                float z = 0.0f;
+                if (depth_is_float) {
+                  z = depth_img.at<float>(pixel_y, pixel_x);
+                } else {
+                  z = static_cast<float>(depth_img.at<uint16_t>(pixel_y, pixel_x)) * 0.001f;
+                }
+
+                if (std::abs(z) < 0.0001f || (max_depth_m > 0.0 && z > max_depth_m)) {
+                  continue;
+                }
+
+                const float x = (static_cast<float>(pixel_x) - ppx) / fx * z;
+                const float y = (static_cast<float>(pixel_y) - ppy) / fy * z;
+                segmented_cloud->points.emplace_back(x, y, z);
+              }
+            }
+
+            pcl::toROSMsg(*segmented_cloud, cloud_msg);
+            cloud_msg.header = depth_msg->header;
+            segmented_pcls.push_back(cloud_msg);
+          }
+          has_segmented_pcls = true;
+        }
+
         if (visualize) {
           {
             std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -1131,11 +1299,19 @@ void EasyPerceptionDeployment::process_image_work(
             roi.do_rectify = false;
             output_msg.bboxes.push_back(roi);
 
-            sensor_msgs::msg::Image::SharedPtr mask =
-              cv_bridge::CvImage(std_msgs::msg::Header(), "32FC1", output_obj.masks[i]).toImageMsg();
-            mask->header.stamp = msg->header.stamp;
-            mask->header.frame_id = msg->header.frame_id;
-            output_msg.masks.push_back(*mask);
+            if (publish_segmentation) {
+              sensor_msgs::msg::Image::SharedPtr mask =
+                cv_bridge::CvImage(
+                  std_msgs::msg::Header(),
+                  "32FC1",
+                  output_obj.masks[i]).toImageMsg();
+              mask->header.stamp = msg->header.stamp;
+              mask->header.frame_id = msg->header.frame_id;
+              output_msg.masks.push_back(*mask);
+            }
+            if (has_segmented_pcls && i < segmented_pcls.size()) {
+              output_msg.segmented_pcls.push_back(segmented_pcls[i]);
+            }
           }
           p3_pub->publish(output_msg);
           visual_pub->publish(*output_msg);
@@ -1155,11 +1331,16 @@ void EasyPerceptionDeployment::process_image_work(
           roi.do_rectify = false;
           output_msg.bboxes.push_back(roi);
 
-          sensor_msgs::msg::Image::SharedPtr mask =
-            cv_bridge::CvImage(std_msgs::msg::Header(), "32FC1", output_obj.masks[i]).toImageMsg();
-          mask->header.stamp = msg->header.stamp;
-          mask->header.frame_id = msg->header.frame_id;
-          output_msg.masks.push_back(*mask);
+          if (publish_segmentation) {
+            sensor_msgs::msg::Image::SharedPtr mask =
+              cv_bridge::CvImage(std_msgs::msg::Header(), "32FC1", output_obj.masks[i]).toImageMsg();
+            mask->header.stamp = msg->header.stamp;
+            mask->header.frame_id = msg->header.frame_id;
+            output_msg.masks.push_back(*mask);
+          }
+          if (has_segmented_pcls && i < segmented_pcls.size()) {
+            output_msg.segmented_pcls.push_back(segmented_pcls[i]);
+          }
         }
         p3_pub->publish(output_msg);
         break;

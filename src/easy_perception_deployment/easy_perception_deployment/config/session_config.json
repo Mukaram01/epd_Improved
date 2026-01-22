@@ -4,5 +4,6 @@
     "visualizeFlag": "robot",
     "useCPU": "CPU",
     "intra_op_num_threads": 0,
-    "image_transport": "raw"
+    "image_transport": "raw",
+    "publish_detection_segmentation": true
 }

@@ -181,6 +181,7 @@ class DeployWindow(QWidget):
 
         self.useCPU = True
         self._intra_op_num_threads = 0
+        self.publish_detection_segmentation = True
 
         self._path_to_session_config = ('../config/session_config.json')
         self._path_to_usecase_config = ('../config/usecase_config.json')
@@ -230,6 +231,9 @@ class DeployWindow(QWidget):
             self._image_transport = session_config.get(
                 "image_transport",
                 "raw").lower()
+            self.publish_detection_segmentation = session_config.get(
+                "publish_detection_segmentation",
+                True)
             if session_config["visualizeFlag"] == "visualize":
                 self.visualizeFlag = True
             else:
@@ -313,6 +317,9 @@ class DeployWindow(QWidget):
             '[ Input Image Topic ] : ' + self._input_image_topic)
         self.deploy_logger.info(
             '[ Image Transport ] : ' + self._image_transport)
+        self.deploy_logger.info(
+            '[ Detection Segmentation ] : ' +
+            ('Enabled' if self.publish_detection_segmentation else 'Disabled'))
 
     def setButtons(self):
         '''A Mutator function that defines all buttons in DeployWindow.'''
@@ -373,6 +380,13 @@ class DeployWindow(QWidget):
         else:
             self.visualize_button.setText('Action')
 
+        self.segmentation_button = QPushButton(self)
+        self.segmentation_button.setMinimumHeight(40)
+        if self.publish_detection_segmentation:
+            self.segmentation_button.setText('Segmentation On')
+        else:
+            self.segmentation_button.setText('Segmentation Off')
+
         self.refresh_topics_button = QPushButton(self)
         self.refresh_topics_button.setText('Refresh topics')
 
@@ -419,23 +433,22 @@ class DeployWindow(QWidget):
         layout.addWidget(self.list_button, 0, 1)
         layout.addWidget(self.visualize_button, 1, 0)
         layout.addWidget(self.usecase_config_button, 1, 1)
-        layout.addWidget(self.refresh_topics_button, 2, 0)
-        layout.addWidget(self.topic_button, 2, 1)
-        layout.addWidget(self.transport_label, 3, 0)
-        layout.addWidget(self.transport_combo, 3, 1)
-        layout.addWidget(self.docker_button, 4, 0, 1, 2)
-        layout.addWidget(self.validation_label, 5, 0, 1, 2)
-        layout.addWidget(self.status_label, 6, 0, 1, 2)
-        layout.addWidget(self.docker_button, 3, 0, 1, 2)
-        layout.addWidget(self.validation_label, 4, 0, 1, 2)
-        layout.addWidget(self.status_label, 5, 0, 1, 2)
-        layout.addWidget(self.fps_label, 6, 0, 1, 2)
-        layout.addWidget(self.run_button, 7, 0, 1, 2)
+        layout.addWidget(self.segmentation_button, 2, 0)
+        layout.addWidget(self.refresh_topics_button, 2, 1)
+        layout.addWidget(self.topic_button, 3, 0, 1, 2)
+        layout.addWidget(self.transport_label, 4, 0)
+        layout.addWidget(self.transport_combo, 4, 1)
+        layout.addWidget(self.docker_button, 5, 0, 1, 2)
+        layout.addWidget(self.validation_label, 6, 0, 1, 2)
+        layout.addWidget(self.status_label, 7, 0, 1, 2)
+        layout.addWidget(self.fps_label, 8, 0, 1, 2)
+        layout.addWidget(self.run_button, 9, 0, 1, 2)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
 
         # Connect signals to slots
         self.visualize_button.clicked.connect(self.setVisualizeFlag)
+        self.segmentation_button.clicked.connect(self.toggleSegmentationPublishing)
         self.docker_button.clicked.connect(self.setDockerFlag)
         self.model_button.clicked.connect(self.setModel)
         self.list_button.clicked.connect(self.setLabelList)
@@ -702,6 +715,18 @@ class DeployWindow(QWidget):
         self.visualize_button.updateGeometry()
         self.updateSessionConfig()
 
+    def toggleSegmentationPublishing(self):
+        '''A function is triggered by the button labelled, Segmentation.'''
+        self.publish_detection_segmentation = not self.publish_detection_segmentation
+
+        if self.publish_detection_segmentation:
+            self.segmentation_button.setText('Segmentation On')
+        else:
+            self.segmentation_button.setText('Segmentation Off')
+
+        self.segmentation_button.updateGeometry()
+        self.updateSessionConfig()
+
     def setDockerFlag(self):
         '''A function is triggered by the button labelled, CPU/GPU.'''
         self.useCPU = not self.useCPU
@@ -810,7 +835,8 @@ class DeployWindow(QWidget):
             "visualizeFlag": visualizeFlag_string,
             "useCPU": useCPU_string,
             "intra_op_num_threads": self._intra_op_num_threads,
-            "image_transport": self._image_transport
+            "image_transport": self._image_transport,
+            "publish_detection_segmentation": self.publish_detection_segmentation
             }
         json_object = json.dumps(dict, indent=4)
 

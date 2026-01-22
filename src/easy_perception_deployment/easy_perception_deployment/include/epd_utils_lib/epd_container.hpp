@@ -85,6 +85,11 @@ public:
   std::vector<int> tracker_logs;
   std::vector<EPD::LabelledRect2d> tracker_results;
 
+  /*! \brief Suppression cache time-to-live in milliseconds for picked objects. */
+  int picked_object_ttl_ms;
+  /*! \brief IoU threshold for suppressing localized objects by bounding box overlap. */
+  double picked_object_iou_threshold;
+
   bool requestAddressed;
   /*! \brief A list of human-understandable object text labels from input
   * label list.

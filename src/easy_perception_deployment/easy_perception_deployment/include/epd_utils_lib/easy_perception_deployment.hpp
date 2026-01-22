@@ -26,6 +26,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <unordered_map>
 
 // OpenCV LIB
 #include "opencv2/opencv.hpp"
@@ -46,6 +47,7 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
+#include "std_srvs/srv/empty.hpp"
 
 // EPD_UTILS LIB
 #include "epd_utils_lib/epd_container.hpp"
@@ -134,6 +136,7 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_pub;
 
   rclcpp::Service<epd_msgs::srv::Perception>::SharedPtr srv_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr clear_suppression_cache_srv_;
   /*! \brief A singular EPDContainer object that deploys a user-defined
   ONNX model as an inference enginer using onnxruntime.
   */
@@ -194,6 +197,24 @@ private:
   sensor_msgs::msg::CameraInfo::SharedPtr latest_camera_info_;
 
   std::mutex ort_mutex_;
+  std::mutex suppression_mutex_;
+
+  struct SuppressedLocalizationEntry
+  {
+    sensor_msgs::msg::RegionOfInterest roi;
+    std::chrono::steady_clock::time_point timestamp;
+  };
+
+  std::unordered_map<int, std::chrono::steady_clock::time_point> tracking_suppression_cache_;
+  std::vector<SuppressedLocalizationEntry> localization_suppression_cache_;
+
+  void clearSuppressionCache();
+  void pruneSuppressionCacheLocked(
+    const std::chrono::steady_clock::time_point & now,
+    int ttl_ms);
+  double calculateIou(
+    const sensor_msgs::msg::RegionOfInterest & lhs,
+    const sensor_msgs::msg::RegionOfInterest & rhs) const;
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
@@ -397,6 +418,18 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     "epd_perception_service",
     handle_emd_request);
 
+  clear_suppression_cache_srv_ = this->create_service<std_srvs::srv::Empty>(
+    "clear_suppression_cache",
+    [this](
+    const std::shared_ptr<std_srvs::srv::Empty::Request> request,
+    std::shared_ptr<std_srvs::srv::Empty::Response> response) -> void
+    {
+      (void)request;
+      (void)response;
+      clearSuppressionCache();
+      RCLCPP_INFO(this->get_logger(), "Suppression cache cleared.");
+    });
+
   // Log all session_config and usecase_config configurations for user to check on system boot
   RCLCPP_INFO(this->get_logger(), "[-ONNX Model-] - %s", ortAgent_.onnx_model_path.c_str());
   RCLCPP_INFO(this->get_logger(), "[-Label List-] - %s", ortAgent_.class_label_path.c_str());
@@ -449,6 +482,70 @@ EasyPerceptionDeployment::~EasyPerceptionDeployment(void)
   if (worker_thread_.joinable()) {
     worker_thread_.join();
   }
+}
+
+void EasyPerceptionDeployment::clearSuppressionCache()
+{
+  std::lock_guard<std::mutex> lock(suppression_mutex_);
+  tracking_suppression_cache_.clear();
+  localization_suppression_cache_.clear();
+}
+
+void EasyPerceptionDeployment::pruneSuppressionCacheLocked(
+  const std::chrono::steady_clock::time_point & now,
+  int ttl_ms)
+{
+  if (ttl_ms <= 0) {
+    return;
+  }
+  for (auto it = tracking_suppression_cache_.begin();
+    it != tracking_suppression_cache_.end(); )
+  {
+    const auto age_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - it->second);
+    if (age_ms.count() > ttl_ms) {
+      it = tracking_suppression_cache_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+
+  localization_suppression_cache_.erase(
+    std::remove_if(
+      localization_suppression_cache_.begin(),
+      localization_suppression_cache_.end(),
+      [now, ttl_ms](const SuppressedLocalizationEntry & entry)
+      {
+        const auto age_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now - entry.timestamp);
+        return age_ms.count() > ttl_ms;
+      }),
+    localization_suppression_cache_.end());
+}
+
+double EasyPerceptionDeployment::calculateIou(
+  const sensor_msgs::msg::RegionOfInterest & lhs,
+  const sensor_msgs::msg::RegionOfInterest & rhs) const
+{
+  const int lhs_x2 = lhs.x_offset + static_cast<int>(lhs.width);
+  const int lhs_y2 = lhs.y_offset + static_cast<int>(lhs.height);
+  const int rhs_x2 = rhs.x_offset + static_cast<int>(rhs.width);
+  const int rhs_y2 = rhs.y_offset + static_cast<int>(rhs.height);
+
+  const int inter_x1 = std::max<int>(lhs.x_offset, rhs.x_offset);
+  const int inter_y1 = std::max<int>(lhs.y_offset, rhs.y_offset);
+  const int inter_x2 = std::min<int>(lhs_x2, rhs_x2);
+  const int inter_y2 = std::min<int>(lhs_y2, rhs_y2);
+
+  const int inter_w = std::max<int>(0, inter_x2 - inter_x1);
+  const int inter_h = std::max<int>(0, inter_y2 - inter_y1);
+  const double inter_area = static_cast<double>(inter_w) * static_cast<double>(inter_h);
+
+  const double lhs_area = static_cast<double>(lhs.width) * static_cast<double>(lhs.height);
+  const double rhs_area = static_cast<double>(rhs.width) * static_cast<double>(rhs.height);
+  const double union_area = lhs_area + rhs_area - inter_area;
+  if (union_area <= 0.0) {
+    return 0.0;
+  }
+  return inter_area / union_area;
 }
 
 std::string EasyPerceptionDeployment::resolveDepthTransport(const std::string & transport) const
@@ -670,25 +767,67 @@ void EasyPerceptionDeployment::process_localize_work(
   output_msg.ppy = camera_info->k.at(5);
   output_msg.fy  = camera_info->k.at(4);
 
-  for (size_t i = 0; i < result.data_size; i++) {
+  const int picked_object_ttl_ms = ortAgent_.picked_object_ttl_ms;
+  const double picked_object_iou_threshold = ortAgent_.picked_object_iou_threshold;
+  std::vector<size_t> publish_indices;
+  std::vector<sensor_msgs::msg::RegionOfInterest> suppressed_rois;
+  publish_indices.reserve(result.data_size);
+
+  if (picked_object_ttl_ms > 0) {
+    const auto now = std::chrono::steady_clock::now();
+    std::lock_guard<std::mutex> lock(suppression_mutex_);
+    pruneSuppressionCacheLocked(now, picked_object_ttl_ms);
+    for (size_t i = 0; i < result.data_size; i++) {
+      const auto & roi = result.objects[i].roi;
+      bool suppressed = false;
+      for (const auto & entry : localization_suppression_cache_) {
+        if (calculateIou(roi, entry.roi) >= picked_object_iou_threshold) {
+          suppressed = true;
+          break;
+        }
+      }
+      if (suppressed) {
+        suppressed_rois.push_back(roi);
+        continue;
+      }
+      localization_suppression_cache_.push_back({roi, now});
+      publish_indices.push_back(i);
+    }
+  } else {
+    for (size_t i = 0; i < result.data_size; i++) {
+      publish_indices.push_back(i);
+    }
+  }
+
+  for (const auto & roi : suppressed_rois) {
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Suppressed localized object ROI [x=%u, y=%u, w=%u, h=%u]",
+      roi.x_offset,
+      roi.y_offset,
+      roi.width,
+      roi.height);
+  }
+
+  for (const auto index : publish_indices) {
     epd_msgs::msg::LocalizedObject object;
-    object.name = result.objects[i].name;
-    object.roi = result.objects[i].roi;
+    object.name = result.objects[index].name;
+    object.roi = result.objects[index].roi;
 
     sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
-      std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
+      std_msgs::msg::Header(), "mono16", result.objects[index].mask).toImageMsg();
     mask_ptr->header.stamp = msg->header.stamp;
     mask_ptr->header.frame_id = msg->header.frame_id;
     object.segmented_binary_mask = *mask_ptr;
 
-    object.centroid = result.objects[i].centroid;
-    object.length   = result.objects[i].length;
-    object.breadth  = result.objects[i].breadth;
-    object.height   = result.objects[i].height;
-    object.axis     = result.objects[i].axis;
+    object.centroid = result.objects[index].centroid;
+    object.length   = result.objects[index].length;
+    object.breadth  = result.objects[index].breadth;
+    object.height   = result.objects[index].height;
+    object.axis     = result.objects[index].axis;
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
-    pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
+    pcl::toROSMsg(result.objects[index].segmented_pcl, output_segmented_pcl);
     object.segmented_pcl = output_segmented_pcl;
 
     output_msg.objects.push_back(object);
@@ -719,9 +858,9 @@ void EasyPerceptionDeployment::process_localize_work(
 
     geometry_msgs::msg::PoseArray pose_array;
     pose_array.header = msg->header;
-    for (size_t i = 0; i < result.data_size; i++) {
+    for (const auto index : publish_indices) {
       geometry_msgs::msg::Pose pose;
-      pose.position = result.objects[i].centroid;
+      pose.position = result.objects[index].centroid;
       pose.orientation.w = 1.0;
       pose_array.poses.push_back(pose);
     }
@@ -825,28 +964,59 @@ void EasyPerceptionDeployment::process_tracking_work(
   output_msg.ppy = camera_info->k.at(5);
   output_msg.fy  = camera_info->k.at(4);
 
-  for (size_t i = 0; i < result.data_size; i++) {
+  const int picked_object_ttl_ms = ortAgent_.picked_object_ttl_ms;
+  std::vector<size_t> publish_indices;
+  std::vector<int> suppressed_object_ids;
+  publish_indices.reserve(result.data_size);
+
+  if (picked_object_ttl_ms > 0) {
+    const auto now = std::chrono::steady_clock::now();
+    std::lock_guard<std::mutex> lock(suppression_mutex_);
+    pruneSuppressionCacheLocked(now, picked_object_ttl_ms);
+    for (size_t i = 0; i < result.data_size; i++) {
+      const int object_id = result.object_ids[i];
+      if (tracking_suppression_cache_.find(object_id) != tracking_suppression_cache_.end()) {
+        suppressed_object_ids.push_back(object_id);
+        continue;
+      }
+      tracking_suppression_cache_[object_id] = now;
+      publish_indices.push_back(i);
+    }
+  } else {
+    for (size_t i = 0; i < result.data_size; i++) {
+      publish_indices.push_back(i);
+    }
+  }
+
+  for (const int object_id : suppressed_object_ids) {
+    RCLCPP_INFO(
+      this->get_logger(),
+      "Suppressed tracked object id=%d",
+      object_id);
+  }
+
+  for (const auto index : publish_indices) {
     epd_msgs::msg::LocalizedObject object;
-    object.name = result.objects[i].name;
-    object.roi = result.objects[i].roi;
+    object.name = result.objects[index].name;
+    object.roi = result.objects[index].roi;
 
     sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
-      std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
+      std_msgs::msg::Header(), "mono16", result.objects[index].mask).toImageMsg();
     mask_ptr->header.stamp = msg->header.stamp;
     mask_ptr->header.frame_id = msg->header.frame_id;
     object.segmented_binary_mask = *mask_ptr;
 
-    object.centroid = result.objects[i].centroid;
-    object.length   = result.objects[i].length;
-    object.breadth  = result.objects[i].breadth;
-    object.height   = result.objects[i].height;
-    object.axis     = result.objects[i].axis;
+    object.centroid = result.objects[index].centroid;
+    object.length   = result.objects[index].length;
+    object.breadth  = result.objects[index].breadth;
+    object.height   = result.objects[index].height;
+    object.axis     = result.objects[index].axis;
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
-    pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
+    pcl::toROSMsg(result.objects[index].segmented_pcl, output_segmented_pcl);
     object.segmented_pcl = output_segmented_pcl;
 
-    output_msg.object_ids.push_back(result.object_ids[i]);
+    output_msg.object_ids.push_back(result.object_ids[index]);
     output_msg.objects.push_back(object);
   }
 
@@ -875,9 +1045,9 @@ void EasyPerceptionDeployment::process_tracking_work(
 
     geometry_msgs::msg::PoseArray pose_array;
     pose_array.header = msg->header;
-    for (size_t i = 0; i < result.data_size; i++) {
+    for (const auto index : publish_indices) {
       geometry_msgs::msg::Pose pose;
-      pose.position = result.objects[i].centroid;
+      pose.position = result.objects[index].centroid;
       pose.orientation.w = 1.0;
       pose_array.poses.push_back(pose);
     }

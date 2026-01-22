@@ -1,3 +1,5 @@
 {
-    "usecase_mode": 0
+    "usecase_mode": 0,
+    "picked_object_ttl_ms": 0,
+    "picked_object_iou_threshold": 0.5
 }

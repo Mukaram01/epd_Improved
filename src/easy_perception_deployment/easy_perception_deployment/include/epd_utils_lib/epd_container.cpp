@@ -141,6 +141,8 @@ EPDContainer::EPDContainer(void)
   onlyVisualize = true;
   color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
   image_transport = "raw";
+  picked_object_ttl_ms = 0;
+  picked_object_iou_threshold = 0.5;
 
   this->setModelConfigFile();
   this->setPrecisionLevel();
@@ -289,6 +291,33 @@ void EPDContainer::setUseCaseConfigFile()
   }
 
   useCaseMode = obj["usecase_mode"].asInt();
+  if (obj.isMember("picked_object_ttl_ms")) {
+    if (!obj["picked_object_ttl_ms"].isInt()) {
+      throw std::runtime_error(
+        "Config 'picked_object_ttl_ms' must be an integer in: " + usecase_config_path);
+    }
+    const int ttl_ms = obj["picked_object_ttl_ms"].asInt();
+    if (ttl_ms < 0) {
+      throw std::runtime_error(
+        "Config 'picked_object_ttl_ms' must be >= 0 in: " + usecase_config_path);
+    }
+    picked_object_ttl_ms = ttl_ms;
+  }
+  if (obj.isMember("picked_object_iou_threshold")) {
+    if (!obj["picked_object_iou_threshold"].isDouble() &&
+      !obj["picked_object_iou_threshold"].isInt())
+    {
+      throw std::runtime_error(
+        "Config 'picked_object_iou_threshold' must be a number in: " + usecase_config_path);
+    }
+    const double iou_threshold = obj["picked_object_iou_threshold"].asDouble();
+    if (iou_threshold < 0.0 || iou_threshold > 1.0) {
+      throw std::runtime_error(
+        "Config 'picked_object_iou_threshold' must be between 0 and 1 in: " +
+        usecase_config_path);
+    }
+    picked_object_iou_threshold = iou_threshold;
+  }
 
   // Classification Mode. Do nothing.
   // Counting Mode

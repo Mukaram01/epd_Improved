@@ -67,6 +67,8 @@ public:
   std::string onnx_model_path;
   /*! \brief The image transport plugin to use for ROS image topics. */
   std::string image_transport;
+  /*! \brief Publish detection masks and point clouds in detection mode. */
+  bool publish_detection_segmentation;
 
   /*! \brief The selected use-case mode. Values can only be 0,1,2.\n
   *  See usecase_config.hpp for more details.\n

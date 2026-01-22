@@ -129,6 +129,41 @@ std::string parseImageTransport(const Json::Value & obj, const std::string & con
     "Invalid image_transport in config file: " + config_path +
     ". Expected raw, compressed, or compressedDepth.");
 }
+
+bool parseBooleanField(
+  const Json::Value & obj,
+  const std::string & key,
+  bool default_value,
+  const std::string & config_path)
+{
+  if (!obj.isMember(key)) {
+    return default_value;
+  }
+
+  const Json::Value & value = obj[key];
+  if (value.isBool()) {
+    return value.asBool();
+  }
+  if (value.isInt()) {
+    return value.asInt() != 0;
+  }
+  if (value.isString()) {
+    std::string text = value.asString();
+    std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) {
+      return static_cast<char>(std::tolower(c));
+    });
+    if (text == "true" || text == "1" || text == "yes" || text == "on") {
+      return true;
+    }
+    if (text == "false" || text == "0" || text == "no" || text == "off") {
+      return false;
+    }
+  }
+
+  throw std::runtime_error(
+    "Invalid " + key + " value in config file: " + config_path +
+    ". Expected boolean.");
+}
 }  // namespace
 
 
@@ -141,6 +176,7 @@ EPDContainer::EPDContainer(void)
   onlyVisualize = true;
   color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
   image_transport = "raw";
+  publish_detection_segmentation = true;
 
   this->setModelConfigFile();
   this->setPrecisionLevel();
@@ -261,6 +297,11 @@ void EPDContainer::setModelConfigFile()
   }
 
   image_transport = parseImageTransport(obj, PATH_TO_SESSION_CONFIG);
+  publish_detection_segmentation = parseBooleanField(
+    obj,
+    "publish_detection_segmentation",
+    publish_detection_segmentation,
+    PATH_TO_SESSION_CONFIG);
 
   ifs_1.close();
 }

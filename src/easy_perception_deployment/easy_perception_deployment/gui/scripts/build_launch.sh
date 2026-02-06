@@ -8,16 +8,18 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 cd "$SCRIPTPATH"
 
 workspace_search_path="$SCRIPTPATH"
-WORKSPACE_ROOT=""
-while [ "$workspace_search_path" != "/" ]; do
+WORKSPACE_ROOT="${EPD_WORKSPACE_ROOT:-}"
+while [ -z "$WORKSPACE_ROOT" ] && [ "$workspace_search_path" != "/" ]; do
+  if [ -d "$workspace_search_path/src/easy_perception_deployment" ]; then
+    WORKSPACE_ROOT="$workspace_search_path"
+    break
+  fi
   if [ "$(basename "$workspace_search_path")" = "epd_ros2_ws" ]; then
     WORKSPACE_ROOT="$workspace_search_path"
     break
   fi
   workspace_search_path="$(dirname "$workspace_search_path")"
 done
-
-WORKSPACE_ROOT="$(cd "$SCRIPTPATH/../../../../.." >/dev/null 2>&1 ; pwd -P)"
 WORKSPACE_SRC="${WORKSPACE_ROOT}/src"
 VENDOR_DIR="${WORKSPACE_SRC}/epd_onnxruntime_vendor"
 if [ ! -d "$VENDOR_DIR" ]; then
@@ -39,7 +41,8 @@ source /opt/ros/${ROS_DISTRO}/setup.bash
 echo $msg2
 # Build the workspace so vendor packages are available.
 if [ -z "$WORKSPACE_ROOT" ]; then
-  echo "Unable to locate epd_ros2_ws workspace root from ${SCRIPTPATH}."
+  echo "Unable to locate workspace root from ${SCRIPTPATH}."
+  echo "Set EPD_WORKSPACE_ROOT to the workspace path and retry."
   exit 1
 fi
 

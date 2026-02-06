@@ -177,7 +177,16 @@ class EPDConfigurator():
                     sys.exit(2)
                 self._path_to_label_list = resolved_path
             elif opt in ('--use'):
-                self.set_use_case_from_cli(int(arg))
+                try:
+                    usecase_mode = int(arg)
+                except ValueError:
+                    print("[ session_config.json ] - Invalid Use Case Mode " +
+                          "provided. Expected integer 0-4. Exiting...")
+                    sys.exit(1)
+                if usecase_mode < 0 or usecase_mode > 4:
+                    self.set_use_case_from_cli(usecase_mode)
+                    continue
+                self.set_use_case_from_cli(usecase_mode)
             elif opt in ('--class-list'):
                 class_list = [item.strip() for item in arg.split(',')
                               if item.strip()]

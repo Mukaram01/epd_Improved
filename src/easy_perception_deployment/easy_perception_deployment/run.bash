@@ -29,23 +29,51 @@ if (( conda_ver < 2 )); then
 fi
 
 # Check if pretrained models have been downloaded.
+verify_sha256() {
+    local file_path=$1
+    local expected_hash=$2
+    local actual_hash=""
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        actual_hash=$(sha256sum "$file_path" | awk '{print $1}')
+    elif command -v shasum >/dev/null 2>&1; then
+        actual_hash=$(shasum -a 256 "$file_path" | awk '{print $1}')
+    else
+        echo "Warning: sha256sum/shasum not found; skipping hash verification for $file_path."
+        return 0
+    fi
+
+    if [ "$actual_hash" != "$expected_hash" ]; then
+        echo "Checksum mismatch for $file_path."
+        echo "Expected SHA256: $expected_hash"
+        echo "Actual SHA256:   $actual_hash"
+        echo "Deleting corrupted file. Please re-run to download again."
+        rm -f "$file_path"
+        exit 1
+    fi
+}
+
 P2FILE=./data/model/FasterRCNN-10.onnx
+P2HASH=dfb81423efbea52e45df242ade64cfca0ba05fae78e00cf0c68a0979987f87eb
 if [ ! -f "$P2FILE" ]; then
     echo "Downloading $P2FILE."
     wget \
-    https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx \
+    https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx \
     --directory-prefix=./data/model/
 fi
-unset P2FILE
+verify_sha256 "$P2FILE" "$P2HASH"
+unset P2FILE P2HASH
 
 P3FILE=./data/model/MaskRCNN-10.onnx
+P3HASH=a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757
 if [ ! -f "$P3FILE" ]; then
     echo "Downloading $P3FILE."
     wget \
-    https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx \
+    https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx \
     --directory-prefix=./data/model/
 fi
-unset P3FILE
+verify_sha256 "$P3FILE" "$P3HASH"
+unset P3FILE P3HASH
 
 P1FILE=./data/model/ssd_mobilenet_v1_12.onnx
 if [ ! -f "$P1FILE" ]; then

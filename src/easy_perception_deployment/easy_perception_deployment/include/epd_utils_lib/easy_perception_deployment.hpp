@@ -1074,7 +1074,7 @@ void EasyPerceptionDeployment::process_image_work(
   switch (precision_level) {
     case 2:
       {
-        EPD::EPDObjectDetection result;
+        EPD::EPDObjectDetection result(0);
         {
           std::lock_guard<std::mutex> ort_guard(ort_mutex_);
           result = ortAgent_.p2_ort_session->infer(img);
@@ -1091,7 +1091,7 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.color_match_histogram_metric);
         }
 
-        EPD::EPDObjectDetection output_obj(result.bboxes.size());
+        EPD::EPDObjectDetection output_obj(result.data_size);
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
@@ -1142,7 +1142,7 @@ void EasyPerceptionDeployment::process_image_work(
       }
     case 3:
       {
-        EPD::EPDObjectDetection result;
+        EPD::EPDObjectDetection result(0);
         {
           std::lock_guard<std::mutex> ort_guard(ort_mutex_);
           result = ortAgent_.p3_ort_session->infer(img);
@@ -1159,7 +1159,7 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.color_match_histogram_metric);
         }
 
-        EPD::EPDObjectDetection output_obj(result.bboxes.size());
+        EPD::EPDObjectDetection output_obj(result.data_size);
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;

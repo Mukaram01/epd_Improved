@@ -68,6 +68,7 @@ set(EPD_UTILS
 # Model downloads
 # -----------------------------
 option(EPD_DOWNLOAD_MODELS "Download pretrained ONNX models at configure time" OFF)
+option(EPD_REQUIRE_MODELS "Fail configuration when pretrained ONNX models are missing" ON)
 
 if(NOT EPD_DOWNLOAD_MODELS)
   message(WARNING
@@ -127,17 +128,32 @@ foreach(model_spec
   endif()
 endforeach()
 
+set(EPD_MODELS_AVAILABLE TRUE)
 if(EPD_MISSING_MODELS)
   string(JOIN "\n  - " EPD_MISSING_MODELS_TEXT ${EPD_MISSING_MODELS})
-  message(FATAL_ERROR
-    "Missing pretrained ONNX models and EPD_DOWNLOAD_MODELS is OFF.\n"
-    "Expected files:\n  - ${EPD_MISSING_MODELS_TEXT}\n"
-    "To download models manually, run the following commands from the repository root:\n"
-    "  mkdir -p ${EPD_MODEL_DIR}\n"
-    "  curl -L \"${EPD_MODEL_SQUEEZENET_URL}\" -o \"${EPD_MODEL_SQUEEZENET}\"\n"
-    "  curl -L \"${EPD_MODEL_FASTER_RCNN_URL}\" -o \"${EPD_MODEL_FASTER_RCNN}\"\n"
-    "  curl -L \"${EPD_MODEL_MASK_RCNN_URL}\" -o \"${EPD_MODEL_MASK_RCNN}\"\n"
-    "Alternatively, reconfigure with -DEPD_DOWNLOAD_MODELS=ON to download at configure time.")
+  if(EPD_REQUIRE_MODELS)
+    message(FATAL_ERROR
+      "Missing pretrained ONNX models and EPD_DOWNLOAD_MODELS is OFF.\n"
+      "Expected files:\n  - ${EPD_MISSING_MODELS_TEXT}\n"
+      "To download models manually, run the following commands from the repository root:\n"
+      "  mkdir -p ${EPD_MODEL_DIR}\n"
+      "  curl -L \"${EPD_MODEL_SQUEEZENET_URL}\" -o \"${EPD_MODEL_SQUEEZENET}\"\n"
+      "  curl -L \"${EPD_MODEL_FASTER_RCNN_URL}\" -o \"${EPD_MODEL_FASTER_RCNN}\"\n"
+      "  curl -L \"${EPD_MODEL_MASK_RCNN_URL}\" -o \"${EPD_MODEL_MASK_RCNN}\"\n"
+      "Alternatively, reconfigure with -DEPD_DOWNLOAD_MODELS=ON to download at configure time.")
+  else()
+    set(EPD_MODELS_AVAILABLE FALSE)
+    message(WARNING
+      "Missing pretrained ONNX models and EPD_REQUIRE_MODELS=OFF.\n"
+      "Model-dependent features and tests will be disabled.\n"
+      "Expected files:\n  - ${EPD_MISSING_MODELS_TEXT}")
+  endif()
+endif()
+
+if(EPD_MODELS_AVAILABLE)
+  add_compile_definitions(EPD_MODELS_AVAILABLE=1)
+else()
+  add_compile_definitions(EPD_MODELS_AVAILABLE=0)
 endif()
 
 # -----------------------------
@@ -195,58 +211,62 @@ if(BUILD_TESTING)
     target_link_libraries(${tgt} jsoncpp::jsoncpp ${PCL_LIBRARIES})
   endmacro()
 
-  ament_add_gtest(epd_test_init test/test_init.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_init)
+  if(EPD_MODELS_AVAILABLE)
+    ament_add_gtest(epd_test_init test/test_init.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_init)
 
-  ament_add_gtest(epd_test_invalid_usecase test/test_invalid_usecase.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_invalid_usecase)
+    ament_add_gtest(epd_test_invalid_usecase test/test_invalid_usecase.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_invalid_usecase)
 
-  ament_add_gtest(epd_test_P2_counting_action test/p2u1a.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P2_counting_action)
+    ament_add_gtest(epd_test_P2_counting_action test/p2u1a.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P2_counting_action)
 
-  ament_add_gtest(epd_test_P2_counting_visualize test/p2u1v.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P2_counting_visualize)
+    ament_add_gtest(epd_test_P2_counting_visualize test/p2u1v.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P2_counting_visualize)
 
-  ament_add_gtest(epd_test_P2_colormatch_action test/p2u2a.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P2_colormatch_action)
+    ament_add_gtest(epd_test_P2_colormatch_action test/p2u2a.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P2_colormatch_action)
 
-  ament_add_gtest(epd_test_P3_counting_visualize test/p3u1v.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P3_counting_visualize)
+    ament_add_gtest(epd_test_P3_counting_visualize test/p3u1v.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P3_counting_visualize)
 
-  ament_add_gtest(epd_test_P3_colormatch_visualize test/p3u2v.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P3_colormatch_visualize)
+    ament_add_gtest(epd_test_P3_colormatch_visualize test/p3u2v.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P3_colormatch_visualize)
 
-  ament_add_gtest(epd_test_P3_colormatch_action test/p3u2a.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P3_colormatch_action)
+    ament_add_gtest(epd_test_P3_colormatch_action test/p3u2a.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P3_colormatch_action)
 
-  ament_add_gtest(epd_test_P3_localize_action test/p3u3a.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P3_localize_action)
+    ament_add_gtest(epd_test_P3_localize_action test/p3u3a.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P3_localize_action)
 
-  ament_add_gtest(epd_test_P3_localize_visualize test/p3u3v.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P3_localize_visualize)
+    ament_add_gtest(epd_test_P3_localize_visualize test/p3u3v.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P3_localize_visualize)
 
-  ament_add_gtest(epd_test_P3_tracking_visualize test/p3u4v.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P3_tracking_visualize)
+    ament_add_gtest(epd_test_P3_tracking_visualize test/p3u4v.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P3_tracking_visualize)
 
-  ament_add_gtest(epd_test_P3_tracking_action test/p3u4a.cpp ${EPD_UTILS})
-  epd_configure_test(epd_test_P3_tracking_action)
+    ament_add_gtest(epd_test_P3_tracking_action test/p3u4a.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_P3_tracking_action)
 
-  ament_add_gtest(epd_test_easy_perception_deployment test/test_easy_perception_deployment.cpp ${EPD_UTILS})
-  ament_target_dependencies(epd_test_easy_perception_deployment
-    epd_onnxruntime_vendor
-    rclcpp
-    std_msgs
-    sensor_msgs
-    image_transport
-    epd_msgs
-    OpenCV
-    cv_bridge
-    message_filters
-    pcl_conversions
-    tf2
-  )
-  target_include_directories(epd_test_easy_perception_deployment PRIVATE ${PCL_INCLUDE_DIRS})
-  target_link_libraries(epd_test_easy_perception_deployment ${PCL_LIBRARIES} jsoncpp::jsoncpp)
+    ament_add_gtest(epd_test_easy_perception_deployment test/test_easy_perception_deployment.cpp ${EPD_UTILS})
+    ament_target_dependencies(epd_test_easy_perception_deployment
+      epd_onnxruntime_vendor
+      rclcpp
+      std_msgs
+      sensor_msgs
+      image_transport
+      epd_msgs
+      OpenCV
+      cv_bridge
+      message_filters
+      pcl_conversions
+      tf2
+    )
+    target_include_directories(epd_test_easy_perception_deployment PRIVATE ${PCL_INCLUDE_DIRS})
+    target_link_libraries(epd_test_easy_perception_deployment ${PCL_LIBRARIES} jsoncpp::jsoncpp)
+  else()
+    message(WARNING "Skipping model-dependent tests because pretrained ONNX models are unavailable.")
+  endif()
 
 endif()
 

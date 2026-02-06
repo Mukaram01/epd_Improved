@@ -467,12 +467,14 @@ void EasyPerceptionDeployment::subscribeLocalizeInputs()
     this,
     rgb_topic_,
     image_transport_,
-    sensor_qos_profile_);
+    sensor_qos_profile_,
+    subscription_options);
   localize_image_depth.subscribe(
     this,
     depth_topic_,
     depth_transport_,
-    sensor_qos_profile_);
+    sensor_qos_profile_,
+    subscription_options);
   localize_cam_info.subscribe(
     this,
     camera_info_topic_,

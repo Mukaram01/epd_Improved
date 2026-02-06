@@ -98,21 +98,28 @@ fi
 
 START_DIR=$(pwd)
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-WORKSPACE_ROOT=$(cd "${SCRIPT_DIR}/../../../../.." && pwd)
+DEFAULT_WORKSPACE_ROOT=$(cd "${SCRIPT_DIR}/../../../../.." && pwd)
+WORKSPACE_ROOT="${EPD_WORKSPACE_ROOT:-$DEFAULT_WORKSPACE_ROOT}"
+SCRIPT_RELATIVE_PATH="${SCRIPT_DIR#${WORKSPACE_ROOT}/}"
+if [[ -z "${SCRIPT_RELATIVE_PATH}" || "${SCRIPT_RELATIVE_PATH}" == "${SCRIPT_DIR}" ]]; then
+  echo "ERROR: Script directory ${SCRIPT_DIR} is not under workspace root ${WORKSPACE_ROOT}." >&2
+  exit 1
+fi
 
 read -p "Do you wish to rebuild? [y/n]: " input
 
+container_workspace="/root/epd_ros2_ws"
+container_script_dir="${container_workspace}/${SCRIPT_RELATIVE_PATH}"
 if [[ $input == "y" ]]; then
-  launch_script="/root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/build_launch.sh"
+  launch_script="${container_script_dir}/build_launch.sh"
 elif [[ $input == "n" ]]; then
-  launch_script="/root/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment/gui/scripts/launch.sh"
+  launch_script="${container_script_dir}/launch.sh"
 fi
 
 docker_tty=()
 if [ -t 0 ]; then
   docker_tty=(-t)
 fi
-container_workspace="/root/epd_ros2_ws"
 vendor_path="${container_workspace}/src/epd_onnxruntime_vendor"
 container_cmd="if [ ! -d \"${vendor_path}\" ]; then echo \"ERROR: Missing ${vendor_path}. Ensure the workspace is mounted to ${container_workspace} and includes epd_onnxruntime_vendor.\" >&2; exit 1; fi; exec ${launch_script}"
 

@@ -714,7 +714,6 @@ void EasyPerceptionDeployment::process_localize_work(
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
     visual_pub.publish(*output_msg);
-    visual_pub->publish(*output_msg);
   }
 
   epd_msgs::msg::EPDObjectLocalization output_msg;
@@ -873,7 +872,6 @@ void EasyPerceptionDeployment::process_tracking_work(
     sensor_msgs::msg::Image::SharedPtr output_msg =
       cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
     visual_pub.publish(*output_msg);
-    visual_pub->publish(*output_msg);
   }
 
   epd_msgs::msg::EPDObjectTracking output_msg;
@@ -1120,7 +1118,6 @@ void EasyPerceptionDeployment::process_image_work(
             output_msg.bboxes.push_back(roi);
           }
           p2_pub->publish(output_msg);
-          visual_pub->publish(*output_msg);
         }
 
         epd_msgs::msg::EPDObjectDetection output_msg;
@@ -1314,7 +1311,6 @@ void EasyPerceptionDeployment::process_image_work(
             }
           }
           p3_pub->publish(output_msg);
-          visual_pub->publish(*output_msg);
         }
 
         epd_msgs::msg::EPDObjectDetection output_msg;

@@ -91,6 +91,10 @@ set(EPD_MODEL_MASK_RCNN_SHA256 "a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2
 
 set(EPD_MISSING_MODELS "")
 
+if(EPD_DOWNLOAD_MODELS)
+  file(MAKE_DIRECTORY "${EPD_MODEL_DIR}")
+endif()
+
 function(epd_verify_model model_path expected_hash)
   if(EXISTS "${model_path}")
     file(SHA256 "${model_path}" model_hash)

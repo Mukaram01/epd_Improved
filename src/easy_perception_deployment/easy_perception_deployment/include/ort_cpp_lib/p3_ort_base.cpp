@@ -516,24 +516,30 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
       Eigen::Matrix3f eigenvectors;
       Eigen::Matrix3f covariance_matrix;
 
-      pcl::compute3DCentroid(output_obj.objects[i].segmented_pcl, centerpoint);
+      if (output_obj.objects[i].segmented_pcl.empty()) {
+        output_obj.objects[i].axis.x = 0.0f;
+        output_obj.objects[i].axis.y = 0.0f;
+        output_obj.objects[i].axis.z = 1.0f;
+      } else {
+        pcl::compute3DCentroid(output_obj.objects[i].segmented_pcl, centerpoint);
 
-      pcl::computeCovarianceMatrix(
-        output_obj.objects[i].segmented_pcl,
-        centerpoint,
-        covariance_matrix);
-      pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
+        pcl::computeCovarianceMatrix(
+          output_obj.objects[i].segmented_pcl,
+          centerpoint,
+          covariance_matrix);
+        pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
 
-      axis = Eigen::Vector3f(
-        eigenvectors.col(2)(0),
-        eigenvectors.col(2)(1),
-        eigenvectors.col(2)(2));
+        axis = Eigen::Vector3f(
+          eigenvectors.col(2)(0),
+          eigenvectors.col(2)(1),
+          eigenvectors.col(2)(2));
 
-      axis = axis.normalized();
+        axis = axis.normalized();
 
-      output_obj.objects[i].axis.x = axis(0);
-      output_obj.objects[i].axis.y = axis(1);
-      output_obj.objects[i].axis.z = axis(2);
+        output_obj.objects[i].axis.x = axis(0);
+        output_obj.objects[i].axis.y = axis(1);
+        output_obj.objects[i].axis.z = axis(2);
+      }
     }
   }
   // END of Populating EPDObjectLocalization object
@@ -807,24 +813,30 @@ EPD::EPDObjectTracking P3OrtBase::infer(
       Eigen::Matrix3f eigenvectors;
       Eigen::Matrix3f covariance_matrix;
 
-      pcl::compute3DCentroid(output_obj.objects[i].segmented_pcl, centerpoint);
+      if (output_obj.objects[i].segmented_pcl.empty()) {
+        output_obj.objects[i].axis.x = 0.0f;
+        output_obj.objects[i].axis.y = 0.0f;
+        output_obj.objects[i].axis.z = 1.0f;
+      } else {
+        pcl::compute3DCentroid(output_obj.objects[i].segmented_pcl, centerpoint);
 
-      pcl::computeCovarianceMatrix(
-        output_obj.objects[i].segmented_pcl,
-        centerpoint,
-        covariance_matrix);
-      pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
+        pcl::computeCovarianceMatrix(
+          output_obj.objects[i].segmented_pcl,
+          centerpoint,
+          covariance_matrix);
+        pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
 
-      axis = Eigen::Vector3f(
-        eigenvectors.col(2)(0),
-        eigenvectors.col(2)(1),
-        eigenvectors.col(2)(2));
+        axis = Eigen::Vector3f(
+          eigenvectors.col(2)(0),
+          eigenvectors.col(2)(1),
+          eigenvectors.col(2)(2));
 
-      axis = axis.normalized();
+        axis = axis.normalized();
 
-      output_obj.objects[i].axis.x = axis(0);
-      output_obj.objects[i].axis.y = axis(1);
-      output_obj.objects[i].axis.z = axis(2);
+        output_obj.objects[i].axis.x = axis(0);
+        output_obj.objects[i].axis.y = axis(1);
+        output_obj.objects[i].axis.z = axis(2);
+      }
     }
   }
   // END of Populating EPDObjectTracking object

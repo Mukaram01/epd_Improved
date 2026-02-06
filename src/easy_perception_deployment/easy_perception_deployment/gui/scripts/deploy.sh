@@ -29,7 +29,7 @@ else
       containerd \
       runc
     sudo apt-get update && \
-    apt-get install -y \
+    sudo apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \

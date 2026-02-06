@@ -731,28 +731,16 @@ void EasyPerceptionDeployment::process_localize_work(
 
   output_msg.process_time = elapsedTime.count();
   localize_pub->publish(output_msg);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO_THROTTLE(
-      this->get_logger(),
-      *this->get_clock(),
-      2000,
-      "[-FPS-]= %f\n",
-      1000.0 / elapsedTime.count());
 
-    output_msg.process_time = elapsedTime.count();
-    localize_pub->publish(output_msg);
-
-    geometry_msgs::msg::PoseArray pose_array;
-    pose_array.header = msg->header;
-    for (size_t i = 0; i < result.data_size; i++) {
-      pose_array.poses.push_back(buildObjectPose(
-        result.objects[i].centroid,
-        result.objects[i].axis,
-        result.objects[i].segmented_pcl));
-    }
-    pose_pub->publish(pose_array);
+  geometry_msgs::msg::PoseArray pose_array;
+  pose_array.header = msg->header;
+  for (size_t i = 0; i < result.data_size; i++) {
+    pose_array.poses.push_back(buildObjectPose(
+      result.objects[i].centroid,
+      result.objects[i].axis,
+      result.objects[i].segmented_pcl));
   }
+  pose_pub->publish(pose_array);
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -890,28 +878,16 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   output_msg.process_time = elapsedTime.count();
   tracking_pub->publish(output_msg);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
-    RCLCPP_INFO_THROTTLE(
-      this->get_logger(),
-      *this->get_clock(),
-      2000,
-      "[-FPS-]= %f\n",
-      1000.0 / elapsedTime.count());
 
-    output_msg.process_time = elapsedTime.count();
-    tracking_pub->publish(output_msg);
-
-    geometry_msgs::msg::PoseArray pose_array;
-    pose_array.header = msg->header;
-    for (size_t i = 0; i < result.data_size; i++) {
-      pose_array.poses.push_back(buildObjectPose(
-        result.objects[i].centroid,
-        result.objects[i].axis,
-        result.objects[i].segmented_pcl));
-    }
-    pose_pub->publish(pose_array);
+  geometry_msgs::msg::PoseArray pose_array;
+  pose_array.header = msg->header;
+  for (size_t i = 0; i < result.data_size; i++) {
+    pose_array.poses.push_back(buildObjectPose(
+      result.objects[i].centroid,
+      result.objects[i].axis,
+      result.objects[i].segmented_pcl));
   }
+  pose_pub->publish(pose_array);
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);

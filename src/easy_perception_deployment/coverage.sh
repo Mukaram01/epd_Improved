@@ -1,11 +1,11 @@
 #!/bin/bash
 # To use this locally, go to the root of your workspace
 # cd ~/<workspace-name>/
-# Then run ./src/easy_manipulation_deployment/coverage.sh html
+# Then run ./src/easy_perception_deployment/coverage.sh html
 # Coverage report will be generate automatically
 
 # Enable branch coverage for local report
-# ./src/easy_manipulation_deployment/coverage.sh html
+# ./src/easy_perception_deployment/coverage.sh html
 
 if [ "$1" = "ci" ]; then
   cd ~/target_ws || return 1

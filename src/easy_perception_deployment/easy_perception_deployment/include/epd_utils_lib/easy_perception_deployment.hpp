@@ -330,32 +330,6 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     localize_cam_info.unsubscribe();
   }
 
-  // FIX: Humble requires declare_parameter<T>(name, default)
-  this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
-  this->declare_parameter<std::string>("rgb_topic", "/camera/color/image_raw");
-  this->declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
-  this->declare_parameter<std::string>("camera_info_topic", "/camera/color/camera_info");
-
-  const std::string rgb_topic = this->get_parameter("rgb_topic").as_string();
-  const std::string depth_topic = this->get_parameter("depth_topic").as_string();
-  const std::string camera_info_topic = this->get_parameter("camera_info_topic").as_string();
-
-  localize_image_rgb.subscribe(
-    this,
-    rgb_topic,
-    image_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
-    subscription_options);
-  localize_image_depth.subscribe(
-    this,
-    depth_topic,
-    image_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
-    subscription_options);
-  localize_cam_info.subscribe(
-    this,
-    camera_info_topic,
-    camera_info_qos.get_rmw_qos_profile(),  // Required for ROS 2 Humble message_filters::Subscriber API.
-    subscription_options);
-
   auto handle_emd_request =
     [this](
     const std::shared_ptr<epd_msgs::srv::Perception::Request> request,
@@ -376,24 +350,15 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         use_case_mode = ortAgent_.useCaseMode;
       }
 
-      if (ortAgent_.useCaseMode == 3) {
+      if (use_case_mode == 3) {
         subscribeLocalizeInputs();
         sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
         if (image_input_active_) {
           image_sub.shutdown();
           image_input_active_ = false;
         }
-      } else if (ortAgent_.useCaseMode == 4) {
-        subscribeLocalizeInputs();
-      if (use_case_mode == 3) {
-        localize_image_rgb.subscribe();
-        localize_image_depth.subscribe();
-        localize_cam_info.subscribe();
-        sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
       } else if (use_case_mode == 4) {
-        localize_image_rgb.subscribe();
-        localize_image_depth.subscribe();
-        localize_cam_info.subscribe();
+        subscribeLocalizeInputs();
         sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
         if (image_input_active_) {
           image_sub.shutdown();
@@ -402,12 +367,6 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       } else {
         if (!image_input_active_) {
           subscribeImageInput();
-        if (!image_sub) {
-          image_sub = this->create_subscription<sensor_msgs::msg::Image>(
-            "/easy_perception_deployment/image_input",
-            rclcpp::SensorDataQoS().keep_last(1).best_effort(),
-            std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
-            subscription_options);
         }
       }
 
@@ -506,12 +465,14 @@ void EasyPerceptionDeployment::subscribeLocalizeInputs()
     this,
     rgb_topic_,
     image_transport_,
-    sensor_qos_profile_);
+    sensor_qos_profile_,
+    subscription_options);
   localize_image_depth.subscribe(
     this,
     depth_topic_,
     depth_transport_,
-    sensor_qos_profile_);
+    sensor_qos_profile_,
+    subscription_options);
   localize_cam_info.subscribe(
     this,
     camera_info_topic_,

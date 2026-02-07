@@ -643,15 +643,18 @@ void EasyPerceptionDeployment::process_localize_work(
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  EPD::EPDObjectLocalization result;
-  {
+  EPD::EPDObjectLocalization result([&]() {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    result = ortAgent_.p3_ort_session->infer(
+    auto inference_result = ortAgent_.p3_ort_session->infer(
       img,
       depth_img,
       *camera_info,
       camera_to_plane_distance_mm);
-  }
+    const size_t input_size = inference_result.data_size;
+    EPD::EPDObjectLocalization initialized_result(input_size);
+    initialized_result = std::move(inference_result);
+    return initialized_result;
+  }());
 
   cv::Mat resultImg;
 
@@ -792,10 +795,9 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  EPD::EPDObjectTracking result;
-  {
+  EPD::EPDObjectTracking result([&]() {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    result = ortAgent_.p3_ort_session->infer(
+    auto inference_result = ortAgent_.p3_ort_session->infer(
       img,
       depth_img,
       *camera_info,
@@ -804,7 +806,11 @@ void EasyPerceptionDeployment::process_tracking_work(
       ortAgent_.trackers,
       ortAgent_.tracker_logs,
       ortAgent_.tracker_results);
-  }
+    const size_t input_size = inference_result.data_size;
+    EPD::EPDObjectTracking initialized_result(input_size);
+    initialized_result = std::move(inference_result);
+    return initialized_result;
+  }());
 
   cv::Mat resultImg;
 

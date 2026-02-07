@@ -6,4 +6,4 @@ repositories:
   jsoncpp_vendor:
     type: git
     url: https://github.com/ros2/jsoncpp_vendor
-    version: rolling
+    version: humble

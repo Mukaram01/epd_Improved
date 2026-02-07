@@ -73,7 +73,8 @@ option(EPD_REQUIRE_MODELS "Fail configuration when pretrained ONNX models are mi
 if(NOT EPD_DOWNLOAD_MODELS)
   message(WARNING
     "Network model downloads are disabled by default for ROS 2 Humble buildfarm compatibility. "
-    "Set -DEPD_DOWNLOAD_MODELS=ON to enable downloads or pre-download the models manually.")
+    "Set -DEPD_DOWNLOAD_MODELS=ON to enable downloads or pre-download the models manually. "
+    "See easy_perception_deployment/README.md#model-downloads for details.")
 endif()
 
 set(EPD_MODEL_DIR "${CMAKE_CURRENT_LIST_DIR}/data/model")
@@ -144,7 +145,9 @@ if(EPD_MISSING_MODELS)
       "  curl -L \"${EPD_MODEL_SQUEEZENET_URL}\" -o \"${EPD_MODEL_SQUEEZENET}\"\n"
       "  curl -L \"${EPD_MODEL_FASTER_RCNN_URL}\" -o \"${EPD_MODEL_FASTER_RCNN}\"\n"
       "  curl -L \"${EPD_MODEL_MASK_RCNN_URL}\" -o \"${EPD_MODEL_MASK_RCNN}\"\n"
-      "Alternatively, reconfigure with -DEPD_DOWNLOAD_MODELS=ON to download at configure time.")
+      "Or run: ./scripts/download_models.sh\n"
+      "Alternatively, reconfigure with -DEPD_DOWNLOAD_MODELS=ON to download at configure time.\n"
+      "See easy_perception_deployment/README.md#model-downloads for full instructions.")
   else()
     set(EPD_MODELS_AVAILABLE FALSE)
     message(WARNING

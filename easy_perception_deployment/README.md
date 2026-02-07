@@ -59,6 +59,35 @@ cd src/easy_perception_deployment/easy_perception_deployment
 bash run.bash
 ```
 
+## **Model Downloads**
+
+The build requires pretrained ONNX models stored in:
+
+```
+easy_perception_deployment/data/model/
+```
+
+If you do not enable downloads at configure time, you can fetch them manually from the repository root:
+
+```bash
+mkdir -p easy_perception_deployment/data/model
+curl -L "https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx" -o "easy_perception_deployment/data/model/squeezenet1.1-7.onnx"
+curl -L "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx" -o "easy_perception_deployment/data/model/FasterRCNN-10.onnx"
+curl -L "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx" -o "easy_perception_deployment/data/model/MaskRCNN-10.onnx"
+```
+
+Alternatively, run the helper script:
+
+```bash
+./scripts/download_models.sh
+```
+
+If you prefer configure-time downloads, add the CMake option:
+
+```bash
+colcon build --cmake-args -DEPD_DOWNLOAD_MODELS=ON
+```
+
 ## **Dependencies (Humble/Ubuntu 22.04)**
 
 Install the core vision stack and ROS image-related dependencies that EPD uses (OpenCV, cv_bridge, and ROS image messages) via apt:

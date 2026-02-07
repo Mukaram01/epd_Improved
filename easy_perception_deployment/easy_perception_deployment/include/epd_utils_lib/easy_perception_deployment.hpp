@@ -83,7 +83,7 @@ public:
   EasyPerceptionDeployment(void);
   ~EasyPerceptionDeployment(void);
   /*! \brief A function that abstracts processing of input image in image_callback.*/
-  void process_image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void process_image_callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
   /*! \brief A function that abstracts processing of input image in localize_callback.*/
   void process_localize_callback(
     const sensor_msgs::msg::Image::SharedPtr msg,
@@ -156,8 +156,8 @@ private:
     const sensor_msgs::msg::Image::SharedPtr depth_msg,
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
 
-  void image_callback(const sensor_msgs::msg::Image::SharedPtr msg);
-  void depth_callback(const sensor_msgs::msg::Image::SharedPtr msg);
+  void image_callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
+  void depth_callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
   void camera_info_callback(const sensor_msgs::msg::CameraInfo::SharedPtr msg);
   void image_worker_loop();
 
@@ -182,14 +182,14 @@ private:
   rmw_qos_profile_t sensor_qos_profile_;
   bool image_input_active_{false};
   bool depth_input_active_{false};
-  void process_image_work(const sensor_msgs::msg::Image::SharedPtr msg);
+  void process_image_work(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
   void process_localize_work(
-    const sensor_msgs::msg::Image::SharedPtr msg,
-    const sensor_msgs::msg::Image::SharedPtr depth_msg,
+    const sensor_msgs::msg::Image::ConstSharedPtr & msg,
+    const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
   void process_tracking_work(
-    const sensor_msgs::msg::Image::SharedPtr msg,
-    const sensor_msgs::msg::Image::SharedPtr depth_msg,
+    const sensor_msgs::msg::Image::ConstSharedPtr & msg,
+    const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
   void worker_loop();
   geometry_msgs::msg::Pose buildObjectPose(
@@ -207,8 +207,8 @@ private:
   bool image_pending_{false};
   bool localize_pending_{false};
   bool tracking_pending_{false};
-  sensor_msgs::msg::Image::SharedPtr latest_image_;
-  sensor_msgs::msg::Image::SharedPtr latest_depth_image_;
+  sensor_msgs::msg::Image::ConstSharedPtr latest_image_;
+  sensor_msgs::msg::Image::ConstSharedPtr latest_depth_image_;
   sensor_msgs::msg::CameraInfo::SharedPtr latest_camera_info_;
 
   std::mutex ort_mutex_;
@@ -221,10 +221,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 {
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
-  const auto image_qos = rclcpp::SensorDataQoS().keep_last(1).best_effort();
   const auto camera_info_qos = rclcpp::SensorDataQoS().keep_last(1);
-  rclcpp::SubscriptionOptions subscription_options;
-  subscription_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
 
   // FIX: Humble requires declare_parameter<T>(name, default)
   this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
@@ -262,11 +259,12 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 
   subscribeImageInput();
   // Creating Subscriber to get Input Image.
-  image_sub = this->create_subscription<sensor_msgs::msg::Image>(
+  image_sub = image_transport::create_subscription(
+    this,
     "/easy_perception_deployment/image_input",
-    image_qos,
     std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
-    subscription_options);
+    image_transport_,
+    sensor_qos_profile_);
 
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
   visual_pub = image_transport::create_publisher(
@@ -569,7 +567,7 @@ void EasyPerceptionDeployment::tracking_callback(
 }
 
 void EasyPerceptionDeployment::process_image_callback(
-  const sensor_msgs::msg::Image::SharedPtr msg)
+  const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
   {
     std::lock_guard<std::mutex> lock(data_mutex_);
@@ -579,12 +577,14 @@ void EasyPerceptionDeployment::process_image_callback(
   data_cv_.notify_one();
 }
 
-void EasyPerceptionDeployment::image_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+void EasyPerceptionDeployment::image_callback(
+  const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
   this->process_image_callback(msg);
 }
 
-void EasyPerceptionDeployment::depth_callback(const sensor_msgs::msg::Image::SharedPtr msg)
+void EasyPerceptionDeployment::depth_callback(
+  const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
   {
     std::lock_guard<std::mutex> lock(data_mutex_);
@@ -602,8 +602,8 @@ void EasyPerceptionDeployment::camera_info_callback(
 }
 
 void EasyPerceptionDeployment::process_localize_work(
-  const sensor_msgs::msg::Image::SharedPtr msg,
-  const sensor_msgs::msg::Image::SharedPtr depth_msg,
+  const sensor_msgs::msg::Image::ConstSharedPtr & msg,
+  const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
   const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
   std::unique_lock<std::mutex> ort_lock(ort_mutex_);
@@ -751,8 +751,8 @@ void EasyPerceptionDeployment::process_localize_work(
 }
 
 void EasyPerceptionDeployment::process_tracking_work(
-  const sensor_msgs::msg::Image::SharedPtr msg,
-  const sensor_msgs::msg::Image::SharedPtr depth_msg,
+  const sensor_msgs::msg::Image::ConstSharedPtr & msg,
+  const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
   const sensor_msgs::msg::CameraInfo::SharedPtr camera_info)
 {
   std::unique_lock<std::mutex> ort_lock(ort_mutex_);
@@ -968,7 +968,7 @@ geometry_msgs::msg::Quaternion EasyPerceptionDeployment::buildOrientationFromAxi
 }
 
 void EasyPerceptionDeployment::process_image_work(
-  const sensor_msgs::msg::Image::SharedPtr msg)
+  const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
   if (msg->height == 0) {
     RCLCPP_WARN(this->get_logger(), "Input image empty. Discarding.");
@@ -994,7 +994,7 @@ void EasyPerceptionDeployment::process_image_work(
   int precision_level = 0;
   bool visualize = false;
   bool publish_segmentation = false;
-  sensor_msgs::msg::Image::SharedPtr depth_msg;
+  sensor_msgs::msg::Image::ConstSharedPtr depth_msg;
   sensor_msgs::msg::CameraInfo::SharedPtr camera_info;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -1301,8 +1301,8 @@ void EasyPerceptionDeployment::process_image_work(
 void EasyPerceptionDeployment::worker_loop()
 {
   while (rclcpp::ok()) {
-    sensor_msgs::msg::Image::SharedPtr image_msg;
-    sensor_msgs::msg::Image::SharedPtr depth_msg;
+    sensor_msgs::msg::Image::ConstSharedPtr image_msg;
+    sensor_msgs::msg::Image::ConstSharedPtr depth_msg;
     sensor_msgs::msg::CameraInfo::SharedPtr camera_info;
     bool do_localize = false;
     bool do_tracking = false;

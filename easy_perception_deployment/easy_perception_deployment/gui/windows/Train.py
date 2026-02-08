@@ -19,9 +19,9 @@ import subprocess
 import logging
 from ast import literal_eval as make_tuple
 
-from PySide2.QtCore import QSize, Qt
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
+from PySide6.QtCore import QSize, Qt
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
                                QHBoxLayout, QInputDialog, QLabel, QLineEdit,
                                QPushButton, QVBoxLayout, QWidget)
 from trainer.P2Trainer import P2Trainer
@@ -30,7 +30,7 @@ from trainer.P3Trainer import P3Trainer
 
 class TrainWindow(QWidget):
     '''
-    The TrainWindow class is a PySide2 Graphical User Interface (GUI) window
+    The TrainWindow class is a PySide6 Graphical User Interface (GUI) window
     that is called by MainWindow class in order to configure a custom training
     session and initiates training for a selected Precision-Level.
     '''

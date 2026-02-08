@@ -23,3 +23,7 @@ Thumbs.db
 # Large models / data (adjust as needed)
 *.onnx
 data/model/
+# Large models / generated GUI data
+**/*.onnx
+easy_perception_deployment/easy_perception_deployment/gui/data/
+easy_perception_deployment/easy_perception_deployment/data/model/

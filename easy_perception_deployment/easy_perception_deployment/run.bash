@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
+# Init conda (do NOT prepend base anaconda bin to PATH)
+source "$HOME/anaconda3/etc/profile.d/conda.sh"
 
-export PATH=~/anaconda3/bin:$PATH
+
+# export PATH=~/anaconda3/bin:$PATH
 PATH_TO_THIS_SCRIPT=$( realpath "$0"  )
 START_DIR=$( dirname $PATH_TO_THIS_SCRIPT )
 
@@ -90,20 +93,29 @@ env_exists=$(conda env list | grep epd_gui_env)
 if [ -z "$env_exists" ]
 then
       echo "Installing epd_gui_env conda environment."
-      conda create -n epd_gui_env python=3.6 -y
-      eval "$(conda shell.bash hook)"
+      conda create -n epd_gui_env python=3.10 -y
+#       eval "$(conda shell.bash hook)"
       conda activate epd_gui_env
-      pip install PySide2==5.15.0
+      pip install PySide6
       pip install dateutils==0.6.12
-      pip install pycocotools==2.0.2
+      pip install "pycocotools>=2.0.6"
       pip install labelme==5.0.1
       conda deactivate
       echo "[epd_gui_env] env created."
 fi
 
-eval "$(conda shell.bash hook)"
+# eval "$(conda shell.bash hook)"
 conda activate epd_gui_env
-cd $PWD/gui
+source /opt/ros/humble/setup.bash
+source "$HOME/epd_ros2_ws/install/setup.bash"
+
+source /opt/ros/humble/setup.bash
+source "$HOME/epd_ros2_ws/install/setup.bash"
+
+source /opt/ros/humble/setup.bash
+source "$HOME/epd_ros2_ws/install/setup.bash"
+
+cd "$START_DIR/gui"
 python main.py
 
 unset START_DIR PATH_TO_THIS_SCRIPT env_exists

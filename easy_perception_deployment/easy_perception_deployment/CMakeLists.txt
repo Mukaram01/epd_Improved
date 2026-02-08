@@ -34,7 +34,7 @@ find_package(message_filters REQUIRED)
 find_package(PCL REQUIRED)
 find_package(pcl_conversions REQUIRED)
 
-# FIX: missing Quaternion header comes from tf2
+# Quaternion header comes from tf2
 find_package(tf2 REQUIRED)
 
 # JsonCPP libraries - use system jsoncpp directly via pkg-config
@@ -56,7 +56,7 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
 )
 
-# Add all custom library headers for compilation.
+# Add all custom library sources for compilation.
 set(EPD_UTILS
   include/epd_utils_lib/epd_container.cpp
   include/ort_cpp_lib/ort_base.cpp
@@ -77,18 +77,35 @@ if(NOT EPD_DOWNLOAD_MODELS)
     "See easy_perception_deployment/README.md#model-downloads for details.")
 endif()
 
+# IMPORTANT:
+# Models must live in the *package* data directory at runtime, and we must install that directory.
 set(EPD_MODEL_DIR "${CMAKE_CURRENT_LIST_DIR}/data/model")
-set(EPD_MODEL_SQUEEZENET "${EPD_MODEL_DIR}/squeezenet1.1-7.onnx")
-set(EPD_MODEL_FASTER_RCNN "${EPD_MODEL_DIR}/FasterRCNN-10.onnx")
-set(EPD_MODEL_MASK_RCNN "${EPD_MODEL_DIR}/MaskRCNN-10.onnx")
 
+# Models used by various configs / examples
+set(EPD_MODEL_SQUEEZENET   "${EPD_MODEL_DIR}/squeezenet1.1-7.onnx")
+set(EPD_MODEL_FASTER_RCNN  "${EPD_MODEL_DIR}/FasterRCNN-10.onnx")
+set(EPD_MODEL_MASK_RCNN    "${EPD_MODEL_DIR}/MaskRCNN-10.onnx")
+
+# This one is referenced in config/session_config.json
+set(EPD_MODEL_SSD_MOBILENET "${EPD_MODEL_DIR}/ssd_mobilenet_v1_12.onnx")
+
+# URLs
+# NOTE: GitHub raw links for onnx/models are unreliable/404 for some large assets.
+# Use Hugging Face for ssd_mobilenet_v1_12.
 set(EPD_MODEL_SQUEEZENET_URL "https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx")
 set(EPD_MODEL_FASTER_RCNN_URL "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx")
 set(EPD_MODEL_MASK_RCNN_URL "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx")
 
+# Hugging Face direct download (stable)
+set(EPD_MODEL_SSD_MOBILENET_URL "https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_12/resolve/main/ssd_mobilenet_v1_12.onnx?download=true")
+
+# SHA256 (keep your existing values; add SSD hash only if you want strict verification)
 set(EPD_MODEL_SQUEEZENET_SHA256 "1eeff551a67ae8d565ca33b572fc4b66e3ef357b0eb2863bb9ff47a918cc4088")
 set(EPD_MODEL_FASTER_RCNN_SHA256 "dfb81423efbea52e45df242ade64cfca0ba05fae78e00cf0c68a0979987f87eb")
 set(EPD_MODEL_MASK_RCNN_SHA256 "a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757")
+
+# If you don't have SSD hash, leave empty and skip hash checking for it.
+set(EPD_MODEL_SSD_MOBILENET_SHA256 "")
 
 set(EPD_MISSING_MODELS "")
 
@@ -98,21 +115,26 @@ endif()
 
 function(epd_verify_model model_path expected_hash)
   if(EXISTS "${model_path}")
-    file(SHA256 "${model_path}" model_hash)
-    if(NOT model_hash STREQUAL expected_hash)
-      message(FATAL_ERROR
-        "Model checksum mismatch for ${model_path}\n"
-        "Expected SHA256: ${expected_hash}\n"
-        "Actual SHA256:   ${model_hash}\n"
-        "Delete the file and re-download to continue.")
+    if(NOT "${expected_hash}" STREQUAL "")
+      file(SHA256 "${model_path}" model_hash)
+      if(NOT model_hash STREQUAL expected_hash)
+        message(FATAL_ERROR
+          "Model checksum mismatch for ${model_path}\n"
+          "Expected SHA256: ${expected_hash}\n"
+          "Actual SHA256:   ${model_hash}\n"
+          "Delete the file and re-download to continue.")
+      endif()
     endif()
   endif()
 endfunction()
 
+# List all models that the package may require
 foreach(model_spec
     "${EPD_MODEL_SQUEEZENET}|${EPD_MODEL_SQUEEZENET_URL}|${EPD_MODEL_SQUEEZENET_SHA256}"
     "${EPD_MODEL_FASTER_RCNN}|${EPD_MODEL_FASTER_RCNN_URL}|${EPD_MODEL_FASTER_RCNN_SHA256}"
-    "${EPD_MODEL_MASK_RCNN}|${EPD_MODEL_MASK_RCNN_URL}|${EPD_MODEL_MASK_RCNN_SHA256}")
+    "${EPD_MODEL_MASK_RCNN}|${EPD_MODEL_MASK_RCNN_URL}|${EPD_MODEL_MASK_RCNN_SHA256}"
+    "${EPD_MODEL_SSD_MOBILENET}|${EPD_MODEL_SSD_MOBILENET_URL}|${EPD_MODEL_SSD_MOBILENET_SHA256}"
+)
   string(REPLACE "|" ";" model_parts "${model_spec}")
   list(GET model_parts 0 model_path)
   list(GET model_parts 1 model_url)
@@ -123,10 +145,20 @@ foreach(model_spec
   else()
     if(EPD_DOWNLOAD_MODELS)
       message(STATUS "Downloading pretrained ONNX model: ${model_url}")
-      file(DOWNLOAD
-        "${model_url}"
-        "${model_path}"
-        EXPECTED_HASH "SHA256=${model_hash}")
+      if(NOT "${model_hash}" STREQUAL "")
+        file(DOWNLOAD
+          "${model_url}"
+          "${model_path}"
+          EXPECTED_HASH "SHA256=${model_hash}"
+          SHOW_PROGRESS
+        )
+      else()
+        file(DOWNLOAD
+          "${model_url}"
+          "${model_path}"
+          SHOW_PROGRESS
+        )
+      endif()
     else()
       list(APPEND EPD_MISSING_MODELS "${model_path}")
     endif()
@@ -139,13 +171,13 @@ if(EPD_MISSING_MODELS)
   if(EPD_REQUIRE_MODELS)
     message(FATAL_ERROR
       "Missing pretrained ONNX models and EPD_DOWNLOAD_MODELS is OFF.\n"
-      "Expected files:\n  - ${EPD_MISSING_MODELS_TEXT}\n"
+      "Expected files:\n  - ${EPD_MISSING_MODELS_TEXT}\n\n"
       "To download models manually, run the following commands from the repository root:\n"
       "  mkdir -p ${EPD_MODEL_DIR}\n"
       "  curl -L \"${EPD_MODEL_SQUEEZENET_URL}\" -o \"${EPD_MODEL_SQUEEZENET}\"\n"
       "  curl -L \"${EPD_MODEL_FASTER_RCNN_URL}\" -o \"${EPD_MODEL_FASTER_RCNN}\"\n"
       "  curl -L \"${EPD_MODEL_MASK_RCNN_URL}\" -o \"${EPD_MODEL_MASK_RCNN}\"\n"
-      "Or run: ./scripts/download_models.sh\n"
+      "  curl -L \"${EPD_MODEL_SSD_MOBILENET_URL}\" -o \"${EPD_MODEL_SSD_MOBILENET}\"\n\n"
       "Alternatively, reconfigure with -DEPD_DOWNLOAD_MODELS=ON to download at configure time.\n"
       "See easy_perception_deployment/README.md#model-downloads for full instructions.")
   else()
@@ -164,10 +196,9 @@ else()
 endif()
 
 # -----------------------------
-# CUDA check for local onnxruntime build
+# CUDA check for local onnxruntime build (optional)
 # -----------------------------
 find_package(CUDA)
-
 if(CUDA_FOUND)
   message(AUTHOR_WARNING "Using [-GPU-].")
   add_definitions(-DUSE_GPU=true)
@@ -201,7 +232,6 @@ set(EPD_COMMON_DEPS
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
 
-  # Excluding to avoid conflicting Doxygen python code blocks.
   list(APPEND AMENT_LINT_AUTO_EXCLUDE
     ament_cmake_pep257
     ament_cmake_flake8
@@ -211,7 +241,6 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
   find_package(ament_cmake_gtest REQUIRED)
 
-  # Helper to apply common link deps to tests
   macro(epd_configure_test tgt)
     ament_target_dependencies(${tgt} ${EPD_COMMON_DEPS})
     target_include_directories(${tgt} PRIVATE ${PCL_INCLUDE_DIRS})
@@ -274,7 +303,6 @@ if(BUILD_TESTING)
   else()
     message(WARNING "Skipping model-dependent tests because pretrained ONNX models are unavailable.")
   endif()
-
 endif()
 
 # -----------------------------
@@ -306,10 +334,13 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+# Install launch/config/data so runtime relative paths work from install/share
 install(DIRECTORY
   launch
   config
-  DESTINATION share/${PROJECT_NAME}/
+  data
+  DESTINATION share/${PROJECT_NAME}
 )
 
 ament_package()
+

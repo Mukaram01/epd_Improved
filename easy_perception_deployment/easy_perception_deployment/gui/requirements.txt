@@ -1,6 +1,6 @@
-PySide2==5.15.0
+PySide6
 dateutils==0.6.12
-pycocotools==2.0.2
+pycocotools>=2.0.6
 labelme==5.0.1
 torch==2.7.1
 torchvision==0.9.1

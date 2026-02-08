@@ -17,7 +17,7 @@ import os
 import signal
 import sys
 
-from PySide2.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication
 
 from windows.Main import MainWindow
 
@@ -32,7 +32,7 @@ def main():
     window1 = MainWindow()
     window1.show()
 
-    myapp.exec_()
+    myapp.exec()
     sys.exit()
 
 

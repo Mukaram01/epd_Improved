@@ -34,7 +34,7 @@ then
       conda create -n epd_gui_env python=3.6 -y
       eval "$(conda shell.bash hook)"
       conda activate epd_gui_env
-      pip install PySide2==5.15.0
+      pip install PySide6
       pip install dateutils==0.6.12
       pip install pycocotools==2.0.2
       pip install labelme==5.0.1

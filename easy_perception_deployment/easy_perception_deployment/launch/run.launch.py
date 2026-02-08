@@ -3,12 +3,20 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+from ament_index_python.packages import get_package_share_directory
+import os
+
 
 def generate_launch_description():
     rgb_topic = LaunchConfiguration("rgb_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     depth_topic = LaunchConfiguration("depth_topic")
     log_level = LaunchConfiguration("log_level")
+
+    # This is the key fix:
+    # Make the node run with its working directory set to the package share directory.
+    # Then relative paths like ./data/model/... work reliably.
+    pkg_share = get_package_share_directory("easy_perception_deployment")
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -38,14 +46,14 @@ def generate_launch_description():
             name="easy_perception_deployment",
             output="screen",
             emulate_tty=True,
+
+            # ✅ Critical fix: set working directory
+            cwd=pkg_share,
+
             remappings=[
                 ("/camera/color/image_raw", rgb_topic),
                 ("/camera/color/camera_info", camera_info_topic),
-
-                # IMPORTANT: this is what your node actually subscribes to (from ros2 node info)
                 ("/camera/depth/image_rect_raw", depth_topic),
-
-                # Keep for safety if code also uses this name internally
                 ("/camera/aligned_depth_to_color/image_raw", depth_topic),
             ],
             arguments=["--ros-args", "--log-level", log_level],

@@ -27,7 +27,7 @@ from windows.Main import MainWindow
 from windows.Train import TrainWindow
 
 from datetime import date
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 # Clear all stored session_config.json usecase_config.json
 if (os.path.exists('../config/session_config.json') and

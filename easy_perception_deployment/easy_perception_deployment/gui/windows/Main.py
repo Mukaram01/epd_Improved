@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from PySide2.QtCore import QSize
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
 
 import logging
 import os
@@ -25,7 +25,7 @@ from windows.Train import TrainWindow
 
 class MainWindow(QWidget):
     '''
-    The MainWindow class is a PySide2 Graphical User Interface (GUI) window
+    The MainWindow class is a PySide6 Graphical User Interface (GUI) window
     that starts up as the first user interface.
     '''
     def __init__(self):

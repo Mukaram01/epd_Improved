@@ -16,15 +16,15 @@ import os
 import json
 import logging
 
-from PySide2.QtCore import QSize
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import (QComboBox, QHBoxLayout, QPushButton,
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (QComboBox, QHBoxLayout, QPushButton,
                                QVBoxLayout, QWidget)
 
 
 class TrackingWindow(QWidget):
     '''
-    The TrackingWindow class is a PySide2
+    The TrackingWindow class is a PySide6
     Graphical User Interface (GUI) window that is called by
     DeployWindow class in order to configure a custom Tracking
     use-case and write to usecase_config.json.

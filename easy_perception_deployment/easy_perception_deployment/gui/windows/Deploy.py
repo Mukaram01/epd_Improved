@@ -26,9 +26,9 @@ from rclpy.node import Node
 from rclpy.time import Time
 
 from epd_msgs.msg import EPDObjectDetection, EPDObjectLocalization, EPDObjectTracking
-from PySide2.QtCore import QSize, QTimer, QThread, Signal, Slot
-from PySide2.QtGui import QIcon
-from PySide2.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
+from PySide6.QtCore import QSize, QTimer, QThread, Signal, Slot
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget)
 
 from windows.Counting import CountingWindow
@@ -141,7 +141,7 @@ class FPSMonitorThread(QThread):
 
 class DeployWindow(QWidget):
     '''
-    The DeployWindow class is a PySide2 Graphical User Interface (GUI) window
+    The DeployWindow class is a PySide6 Graphical User Interface (GUI) window
     that is called by MainWindow class in order to configure a custom session
     and write to session_config.json.
     '''
@@ -394,7 +394,7 @@ class DeployWindow(QWidget):
         self.topic_button.setEditable(True)
         self.topic_button.setInsertPolicy(QComboBox.NoInsert)
         self.topic_button.setFixedHeight(28)
-        self.refreshImageTopics(select_topic=self._input_image_topic)
+#         self.refreshImageTopics(select_topic=self._input_image_topic)
 
         self.transport_label = QLabel('Image Transport', self)
         self.transport_combo = QComboBox(self)
@@ -454,10 +454,13 @@ class DeployWindow(QWidget):
         self.list_button.clicked.connect(self.setLabelList)
         self.usecase_config_button.activated.connect(self.setUseCase)
         self.run_button.clicked.connect(self.deployPackage)
-        self.register_topic_button.clicked.connect(self.setImageInput)
+#         self.register_topic_button.clicked.connect(self.setImageInput)
         self.transport_combo.activated.connect(self.setImageTransport)
         self.refresh_topics_button.clicked.connect(self.refreshImageTopics)
         self.topic_button.currentTextChanged.connect(self.setImageInput)
+
+        # Populate topics after widgets are created (avoids run_button init order issues)
+        self.refreshImageTopics(select_topic=self._input_image_topic)
 
     def _query_image_topics(self):
         topics = []

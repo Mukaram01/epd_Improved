@@ -25,7 +25,7 @@ from trainer.P3Trainer import P3Trainer
 from windows.Train import TrainWindow
 
 from datetime import date
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 
 def isGPUAvailable():

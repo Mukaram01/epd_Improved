@@ -49,6 +49,7 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
+#include "message_filters/connection.h"
 
 // EPD_UTILS LIB
 #include "epd_utils_lib/epd_container.hpp"
@@ -172,6 +173,10 @@ private:
   void subscribeImageInput();
   void subscribeLocalizeInputs();
   void subscribeDetectionDepthInputs();
+  void enableDetectionInputs();
+  void disableDetectionInputs();
+  void enableLocalizeInputs(const int use_case_mode);
+  void disableLocalizeInputs();
   std::string resolveDepthTransport(const std::string & transport) const;
 
   std::string rgb_topic_;
@@ -182,6 +187,9 @@ private:
   rmw_qos_profile_t sensor_qos_profile_;
   bool image_input_active_{false};
   bool depth_input_active_{false};
+  bool localize_input_active_{false};
+  int sync_callback_mode_{-1};
+  message_filters::Connection sync_connection_;
   void process_image_work(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
   void process_localize_work(
     const sensor_msgs::msg::Image::ConstSharedPtr & msg,
@@ -254,7 +262,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   if (ortAgent_.publish_detection_segmentation &&
     ortAgent_.useCaseMode <= EPD::COLOR_MATCHING_MODE)
   {
-    subscribeDetectionDepthInputs();
+    enableDetectionInputs();
   }
 
   subscribeImageInput();
@@ -303,24 +311,12 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 
   // If useCaseMode is detected to be Localization or Tracking,
   // Subscribe to all synchronized ROS2 topics.
-  if (ortAgent_.useCaseMode == 3) {
-    subscribeLocalizeInputs();
-    sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
-    if (image_input_active_) {
-      image_sub.shutdown();
-      image_input_active_ = false;
-    }
-  } else if (ortAgent_.useCaseMode == 4) {
-    subscribeLocalizeInputs();
-    sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
-    if (image_input_active_) {
-      image_sub.shutdown();
-      image_input_active_ = false;
-    }
+  if (ortAgent_.useCaseMode == EPD::LOCALISATION_MODE ||
+    ortAgent_.useCaseMode == EPD::TRACKING_MODE)
+  {
+    enableLocalizeInputs(ortAgent_.useCaseMode);
   } else {
-    localize_image_rgb.unsubscribe();
-    localize_image_depth.unsubscribe();
-    localize_cam_info.unsubscribe();
+    disableLocalizeInputs();
   }
 
   auto handle_emd_request =
@@ -343,23 +339,20 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         use_case_mode = ortAgent_.useCaseMode;
       }
 
-      if (use_case_mode == 3) {
-        subscribeLocalizeInputs();
-        sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
-        if (image_input_active_) {
-          image_sub.shutdown();
-          image_input_active_ = false;
-        }
-      } else if (use_case_mode == 4) {
-        subscribeLocalizeInputs();
-        sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
-        if (image_input_active_) {
-          image_sub.shutdown();
-          image_input_active_ = false;
-        }
+      if (use_case_mode == EPD::LOCALISATION_MODE ||
+        use_case_mode == EPD::TRACKING_MODE)
+      {
+        enableLocalizeInputs(use_case_mode);
+        disableDetectionInputs();
       } else {
+        disableLocalizeInputs();
         if (!image_input_active_) {
           subscribeImageInput();
+        }
+        if (ortAgent_.publish_detection_segmentation &&
+          use_case_mode <= EPD::COLOR_MATCHING_MODE)
+        {
+          enableDetectionInputs();
         }
       }
 
@@ -490,6 +483,68 @@ void EasyPerceptionDeployment::subscribeDetectionDepthInputs()
     rclcpp::SensorDataQoS().keep_last(1),
     std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1));
   depth_input_active_ = true;
+}
+
+void EasyPerceptionDeployment::enableDetectionInputs()
+{
+  if (!depth_input_active_) {
+    subscribeDetectionDepthInputs();
+  }
+}
+
+void EasyPerceptionDeployment::disableDetectionInputs()
+{
+  if (!depth_input_active_) {
+    return;
+  }
+
+  depth_sub_.shutdown();
+  camera_info_sub_.reset();
+  depth_input_active_ = false;
+}
+
+void EasyPerceptionDeployment::enableLocalizeInputs(const int use_case_mode)
+{
+  disableDetectionInputs();
+
+  if (image_input_active_) {
+    image_sub.shutdown();
+    image_input_active_ = false;
+  }
+
+  if (!localize_input_active_) {
+    subscribeLocalizeInputs();
+    localize_input_active_ = true;
+  }
+
+  if (sync_callback_mode_ == use_case_mode) {
+    return;
+  }
+
+  sync_connection_.disconnect();
+  if (use_case_mode == EPD::LOCALISATION_MODE) {
+    sync_connection_ =
+      sync_.registerCallback(&EasyPerceptionDeployment::localize_callback, this);
+  } else if (use_case_mode == EPD::TRACKING_MODE) {
+    sync_connection_ =
+      sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
+  }
+  sync_callback_mode_ = use_case_mode;
+}
+
+void EasyPerceptionDeployment::disableLocalizeInputs()
+{
+  sync_connection_.disconnect();
+  sync_callback_mode_ = -1;
+
+  if (!localize_input_active_) {
+    return;
+  }
+
+  localize_image_rgb.unsubscribe();
+  localize_image_depth.unsubscribe();
+  localize_cam_info.unsubscribe();
+  localize_input_active_ = false;
 }
 
 void EasyPerceptionDeployment::hasCameraChanged(const int img_height, const int img_width) const

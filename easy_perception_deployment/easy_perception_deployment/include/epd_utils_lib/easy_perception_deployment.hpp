@@ -258,13 +258,6 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   }
 
   subscribeImageInput();
-  // Creating Subscriber to get Input Image.
-  image_sub = image_transport::create_subscription(
-    this,
-    "/easy_perception_deployment/image_input",
-    std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
-    image_transport_,
-    sensor_qos_profile_);
 
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
   visual_pub = image_transport::create_publisher(

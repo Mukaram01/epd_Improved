@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -55,7 +56,8 @@ P3OrtBase::P3OrtBase(
   m_newW(newW),
   m_newH(newH),
   m_paddedW(paddedW),
-  m_paddedH(paddedH)
+  m_paddedH(paddedH),
+  preprocess_buffer_(m_paddedH * m_paddedW * 3)
 {}
 
 // Destructor
@@ -65,11 +67,11 @@ P3OrtBase::~P3OrtBase()
 // Mutator: Classification
 EPD::EPDObjectDetection P3OrtBase::infer(const cv::Mat & inputImg)
 {
-  std::vector<float> dst(3 * m_paddedH * m_paddedW);
+  std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
   return this->infer(
     inputImg, m_newW, m_newH,
-    m_paddedW, m_paddedH, m_ratio, dst.data(), 0.5,
+    m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.5,
     cv::Scalar(102.9801, 115.9465, 122.7717));
 }
 
@@ -80,11 +82,11 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   sensor_msgs::msg::CameraInfo camera_info,
   double camera_to_plane_distance_mm)
 {
-  std::vector<float> dst(3 * m_paddedH * m_paddedW);
+  std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
   return this->infer(
     inputImg, depthImg, camera_info, camera_to_plane_distance_mm,
-    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, dst.data(), 0.5,
+    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.5,
     cv::Scalar(102.9801, 115.9465, 122.7717));
 }
 
@@ -99,12 +101,12 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   std::vector<int> & tracker_logs,
   std::vector<EPD::LabelledRect2d> & tracker_results)
 {
-  std::vector<float> dst(3 * m_paddedH * m_paddedW);
+  std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
   return this->infer(
     inputImg, depthImg, camera_info, camera_to_plane_distance_mm,
     tracker_type, trackers, tracker_logs, tracker_results,
-    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, dst.data(), 0.5,
+    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.5,
     cv::Scalar(102.9801, 115.9465, 122.7717));
 }
 

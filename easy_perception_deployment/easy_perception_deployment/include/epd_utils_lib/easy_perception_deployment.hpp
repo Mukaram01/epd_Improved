@@ -1065,21 +1065,6 @@ void EasyPerceptionDeployment::process_image_work(
           p2_pub->publish(output_msg);
         }
 
-        epd_msgs::msg::EPDObjectDetection output_msg;
-        output_msg.header = msg->header;
-        for (size_t i = 0; i < output_obj.data_size; i++) {
-          output_msg.class_indices.push_back(output_obj.classIndices[i]);
-          output_msg.scores.push_back(output_obj.scores[i]);
-
-          sensor_msgs::msg::RegionOfInterest roi;
-          roi.x_offset = output_obj.bboxes[i][0];
-          roi.y_offset = output_obj.bboxes[i][1];
-          roi.width = output_obj.bboxes[i][2] - output_obj.bboxes[i][0];
-          roi.height = output_obj.bboxes[i][3] - output_obj.bboxes[i][1];
-          roi.do_rectify = false;
-          output_msg.bboxes.push_back(roi);
-        }
-        p2_pub->publish(output_msg);
         break;
       }
     case 3:
@@ -1258,32 +1243,6 @@ void EasyPerceptionDeployment::process_image_work(
           p3_pub->publish(output_msg);
         }
 
-        epd_msgs::msg::EPDObjectDetection output_msg;
-        output_msg.header = msg->header;
-        for (size_t i = 0; i < output_obj.data_size; i++) {
-          output_msg.class_indices.push_back(output_obj.classIndices[i]);
-          output_msg.scores.push_back(output_obj.scores[i]);
-
-          sensor_msgs::msg::RegionOfInterest roi;
-          roi.x_offset = output_obj.bboxes[i][0];
-          roi.y_offset = output_obj.bboxes[i][1];
-          roi.width = output_obj.bboxes[i][2] - output_obj.bboxes[i][0];
-          roi.height = output_obj.bboxes[i][3] - output_obj.bboxes[i][1];
-          roi.do_rectify = false;
-          output_msg.bboxes.push_back(roi);
-
-          if (publish_segmentation) {
-            sensor_msgs::msg::Image::SharedPtr mask =
-              cv_bridge::CvImage(std_msgs::msg::Header(), "32FC1", output_obj.masks[i]).toImageMsg();
-            mask->header.stamp = msg->header.stamp;
-            mask->header.frame_id = msg->header.frame_id;
-            output_msg.masks.push_back(*mask);
-          }
-          if (has_segmented_pcls && i < segmented_pcls.size()) {
-            output_msg.segmented_pcls.push_back(segmented_pcls[i]);
-          }
-        }
-        p3_pub->publish(output_msg);
         break;
       }
     default:

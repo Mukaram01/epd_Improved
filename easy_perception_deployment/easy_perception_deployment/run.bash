@@ -82,7 +82,7 @@ P1FILE=./data/model/ssd_mobilenet_v1_12.onnx
 if [ ! -f "$P1FILE" ]; then
     echo "Downloading $P1FILE."
     wget \
-    https://github.com/onnx/models/raw/main/vision/object_detection_segmentation/ssd-mobilenetv1/model/ssd_mobilenet_v1_12.onnx \
+    https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_12/resolve/main/ssd_mobilenet_v1_12.onnx?download=true \
     --directory-prefix=./data/model/
 fi
 unset P1FILE
@@ -106,13 +106,8 @@ fi
 
 # eval "$(conda shell.bash hook)"
 conda activate epd_gui_env
-source /opt/ros/humble/setup.bash
-source "$HOME/epd_ros2_ws/install/setup.bash"
-
-source /opt/ros/humble/setup.bash
-source "$HOME/epd_ros2_ws/install/setup.bash"
-
-source /opt/ros/humble/setup.bash
+ROS_DISTRO="${ROS_DISTRO:-humble}"
+source "/opt/ros/${ROS_DISTRO}/setup.bash"
 source "$HOME/epd_ros2_ws/install/setup.bash"
 
 cd "$START_DIR/gui"

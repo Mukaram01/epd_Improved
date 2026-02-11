@@ -32,19 +32,13 @@ mkdir -p epd_ros2_ws/src && cd epd_ros2_ws/src
 # Download fast and shallow copy of easy_perception_deployment
 git clone https://github.com/ros-industrial/easy_perception_deployment.git
 
-# Fetch vendor dependencies (onnxruntime + jsoncpp)
+# Fetch vendor dependencies (onnxruntime)
 vcs import < easy_perception_deployment/onnxruntime.repos
 
 # Install dependencies
 cd $HOME/epd_ros2_ws/
 source /opt/ros/humble/setup.bash
 rosdep install --from-paths src --ignore-src -y
-
-# If jsoncpp_vendor is installed system-wide, point CMake at the install prefix
-# that contains jsoncpp_vendorConfig.cmake (typically <prefix>/share/jsoncpp_vendor).
-export CMAKE_PREFIX_PATH="<prefix>:$CMAKE_PREFIX_PATH"
-# Alternatively:
-# export jsoncpp_vendor_DIR="<prefix>/share/jsoncpp_vendor"
 
 # Build the ROS2 workspace
 colcon build
@@ -102,7 +96,8 @@ sudo apt install -y \
   ros-humble-message-filters \
   ros-humble-geometry-msgs \
   ros-humble-tf2 \
-  libopencv-dev
+  libopencv-dev \
+  libjsoncpp-dev
 ```
 
 Fetch the ONNX Runtime vendor package from `onnxruntime.repos` (it should build on Ubuntu 22.04). If the vendor build fails, make sure standard build prerequisites are installed:
@@ -113,14 +108,10 @@ sudo apt install -y build-essential cmake python3-dev python3-pip
 vcs import < easy_perception_deployment/onnxruntime.repos
 ```
 
-The GUI is built with **PySide2**. If you are using the included `run.bash` workflow, it installs PySide2 into a conda environment. For a system Python install, use either apt or pip:
+The GUI is built with **PySide6**. If you are using the included `run.bash` workflow, it installs PySide6 into a conda environment. For a system Python install, use pip:
 
 ```bash
-# Option A (apt, system Python)
-sudo apt install -y python3-pyside2
-
-# Option B (pip, matches run.bash)
-python3 -m pip install --user PySide2==5.15.0
+python3 -m pip install --user PySide6
 ```
 ## **Precision Levels & Model Selection**
 

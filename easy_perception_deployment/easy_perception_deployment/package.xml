@@ -19,7 +19,8 @@
   <depend>tf2</depend>
   <depend>epd_msgs</depend>
   <depend>epd_onnxruntime_vendor</depend>
-  <depend>jsoncpp_vendor</depend>
+  <build_depend>libjsoncpp-dev</build_depend>
+  <exec_depend>libjsoncpp-dev</exec_depend>
   <build_depend>cv_bridge</build_depend>
   <build_depend>libopencv-dev</build_depend>
 

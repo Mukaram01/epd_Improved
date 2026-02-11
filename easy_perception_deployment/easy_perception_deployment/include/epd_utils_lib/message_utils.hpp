@@ -128,6 +128,7 @@ struct LabelledRect2d
 {
   std::string obj_tag;
   cv::Rect2d obj_bounding_box;
+  int missed_frames = 0;
 };
 
 }  // namespace EPD

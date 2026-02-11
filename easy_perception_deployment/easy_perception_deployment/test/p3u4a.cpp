@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include <memory>
+#include <set>
 #include "gtest/gtest.h"
 #include "bits/stdc++.h"
 #include "epd_utils_lib/epd_container.hpp"
@@ -98,6 +99,25 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Action)
   ASSERT_NE(result.objects.size(), unsigned(0));
   ASSERT_NE(ortAgent_->tracker_results.size(), unsigned(0));
   ASSERT_NE(ortAgent_->trackers.size(), unsigned(0));
+
+  EPD::EPDObjectTracking result_second = ortAgent_->p3_ort_session->infer(
+    colored_img,
+    depth_img,
+    camera_info,
+    0.1,
+    ortAgent_->tracker_type,
+    ortAgent_->trackers,
+    ortAgent_->tracker_logs,
+    ortAgent_->tracker_results);
+
+  ASSERT_EQ(result.object_ids.size(), result_second.object_ids.size());
+
+  std::set<std::string> first_ids(result.object_ids.begin(), result.object_ids.end());
+  std::set<std::string> second_ids(result_second.object_ids.begin(), result_second.object_ids.end());
+
+  ASSERT_EQ(first_ids.size(), result.object_ids.size());
+  ASSERT_EQ(second_ids.size(), result_second.object_ids.size());
+  ASSERT_EQ(first_ids, second_ids);
 }
 
 int main(int argc, char ** argv)

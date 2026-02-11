@@ -1146,15 +1146,39 @@ void EasyPerceptionDeployment::process_image_work(
           segmented_pcls.reserve(output_obj.data_size);
           for (size_t i = 0; i < output_obj.data_size; i++) {
             const auto & bbox = output_obj.bboxes[i];
-            const int left = bbox[0];
-            const int top = bbox[1];
-            const int right = bbox[2];
-            const int bottom = bbox[3];
+            const int left = std::clamp(bbox[0], 0, img.cols);
+            const int top = std::clamp(bbox[1], 0, img.rows);
+            const int right = std::clamp(bbox[2], 0, img.cols);
+            const int bottom = std::clamp(bbox[3], 0, img.rows);
             const int width = right - left;
             const int height = bottom - top;
 
             sensor_msgs::msg::PointCloud2 cloud_msg;
+            if (left != bbox[0] || top != bbox[1] || right != bbox[2] || bottom != bbox[3]) {
+              RCLCPP_WARN_THROTTLE(
+                this->get_logger(),
+                *this->get_clock(),
+                2000,
+                "Clamped bbox for segmentation: [%d, %d, %d, %d] -> [%d, %d, %d, %d]",
+                bbox[0],
+                bbox[1],
+                bbox[2],
+                bbox[3],
+                left,
+                top,
+                right,
+                bottom);
+            }
             if (width <= 0 || height <= 0) {
+              RCLCPP_WARN_THROTTLE(
+                this->get_logger(),
+                *this->get_clock(),
+                2000,
+                "Skipping invalid bbox for segmentation after clamping: [%d, %d, %d, %d]",
+                left,
+                top,
+                right,
+                bottom);
               segmented_pcls.push_back(cloud_msg);
               continue;
             }

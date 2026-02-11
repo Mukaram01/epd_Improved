@@ -103,9 +103,10 @@ private:
   rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
 
   /*! \brief An alias definition for SyncPolicy that is used below for sync_ object.*/
-  typedef message_filters::sync_policies::ApproximateTime
-    <sensor_msgs::msg::Image, sensor_msgs::msg::Image,
-      sensor_msgs::msg::CameraInfo> SyncPolicy;
+  using SyncPolicy = message_filters::sync_policies::ApproximateTime<
+    sensor_msgs::msg::Image,
+    sensor_msgs::msg::Image,
+    sensor_msgs::msg::CameraInfo>;
 
   /*! \brief A policy-synchronized subscriber member variable
   to receive rectified 2D RGB images.
@@ -330,7 +331,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 
       {
         std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-        response->tracking_enabled = (ortAgent_.useCaseMode == 4);
+        response->tracking_enabled = (ortAgent_.useCaseMode == EPD::TRACKING_MODE);
       }
 
       int use_case_mode = 0;

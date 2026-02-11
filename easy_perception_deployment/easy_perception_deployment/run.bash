@@ -1,20 +1,24 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
 # Init conda (do NOT prepend base anaconda bin to PATH)
 source "$HOME/anaconda3/etc/profile.d/conda.sh"
 
-
 # export PATH=~/anaconda3/bin:$PATH
-PATH_TO_THIS_SCRIPT=$( realpath "$0"  )
-START_DIR=$( dirname $PATH_TO_THIS_SCRIPT )
+PATH_TO_THIS_SCRIPT=$(realpath "$0")
+START_DIR=$(dirname "$PATH_TO_THIS_SCRIPT")
 
-cd $START_DIR
+cd "$START_DIR"
+
+EPD_SKIP_DOWNLOAD="${EPD_SKIP_DOWNLOAD:-0}"
+EPD_WS="${EPD_WS:-}"
 
 # Check if Anaconda has been installed in general.
 # If true, get the first digit of the string which should reflect the major version of conda.
 if detected_conda=$(conda --version); then
     # echo $detected_conda - FOUND
     declare -i conda_ver
-    conda_ver=$(echo $detected_conda | grep -o -E '[0-9]+' | head -1 | sed -e 's/^0\+//')
+    conda_ver=$(echo "$detected_conda" | grep -o -E '[0-9]+' | head -1 | sed -e 's/^0\+//')
 else
     echo "Please install Anaconda by refering to the installation docs."
     echo "Exiting terminal in 10 seconds."
@@ -56,39 +60,41 @@ verify_sha256() {
     fi
 }
 
-P2FILE=./data/model/FasterRCNN-10.onnx
-P2HASH=dfb81423efbea52e45df242ade64cfca0ba05fae78e00cf0c68a0979987f87eb
-if [ ! -f "$P2FILE" ]; then
-    echo "Downloading $P2FILE."
-    wget \
-    https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx \
-    --directory-prefix=./data/model/
-fi
-verify_sha256 "$P2FILE" "$P2HASH"
-unset P2FILE P2HASH
+ensure_model() {
+    local file_path=$1
+    local url=$2
+    local expected_hash="${3:-}"
 
-P3FILE=./data/model/MaskRCNN-10.onnx
-P3HASH=a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757
-if [ ! -f "$P3FILE" ]; then
-    echo "Downloading $P3FILE."
-    wget \
-    https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx \
-    --directory-prefix=./data/model/
-fi
-verify_sha256 "$P3FILE" "$P3HASH"
-unset P3FILE P3HASH
+    if [ ! -f "$file_path" ]; then
+        if [ "$EPD_SKIP_DOWNLOAD" = "1" ]; then
+            echo "EPD_SKIP_DOWNLOAD=1: would download $url -> $file_path"
+        else
+            echo "Downloading $file_path."
+            wget -O "$file_path" "$url"
+        fi
+    fi
 
-P1FILE=./data/model/ssd_mobilenet_v1_12.onnx
-if [ ! -f "$P1FILE" ]; then
-    echo "Downloading $P1FILE."
-    wget \
-    https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_12/resolve/main/ssd_mobilenet_v1_12.onnx?download=true \
-    --directory-prefix=./data/model/
-fi
-unset P1FILE
+    if [ -n "$expected_hash" ] && [ -f "$file_path" ]; then
+        verify_sha256 "$file_path" "$expected_hash"
+    fi
+}
+
+ensure_model \
+    ./data/model/FasterRCNN-10.onnx \
+    "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx" \
+    dfb81423efbea52e45df242ade64cfca0ba05fae78e00cf0c68a0979987f87eb
+
+ensure_model \
+    ./data/model/MaskRCNN-10.onnx \
+    "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx" \
+    a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757
+
+ensure_model \
+    ./data/model/ssd_mobilenet_v1_12.onnx \
+    "https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_12/resolve/main/ssd_mobilenet_v1_12.onnx?download=true"
 
 # Checking if the epd_gui_env conda environment has been installed.
-env_exists=$(conda env list | grep epd_gui_env)
+env_exists=$(conda env list | grep epd_gui_env || true)
 
 if [ -z "$env_exists" ]
 then
@@ -104,13 +110,39 @@ then
       echo "[epd_gui_env] env created."
 fi
 
+resolve_epd_workspace_setup() {
+    local ws="${EPD_WS}"
+
+    if [ -n "$ws" ]; then
+        echo "${ws%/}/install/setup.bash"
+        return 0
+    fi
+
+    if [ -n "${COLCON_PREFIX_PATH:-}" ]; then
+        local first_prefix
+        IFS=':' read -r first_prefix _ <<< "$COLCON_PREFIX_PATH"
+        if [ -n "$first_prefix" ]; then
+            echo "${first_prefix%/}/setup.bash"
+            return 0
+        fi
+    fi
+
+    echo "$HOME/epd_ros2_ws/install/setup.bash"
+}
+
 # eval "$(conda shell.bash hook)"
 conda activate epd_gui_env
 ROS_DISTRO="${ROS_DISTRO:-humble}"
 source "/opt/ros/${ROS_DISTRO}/setup.bash"
-source "$HOME/epd_ros2_ws/install/setup.bash"
+EPD_WS_SETUP=$(resolve_epd_workspace_setup)
+if [ ! -f "$EPD_WS_SETUP" ]; then
+    echo "Unable to find workspace setup script: $EPD_WS_SETUP"
+    echo "Set EPD_WS to your workspace root or COLCON_PREFIX_PATH to an installed prefix."
+    exit 1
+fi
+source "$EPD_WS_SETUP"
 
 cd "$START_DIR/gui"
 python main.py
 
-unset START_DIR PATH_TO_THIS_SCRIPT env_exists
+unset START_DIR PATH_TO_THIS_SCRIPT env_exists EPD_WS_SETUP EPD_SKIP_DOWNLOAD EPD_WS

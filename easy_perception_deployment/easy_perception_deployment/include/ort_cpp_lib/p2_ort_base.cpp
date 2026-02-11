@@ -114,6 +114,9 @@ EPD::EPDObjectDetection P2OrtBase::infer(
   assert(inferenceOutput[1].second.size() == 1);
   size_t nBoxes = inferenceOutput[1].second[0];
 
+  const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
+  const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
+
   std::vector<std::array<int, 4>> bboxes;
   std::vector<uint64_t> classIndices;
   std::vector<float> scores;
@@ -124,10 +127,10 @@ EPD::EPDObjectDetection P2OrtBase::infer(
 
   for (size_t i = 0; i < nBoxes; ++i) {
     if (inferenceOutput[2].first[i] > confThresh) {
-      int xmin = inferenceOutput[0].first[i * 4 + 0] / ratio;
-      int ymin = inferenceOutput[0].first[i * 4 + 1] / ratio;
-      int xmax = inferenceOutput[0].first[i * 4 + 2] / ratio;
-      int ymax = inferenceOutput[0].first[i * 4 + 3] / ratio;
+      int xmin = static_cast<int>(inferenceOutput[0].first[i * 4 + 0] / scale_x);
+      int ymin = static_cast<int>(inferenceOutput[0].first[i * 4 + 1] / scale_y);
+      int xmax = static_cast<int>(inferenceOutput[0].first[i * 4 + 2] / scale_x);
+      int ymax = static_cast<int>(inferenceOutput[0].first[i * 4 + 3] / scale_y);
 
       xmin = std::max<int>(xmin, 0);
       ymin = std::max<int>(ymin, 0);

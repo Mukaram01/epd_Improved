@@ -60,13 +60,7 @@ ImageViewer::ImageViewer()
   cv::moveWindow("image_viewer", 0, 375);
   cv::waitKey(1);
 
-  size_t depth_ = rmw_qos_profile_default.depth;
-  rmw_qos_history_policy_t history_policy_ = rmw_qos_profile_default.history;
-  rmw_qos_reliability_policy_t reliability_policy_ = rmw_qos_profile_default.reliability;
-
-  auto qos = rclcpp::QoS(
-    rclcpp::QoSInitialization(history_policy_, depth_));
-  qos.reliability(reliability_policy_);
+  auto qos = rclcpp::SensorDataQoS().keep_last(10);
 
   sub_1_ = this->create_subscription<sensor_msgs::msg::Image>(
     "/image_viewer/image_input",

@@ -1,24 +1,43 @@
-name: CI
+name: VENDOR_BUILD
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 0'
 
 jobs:
-  industrial_ci:
-    strategy:
-      matrix:
-        env:
-          - {ROS_DISTRO: foxy, ROS_REPO: main}
-          - {ROS_DISTRO: foxy, ROS_REPO: testing}
+  humble_vendor_ci:
+    runs-on: ubuntu-22.04
     env:
-      CCACHE_DIR: ~/.ccache
-    runs-on: ubuntu-20.04
+      ROS_DISTRO: humble
     steps:
-      - uses: actions/checkout@v2
-      # step up caching
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
         with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
-      # Run industrial_ci
-      - uses: 'ros-industrial/industrial_ci@master'
-        env: ${{matrix.env}}
+          python-version: '3.10'
+
+      - name: Set up ROS ${{ env.ROS_DISTRO }}
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: ${{ env.ROS_DISTRO }}
+
+      - name: Install system dependencies
+        working-directory: epd_onnxruntime_vendor
+        run: |
+          sudo apt-get update
+          sudo rosdep init || true
+          rosdep update
+          rosdep install --from-paths . --ignore-src -r -y --rosdistro $ROS_DISTRO
+
+      - name: Build vendor package
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          colcon build --packages-select epd_onnxruntime_vendor --event-handlers console_direct+
+
+      - name: Test vendor package
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          colcon test --packages-select epd_onnxruntime_vendor --event-handlers console_direct+
+          colcon test-result --verbose

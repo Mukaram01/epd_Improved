@@ -1,47 +1,42 @@
-name: CI
+name: ROS_HUMBLE_CI
 
-# Determines when this workflow is run
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  industrial_ci:
-    strategy:
-      matrix:
-        env:
-          - {ROS_DISTRO: foxy, ROS_REPO: testing}
-          - {ROS_DISTRO: foxy, ROS_REPO: main}
-          - ROS_DISTRO: foxy
-            ROS_REPO: main
-            TARGET_CMAKE_ARGS: "-DCMAKE_C_FLAGS='--coverage' -DCMAKE_CXX_FLAGS='--coverage'"
-            AFTER_SCRIPT: "./coverage.sh ci"
-            CODE_COVERAGE: "codecov.io"
+  humble_ci:
+    runs-on: ubuntu-22.04
     env:
-      CCACHE_DIR: /github/home/.ccache
-      # Use custom public docker image
-      UPSTREAM_WORKSPACE: onnxruntime.repos
-      ISOLATION: shell
-
-    runs-on: ubuntu-latest
-    container:
-      image: ubuntu:20.04
+      ROS_DISTRO: humble
+    defaults:
+      run:
+        working-directory: easy_perception_deployment
     steps:
-      - uses: actions/checkout@v2
-      # Fetch/store the directory used by ccache before/after the ci run
-      - uses: actions/cache@v4
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
         with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ matrix.env.ROS_DISTRO }}-${{ matrix.env.ROS_REPO }}
-      # Run industrial_ci
-      - uses: 'ros-industrial/industrial_ci@master'
-        env: ${{ matrix.env }}
-      # Generate and upload code coverage report to codecov.
-      - name: Install dependency for Codecov
-        if: ${{ matrix.env.CODE_COVERAGE == 'codecov.io' }}
-        run: sudo apt install curl git -y
-      - name: Upload coverage reports to Codecov
-        if: ${{ matrix.env.CODE_COVERAGE == 'codecov.io' }}
-        uses: codecov/codecov-action@v5
+          python-version: '3.10'
+
+      - name: Set up ROS ${{ env.ROS_DISTRO }}
+        uses: ros-tooling/setup-ros@v0.7
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.info
-          fail_ci_if_error: true
+          required-ros-distributions: ${{ env.ROS_DISTRO }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo rosdep init || true
+          rosdep update
+          rosdep install --from-paths . --ignore-src -r -y --rosdistro $ROS_DISTRO
+
+      - name: Build workspace
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          colcon build --event-handlers console_direct+
+
+      - name: Test workspace
+        run: |
+          source /opt/ros/$ROS_DISTRO/setup.bash
+          colcon test --event-handlers console_direct+
+          colcon test-result --verbose

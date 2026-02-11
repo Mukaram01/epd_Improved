@@ -743,6 +743,12 @@ void EasyPerceptionDeployment::process_localize_work(
   output_msg.ppy = camera_info->k.at(5);
   output_msg.fy  = camera_info->k.at(4);
 
+  output_msg.objects.reserve(result.data_size);
+
+  geometry_msgs::msg::PoseArray pose_array;
+  pose_array.header = msg->header;
+  pose_array.poses.reserve(result.data_size);
+
   for (size_t i = 0; i < result.data_size; i++) {
     epd_msgs::msg::LocalizedObject object;
     object.name = result.objects[i].name;
@@ -767,6 +773,7 @@ void EasyPerceptionDeployment::process_localize_work(
       object.centroid,
       object.axis,
       result.objects[i].segmented_pcl);
+    pose_array.poses.push_back(object.pose);
 
     output_msg.objects.push_back(object);
   }
@@ -782,15 +789,6 @@ void EasyPerceptionDeployment::process_localize_work(
 
   output_msg.process_time = elapsedTime.count();
   localize_pub->publish(output_msg);
-
-  geometry_msgs::msg::PoseArray pose_array;
-  pose_array.header = msg->header;
-  for (size_t i = 0; i < result.data_size; i++) {
-    pose_array.poses.push_back(buildObjectPose(
-      result.objects[i].centroid,
-      result.objects[i].axis,
-      result.objects[i].segmented_pcl));
-  }
   pose_pub->publish(pose_array);
 
   {
@@ -892,6 +890,13 @@ void EasyPerceptionDeployment::process_tracking_work(
   output_msg.ppy = camera_info->k.at(5);
   output_msg.fy  = camera_info->k.at(4);
 
+  output_msg.object_ids.reserve(result.data_size);
+  output_msg.objects.reserve(result.data_size);
+
+  geometry_msgs::msg::PoseArray pose_array;
+  pose_array.header = msg->header;
+  pose_array.poses.reserve(result.data_size);
+
   for (size_t i = 0; i < result.data_size; i++) {
     epd_msgs::msg::LocalizedObject object;
     object.name = result.objects[i].name;
@@ -916,6 +921,7 @@ void EasyPerceptionDeployment::process_tracking_work(
       object.centroid,
       object.axis,
       result.objects[i].segmented_pcl);
+    pose_array.poses.push_back(object.pose);
 
     output_msg.object_ids.push_back(result.object_ids[i]);
     output_msg.objects.push_back(object);
@@ -932,15 +938,6 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   output_msg.process_time = elapsedTime.count();
   tracking_pub->publish(output_msg);
-
-  geometry_msgs::msg::PoseArray pose_array;
-  pose_array.header = msg->header;
-  for (size_t i = 0; i < result.data_size; i++) {
-    pose_array.poses.push_back(buildObjectPose(
-      result.objects[i].centroid,
-      result.objects[i].axis,
-      result.objects[i].segmented_pcl));
-  }
   pose_pub->publish(pose_array);
 
   {

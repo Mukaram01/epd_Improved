@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -619,7 +620,9 @@ EPD::EPDObjectTracking P3OrtBase::infer(
     }
   }
 
-  tracking_evaluate(bboxes, inputImg, tracker_type, trackers, tracker_logs, tracker_results);
+  std::vector<std::optional<size_t>> detection_to_tracker;
+  tracking_evaluate(
+    bboxes, inputImg, tracker_type, trackers, tracker_logs, tracker_results, detection_to_tracker);
 
   std::vector<std::string> allClassNames = this->getClassNames();
   float maskThreshold = 0.5;
@@ -664,15 +667,11 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 
     output_obj.objects[i].mask = curMask;
 
-    // Print out tracker number tag for object.
-    for (size_t j = 0; j < tracker_results.size(); j++) {
-      if (tracker_results[j].obj_bounding_box.x == curBbox[0] &&
-        tracker_results[j].obj_bounding_box.y == curBbox[1] &&
-        tracker_results[j].obj_bounding_box.width == curBbox[2] - curBbox[0] &&
-        tracker_results[j].obj_bounding_box.height == curBbox[3] - curBbox[1])
-      {
-        output_obj.object_ids[i] = tracker_results[j].obj_tag;
-      }
+    // Map each detection to its matched tracker and preserve persistent object ids.
+    if (i < detection_to_tracker.size() && detection_to_tracker[i].has_value()) {
+      output_obj.object_ids[i] = tracker_results[detection_to_tracker[i].value()].obj_tag;
+    } else {
+      output_obj.object_ids[i] = "untracked";
     }
 
     // Visualizing masks
@@ -844,240 +843,145 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 }
 
 // Filter out accurate tracked objects using both new detection results and predicted
-// trackign results.
+// tracking results while preserving object identity across frames.
 void P3OrtBase::tracking_evaluate(
   const std::vector<std::array<float, 4>> & bboxes,
   const cv::Mat & img,
   const std::string tracker_type,
   std::vector<cv::Ptr<cv::Tracker>> & trackers,
   std::vector<int> & tracker_logs,
-  std::vector<EPD::LabelledRect2d> & tracker_results)
+  std::vector<EPD::LabelledRect2d> & tracker_results,
+  std::vector<std::optional<size_t>> & detection_to_tracker)
 {
-  if (tracker_results.size() == 0 && bboxes.size() == 0) {
-    // Action 1
-    // Do nothing.
-    return;
-  } else if (tracker_results.size() != 0 && bboxes.size() == 0) {
-    // Action 2
-    // If there are no detection results in frame, remove all tracking results
-    // Assumption: Existing static object detections do not fluctuate and disappear for lunch.
+  constexpr float kIouMatchThreshold = 0.3F;
+  constexpr float kCentroidDistanceThreshold = 80.0F;
+  constexpr int kMaxMissedFrames = 3;
+
+  detection_to_tracker.assign(bboxes.size(), std::nullopt);
+
+  if (trackers.size() != tracker_results.size()) {
     trackers.clear();
     tracker_results.clear();
-    return;
-  } else if (tracker_results.size() == 0 && bboxes.size() != 0) {
-    // Action 3
-    // If tracking results is empty,
-    // immediately assign detection results to tracker_results with new labels.
+  }
 
-    for (size_t i = 0; i < bboxes.size(); i++) {
-      create_tracker_tag(tracker_logs);
-
-      const auto & curBbox = bboxes[i];
-      cv::Rect2d detected_box = cv::Rect2d(
-        curBbox[0],
-        curBbox[1],
-        curBbox[2] - curBbox[0],
-        curBbox[3] - curBbox[1]);
-
-      // Create, initialize and add tracker.
-      cv::Ptr<cv::Tracker> temp_tracker = create_tracker(tracker_type);
-      temp_tracker->init(img, detected_box);
-      trackers.push_back(temp_tracker);
-
-      // Create LabelledRect2d object
-      EPD::LabelledRect2d tracker_output;
-      tracker_output.obj_tag = std::to_string(tracker_logs.size());
-      tracker_output.obj_bounding_box = detected_box;
-      tracker_results.push_back(tracker_output);
-    }
-    return;
-  } else if (tracker_results.size() != 0 && bboxes.size() != 0) {
-    // Action 4
-    // If there is new detection results and existing tracking results,
-    // determine if the new detection results are of new objects.
-
-    // Update trackers
-	for (size_t i = 0; i < trackers.size(); i++) {
-	  // OpenCV Tracker::update expects cv::Rect& (int). Our stored bbox is Rect2d (double),
-	  // so convert to a mutable cv::Rect lvalue, then write back.
-	  cv::Rect bbox = tracker_results[i].obj_bounding_box;  // Rect2d -> Rect (rounded/clamped)
-	  const bool ok = trackers[i]->update(img, bbox);
-
-	  if (ok) {
-	    tracker_results[i].obj_bounding_box = cv::Rect2d(bbox);
-	  }
-	  // else: tracking failed; keep previous bbox (or you can mark it invalid)
-	}
-
-
-    constexpr float kIouMatchThreshold = 0.5f;
-
-    if (tracker_results.size() > bboxes.size()) {
-      // Remove tracked objects that have been removed out of frame.
-      // Scan through all detection results.
-
-      // Determine which trackers are updated.
-      // If a tracker is not updated, remove it.
-      std::vector<bool> updatedTrackers(tracker_results.size(), false);
-      std::vector<float> trackerIOUScore(tracker_results.size(), 0.0);
-
-      for (size_t i = 0; i < bboxes.size(); i++) {
-        const auto & curBbox = bboxes[i];
-        cv::Rect2d detected_box(
-          curBbox[0],
-          curBbox[1],
-          curBbox[2] - curBbox[0],
-          curBbox[3] - curBbox[1]);
-
-        // Check through all tracking results and update tracking results.
-        for (size_t j = 0; j < tracker_results.size(); j++) {
-          cv::Rect2d & tracked_box = tracker_results[j].obj_bounding_box;
-          // If detection results boxes has more than 0.5 intersection over union
-          // (IoU), update tracker results boxes with detection results boxes.
-          float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
-            tracked_box = detected_box;
-            trackerIOUScore[j] = iouScore;
-            updatedTrackers[j] = true;
-            break;
-          }
-        }
-      }
-      // Remove all trackers that are not updated.
-      for (size_t i = tracker_results.size(); i-- > 0;) {
-        if (updatedTrackers[i] == false) {
-          trackers.erase(trackers.begin() + i);
-          tracker_results.erase(tracker_results.begin() + i);
-        }
-      }
-
-    } else if (tracker_results.size() < bboxes.size()) {
-      // Update existing trackers and add new object.
-
-      // Add new detection results to existing trackers.
-      // Scan through all detection results.
-
-      // Determine which detections are new.
-      // If a detection is new, add it to trackers and tracker_results.
-      // If a tracker is not updated, remove it.
-      std::vector<bool> newDetection(bboxes.size(), false);
-      std::vector<float> trackerIOUScore(tracker_results.size(), 0.0);
-
-      for (size_t i = 0; i < bboxes.size(); i++) {
-        const auto & curBbox = bboxes[i];
-        cv::Rect2d detected_box(
-          curBbox[0],
-          curBbox[1],
-          curBbox[2] - curBbox[0],
-          curBbox[3] - curBbox[1]);
-
-        // Check through all tracking results and update tracking results.
-        bool isNewDetection = true;
-        for (size_t j = 0; j < tracker_results.size(); j++) {
-          cv::Rect2d & tracked_box = tracker_results[j].obj_bounding_box;
-          // If detection results boxes has more than 0.5 intersection over union
-          // (IoU), update tracker results boxes with detection results boxes.
-          float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
-            tracked_box = detected_box;
-            trackerIOUScore[j] = iouScore;
-            isNewDetection = false;
-            break;
-          }
-        }
-        if (isNewDetection) {
-          newDetection[i] = true;
-        }
-      }
-      // Add new detections to trackers.
-      for (size_t i = 0; i < bboxes.size(); i++) {
-        if (newDetection[i] == true) {
-          const auto & curBbox = bboxes[i];
-          cv::Rect2d detected_box(
-            curBbox[0],
-            curBbox[1],
-            curBbox[2] - curBbox[0],
-            curBbox[3] - curBbox[1]);
-
-          create_tracker_tag(tracker_logs);
-
-          cv::Ptr<cv::Tracker> temp_tracker = create_tracker(tracker_type);
-          temp_tracker->init(img, detected_box);
-          trackers.push_back(temp_tracker);
-
-          EPD::LabelledRect2d tracker_output;
-          tracker_output.obj_tag = std::to_string(tracker_logs.size());
-          tracker_output.obj_bounding_box = detected_box;
-          tracker_results.push_back(tracker_output);
-        }
-      }
-
-    } else {
-      // Update existing trackers or add and remove objects.
-      std::vector<bool> updatedTrackers(tracker_results.size(), false);
-      std::vector<bool> newDetection(bboxes.size(), false);
-      std::vector<float> trackerIOUScore(tracker_results.size(), 0.0);
-
-      for (size_t i = 0; i < bboxes.size(); i++) {
-        const auto & curBbox = bboxes[i];
-        cv::Rect2d detected_box(
-          curBbox[0],
-          curBbox[1],
-          curBbox[2] - curBbox[0],
-          curBbox[3] - curBbox[1]);
-
-        // Check through all tracking results and update tracking results.
-        bool isNewDetection = true;
-        for (size_t j = 0; j < tracker_results.size(); j++) {
-          cv::Rect2d & tracked_box = tracker_results[j].obj_bounding_box;
-          // If detection results boxes has more than 0.5 intersection over union
-          // (IoU), update tracker results boxes with detection results boxes.
-          float iouScore = getIOU(detected_box, tracked_box);
-          if (iouScore > kIouMatchThreshold && iouScore > trackerIOUScore[j]) {
-            tracked_box = detected_box;
-            isNewDetection = false;
-            updatedTrackers[j] = true;
-            trackerIOUScore[j] = iouScore;
-            break;
-          }
-        }
-        if (isNewDetection) {
-          newDetection[i] = true;
-        }
-      }
-
-      // Add new detections to trackers.
-      for (size_t i = 0; i < bboxes.size(); i++) {
-        if (newDetection[i] == true) {
-          const auto & curBbox = bboxes[i];
-          cv::Rect2d detected_box(
-            curBbox[0],
-            curBbox[1],
-            curBbox[2] - curBbox[0],
-            curBbox[3] - curBbox[1]);
-
-          create_tracker_tag(tracker_logs);
-
-          cv::Ptr<cv::Tracker> temp_tracker = create_tracker(tracker_type);
-          temp_tracker->init(img, detected_box);
-          trackers.push_back(temp_tracker);
-
-          EPD::LabelledRect2d tracker_output;
-          tracker_output.obj_tag = std::to_string(tracker_logs.size());
-          tracker_output.obj_bounding_box = detected_box;
-          tracker_results.push_back(tracker_output);
-        }
-      }
-
-      // Remove all trackers that are not updated.
-      for (size_t i = tracker_results.size(); i-- > 0;) {
-        if (updatedTrackers[i] == false) {
-          trackers.erase(trackers.begin() + i);
-          tracker_results.erase(tracker_results.begin() + i);
-        }
+  if (bboxes.empty()) {
+    for (size_t i = tracker_results.size(); i-- > 0;) {
+      tracker_results[i].missed_frames += 1;
+      if (tracker_results[i].missed_frames > kMaxMissedFrames) {
+        trackers.erase(trackers.begin() + i);
+        tracker_results.erase(tracker_results.begin() + i);
       }
     }
     return;
+  }
+
+  for (size_t i = 0; i < trackers.size(); ++i) {
+    cv::Rect tracker_bbox = tracker_results[i].obj_bounding_box;
+    const bool ok = trackers[i]->update(img, tracker_bbox);
+    if (ok) {
+      tracker_results[i].obj_bounding_box = cv::Rect2d(tracker_bbox);
+    }
+  }
+
+  std::vector<cv::Rect2d> detected_boxes;
+  detected_boxes.reserve(bboxes.size());
+  for (const auto & cur_bbox : bboxes) {
+    detected_boxes.emplace_back(
+      cur_bbox[0],
+      cur_bbox[1],
+      cur_bbox[2] - cur_bbox[0],
+      cur_bbox[3] - cur_bbox[1]);
+  }
+
+  const size_t n_detections = detected_boxes.size();
+  const size_t n_trackers = tracker_results.size();
+
+  struct CandidateMatch
+  {
+    size_t detection_idx;
+    size_t tracker_idx;
+    float score;
+  };
+
+  std::vector<CandidateMatch> candidates;
+  candidates.reserve(n_detections * std::max<size_t>(n_trackers, 1));
+
+  for (size_t det_idx = 0; det_idx < n_detections; ++det_idx) {
+    const auto & detected_box = detected_boxes[det_idx];
+    const cv::Point2d det_center(
+      detected_box.x + (detected_box.width / 2.0),
+      detected_box.y + (detected_box.height / 2.0));
+
+    for (size_t tracker_idx = 0; tracker_idx < n_trackers; ++tracker_idx) {
+      const auto & tracked_box = tracker_results[tracker_idx].obj_bounding_box;
+      const cv::Point2d tracked_center(
+        tracked_box.x + (tracked_box.width / 2.0),
+        tracked_box.y + (tracked_box.height / 2.0));
+
+      const float iou_score = static_cast<float>(getIOU(detected_box, tracked_box));
+      const float centroid_distance = static_cast<float>(cv::norm(det_center - tracked_center));
+
+      if (iou_score < kIouMatchThreshold && centroid_distance > kCentroidDistanceThreshold) {
+        continue;
+      }
+
+      const float normalized_distance =
+        std::min(centroid_distance / kCentroidDistanceThreshold, 1.0F);
+      const float score = iou_score - (0.2F * normalized_distance);
+      candidates.push_back({det_idx, tracker_idx, score});
+    }
+  }
+
+  std::sort(
+    candidates.begin(),
+    candidates.end(),
+    [](const CandidateMatch & lhs, const CandidateMatch & rhs) {
+      return lhs.score > rhs.score;
+    });
+
+  std::vector<bool> detection_matched(n_detections, false);
+  std::vector<bool> tracker_matched(n_trackers, false);
+
+  for (const auto & candidate : candidates) {
+    if (detection_matched[candidate.detection_idx] || tracker_matched[candidate.tracker_idx]) {
+      continue;
+    }
+    detection_matched[candidate.detection_idx] = true;
+    tracker_matched[candidate.tracker_idx] = true;
+    tracker_results[candidate.tracker_idx].obj_bounding_box = detected_boxes[candidate.detection_idx];
+    tracker_results[candidate.tracker_idx].missed_frames = 0;
+    detection_to_tracker[candidate.detection_idx] = candidate.tracker_idx;
+  }
+
+  for (size_t tracker_idx = n_trackers; tracker_idx-- > 0;) {
+    if (tracker_matched[tracker_idx]) {
+      continue;
+    }
+    tracker_results[tracker_idx].missed_frames += 1;
+    if (tracker_results[tracker_idx].missed_frames > kMaxMissedFrames) {
+      trackers.erase(trackers.begin() + tracker_idx);
+      tracker_results.erase(tracker_results.begin() + tracker_idx);
+    }
+  }
+
+  for (size_t det_idx = 0; det_idx < n_detections; ++det_idx) {
+    if (detection_matched[det_idx]) {
+      continue;
+    }
+
+    create_tracker_tag(tracker_logs);
+
+    cv::Ptr<cv::Tracker> temp_tracker = create_tracker(tracker_type);
+    temp_tracker->init(img, detected_boxes[det_idx]);
+    trackers.push_back(temp_tracker);
+
+    EPD::LabelledRect2d tracker_output;
+    tracker_output.obj_tag = std::to_string(tracker_logs.back());
+    tracker_output.obj_bounding_box = detected_boxes[det_idx];
+    tracker_output.missed_frames = 0;
+    tracker_results.push_back(tracker_output);
+
+    detection_to_tracker[det_idx] = tracker_results.size() - 1;
   }
 }
 

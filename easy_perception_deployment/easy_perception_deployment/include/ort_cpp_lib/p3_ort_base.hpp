@@ -198,7 +198,8 @@ private:
     const std::string tracker_type,
     std::vector<cv::Ptr<cv::Tracker>> & trackers,
     std::vector<int> & tracker_logs,
-    std::vector<EPD::LabelledRect2d> & tracker_results);
+    std::vector<EPD::LabelledRect2d> & tracker_results,
+    std::vector<std::optional<size_t>> & detection_to_tracker);
 
   /*! \brief A Mutator function that takes P3 inference outputs and illustrates
   derived bounding boxes with corresponding object labels for visualization

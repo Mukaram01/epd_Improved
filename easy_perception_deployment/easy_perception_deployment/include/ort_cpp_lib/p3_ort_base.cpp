@@ -345,7 +345,6 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
 
   std::vector<std::string> allClassNames = this->getClassNames();
   float maskThreshold = 0.5;
-  cv::Mat result = inputImg.clone();
 
   assert(bboxes.size() == classIndices.size());
   // if (!allClassNames.empty()) {
@@ -412,7 +411,6 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
 
     // Getting rotated rectangle and draw the major axis
     std::vector<cv::RotatedRect> minRect(contours.size());
-    std::vector<float> angles;
     float obj_surface_depth;
     cv::Point pt_a, pt_b, pt_c, pt_d;
     cv::Point rotated_mid;
@@ -489,7 +487,6 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
       segmented_cloud->header.frame_id = "camera_color_optical_frame";
       segmented_cloud->is_dense = true;
 
-      cv::Mat tempImg = inputImg.clone();
 
       // Converting Depth Image to PointCloud
       for (int j = 0; j < tempFinalMask.rows; j++) {
@@ -635,7 +632,6 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 
   std::vector<std::string> allClassNames = this->getClassNames();
   float maskThreshold = 0.5;
-  cv::Mat result = inputImg.clone();
 
   // assert(bboxes.size() == classIndices.size());
   // if (!allClassNames.empty()) {
@@ -710,7 +706,6 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 
     // Getting rotated rectangle and draw the major axis
     std::vector<cv::RotatedRect> minRect(contours.size());
-    std::vector<float> angles;
     float obj_surface_depth;
     cv::Point pt_a, pt_b, pt_c, pt_d;
     cv::Point rotated_mid;
@@ -787,7 +782,6 @@ EPD::EPDObjectTracking P3OrtBase::infer(
       segmented_cloud->header.frame_id = "camera_color_optical_frame";
       segmented_cloud->is_dense = true;
 
-      cv::Mat tempImg = inputImg.clone();
 
       // Converting Depth Image to PointCloud
       for (int j = 0; j < tempFinalMask.rows; j++) {

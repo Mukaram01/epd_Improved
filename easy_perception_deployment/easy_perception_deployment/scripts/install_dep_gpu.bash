@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Copyright 2022 Advanced Remanufacturing and Technology Centre
 # Copyright 2022 ROS-Industrial Consortium Asia Pacific Team
@@ -30,7 +31,7 @@ function version_greater_equal() {
 }
 
 export CUDA_HOME=/usr/local/cuda
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}:/usr/local/cuda/lib64:/usr/local/cuda/extras/CUPTI/lib64
 export PATH=$PATH:$CUDA_HOME/bin
 
 readonly CMAKE_LOWEST_VERSION="3.13"
@@ -38,19 +39,15 @@ readonly CURRENT_DIR=$(dirname $(realpath $0))
 readonly CMAKE_VERSION=`cmake --version | head -n1 | cut -d" " -f3`
 readonly CUDA_VERSION=`nvcc --version | grep release | awk '{print $6}' | cut -c 2-4`
 readonly CUDA_HOME=/usr/local/cuda
-readonly ONNXRUNTIME_VERSION="v1.3.1"
 
 # Check if wifi is on. This is to prevent early detection and
 # termination of faulty download procedure before any download is done.
-wget -q --spider http://google.com
-if [ $? -eq 0 ]; then
+if wget -q --spider http://google.com; then
     echo "[ WIFI ] - FOUND . Proceeding with download."
 else
     echo "[ WIFI ] - NOTFOUND . Please ensure you are properly connected to the internet before running this script again."
-    exit
+    exit 1
 fi
-
-sudo -l env "PATH=$PATH"
 
 echo "-------------------------------------------------------------------------"
 echo "Checking dependencies..."
@@ -84,13 +81,17 @@ if ! version_greater_equal "${CMAKE_VERSION}" "${CMAKE_LOWEST_VERSION}"; then
 fi
 
 # Checks if CUDNN is installed.
-if dpkg -L libcudnn7 &> /dev/null; then
+if dpkg -L libcudnn9-cuda-12 &> /dev/null; then
+    readonly CUDNN_HOME=`dirname $(dpkg -L libcudnn9-cuda-12 | grep libcudnn.so | head -n1)`
+elif dpkg -L libcudnn8 &> /dev/null; then
+    readonly CUDNN_HOME=`dirname $(dpkg -L libcudnn8 | grep libcudnn.so | head -n1)`
+elif dpkg -L libcudnn7 &> /dev/null; then
     readonly CUDNN_HOME=`dirname $(dpkg -L libcudnn7 | grep libcudnn.so | head -n1)`
 elif ls ${CUDA_HOME}/include/ | grep cudnn &> /dev/null; then
     readonly CUDNN_HOME=${CUDA_HOME}
 else
     echo "Need to install CUDNN."
-    exit
+    exit 1
 fi
 
 sudo apt-get install -y wget
@@ -100,7 +101,7 @@ sudo apt-get install -y python3-colcon-common-extensions
 sudo apt-get install -y git python3-rosdep
 # Install onnxruntime dependencoes
 sudo apt-get install -y libgomp1
-sudo apt install zlib1g-dev
+sudo apt-get install -y zlib1g-dev
 sudo apt-get install -y locales
 sudo apt-get install -y language-pack-en
 sudo locale-gen en_US.UTF-8
@@ -120,7 +121,7 @@ else
     export PATH="/home/$USER/anaconda3/bin:$PATH"
     conda init
     conda config --set auto_activate_base False
-    conda deactivate
+    conda deactivate || true
 fi
 
 unset output

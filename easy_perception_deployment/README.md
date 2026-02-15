@@ -20,38 +20,167 @@
 
 This package claims to be in the **Quality Level 4** category, see the [**Quality Declaration**](https://github.com/cardboardcode/easy_perception_deployment/blob/master/QUALITY_DECLARATION.md) for more details.
 
-## **Setup**
+## **Install (Ubuntu 22.04 + ROS 2 Humble)**
 
-This section lists steps on how to build **easy_perception_deployment** package using ROS2 build tools. The instructions assume ROS 2 Humble on Ubuntu 22.04 (Jammy).
+This section lists reproducible steps to build and run **easy_perception_deployment** on Ubuntu 22.04 (Jammy) with ROS 2 Humble.
 
-``` bash
-# Create ROS2 workspace
-cd $HOME
-mkdir -p epd_ros2_ws/src && cd epd_ros2_ws/src
+```bash
+# 1) Base tools + ROS build dependencies
+sudo apt update
+sudo apt install -y \
+  curl \
+  git \
+  python3-colcon-common-extensions \
+  python3-rosdep \
+  python3-vcstool \
+  ros-humble-vision-opencv \
+  ros-humble-cv-bridge \
+  ros-humble-pcl-conversions \
+  ros-humble-sensor-msgs \
+  ros-humble-message-filters \
+  ros-humble-geometry-msgs \
+  ros-humble-tf2 \
+  libopencv-dev \
+  libjsoncpp-dev
 
-# Download fast and shallow copy of easy_perception_deployment
+# 2) Initialize rosdep once per machine
+sudo rosdep init || true
+rosdep update
+
+# 3) Create workspace and clone EPD
+mkdir -p "$HOME/epd_ros2_ws/src"
+cd "$HOME/epd_ros2_ws/src"
 git clone https://github.com/ros-industrial/easy_perception_deployment.git
 
-# Fetch vendor dependencies (onnxruntime)
+# Optional: import ONNX Runtime vendor repos used by this project
 vcs import < easy_perception_deployment/onnxruntime.repos
 
-# Install dependencies
-cd $HOME/epd_ros2_ws/
+# 4) Install package dependencies
+cd "$HOME/epd_ros2_ws"
 source /opt/ros/humble/setup.bash
-rosdep install --from-paths src --ignore-src -y
+rosdep install --from-paths src --ignore-src -r -y
 
-# Build the ROS2 workspace
-colcon build
-
-# Source the workspace after building so EPD/EMD can see custom messages.
-# Ensure epd_msgs is built and sourced so its interfaces are available
-# (historical issue #15).
+# 5) Build and source
+colcon build --symlink-install
 source install/setup.bash
+```
 
-# Start up GUI interface.
-cd src/easy_perception_deployment/easy_perception_deployment
+Start the GUI workflow (downloads models and sets up the conda env as needed):
+
+```bash
+cd "$HOME/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment"
 bash run.bash
 ```
+
+## **RealSense setup (D435i)**
+
+On Ubuntu 22.04 + ROS 2 Humble, two RealSense issues are common:
+
+1. **`iio-sensor-proxy` conflicts with IMU streams** (gyro/accel topics may fail).
+2. **Linux permissions** block camera access for non-root users.
+
+Apply both fixes:
+
+```bash
+# 1) Stop iio-sensor-proxy and prevent it from restarting
+sudo systemctl stop iio-sensor-proxy.service
+sudo systemctl disable iio-sensor-proxy.service
+sudo systemctl mask iio-sensor-proxy.service
+
+# 2) Grant camera-related device access to your user
+sudo usermod -aG video,plugdev,input "$USER"
+
+# Re-login (or reboot) after changing groups
+```
+
+Quick verification checklist:
+
+```bash
+# A) Device nodes exist (and are group-readable)
+ls -l /dev/video*
+
+# B) RealSense camera node launches with IMU enabled
+source /opt/ros/humble/setup.bash
+ros2 launch realsense2_camera rs_launch.py \
+  enable_gyro:=true \
+  enable_accel:=true
+
+# C) Topics use /camera/camera prefix (expected with rs_launch.py)
+ros2 topic list | grep /camera/camera
+```
+
+## **Run EPD node with RealSense topics**
+
+Default RealSense topic names expected in this setup are:
+
+* `/camera/camera/color/image_raw`
+* `/camera/camera/color/camera_info`
+* `/camera/camera/depth/image_rect_raw` (or aligned depth when available)
+
+EPD supports two ways to connect these topics without creating new launch files.
+
+### **Option 1 (preferred): pass launch arguments**
+
+`easy_perception_deployment/launch/run.launch.py` already provides `rgb_topic`, `camera_info_topic`, and `depth_topic` arguments:
+
+```bash
+source /opt/ros/humble/setup.bash
+source "$HOME/epd_ros2_ws/install/setup.bash"
+
+ros2 launch easy_perception_deployment run.launch.py \
+  rgb_topic:=/camera/camera/color/image_raw \
+  camera_info_topic:=/camera/camera/color/camera_info \
+  depth_topic:=/camera/camera/depth/image_rect_raw
+```
+
+If aligned depth is available, set:
+
+```bash
+depth_topic:=/camera/camera/aligned_depth_to_color/image_raw
+```
+
+### **Option 2: ROS remaps at launch-time**
+
+You can also remap EPD defaults directly in the launch command:
+
+```bash
+source /opt/ros/humble/setup.bash
+source "$HOME/epd_ros2_ws/install/setup.bash"
+
+ros2 launch easy_perception_deployment run.launch.py --ros-args \
+  -r /camera/color/image_raw:=/camera/camera/color/image_raw \
+  -r /camera/color/camera_info:=/camera/camera/color/camera_info \
+  -r /camera/depth/image_rect_raw:=/camera/camera/depth/image_rect_raw \
+  -r /camera/aligned_depth_to_color/image_raw:=/camera/camera/aligned_depth_to_color/image_raw
+```
+
+> **Common mistakes**
+>
+> * `ros2 topic hz /camera/color/image_raw` is usually wrong for RealSense with `rs_launch.py` because it misses the `/camera/camera` prefix.
+> * `/camera/imu` typically does not exist for this setup. Use:
+>   * `/camera/camera/gyro/sample`
+>   * `/camera/camera/accel/sample`
+
+## **run.bash notes**
+
+`run.bash` is hardened for shells that use `set -u` (nounset). Older copies could fail with:
+
+```text
+AMENT_TRACE_SETUP_FILES: unbound variable
+```
+
+Pull the latest branch before running so you get robust ROS setup sourcing:
+
+```bash
+cd "$HOME/epd_ros2_ws/src/easy_perception_deployment"
+git pull
+```
+
+Environment variables recognized by `run.bash`:
+
+* `EPD_WS`: workspace root used to find `install/setup.bash`.
+* `EPD_SKIP_DOWNLOAD`: set to `1` to skip automatic model downloads.
+* `ROS_DISTRO`: ROS distro used when sourcing `/opt/ros/<distro>/setup.bash` (defaults to `humble`).
 
 ## **Model Downloads**
 

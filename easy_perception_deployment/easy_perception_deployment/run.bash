@@ -100,7 +100,6 @@ if [ -z "$env_exists" ]
 then
       echo "Installing epd_gui_env conda environment."
       conda create -n epd_gui_env python=3.10 -y
-#       eval "$(conda shell.bash hook)"
       conda activate epd_gui_env
       pip install PySide6
       pip install dateutils==0.6.12
@@ -130,19 +129,31 @@ resolve_epd_workspace_setup() {
     echo "$HOME/epd_ros2_ws/install/setup.bash"
 }
 
-# eval "$(conda shell.bash hook)"
 conda activate epd_gui_env
+
 ROS_DISTRO="${ROS_DISTRO:-humble}"
+
+# ---- FIX: ROS setup + `set -u` compatibility (prevents AMENT_TRACE_SETUP_FILES unbound)
+set +u
+: "${AMENT_TRACE_SETUP_FILES:=}"
 source "/opt/ros/${ROS_DISTRO}/setup.bash"
+set -u
+
 EPD_WS_SETUP=$(resolve_epd_workspace_setup)
 if [ ! -f "$EPD_WS_SETUP" ]; then
     echo "Unable to find workspace setup script: $EPD_WS_SETUP"
     echo "Set EPD_WS to your workspace root or COLCON_PREFIX_PATH to an installed prefix."
     exit 1
 fi
+
+set +u
+: "${AMENT_TRACE_SETUP_FILES:=}"
 source "$EPD_WS_SETUP"
+set -u
+# ---- end fix
 
 cd "$START_DIR/gui"
 python main.py
 
 unset START_DIR PATH_TO_THIS_SCRIPT env_exists EPD_WS_SETUP EPD_SKIP_DOWNLOAD EPD_WS
+

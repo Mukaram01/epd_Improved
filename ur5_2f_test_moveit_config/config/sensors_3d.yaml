@@ -1,0 +1,16 @@
+# 3D sensor configuration for MoveIt occupancy map monitor
+# Loaded by move_group via launch parameter: occupancy_map_monitor
+sensors:
+  - point_cloud_sensor
+
+point_cloud_sensor:
+  sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+  point_cloud_topic: /camera/depth/color/points
+  max_range: 5.0
+  point_subsample: 1
+  padding_offset: 0.03
+  padding_scale: 1.0
+  max_update_rate: 10.0
+  filtered_cloud_topic: filtered_cloud
+  ns: camera
+  frame_subsample: 1

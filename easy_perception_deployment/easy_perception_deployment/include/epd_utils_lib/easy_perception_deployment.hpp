@@ -221,6 +221,12 @@ private:
   sensor_msgs::msg::CameraInfo::SharedPtr latest_camera_info_;
 
   std::mutex ort_mutex_;
+
+  std::mutex service_mutex_;
+  std::condition_variable service_cv_;
+  bool service_result_ready_{false};
+  epd_msgs::msg::EPDObjectLocalization latest_service_localization_;
+  epd_msgs::msg::EPDObjectTracking latest_service_tracking_;
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
@@ -320,14 +326,27 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     disableLocalizeInputs();
   }
 
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    if (ortAgent_.isService()) {
+      ortAgent_.requestAddressed = true;
+    }
+  }
+
   auto handle_emd_request =
     [this](
     const std::shared_ptr<epd_msgs::srv::Perception::Request> request,
     std::shared_ptr<epd_msgs::srv::Perception::Response> response) -> void
     {
-      (void)request;
       RCLCPP_INFO(this->get_logger(), "[ RECEIVED ] - EMD Grasp-Planner Request");
-      response->success = true;
+
+      if (!request->ready) {
+        RCLCPP_WARN(this->get_logger(), "Service request ignored: ready=false");
+        response->success = false;
+        std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+        response->tracking_enabled = (ortAgent_.useCaseMode == EPD::TRACKING_MODE);
+        return;
+      }
 
       {
         std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -338,6 +357,13 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       {
         std::lock_guard<std::mutex> ort_guard(ort_mutex_);
         use_case_mode = ortAgent_.useCaseMode;
+      }
+
+      {
+        std::lock_guard<std::mutex> service_guard(service_mutex_);
+        service_result_ready_ = false;
+        latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
+        latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
       }
 
       if (use_case_mode == EPD::LOCALISATION_MODE ||
@@ -361,6 +387,34 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         std::lock_guard<std::mutex> ort_guard(ort_mutex_);
         ortAgent_.requestAddressed = false;
       }
+
+      if (!(use_case_mode == EPD::LOCALISATION_MODE ||
+        use_case_mode == EPD::TRACKING_MODE))
+      {
+        response->success = true;
+        return;
+      }
+
+      constexpr auto service_timeout = std::chrono::seconds(5);
+      RCLCPP_INFO(this->get_logger(), "Waiting for EPD service result...");
+
+      std::unique_lock<std::mutex> service_lock(service_mutex_);
+      const bool got_result = service_cv_.wait_for(
+        service_lock,
+        service_timeout,
+        [this]() {return service_result_ready_;});
+
+      if (!got_result) {
+        response->success = false;
+        response->epd_localization = epd_msgs::msg::EPDObjectLocalization();
+        response->epd_tracking = epd_msgs::msg::EPDObjectTracking();
+        RCLCPP_WARN(this->get_logger(), "Timed out waiting for EPD service result");
+        return;
+      }
+
+      response->success = true;
+      response->epd_localization = latest_service_localization_;
+      response->epd_tracking = latest_service_tracking_;
     };
 
   srv_ = this->create_service<epd_msgs::srv::Perception>(
@@ -792,11 +846,24 @@ void EasyPerceptionDeployment::process_localize_work(
   localize_pub->publish(output_msg);
   pose_pub->publish(pose_array);
 
+  bool is_service_mode = false;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    if (ortAgent_.isService()) {
+    is_service_mode = ortAgent_.isService();
+    if (is_service_mode) {
       ortAgent_.requestAddressed = true;
     }
+  }
+
+  if (is_service_mode) {
+    {
+      std::lock_guard<std::mutex> service_guard(service_mutex_);
+      latest_service_localization_ = output_msg;
+      latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
+      service_result_ready_ = true;
+    }
+    RCLCPP_INFO(this->get_logger(), "Stored localization result for service response");
+    service_cv_.notify_all();
   }
 }
 
@@ -941,11 +1008,24 @@ void EasyPerceptionDeployment::process_tracking_work(
   tracking_pub->publish(output_msg);
   pose_pub->publish(pose_array);
 
+  bool is_service_mode = false;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    if (ortAgent_.isService()) {
+    is_service_mode = ortAgent_.isService();
+    if (is_service_mode) {
       ortAgent_.requestAddressed = true;
     }
+  }
+
+  if (is_service_mode) {
+    {
+      std::lock_guard<std::mutex> service_guard(service_mutex_);
+      latest_service_tracking_ = output_msg;
+      latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
+      service_result_ready_ = true;
+    }
+    RCLCPP_INFO(this->get_logger(), "Stored tracking result for service response");
+    service_cv_.notify_all();
   }
 }
 

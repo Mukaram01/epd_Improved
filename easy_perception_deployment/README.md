@@ -50,7 +50,7 @@ rosdep update
 # 3) Create workspace and clone EPD
 mkdir -p "$HOME/epd_ros2_ws/src"
 cd "$HOME/epd_ros2_ws/src"
-git clone https://github.com/ros-industrial/easy_perception_deployment.git
+git clone https://github.com/Mukaram01/epd_Improved.git
 
 # Optional: import ONNX Runtime vendor repos used by this project
 vcs import < easy_perception_deployment/onnxruntime.repos

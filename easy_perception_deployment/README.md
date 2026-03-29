@@ -50,7 +50,7 @@ rosdep update
 # 3) Create workspace and clone EPD
 mkdir -p "$HOME/epd_ros2_ws/src"
 cd "$HOME/epd_ros2_ws/src"
-git clone https://github.com/Mukaram01/epd_Improved.git
+git clone https://github.com/Mukaram01/epd_Improved.git .
 
 # Optional: import ONNX Runtime vendor repos used by this project
 vcs import < easy_perception_deployment/onnxruntime.repos
@@ -61,7 +61,7 @@ source /opt/ros/humble/setup.bash
 rosdep install --from-paths src --ignore-src -r -y
 
 # 5) Build and source
-colcon build --symlink-install
+colcon build --symlink-install --cmake-args -DEPD_DOWNLOAD_MODELS=ON
 source install/setup.bash
 ```
 

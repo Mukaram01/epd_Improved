@@ -176,7 +176,7 @@ private:
   void subscribeDetectionDepthInputs();
   void enableDetectionInputs();
   void disableDetectionInputs();
-  void enableLocalizeInputs(const int use_case_mode);
+  void enableLocalizeInputs(const unsigned int use_case_mode);
   void disableLocalizeInputs();
   std::string resolveDepthTransport(const std::string & transport) const;
 
@@ -236,8 +236,6 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 {
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
-  const auto camera_info_qos = rclcpp::SensorDataQoS().keep_last(1);
-
   // FIX: Humble requires declare_parameter<T>(name, default)
   this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
   this->declare_parameter<std::string>("rgb_topic", "/camera/color/image_raw");
@@ -353,7 +351,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         response->tracking_enabled = (ortAgent_.useCaseMode == EPD::TRACKING_MODE);
       }
 
-      int use_case_mode = 0;
+      unsigned int use_case_mode = 0;
       {
         std::lock_guard<std::mutex> ort_guard(ort_mutex_);
         use_case_mode = ortAgent_.useCaseMode;
@@ -558,7 +556,7 @@ void EasyPerceptionDeployment::disableDetectionInputs()
   depth_input_active_ = false;
 }
 
-void EasyPerceptionDeployment::enableLocalizeInputs(const int use_case_mode)
+void EasyPerceptionDeployment::enableLocalizeInputs(const unsigned int use_case_mode)
 {
   disableDetectionInputs();
 
@@ -572,7 +570,7 @@ void EasyPerceptionDeployment::enableLocalizeInputs(const int use_case_mode)
     localize_input_active_ = true;
   }
 
-  if (sync_callback_mode_ == use_case_mode) {
+  if (sync_callback_mode_ == static_cast<int>(use_case_mode)) {
     return;
   }
 
@@ -584,7 +582,7 @@ void EasyPerceptionDeployment::enableLocalizeInputs(const int use_case_mode)
     sync_connection_ =
       sync_.registerCallback(&EasyPerceptionDeployment::tracking_callback, this);
   }
-  sync_callback_mode_ = use_case_mode;
+  sync_callback_mode_ = static_cast<int>(use_case_mode);
 }
 
 void EasyPerceptionDeployment::disableLocalizeInputs()

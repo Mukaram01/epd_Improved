@@ -182,6 +182,8 @@ class DeployWindow(QWidget):
         self.useCPU = True
         self._intra_op_num_threads = 0
         self.publish_detection_segmentation = True
+        self._confidence_threshold = 0.5
+        self._max_detections = 100
 
         self._path_to_session_config = ('../config/session_config.json')
         self._path_to_usecase_config = ('../config/usecase_config.json')
@@ -234,6 +236,10 @@ class DeployWindow(QWidget):
             self.publish_detection_segmentation = session_config.get(
                 "publish_detection_segmentation",
                 True)
+            self._confidence_threshold = float(session_config.get(
+                "confidence_threshold", 0.5))
+            self._max_detections = int(session_config.get(
+                "max_detections", 100))
             if session_config["visualizeFlag"] == "visualize":
                 self.visualizeFlag = True
             else:
@@ -252,6 +258,8 @@ class DeployWindow(QWidget):
             self.useCPU = True
             self._intra_op_num_threads = 0
             self._image_transport = 'raw'
+            self._confidence_threshold = 0.5
+            self._max_detections = 100
 
         try:
             self.usecase_mode = int(usecase_config["usecase_mode"])
@@ -839,7 +847,10 @@ class DeployWindow(QWidget):
             "useCPU": useCPU_string,
             "intra_op_num_threads": self._intra_op_num_threads,
             "image_transport": self._image_transport,
-            "publish_detection_segmentation": self.publish_detection_segmentation
+            "publish_detection_segmentation": (
+                self.publish_detection_segmentation),
+            "confidence_threshold": self._confidence_threshold,
+            "max_detections": self._max_detections
             }
         json_object = json.dumps(dict, indent=4)
 
@@ -887,21 +898,60 @@ class DeployWindow(QWidget):
             input_classes_filepath = 'dummy_label_list_filepath'
             ok = True
 
-        if ok:
-            self._path_to_label_list = input_classes_filepath
-
-            index = input_classes_filepath.find('/data/label_list')
-            if index == -1:
-                self._path_to_label_list = input_classes_filepath
-            else:
-                self._path_to_label_list = '.' + input_classes_filepath[index:]
-        else:
+        if not ok:
             self.deploy_logger.warning('No label list set.')
             return
+
+        # Validate the selected label list file before accepting it.
+        validation_error = self._validate_label_list_file(
+            input_classes_filepath)
+        if validation_error is not None:
+            self.deploy_logger.error(
+                'Invalid label list file [%s]: %s',
+                input_classes_filepath,
+                validation_error)
+            if not self.debug:
+                msgBox = QMessageBox()
+                msgBox.setWindowTitle('Invalid Label List')
+                msgBox.setText(
+                    'The selected label list file is invalid:\n\n' +
+                    validation_error +
+                    '\n\nPlease select a valid UTF-8 text file with at '
+                    'least one non-empty class name.')
+                msgBox.exec()
+            return
+
+        index = input_classes_filepath.find('/data/label_list')
+        if index == -1:
+            self._path_to_label_list = input_classes_filepath
+        else:
+            self._path_to_label_list = '.' + input_classes_filepath[index:]
 
         self.list_button.setStyleSheet('background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
         self.validateDeployInputs()
+
+    def _validate_label_list_file(self, filepath):
+        '''
+        Validate a label list text file.
+        Returns None if valid, or an error string describing the problem.
+        '''
+        if not filepath or filepath == 'dummy_label_list_filepath':
+            return None
+        try:
+            with open(filepath, encoding='utf-8') as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            return 'File not found: ' + filepath
+        except PermissionError:
+            return 'Permission denied reading file: ' + filepath
+        except UnicodeDecodeError as e:
+            return 'File is not valid UTF-8 text: ' + str(e)
+
+        non_empty = [ln.strip() for ln in lines if ln.strip()]
+        if not non_empty:
+            return 'File contains no non-empty class labels.'
+        return None
 
     def resolveFilePath(self, input_filepath):
         '''Resolve a file path for validation.'''

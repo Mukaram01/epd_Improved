@@ -70,6 +70,12 @@ public:
   std::string image_transport;
   /*! \brief Publish detection masks and point clouds in detection mode. */
   bool publish_detection_segmentation;
+  /*! \brief Minimum confidence score for a detection to be published.
+  * Detections with score below this threshold are filtered out. */
+  float confidence_threshold;
+  /*! \brief Maximum number of detections to publish per frame.
+  * Set to 0 to disable the limit. */
+  int max_detections;
 
   /*! \brief The selected use-case mode. Values can only be 0,1,2.\n
   *  See usecase_config.hpp for more details.\n

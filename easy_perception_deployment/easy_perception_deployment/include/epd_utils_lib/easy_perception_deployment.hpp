@@ -200,6 +200,10 @@ private:
     const sensor_msgs::msg::Image::ConstSharedPtr & msg,
     const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
     const sensor_msgs::msg::CameraInfo::SharedPtr camera_info);
+  EPD::EPDObjectDetection applyDetectionFilters(
+    const EPD::EPDObjectDetection & raw,
+    float confidence_threshold,
+    int max_detections) const;
   void worker_loop();
   geometry_msgs::msg::Pose buildObjectPose(
     const geometry_msgs::msg::Point & centroid,
@@ -1097,6 +1101,34 @@ geometry_msgs::msg::Quaternion EasyPerceptionDeployment::buildOrientationFromAxi
   return orientation;
 }
 
+// Filter detections by confidence_threshold and max_detections from ortAgent_ config.
+// Returns a new EPDObjectDetection with only the accepted detections.
+EPD::EPDObjectDetection EasyPerceptionDeployment::applyDetectionFilters(
+  const EPD::EPDObjectDetection & raw, float confidence_threshold, int max_detections) const
+{
+  EPD::EPDObjectDetection filtered(0);
+  const bool has_masks = !raw.masks.empty();
+
+  for (size_t i = 0; i < raw.data_size; i++) {
+    if (raw.scores[i] < confidence_threshold) {
+      continue;
+    }
+    if (max_detections > 0 &&
+      static_cast<int>(filtered.bboxes.size()) >= max_detections)
+    {
+      break;
+    }
+    filtered.bboxes.push_back(raw.bboxes[i]);
+    filtered.classIndices.push_back(raw.classIndices[i]);
+    filtered.scores.push_back(raw.scores[i]);
+    if (has_masks && i < raw.masks.size()) {
+      filtered.masks.push_back(raw.masks[i]);
+    }
+  }
+  filtered.data_size = filtered.bboxes.size();
+  return filtered;
+}
+
 void EasyPerceptionDeployment::process_image_work(
   const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
@@ -1163,6 +1195,15 @@ void EasyPerceptionDeployment::process_image_work(
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
 
+        // Apply confidence threshold and max_detections filters.
+        {
+          std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+          output_obj = applyDetectionFilters(
+            output_obj,
+            ortAgent_.confidence_threshold,
+            ortAgent_.max_detections);
+        }
+
         if (visualize) {
           {
             std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -1215,6 +1256,15 @@ void EasyPerceptionDeployment::process_image_work(
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
         output_obj.masks = result.masks;
+
+        // Apply confidence threshold and max_detections filters.
+        {
+          std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+          output_obj = applyDetectionFilters(
+            output_obj,
+            ortAgent_.confidence_threshold,
+            ortAgent_.max_detections);
+        }
 
         std::vector<sensor_msgs::msg::PointCloud2> segmented_pcls;
         bool has_segmented_pcls = false;

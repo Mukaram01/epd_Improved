@@ -207,29 +207,29 @@ class P3Trainer:
 
     def checkGPUAvailability(self):
         # Checks whether there is available GPU device.
-        cmd = ["nvidia-smi"]
         inspect_gpu_process = subprocess.Popen(
-            cmd,
+            ["nvidia-smi"],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True)
+            stderr=subprocess.PIPE)
         inspect_gpu_process.communicate()
-        if inspect_gpu_process.returncode == 127:
-            self.p3_train_logger.warn("[ nvidia-smi ] command not found. " +
-                                      "Please install nvidia-driver.")
+        if inspect_gpu_process.returncode != 0:
+            self.p3_train_logger.warning(
+                "[ nvidia-smi ] command not found or failed. " +
+                "Please install nvidia-driver.")
             self.isGPUAvailableFlag = False
+            return
         # Checks if CUDA has been installed.
-        cmd = ["nvcc"]
         inspect_cuda_process = subprocess.Popen(
-            cmd,
+            ["nvcc", "--version"],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            shell=True)
+            stderr=subprocess.PIPE)
         inspect_cuda_process.communicate()
-        if inspect_cuda_process.returncode == 127:
-            self.p3_train_logger.warn("[ nvcc ] command not found. " +
-                                      "Please install nvidia-driver.")
+        if inspect_cuda_process.returncode != 0:
+            self.p3_train_logger.warning(
+                "[ nvcc ] command not found or failed. " +
+                "Please install CUDA toolkit.")
             self.isGPUAvailableFlag = False
+            return
 
         self.p3_train_logger.info("[ nvidia-smi ] command - FOUND")
         self.p3_train_logger.info("[ nvcc ] command - FOUND")

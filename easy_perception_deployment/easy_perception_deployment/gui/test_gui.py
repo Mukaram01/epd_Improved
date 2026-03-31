@@ -531,3 +531,102 @@ def test_P3Trainer_Training_Config(qtbot):
     assert dict['SOLVER']['CHECKPOINT_PERIOD'] == 100
     assert dict['SOLVER']['TEST_PERIOD'] == 100
     assert dict['SOLVER']['STEPS'] == '(100, 200, 300)'
+
+
+# ---------------------------------------------------------------------------
+# Tests for DeployWindow._validate_label_list_file (new validation logic)
+# ---------------------------------------------------------------------------
+
+def test_validate_label_list_file_nonexistent(qtbot):
+    """Missing file returns an error string."""
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    result = widget._validate_label_list_file('/nonexistent/path/labels.txt')
+    assert result is not None
+    assert 'not found' in result.lower() or 'file' in result.lower()
+
+
+def test_validate_label_list_file_empty(qtbot, tmp_path):
+    """File with only blank lines returns an error string."""
+    label_file = tmp_path / 'empty_labels.txt'
+    label_file.write_text('\n\n   \n', encoding='utf-8')
+
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    result = widget._validate_label_list_file(str(label_file))
+    assert result is not None
+    assert 'non-empty' in result.lower() or 'empty' in result.lower()
+
+
+def test_validate_label_list_file_valid(qtbot, tmp_path):
+    """File with at least one non-empty label returns None (valid)."""
+    label_file = tmp_path / 'valid_labels.txt'
+    label_file.write_text('person\ncar\nbicycle\n', encoding='utf-8')
+
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    result = widget._validate_label_list_file(str(label_file))
+    assert result is None
+
+
+def test_validate_label_list_file_invalid_utf8(qtbot, tmp_path):
+    """Binary file that is not valid UTF-8 returns an error string."""
+    label_file = tmp_path / 'binary_labels.txt'
+    label_file.write_bytes(b'\xff\xfe invalid utf-8 \x80\x81')
+
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    result = widget._validate_label_list_file(str(label_file))
+    assert result is not None
+    assert 'utf-8' in result.lower() or 'unicode' in result.lower()
+
+
+def test_validate_label_list_file_dummy_path(qtbot):
+    """Dummy path used in debug mode (no real file) is treated as valid."""
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    result = widget._validate_label_list_file('dummy_label_list_filepath')
+    assert result is None
+
+
+# ---------------------------------------------------------------------------
+# Tests for P2Trainer / P3Trainer checkGPUAvailability (no shell=True)
+# ---------------------------------------------------------------------------
+
+def test_checkGPUAvailability_P2Trainer_no_shell_true():
+    """checkGPUAvailability must not use shell=True; GPU flag must be bool."""
+    import inspect
+    from trainer.P2Trainer import P2Trainer as _P2T
+
+    path_to_dataset = 'path_to_dummy_dataset'
+    model_name = 'fasterrcnn'
+    label_list = ['__ignore__', '_background_', 'test_object']
+
+    trainer = _P2T(
+        path_to_dataset, model_name, label_list, 100, 50, 50, '(50,)')
+    assert isinstance(trainer.isGPUAvailableFlag, bool)
+
+    src = inspect.getsource(_P2T.checkGPUAvailability)
+    assert 'shell=True' not in src
+
+
+def test_checkGPUAvailability_P3Trainer_no_shell_true():
+    """checkGPUAvailability must not use shell=True; GPU flag must be bool."""
+    import inspect
+    from trainer.P3Trainer import P3Trainer as _P3T
+
+    path_to_dataset = 'path_to_dummy_dataset'
+    model_name = 'maskrcnn'
+    label_list = ['__ignore__', '_background_', 'test_object']
+
+    trainer = _P3T(
+        path_to_dataset, model_name, label_list, 100, 50, 50, '(50,)')
+    assert isinstance(trainer.isGPUAvailableFlag, bool)
+
+    src = inspect.getsource(_P3T.checkGPUAvailability)
+    assert 'shell=True' not in src

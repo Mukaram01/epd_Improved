@@ -42,7 +42,7 @@ class CountingWindow(QWidget):
 
         self.counting_logger = logging.getLogger('counting')
 
-        self._COUNTING_WIN_H = 300
+        self._COUNTING_WIN_H = 340
         self._COUNTING_WIN_W = 500
 
         self.setWindowIcon(QIcon("img/epd_desktop.png"))
@@ -127,6 +127,11 @@ class CountingWindow(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
         layout.addLayout(grid_layout)
+
+        self.status_label = QLabel(self)
+        self.status_label.setWordWrap(True)
+        layout.addWidget(self.status_label)
+
         layout.addLayout(button_layout)
 
         self.finish_button.clicked.connect(self.writeToUseCaseConfig)
@@ -144,8 +149,10 @@ class CountingWindow(QWidget):
             }
         json_object = json.dumps(dict, indent=4)
 
-        with open(self._path_to_usecase_config, 'w') as outfile:
+        tmp_path = self._path_to_usecase_config + '.tmp'
+        with open(tmp_path, 'w') as outfile:
             outfile.write(json_object)
+        os.replace(tmp_path, self._path_to_usecase_config)
         self.close()
 
     def closeWindow(self):
@@ -157,14 +164,17 @@ class CountingWindow(QWidget):
         A function that is triggered by the DropDown Menu labelled, Available
         Objects
         '''
-        # If selected object is a duplicate, ignore it.
+        # If selected object is a duplicate, ignore it and show feedback.
         for i in range(0, len(self._select_list)):
             if self._label_list[index] == self._select_list[i]:
                 self.counting_logger.warning('Duplicate object detected.')
+                self.status_label.setText(
+                    '\u26a0 "' + self._label_list[index] + '" is already in the list.')
                 return
 
         self._select_list.append(self._label_list[index])
         self.selected_list_menu.addItem(self._label_list[index])
+        self.status_label.setText('')
 
     def removeObject(self, index):
         '''
@@ -175,5 +185,12 @@ class CountingWindow(QWidget):
             self.counting_logger.warning('Select list is empty.')
             return
 
+        if index < 0 or index >= len(self._select_list):
+            self.counting_logger.warning(
+                'Remove index %d out of range for list of length %d.',
+                index, len(self._select_list))
+            return
+
         self._select_list.remove(self._select_list[index])
         self.selected_list_menu.removeItem(index)
+        self.status_label.setText('')

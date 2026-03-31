@@ -106,8 +106,10 @@ class TrackingWindow(QWidget):
                 self._selected_tracker_index])
             }
         json_object = json.dumps(dict, indent=4)
-        with open(self._path_to_usecase_config, 'w') as outfile:
+        tmp_path = self._path_to_usecase_config + '.tmp'
+        with open(tmp_path, 'w') as outfile:
             outfile.write(json_object)
+        os.replace(tmp_path, self._path_to_usecase_config)
 
     def closeWindow(self):
         '''A function that is triggered by the button labelled, Cancel.'''

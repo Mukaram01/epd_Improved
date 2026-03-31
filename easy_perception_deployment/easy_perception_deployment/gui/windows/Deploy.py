@@ -29,7 +29,8 @@ from epd_msgs.msg import EPDObjectDetection, EPDObjectLocalization, EPDObjectTra
 from PySide6.QtCore import QSize, QTimer, QThread, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
-                               QMessageBox, QPushButton, QWidget)
+                               QMessageBox, QPushButton, QWidget,
+                               QDoubleSpinBox, QSpinBox)
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
@@ -166,7 +167,7 @@ class DeployWindow(QWidget):
 
         self._is_running = False
 
-        self._DEPLOY_WIN_H = 460
+        self._DEPLOY_WIN_H = 540
         self._DEPLOY_WIN_W = 500
 
         self.setWindowIcon(QIcon("img/epd_desktop.png"))
@@ -415,6 +416,21 @@ class DeployWindow(QWidget):
         else:
             self.docker_button.setText('GPU')
 
+        # Confidence threshold spinbox
+        self.confidence_label = QLabel('Confidence Threshold', self)
+        self.confidence_spinbox = QDoubleSpinBox(self)
+        self.confidence_spinbox.setRange(0.0, 1.0)
+        self.confidence_spinbox.setSingleStep(0.05)
+        self.confidence_spinbox.setDecimals(2)
+        self.confidence_spinbox.setValue(self._confidence_threshold)
+
+        # Max detections spinbox
+        self.max_detections_label = QLabel('Max Detections (0 = unlimited)', self)
+        self.max_detections_spinbox = QSpinBox(self)
+        self.max_detections_spinbox.setRange(0, 10000)
+        self.max_detections_spinbox.setSingleStep(10)
+        self.max_detections_spinbox.setValue(self._max_detections)
+
         # Validation label - shows validation messages
         self.validation_label = QLabel(self)
         self.validation_label.setWordWrap(True)
@@ -447,10 +463,14 @@ class DeployWindow(QWidget):
         layout.addWidget(self.transport_label, 4, 0)
         layout.addWidget(self.transport_combo, 4, 1)
         layout.addWidget(self.docker_button, 5, 0, 1, 2)
-        layout.addWidget(self.validation_label, 6, 0, 1, 2)
-        layout.addWidget(self.status_label, 7, 0, 1, 2)
-        layout.addWidget(self.fps_label, 8, 0, 1, 2)
-        layout.addWidget(self.run_button, 9, 0, 1, 2)
+        layout.addWidget(self.confidence_label, 6, 0)
+        layout.addWidget(self.confidence_spinbox, 6, 1)
+        layout.addWidget(self.max_detections_label, 7, 0)
+        layout.addWidget(self.max_detections_spinbox, 7, 1)
+        layout.addWidget(self.validation_label, 8, 0, 1, 2)
+        layout.addWidget(self.status_label, 9, 0, 1, 2)
+        layout.addWidget(self.fps_label, 10, 0, 1, 2)
+        layout.addWidget(self.run_button, 11, 0, 1, 2)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
 
@@ -466,6 +486,8 @@ class DeployWindow(QWidget):
         self.transport_combo.activated.connect(self.setImageTransport)
         self.refresh_topics_button.clicked.connect(self.refreshImageTopics)
         self.topic_button.currentTextChanged.connect(self.setImageInput)
+        self.confidence_spinbox.valueChanged.connect(self._onConfidenceChanged)
+        self.max_detections_spinbox.valueChanged.connect(self._onMaxDetectionsChanged)
 
         # Populate topics after widgets are created (avoids run_button init order issues)
         self.refreshImageTopics(select_topic=self._input_image_topic)
@@ -698,9 +720,7 @@ class DeployWindow(QWidget):
 
         dict = {"input_image_topic": new_image_topic}
         json_object = json.dumps(dict, indent=4)
-
-        with open(self._path_to_input_image_json_file, 'w') as outfile:
-            outfile.write(json_object)
+        self._write_json_atomic(self._path_to_input_image_json_file, json_object)
 
         self._input_image_topic = new_image_topic
         self.validateDeployInputs()
@@ -764,8 +784,7 @@ class DeployWindow(QWidget):
             self.deploy_logger.info('Wrote to ../data/usecase_config.json')
             dict = {"usecase_mode": 0}
             json_object = json.dumps(dict, indent=4)
-            with open(self._path_to_usecase_config, 'w') as outfile:
-                outfile.write(json_object)
+            self._write_json_atomic(self._path_to_usecase_config, json_object)
 
         elif selected_usecase == 'Counting':
             self.usecase_mode = 1
@@ -776,8 +795,7 @@ class DeployWindow(QWidget):
             self.usecase_mode = 3
             dict = {"usecase_mode": 3}
             json_object = json.dumps(dict, indent=4)
-            with open(self._path_to_usecase_config, 'w') as outfile:
-                outfile.write(json_object)
+            self._write_json_atomic(self._path_to_usecase_config, json_object)
         elif selected_usecase == 'Tracking':
             self.usecase_mode = 4
             self.tracking_window = TrackingWindow(self._path_to_usecase_config)
@@ -811,9 +829,7 @@ class DeployWindow(QWidget):
                 "color_match_histogram_metric": "Correlation"
                 }
             json_object = json.dumps(dict, indent=4)
-
-            with open(self._path_to_usecase_config, 'w') as outfile:
-                outfile.write(json_object)
+            self._write_json_atomic(self._path_to_usecase_config, json_object)
         else:
             self.deploy_logger.warning('Invalid Use Case')
             sys.exit()
@@ -826,6 +842,23 @@ class DeployWindow(QWidget):
         '''A function triggered by the Image Transport dropdown.'''
         self._image_transport = self.image_transport_list[index]
         self.updateSessionConfig()
+
+    def _onConfidenceChanged(self, value):
+        '''Slot triggered when the confidence threshold spinbox changes.'''
+        self._confidence_threshold = float(value)
+        self.updateSessionConfig()
+
+    def _onMaxDetectionsChanged(self, value):
+        '''Slot triggered when the max detections spinbox changes.'''
+        self._max_detections = int(value)
+        self.updateSessionConfig()
+
+    def _write_json_atomic(self, path, json_str):
+        '''Write json_str to path atomically using a .tmp file + os.replace().'''
+        tmp_path = path + '.tmp'
+        with open(tmp_path, 'w') as outfile:
+            outfile.write(json_str)
+        os.replace(tmp_path, path)
 
     def updateSessionConfig(self):
         '''A Mutator function that updates the session_config.json file.'''
@@ -853,9 +886,7 @@ class DeployWindow(QWidget):
             "max_detections": self._max_detections
             }
         json_object = json.dumps(dict, indent=4)
-
-        with open(self._path_to_session_config, 'w') as outfile:
-            outfile.write(json_object)
+        self._write_json_atomic(self._path_to_session_config, json_object)
 
     def setModel(self):
         '''A function is triggered by the button labelled, ONNX Model.'''

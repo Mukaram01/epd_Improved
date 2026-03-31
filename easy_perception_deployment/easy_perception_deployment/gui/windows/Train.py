@@ -23,7 +23,7 @@ from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
                                QHBoxLayout, QInputDialog, QLabel, QLineEdit,
-                               QPushButton, QVBoxLayout, QWidget)
+                               QMessageBox, QPushButton, QVBoxLayout, QWidget)
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
 
@@ -619,12 +619,26 @@ class TrainWindow(QWidget):
             return
 
         if os.path.exists("../data/datasets/custom_dataset"):
-            self.train_logger.error('Pre-existing /custom_dataset ' +
-                                    'FOUND. Overwriting...')
-            subprocess.Popen([
-                'rm',
-                '-rf',
-                '../data/datasets/custom_dataset'])
+            self.train_logger.warning('Pre-existing /custom_dataset FOUND.')
+            if not self.debug:
+                reply = QMessageBox.question(
+                    self,
+                    'Overwrite Dataset',
+                    'A pre-existing custom_dataset directory was found.\n'
+                    'Overwrite it?',
+                    QMessageBox.Yes | QMessageBox.No,
+                    QMessageBox.No)
+                if reply != QMessageBox.Yes:
+                    self.train_logger.info('Dataset overwrite cancelled.')
+                    return
+            try:
+                subprocess.run(
+                    ['rm', '-rf', '../data/datasets/custom_dataset'],
+                    check=True)
+            except subprocess.CalledProcessError as e:
+                self.train_logger.error(
+                    'Failed to remove pre-existing custom_dataset: ' + str(e))
+                return
 
         self.label_train_process = (
             subprocess.Popen([
@@ -653,18 +667,33 @@ class TrainWindow(QWidget):
         Model with all available pretrained models from PyTorch model zoo.
         '''
         # Implement different model list based on different precision level.
+        list_path = ''
         if self._precision_level == 2:
-            self._model_list = [
-                line.rstrip('\n') for line in
-                open('./lists/p2_model_list.txt')]
+            list_path = './lists/p2_model_list.txt'
         elif self._precision_level == 3:
-            self._model_list = [
-                line.rstrip('\n') for line in
-                open('./lists/p3_model_list.txt')]
+            list_path = './lists/p3_model_list.txt'
+
+        if list_path:
+            try:
+                self._model_list = [
+                    line.rstrip('\n') for line in open(list_path)]
+            except FileNotFoundError:
+                self.train_logger.error(
+                    'Model list file not found: ' + list_path)
+                self._model_list = []
+                QMessageBox.warning(
+                    self,
+                    'Model List Missing',
+                    'Model list file not found:\n' + list_path +
+                    '\n\nPlease ensure the lists/ directory exists.')
 
         self.model_selector.clear()
         for model in self._model_list:
             self.model_selector.addItem(model)
+
+        if not self._model_list:
+            self.model_selector.setStyleSheet('background-color: red;')
+            self._is_model_ready = False
 
     def connectTrainingButton(self):
         '''

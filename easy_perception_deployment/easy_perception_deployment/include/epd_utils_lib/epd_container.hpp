@@ -18,6 +18,7 @@
 
 #include <opencv2/tracking.hpp>
 #include <opencv2/core/ocl.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -41,9 +42,9 @@ class EPDContainer
 {
 public:
   /*! \brief An pointer for a Precision Level 3 OrtBase object*/
-  Ort::P3OrtBase * p3_ort_session;
+  std::unique_ptr<Ort::P3OrtBase> p3_ort_session;
   /*! \brief An pointer for a Precision Level 2 OrtBase object*/
-  Ort::P2OrtBase * p2_ort_session;
+  std::unique_ptr<Ort::P2OrtBase> p2_ort_session;
   /*! \brief The determined precision_level for an input ONNX model file,
   * stated by the session_config.json. */
   unsigned int precision_level;

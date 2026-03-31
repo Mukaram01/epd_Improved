@@ -72,7 +72,8 @@ inline void count(
     if (!noMasksFound) {
       curMask = masks[i];
     }
-    const std::string curLabel = allClassNames.empty() ?
+    const std::string curLabel =
+      classIdx >= allClassNames.size() ?
       std::to_string(classIdx) : allClassNames[classIdx];
 
     for (size_t j = 0; j < countClassNames.size(); j++) {
@@ -144,7 +145,8 @@ inline void matchColor(
     if (!noMasksFound) {
       curMask = masks[i];
     }
-    const std::string curLabel = allClassNames.empty() ?
+    const std::string curLabel =
+      classIdx >= allClassNames.size() ?
       std::to_string(classIdx) : allClassNames[classIdx];
 
     cv::Rect objectROI(cv::Point(curBbox[0], curBbox[1]), cv::Point(curBbox[2], curBbox[3]));

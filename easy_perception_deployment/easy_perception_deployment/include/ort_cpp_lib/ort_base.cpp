@@ -16,7 +16,6 @@
 #include <algorithm>
 #include <functional>
 #include <utility>
-#include <cassert>
 #include <numeric>
 #include <sstream>
 #include <memory>
@@ -299,7 +298,12 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
     m_numOutputs);
 
   // Check if outputTensors is empty. It should not be, even if it is garbage.
-  assert(outputTensors.size() == m_numOutputs);
+  if (outputTensors.size() != m_numOutputs) {
+    throw std::runtime_error(
+      "Output tensor count mismatch: expected " +
+      std::to_string(m_numOutputs) + ", got " +
+      std::to_string(outputTensors.size()));
+  }
 
   std::vector<DataOutputType> outputData;
   outputData.reserve(m_numOutputs);

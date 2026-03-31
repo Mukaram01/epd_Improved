@@ -23,7 +23,7 @@
 #include <string>
 #include <memory>
 #include <functional>
-#include <stdexcept>  // FIX: for std::runtime_error
+#include <stdexcept>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -41,7 +41,7 @@
 #include "sensor_msgs/msg/camera_info.hpp"
 #include "sensor_msgs/msg/region_of_interest.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
-#include "sensor_msgs/image_encodings.hpp"  // FIX: for sensor_msgs::image_encodings::TYPE_16UC1
+#include "sensor_msgs/image_encodings.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "image_transport/image_transport.hpp"
 #include "image_transport/subscriber_filter.hpp"
@@ -240,7 +240,6 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 {
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
-  // FIX: Humble requires declare_parameter<T>(name, default)
   this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
   this->declare_parameter<std::string>("rgb_topic", "/camera/color/image_raw");
   this->declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
@@ -606,7 +605,6 @@ void EasyPerceptionDeployment::disableLocalizeInputs()
 
 void EasyPerceptionDeployment::hasCameraChanged(const int img_height, const int img_width) const
 {
-  // FIX: should trigger if EITHER dimension changed (not only when both changed)
   if (ortAgent_.getWidth() != img_width || ortAgent_.getHeight() != img_height) {
     throw std::runtime_error("Input camera changed. Please restart.");
   }
@@ -776,7 +774,6 @@ void EasyPerceptionDeployment::process_localize_work(
       converted_result.objects.emplace_back(result.objects[i]);
     }
 
-    // FIX: don't redeclare resultImg (avoid shadowing)
     {
       std::lock_guard<std::mutex> ort_guard(ort_mutex_);
       resultImg = ortAgent_.visualize(converted_result, img);
@@ -1473,7 +1470,7 @@ void EasyPerceptionDeployment::worker_loop()
 
     {
       std::unique_lock<std::mutex> lock(data_mutex_);
-      data_cv_.wait(lock, [this]() {
+      data_cv_.wait_for(lock, std::chrono::milliseconds(100), [this]() {
         return worker_stop_ || image_pending_ || localize_pending_ || tracking_pending_;
       });
 
@@ -1502,20 +1499,38 @@ void EasyPerceptionDeployment::worker_loop()
 
     if (do_localize) {
       if (image_msg && depth_msg && camera_info) {
-        process_localize_work(image_msg, depth_msg, camera_info);
+        try {
+          process_localize_work(image_msg, depth_msg, camera_info);
+        } catch (const std::exception & e) {
+          RCLCPP_ERROR(this->get_logger(), "Exception in process_localize_work: %s", e.what());
+        } catch (...) {
+          RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_localize_work");
+        }
       }
       continue;
     }
 
     if (do_tracking) {
       if (image_msg && depth_msg && camera_info) {
-        process_tracking_work(image_msg, depth_msg, camera_info);
+        try {
+          process_tracking_work(image_msg, depth_msg, camera_info);
+        } catch (const std::exception & e) {
+          RCLCPP_ERROR(this->get_logger(), "Exception in process_tracking_work: %s", e.what());
+        } catch (...) {
+          RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_tracking_work");
+        }
       }
       continue;
     }
 
     if (do_image && image_msg) {
-      process_image_work(image_msg);
+      try {
+        process_image_work(image_msg);
+      } catch (const std::exception & e) {
+        RCLCPP_ERROR(this->get_logger(), "Exception in process_image_work: %s", e.what());
+      } catch (...) {
+        RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_image_work");
+      }
     }
   }
 }

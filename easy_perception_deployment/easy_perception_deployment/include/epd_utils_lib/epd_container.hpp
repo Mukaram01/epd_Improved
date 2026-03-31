@@ -72,10 +72,10 @@ public:
   bool publish_detection_segmentation;
   /*! \brief Minimum confidence score for a detection to be published.
   * Detections with score below this threshold are filtered out. */
-  float confidence_threshold;
+  float confidence_threshold{0.5f};
   /*! \brief Maximum number of detections to publish per frame.
   * Set to 0 to disable the limit. */
-  int max_detections;
+  int max_detections{100};
 
   /*! \brief The selected use-case mode. Values can only be 0,1,2.\n
   *  See usecase_config.hpp for more details.\n

@@ -58,10 +58,9 @@ TEST(EPD_TestSuite, Test_readSessionUseCaseConfigTextFile_EPDContainer)
   writer->write(usecase_config_json, &outputFileStream2);
   outputFileStream2.close();
 
-  EPD::EPDContainer * ortAgent_;
-
   try {
-    ortAgent_ = new EPD::EPDContainer();
+    EPD::EPDContainer * ortAgent_ = new EPD::EPDContainer();
+    delete ortAgent_;
     FAIL() << "Expected std::runtime_error.";
   } catch (std::runtime_error const & err) {
     EXPECT_EQ(err.what(), std::string("Invalid Use Case.\n"));

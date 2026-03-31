@@ -5,5 +5,7 @@
     "useCPU": "CPU",
     "intra_op_num_threads": 0,
     "image_transport": "raw",
-    "publish_detection_segmentation": true
+    "publish_detection_segmentation": true,
+    "confidence_threshold": 0.5,
+    "max_detections": 100
 }

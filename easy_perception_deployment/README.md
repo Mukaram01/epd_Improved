@@ -317,6 +317,100 @@ Key ROS 2 topics:
 * `/easy_perception_deployment/epd_tracking_output` for tracking.
 * `/easy_perception_deployment/epd_pose_output` for a `geometry_msgs/PoseArray` of 3D object poses in the camera frame (position from the localized centroid; orientation aligns +X with the LocalizedObject axis derived from PCA, +Z with the camera optical axis, and +Y to complete a right-handed frame).
 
+## **Architecture Diagram**
+
+```
+┌──────────────────────────────────────────┐
+│  Camera (RealSense D435i or similar)     │
+│  /camera/color/image_raw                 │
+│  /camera/aligned_depth_to_color/image_raw│
+│  /camera/color/camera_info               │
+└─────────────┬────────────────────────────┘
+              │  sensor_msgs/Image
+              ▼
+┌──────────────────────────────────────────┐
+│  easy_perception_deployment (EPD) node   │
+│                                          │
+│  - Runs ONNX inference (P1/P2/P3)        │
+│  - Applies confidence_threshold filter   │
+│  - Applies max_detections limit          │
+│                                          │
+│  PUBLISHES:                              │
+│    /easy_perception_deployment/          │
+│      image_output          (Image)       │
+│      epd_p2_output         (P2 detect.)  │
+│      epd_p3_output         (P3 detect.)  │
+│      epd_localize_output   (P3 localize) │
+│      epd_tracking_output   (P3 track)    │
+│      epd_pose_output       (PoseArray)   │
+│                                          │
+│  PROVIDES SERVICE:                       │
+│    epd_perception_service                │
+│    (epd_msgs/srv/Perception)             │
+└─────────────┬────────────────────────────┘
+              │  Perception.srv
+              │  (EPDObjectLocalization /
+              │   EPDObjectTracking)
+              ▼
+┌──────────────────────────────────────────┐
+│  Easy Manipulator (EMD) node             │
+│  (https://github.com/Mukaram01/          │
+│   Easy_Manipulator_Improved)             │
+│                                          │
+│  Calls epd_perception_service to         │
+│  obtain 3D object poses for grasp        │
+│  planning on the UR5 robot arm.          │
+└──────────────────────────────────────────┘
+```
+
+## **Session Config Parameters**
+
+All parameters are stored in `config/session_config.json`:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `path_to_model` | string | `./data/model/MaskRCNN-10.onnx` | Path to the ONNX model file. |
+| `path_to_label_list` | string | `./data/label_list/coco_classes.txt` | Path to the class label `.txt` file (one label per line). |
+| `visualizeFlag` | string | `"robot"` | `"visualize"` publishes an annotated image; `"robot"` publishes structured detection messages. |
+| `useCPU` | string | `"CPU"` | `"CPU"` uses CPU-only inference; `"GPU"` enables CUDA. |
+| `intra_op_num_threads` | int | `0` | Number of ONNX Runtime intra-op threads (0 = default). |
+| `image_transport` | string | `"raw"` | Image transport plugin: `"raw"` or `"compressed"`. |
+| `publish_detection_segmentation` | bool | `true` | Publish per-object segmentation masks and point clouds in P3 detection mode. |
+| `confidence_threshold` | float | `0.5` | Minimum detection confidence score [0.0–1.0]. Detections below this are filtered out before publishing. |
+| `max_detections` | int | `100` | Maximum number of detections to publish per frame. Set to `0` to disable the limit. |
+
+## **Troubleshooting**
+
+### Wrong Working Directory
+EPD resolves `./data/model/...` relative to the package share directory.
+Always launch via `ros2 launch easy_perception_deployment run.launch.py` or set
+`cwd` to the package share directory. The provided `run.launch.py` already does this.
+
+### Missing ONNX Model
+If EPD exits immediately with _"Config file not found"_ or _"Label list is empty"_,
+check that:
+1. `config/session_config.json` contains correct absolute or relative paths.
+2. The model file exists at the specified path.
+3. The label list file is a valid UTF-8 text file with at least one class name per line.
+
+### No Depth Topic (Localization / Tracking)
+If `usecase_mode` is 3 (Localization) or 4 (Tracking) and no detections appear:
+1. Confirm that your depth camera is publishing to the expected topic.
+2. Check that the depth topic is remapped correctly in `run.launch.py`.
+3. Look for `RCLCPP_ERROR` messages in the node output — EPD logs a clear error
+   if no depth data arrives within a reasonable time.
+
+### GPU Not Found
+If training fails immediately with _"GPU not detected"_:
+1. Run `nvidia-smi` to confirm the GPU driver is installed.
+2. Run `nvcc --version` to confirm the CUDA toolkit is on your `PATH`.
+3. If both commands succeed, re-run the trainer — `checkGPUAvailability` now
+   properly detects GPU availability via return codes, not just exit code 127.
+
+### Qt / GUI Issues
+- On Wayland, set `export QT_QPA_PLATFORM=xcb` before starting the GUI.
+- For headless CI or Docker runs, set `export QT_QPA_PLATFORM=offscreen`.
+
 ## **Contributions & Feedback**
 
 **We welcome contributions!** Please see the [contribution guidelines](https://github.com/ros-industrial/easy_perception_deployment/blob/master/CONTRIBUTING.md).

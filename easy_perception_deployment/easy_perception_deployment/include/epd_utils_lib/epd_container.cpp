@@ -177,6 +177,8 @@ EPDContainer::EPDContainer(void)
   color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
   image_transport = "raw";
   publish_detection_segmentation = true;
+  confidence_threshold = 0.5f;
+  max_detections = 100;
 
   this->setModelConfigFile();
   this->setPrecisionLevel();
@@ -302,6 +304,38 @@ void EPDContainer::setModelConfigFile()
     "publish_detection_segmentation",
     publish_detection_segmentation,
     PATH_TO_SESSION_CONFIG);
+
+  if (obj.isMember("confidence_threshold")) {
+    const Json::Value & ct = obj["confidence_threshold"];
+    if (!ct.isNumeric()) {
+      throw std::runtime_error(
+              "Config 'confidence_threshold' must be a number in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    const float ct_val = ct.asFloat();
+    if (ct_val < 0.0f || ct_val > 1.0f) {
+      throw std::runtime_error(
+              "Config 'confidence_threshold' must be in [0.0, 1.0] in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    confidence_threshold = ct_val;
+  }
+
+  if (obj.isMember("max_detections")) {
+    const Json::Value & md = obj["max_detections"];
+    if (!md.isInt()) {
+      throw std::runtime_error(
+              "Config 'max_detections' must be an integer in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    const int md_val = md.asInt();
+    if (md_val < 0) {
+      throw std::runtime_error(
+              "Config 'max_detections' must be >= 0 in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    max_detections = md_val;
+  }
 
   ifs_1.close();
 }

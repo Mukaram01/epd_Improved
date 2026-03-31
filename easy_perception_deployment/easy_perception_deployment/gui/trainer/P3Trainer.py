@@ -214,8 +214,8 @@ class P3Trainer:
         inspect_gpu_process.communicate()
         if inspect_gpu_process.returncode != 0:
             self.p3_train_logger.warning(
-                "[ nvidia-smi ] command not found or failed. " +
-                "Please install nvidia-driver.")
+                "[ nvidia-smi ] command not found, failed, or no GPU "
+                "hardware detected. Please install nvidia-driver.")
             self.isGPUAvailableFlag = False
             return
         # Checks if CUDA has been installed.

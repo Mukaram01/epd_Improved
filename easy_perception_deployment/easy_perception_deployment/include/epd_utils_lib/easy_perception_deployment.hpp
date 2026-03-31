@@ -1101,8 +1101,8 @@ geometry_msgs::msg::Quaternion EasyPerceptionDeployment::buildOrientationFromAxi
   return orientation;
 }
 
-// Filter detections by confidence_threshold and max_detections from ortAgent_ config.
-// Returns a new EPDObjectDetection with only the accepted detections.
+// Filter detections by confidence_threshold and max_detections.
+// Returns a new EPDObjectDetection containing only accepted detections.
 EPD::EPDObjectDetection EasyPerceptionDeployment::applyDetectionFilters(
   const EPD::EPDObjectDetection & raw, float confidence_threshold, int max_detections) const
 {

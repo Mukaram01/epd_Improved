@@ -917,7 +917,7 @@ class DeployWindow(QWidget):
                     'The selected label list file is invalid:\n\n' +
                     validation_error +
                     '\n\nPlease select a valid UTF-8 text file with at '
-                    'least one non-empty class name.')
+                    'least one non-empty class label per line.')
                 msgBox.exec()
             return
 

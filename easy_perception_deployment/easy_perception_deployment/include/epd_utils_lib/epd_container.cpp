@@ -227,7 +227,7 @@ void EPDContainer::initORTSessionHandler()
 
   switch (precision_level) {
     case 2:
-      p2_ort_session = new Ort::P2OrtBase(
+      p2_ort_session = std::make_unique<Ort::P2OrtBase>(
         ratio, newW, newH, paddedW, paddedH,
         classNames.size(),
         onnx_model_path,
@@ -238,7 +238,7 @@ void EPDContainer::initORTSessionHandler()
       p2_ort_session->initClassNames(classNames);
       break;
     case 3:
-      p3_ort_session = new Ort::P3OrtBase(
+      p3_ort_session = std::make_unique<Ort::P3OrtBase>(
         ratio, newW, newH, paddedW, paddedH,
         classNames.size(),
         onnx_model_path,
@@ -335,7 +335,7 @@ void EPDContainer::setUseCaseConfigFile()
   // Counting Mode
   if (useCaseMode == EPD::COUNTING_MODE) {
     Json::Value class_list = obj["class_list"];
-    for (int index = 0; index < static_cast<int>(class_list.size()); index++) {
+    for (size_t index = 0; index < class_list.size(); ++index) {
       countClassNames.emplace_back(class_list[index].asString());
     }
   }
@@ -462,7 +462,9 @@ cv::Mat EPDContainer::visualize(
     }
 
     const cv::Scalar & curColor = oneColor;
-    const std::string curLabel = classNames[result.classIndices[i]];
+    const std::string curLabel =
+      result.classIndices[i] >= classNames.size() ?
+      std::to_string(result.classIndices[i]) : classNames[result.classIndices[i]];
 
     cv::rectangle(
       output_image, curBoxRect.tl(),

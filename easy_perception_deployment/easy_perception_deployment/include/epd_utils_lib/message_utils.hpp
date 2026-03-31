@@ -92,12 +92,7 @@ public:
   explicit EPDObjectLocalization(size_t input_size)
   {
     data_size = input_size;
-
-    objects.reserve(input_size);
-
-    for (size_t i = 0; i < input_size; i++) {
-      objects.push_back(LocalizedObject());
-    }
+    objects.resize(input_size);
   }
 };
 
@@ -114,13 +109,8 @@ public:
   explicit EPDObjectTracking(size_t input_size)
   {
     data_size = input_size;
-
-    objects.reserve(input_size);
-
-    for (size_t i = 0; i < input_size; i++) {
-      objects.push_back(LocalizedObject());
-      object_ids.push_back("a");
-    }
+    objects.resize(input_size);
+    object_ids.resize(input_size, "a");
   }
 };
 

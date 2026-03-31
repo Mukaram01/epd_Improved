@@ -111,7 +111,11 @@ EPD::EPDObjectDetection P2OrtBase::infer(
   // boxes, labels, scores
   auto inferenceOutput = (*this)({dst});
 
-  assert(inferenceOutput[1].second.size() == 1);
+  if (inferenceOutput[1].second.size() != 1) {
+    throw std::runtime_error(
+      "Unexpected inference output shape: expected 1 dimension for box count, got " +
+      std::to_string(inferenceOutput[1].second.size()));
+  }
   size_t nBoxes = inferenceOutput[1].second[0];
 
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;

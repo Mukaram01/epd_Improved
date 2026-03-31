@@ -163,7 +163,11 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   // boxes, labels, scores, masks
   auto inferenceOutput = (*this)({dst});
 
-  assert(inferenceOutput[1].second.size() == 1);
+  if (inferenceOutput[1].second.size() != 1) {
+    throw std::runtime_error(
+      "Unexpected inference output shape: expected 1 dimension for box count, got " +
+      std::to_string(inferenceOutput[1].second.size()));
+  }
   size_t nBoxes = inferenceOutput[1].second[0];
 
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
@@ -304,7 +308,11 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   // boxes, labels, scores, masks
   auto inferenceOutput = (*this)({dst});
 
-  assert(inferenceOutput[1].second.size() == 1);
+  if (inferenceOutput[1].second.size() != 1) {
+    throw std::runtime_error(
+      "Unexpected inference output shape: expected 1 dimension for box count, got " +
+      std::to_string(inferenceOutput[1].second.size()));
+  }
   size_t nBoxes = inferenceOutput[1].second[0];
 
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
@@ -348,7 +356,10 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   std::vector<std::string> allClassNames = this->getClassNames();
   float maskThreshold = 0.5;
 
-  assert(bboxes.size() == classIndices.size());
+  if (bboxes.size() != classIndices.size()) {
+    throw std::runtime_error(
+      "Mismatch between bboxes and classIndices sizes in inference output");
+  }
   // if (!allClassNames.empty()) {
   //   assert(
   //     allClassNames.size() >
@@ -587,7 +598,11 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   // boxes, labels, scores, masks
   auto inferenceOutput = (*this)({dst});
 
-  assert(inferenceOutput[1].second.size() == 1);
+  if (inferenceOutput[1].second.size() != 1) {
+    throw std::runtime_error(
+      "Unexpected inference output shape: expected 1 dimension for box count, got " +
+      std::to_string(inferenceOutput[1].second.size()));
+  }
   size_t nBoxes = inferenceOutput[1].second[0];
 
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;

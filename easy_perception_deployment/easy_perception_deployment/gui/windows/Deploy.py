@@ -21,11 +21,14 @@ import threading
 import time
 from collections import deque
 
-import rclpy
-from rclpy.node import Node
-from rclpy.time import Time
-
-from epd_msgs.msg import EPDObjectDetection, EPDObjectLocalization, EPDObjectTracking
+try:
+    import rclpy
+    from rclpy.node import Node
+    from rclpy.time import Time
+    from epd_msgs.msg import EPDObjectDetection, EPDObjectLocalization, EPDObjectTracking
+    _RCLPY_AVAILABLE = True
+except ImportError:
+    _RCLPY_AVAILABLE = False
 from PySide6.QtCore import QSize, QTimer, QThread, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
@@ -57,6 +60,8 @@ class FPSMonitorThread(QThread):
             self._requested_mode = usecase_mode
 
     def run(self):
+        if not _RCLPY_AVAILABLE:
+            return
         if not rclpy.ok():
             rclpy.init(args=None)
         self._node = Node('epd_fps_monitor')
@@ -547,6 +552,9 @@ class DeployWindow(QWidget):
         self.setImageInput()
 
     def _start_fps_monitor(self):
+        if not _RCLPY_AVAILABLE:
+            self.fps_label.setText('FPS: N/A | Latency: N/A (ROS unavailable)')
+            return
         self._fps_monitor = FPSMonitorThread(self.usecase_mode, self)
         self._fps_monitor.fps_updated.connect(self._update_fps_label)
         self._fps_monitor.start()

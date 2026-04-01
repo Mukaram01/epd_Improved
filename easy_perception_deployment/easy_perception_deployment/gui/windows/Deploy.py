@@ -62,21 +62,39 @@ class FPSMonitorThread(QThread):
     def run(self):
         if not _RCLPY_AVAILABLE:
             return
-        if not rclpy.ok():
-            rclpy.init(args=None)
-        self._node = Node('epd_fps_monitor')
-        self._update_subscription(self._usecase_mode)
-        while rclpy.ok() and self._running:
-            self._maybe_update_subscription()
-            rclpy.spin_once(self._node, timeout_sec=0.1)
-        if self._subscription is not None:
-            self._node.destroy_subscription(self._subscription)
-            self._subscription = None
-        if self._node is not None:
-            self._node.destroy_node()
-            self._node = None
-        if rclpy.ok():
-            rclpy.shutdown()
+        try:
+            if not rclpy.ok():
+                rclpy.init(args=None)
+            self._node = Node('epd_fps_monitor')
+            self._update_subscription(self._usecase_mode)
+            while rclpy.ok() and self._running:
+                self._maybe_update_subscription()
+                rclpy.spin_once(self._node, timeout_sec=0.1)
+        except Exception as exc:
+            logging.getLogger('deploy').warning(
+                'FPS monitor thread failed: %s', exc)
+            self.fps_updated.emit('FPS: N/A | Latency: N/A (ROS error)')
+        finally:
+            if self._subscription is not None:
+                try:
+                    self._node.destroy_subscription(self._subscription)
+                except Exception as e:
+                    logging.getLogger('deploy').debug(
+                        'FPS monitor: error destroying subscription: %s', e)
+                self._subscription = None
+            if self._node is not None:
+                try:
+                    self._node.destroy_node()
+                except Exception as e:
+                    logging.getLogger('deploy').debug(
+                        'FPS monitor: error destroying node: %s', e)
+                self._node = None
+            try:
+                if rclpy.ok():
+                    rclpy.shutdown()
+            except Exception as e:
+                logging.getLogger('deploy').debug(
+                    'FPS monitor: error during rclpy shutdown: %s', e)
 
     def _maybe_update_subscription(self):
         with self._lock:

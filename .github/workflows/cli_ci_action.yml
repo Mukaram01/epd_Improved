@@ -1,0 +1,36 @@
+name: CLI_CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  python_ci:
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    env:
+      QT_QPA_PLATFORM: "offscreen"
+
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pycodestyle pytest pytest-cov pytest-mock
+      - name: Static Analysis
+        run: |
+          pycodestyle --show-source \
+            easy_perception_deployment/easy_perception_deployment/scripts/test_config_epd.py \
+            easy_perception_deployment/easy_perception_deployment/scripts/cli/config_epd.py \
+            --count
+      - name: Dynamic Analysis
+        run: |
+          cd easy_perception_deployment/easy_perception_deployment/scripts
+          pytest --capture=no -vv test_config_epd.py

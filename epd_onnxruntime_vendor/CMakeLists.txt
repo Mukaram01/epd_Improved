@@ -20,6 +20,10 @@ macro(build_onnxruntime)
   list(APPEND extra_cmake_args "-Donnxruntime_DEV_MODE=OFF")
   list(APPEND extra_cmake_args "-Donnxruntime_ENABLE_PYTHON=OFF")
   list(APPEND extra_cmake_args "-Donnxruntime_BUILD_UNIT_TESTS=OFF")
+  # Pre-populate flake8_BIN as NOTFOUND so onnxruntime's flake8.cmake skips
+  # the version check entirely (avoids spurious warning when the flake8
+  # entry-point script on the host throws a Python traceback on --version).
+  list(APPEND extra_cmake_args "-Dflake8_BIN=flake8_BIN-NOTFOUND")
 
   # Build settings
   list(APPEND extra_cmake_args "-Donnxruntime_USE_OPENMP=ON")

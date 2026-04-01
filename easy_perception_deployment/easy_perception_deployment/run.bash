@@ -2,7 +2,11 @@
 set -euo pipefail
 
 # Init conda (do NOT prepend base anaconda bin to PATH)
+# set +u: conda.sh references PS1 which is unset in non-interactive shells
+set +u
+: "${PS1:=}"
 source "$HOME/anaconda3/etc/profile.d/conda.sh"
+set -u
 
 # export PATH=~/anaconda3/bin:$PATH
 PATH_TO_THIS_SCRIPT=$(realpath "$0")

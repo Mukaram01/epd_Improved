@@ -363,6 +363,52 @@ Key ROS 2 topics:
 └──────────────────────────────────────────┘
 ```
 
+## Connecting to Easy Manipulation Deployment (EMD)
+
+[Easy_Manipulator_Improved (EMD)](https://github.com/Mukaram01/Easy_Manipulator_Improved) integrates with EPD over a ROS 2 service and topic pair:
+
+| Interface | Type | Name |
+|-----------|------|------|
+| Service | `epd_msgs/srv/Perception` | `epd_perception_service` |
+| Localization topic | `epd_msgs/msg/EPDObjectLocalization` | `/easy_perception_deployment/epd_localize_output` |
+| Tracking topic | `epd_msgs/msg/EPDObjectTracking` | `/easy_perception_deployment/epd_tracking_output` |
+
+### EMD parameter file
+
+Set the following values in your EMD params YAML (e.g. `params.yaml`):
+
+```yaml
+easy_perception_deployment:
+  epd_enabled: true
+  epd_service: "epd_perception_service"
+  epd_localization_topic: "/easy_perception_deployment/epd_localize_output"
+  epd_tracking_topic: "/easy_perception_deployment/epd_tracking_output"
+  epd_detection_depth_topic: "/camera/camera/depth/image_rect_raw"
+  epd_detection_camera_info_topic: "/camera/camera/color/camera_info"
+```
+
+> **Note:** EPD must be running in `usecase_mode: 3` (LOCALISATION) or `usecase_mode: 4` (TRACKING)
+> for `epd_perception_service` to return pose data.  The default `config/usecase_config.json`
+> is already set to `usecase_mode: 3`.
+
+### Recommended launch command
+
+Use `epd_emd_pipeline.launch.py` when running EPD together with EMD.  It configures
+the correct RealSense topic remaps and prints a startup reminder with the EMD topic names:
+
+```bash
+ros2 launch easy_perception_deployment epd_emd_pipeline.launch.py
+```
+
+Optional overrides (RealSense D435i defaults are pre-configured):
+
+```bash
+ros2 launch easy_perception_deployment epd_emd_pipeline.launch.py \
+  rgb_topic:=/camera/camera/color/image_raw \
+  camera_info_topic:=/camera/camera/color/camera_info \
+  depth_topic:=/camera/camera/aligned_depth_to_color/image_raw
+```
+
 ## **Session Config Parameters**
 
 All parameters are stored in `config/session_config.json`:

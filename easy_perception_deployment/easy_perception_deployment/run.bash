@@ -135,6 +135,14 @@ resolve_epd_workspace_setup() {
 
 conda activate epd_gui_env
 
+# Ensure PySide6 is installed in the active environment.
+# Older epd_gui_env installations may only have PySide2; installing PySide6
+# here is a no-op when it is already present.
+if ! python -c "import PySide6" 2>/dev/null; then
+    echo "PySide6 not found in epd_gui_env; installing..."
+    pip install PySide6
+fi
+
 ROS_DISTRO="${ROS_DISTRO:-humble}"
 
 # ---- FIX: ROS setup + `set -u` compatibility (prevents AMENT_TRACE_SETUP_FILES unbound)

@@ -1,4 +1,4 @@
-bool ready   # indicate if EMD pipeline is ready
+bool trigger   # EMD sets true to request EPD to run one perception cycle
 ---
 bool success   # indicate if EPD pipeline has successfully completed
 bool tracking_enabled   # Whether or not grasp planner should use EPDObjectLocalization or EPDObjectTracking. 

@@ -302,13 +302,13 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   // Creating Publisher to output Action P3 and Localization Detection Results.
   localize_pub = this->create_publisher<epd_msgs::msg::EPDObjectLocalization>(
     "/easy_perception_deployment/epd_localize_output",
-    10,
+    rclcpp::SensorDataQoS(),
     publisher_options);
 
   // Creating Publisher to output Action P3 and Tracking Detection Results.
   tracking_pub = this->create_publisher<epd_msgs::msg::EPDObjectTracking>(
     "/easy_perception_deployment/epd_tracking_output",
-    10,
+    rclcpp::SensorDataQoS(),
     publisher_options);
 
   // Creating Publisher to output 3D poses of localized/tracked objects.
@@ -341,8 +341,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     {
       RCLCPP_INFO(this->get_logger(), "[ RECEIVED ] - EMD Grasp-Planner Request");
 
-      if (!request->ready) {
-        RCLCPP_WARN(this->get_logger(), "Service request ignored: ready=false");
+      if (!request->trigger) {
+        RCLCPP_WARN(this->get_logger(), "Service request ignored: trigger=false");
         response->success = false;
         std::lock_guard<std::mutex> ort_guard(ort_mutex_);
         response->tracking_enabled = (ortAgent_.useCaseMode == EPD::TRACKING_MODE);

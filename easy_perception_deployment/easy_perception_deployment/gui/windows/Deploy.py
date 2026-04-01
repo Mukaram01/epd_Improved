@@ -78,20 +78,23 @@ class FPSMonitorThread(QThread):
             if self._subscription is not None:
                 try:
                     self._node.destroy_subscription(self._subscription)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.getLogger('deploy').debug(
+                        'FPS monitor: error destroying subscription: %s', e)
                 self._subscription = None
             if self._node is not None:
                 try:
                     self._node.destroy_node()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logging.getLogger('deploy').debug(
+                        'FPS monitor: error destroying node: %s', e)
                 self._node = None
             try:
                 if rclpy.ok():
                     rclpy.shutdown()
-            except Exception:
-                pass
+            except Exception as e:
+                logging.getLogger('deploy').debug(
+                    'FPS monitor: error during rclpy shutdown: %s', e)
 
     def _maybe_update_subscription(self):
         with self._lock:

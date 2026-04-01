@@ -29,7 +29,7 @@ try:
     _RCLPY_AVAILABLE = True
 except ImportError:
     _RCLPY_AVAILABLE = False
-from PySide6.QtCore import QSize, QTimer, QThread, Signal, Slot
+from PySide6.QtCore import QObject, QSize, QTimer, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget,
@@ -39,11 +39,30 @@ from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
 
 
-class FPSMonitorThread(QThread):
+class _FPSMonitorSignals(QObject):
+    """QObject carrier for the fps_updated signal.
+
+    Kept separate from the worker thread so the signal lives on the main thread
+    and cross-thread emissions are automatically queued by Qt — regardless of
+    whether the emitting thread is a QThread or a plain Python thread.
+    """
+
     fps_updated = Signal(str)
 
-    def __init__(self, usecase_mode, parent=None):
-        super().__init__(parent)
+
+class FPSMonitorThread:
+    """FPS monitor that runs in a daemon Python thread (not a QThread).
+
+    Using threading.Thread avoids the QThread destructor calling abort() when
+    the C++ thread object is destroyed while the OS thread is still running —
+    a crash that occurs in PySide6 6.x when the thread is doing heavy ROS2
+    node initialisation and the owning widget is closed before init completes.
+    """
+
+    def __init__(self, usecase_mode):
+        self._signals = _FPSMonitorSignals()
+        self.fps_updated = self._signals.fps_updated
+
         self._usecase_mode = usecase_mode
         self._requested_mode = usecase_mode
         self._node = None
@@ -52,14 +71,26 @@ class FPSMonitorThread(QThread):
         self._running = True
         self._lock = threading.Lock()
 
+        self._thread = threading.Thread(
+            target=self._run, daemon=True, name='FPSMonitor')
+
+    def start(self):
+        self._thread.start()
+
     def stop(self):
         self._running = False
+
+    def wait(self, timeout_ms=None):
+        """Block until the thread finishes; return True if it stopped in time."""
+        timeout_sec = timeout_ms / 1000.0 if timeout_ms is not None else None
+        self._thread.join(timeout=timeout_sec)
+        return not self._thread.is_alive()
 
     def set_usecase_mode(self, usecase_mode):
         with self._lock:
             self._requested_mode = usecase_mode
 
-    def run(self):
+    def _run(self):
         if not _RCLPY_AVAILABLE:
             return
         try:
@@ -573,7 +604,7 @@ class DeployWindow(QWidget):
         if not _RCLPY_AVAILABLE:
             self.fps_label.setText('FPS: N/A | Latency: N/A (ROS unavailable)')
             return
-        self._fps_monitor = FPSMonitorThread(self.usecase_mode, self)
+        self._fps_monitor = FPSMonitorThread(self.usecase_mode)
         self._fps_monitor.fps_updated.connect(self._update_fps_label)
         self._fps_monitor.start()
 

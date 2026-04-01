@@ -133,6 +133,17 @@ resolve_epd_workspace_setup() {
     echo "$HOME/epd_ros2_ws/install/setup.bash"
 }
 
+# Check for libxcb-cursor0, required by the Qt xcb platform plugin since Qt 6.5.0.
+if command -v dpkg >/dev/null 2>&1 && ! dpkg -l libxcb-cursor0 2>/dev/null | grep -q "^ii"; then
+    echo "Missing dependency: libxcb-cursor0 (required by Qt xcb platform plugin since Qt 6.5.0)."
+    echo "Installing libxcb-cursor0..."
+    sudo apt-get install -y libxcb-cursor0 || {
+        echo "ERROR: Could not install libxcb-cursor0 automatically."
+        echo "Please run manually: sudo apt-get install -y libxcb-cursor0"
+        exit 1
+    }
+fi
+
 conda activate epd_gui_env
 
 # Ensure PySide6 is installed in the active environment.

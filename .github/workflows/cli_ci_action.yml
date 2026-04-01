@@ -2,6 +2,9 @@ name: CLI_CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   python_ci:
     strategy:

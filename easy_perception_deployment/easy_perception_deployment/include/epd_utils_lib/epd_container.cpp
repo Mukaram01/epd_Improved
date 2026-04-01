@@ -370,7 +370,7 @@ void EPDContainer::setUseCaseConfigFile()
   if (useCaseMode == EPD::COUNTING_MODE) {
     Json::Value class_list = obj["class_list"];
     for (size_t index = 0; index < class_list.size(); ++index) {
-      countClassNames.emplace_back(class_list[index].asString());
+      countClassNames.emplace_back(class_list[static_cast<Json::ArrayIndex>(index)].asString());
     }
   }
 

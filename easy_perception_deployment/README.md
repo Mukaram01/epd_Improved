@@ -52,7 +52,8 @@ mkdir -p "$HOME/epd_ros2_ws/src"
 cd "$HOME/epd_ros2_ws/src"
 git clone https://github.com/Mukaram01/epd_Improved.git .
 
-# Optional: import ONNX Runtime vendor repos used by this project
+# Import ONNX Runtime vendor package (downloads a prebuilt binary at build
+# time - no compilation needed, takes ~2 minutes instead of 60-90 minutes)
 vcs import < easy_perception_deployment/onnxruntime.repos
 
 # 4) Install package dependencies
@@ -229,13 +230,19 @@ sudo apt install -y \
   libjsoncpp-dev
 ```
 
-Fetch the ONNX Runtime vendor package from `onnxruntime.repos` (it should build on Ubuntu 22.04). If the vendor build fails, make sure standard build prerequisites are installed:
+The ONNX Runtime vendor package (`epd_onnxruntime_vendor`) now downloads a
+**prebuilt binary** from the [official GitHub releases](https://github.com/microsoft/onnxruntime/releases)
+instead of building from source.  Installation takes **~2 minutes** (a single
+archive download + copy) rather than the 60–90 minutes previously needed to
+clone and compile the full C++ library.
 
 ```bash
-sudo apt update
-sudo apt install -y build-essential cmake python3-dev python3-pip
+# Import the vendor package repo (only needed once per workspace clone)
 vcs import < easy_perception_deployment/onnxruntime.repos
 ```
+
+No extra build prerequisites (`build-essential`, `cmake`, `python3-dev`, …)
+are needed for the vendor step.
 
 The GUI is built with **PySide6**. If you are using the included `run.bash` workflow, it installs PySide6 into a conda environment. For a system Python install, use pip:
 

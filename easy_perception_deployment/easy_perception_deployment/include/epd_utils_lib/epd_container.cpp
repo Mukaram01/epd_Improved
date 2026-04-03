@@ -174,6 +174,7 @@ EPDContainer::EPDContainer(void)
 {
   hasInitialized = false;
   onlyVisualize = true;
+  onlyService = false;
   color_match_histogram_metric = EPD::COLOR_HISTOGRAM_CORRELATION;
   image_transport = "raw";
   publish_detection_segmentation = true;
@@ -342,7 +343,6 @@ void EPDContainer::setModelConfigFile()
 
 void EPDContainer::setUseCaseConfigFile()
 {
-  Json::Reader reader;
   Json::Value obj;
   const std::string usecase_config_path = PATH_TO_USECASE_CONFIG;
   std::ifstream ifs_1(usecase_config_path);
@@ -350,10 +350,12 @@ void EPDContainer::setUseCaseConfigFile()
     throw std::runtime_error("Use case config file not found: " + usecase_config_path);
   }
 
-  if (!reader.parse(ifs_1, obj)) {
+  Json::CharReaderBuilder reader_builder;
+  std::string parse_errors;
+  if (!Json::parseFromStream(reader_builder, ifs_1, &obj, &parse_errors)) {
     throw std::runtime_error(
       "Failed to parse use case config file: " + usecase_config_path + ". " +
-      reader.getFormattedErrorMessages()
+      parse_errors
     );
   }
 

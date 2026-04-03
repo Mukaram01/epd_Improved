@@ -3,13 +3,14 @@
   <name>epd_onnxruntime_vendor</name>
   <version>0.0.0</version>
   <description>
-    Wrapper around onnxruntime, it provides a fixed CMake module and an ExternalProject build of it.
+    Wrapper around onnxruntime, downloading a prebuilt binary release instead
+    of building from source to reduce installation time from ~60-90 minutes
+    to ~2 minutes.
   </description>
   <maintainer email="chenbn@artc.a-star.edu.sg">Chen Bainian</maintainer>
   <license>Apache License 2.0</license>  <!-- the contents of this package are Apache 2.0 -->
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <buildtool_depend>git</buildtool_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

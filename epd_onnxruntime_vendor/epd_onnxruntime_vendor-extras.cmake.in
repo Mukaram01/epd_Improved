@@ -14,7 +14,9 @@ find_library(
 find_path(
   onnxruntime_INCLUDE_DIR
   NAMES onnxruntime_cxx_api.h
-  PATHS ${onnxruntime_opt}/include/onnxruntime/core/session
+  PATHS
+    ${onnxruntime_opt}/include
+    ${onnxruntime_opt}/include/onnxruntime/core/session
   NO_DEFAULT_PATH
 )
 

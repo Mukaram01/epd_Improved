@@ -52,9 +52,9 @@ mkdir -p "$HOME/epd_ros2_ws/src"
 cd "$HOME/epd_ros2_ws/src"
 git clone https://github.com/Mukaram01/epd_Improved.git .
 
-# Import ONNX Runtime vendor package (downloads a prebuilt binary at build
-# time - no compilation needed, takes ~2 minutes instead of 60-90 minutes)
-vcs import < easy_perception_deployment/onnxruntime.repos
+# The ONNX Runtime vendor package (epd_onnxruntime_vendor) is already
+# included in the repository - no vcs import needed.
+# It downloads a prebuilt binary at build time (~2 minutes).
 
 # 4) Install package dependencies
 cd "$HOME/epd_ros2_ws"
@@ -236,10 +236,8 @@ instead of building from source.  Installation takes **~2 minutes** (a single
 archive download + copy) rather than the 60–90 minutes previously needed to
 clone and compile the full C++ library.
 
-```bash
-# Import the vendor package repo (only needed once per workspace clone)
-vcs import < easy_perception_deployment/onnxruntime.repos
-```
+The `epd_onnxruntime_vendor` package is already included in this repository.
+No separate `vcs import` step is needed.
 
 No extra build prerequisites (`build-essential`, `cmake`, `python3-dev`, …)
 are needed for the vendor step.
@@ -290,7 +288,10 @@ to switch between raw and compressed image topics.
   "visualizeFlag": "robot",
   "useCPU": "CPU",
   "intra_op_num_threads": 0,
-  "image_transport": "compressed"
+  "image_transport": "compressed",
+  "publish_detection_segmentation": true,
+  "confidence_threshold": 0.5,
+  "max_detections": 100
 }
 ```
 

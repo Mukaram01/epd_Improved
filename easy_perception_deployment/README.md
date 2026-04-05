@@ -10,22 +10,28 @@
 
 ## **What Is This?**
 
-**easy_perception_deployment** is a ROS2 package that accelerates the **training** and **deployment** of **Computer Vision** (CV) models for industries.
+**easy_perception_deployment** is a ROS 2 package that accelerates the **training** and **deployment** of **Computer Vision** (CV) models for industries.
 
 <img src="img/demo_1.gif" alt="drawing" width="500"/>
 <img src="img/demo_2.gif" alt="drawing" width="500"/>
 
+**Full documentation:** [easy-perception-deployment.readthedocs.io](https://easy-perception-deployment.readthedocs.io/en/latest/)
 
 ## **Quality Declaration**
 
 This package claims to be in the **Quality Level 4** category, see the [**Quality Declaration**](https://github.com/cardboardcode/easy_perception_deployment/blob/master/QUALITY_DECLARATION.md) for more details.
 
-## **Install (Ubuntu 22.04 + ROS 2 Humble)**
+---
 
-This section lists reproducible steps to build and run **easy_perception_deployment** on Ubuntu 22.04 (Jammy) with ROS 2 Humble.
+## **Installation Guide (Ubuntu 22.04 + ROS 2 Humble)**
+
+Follow these steps in order to install and run **easy_perception_deployment**.
+
+### **Step 1 — System prerequisites**
+
+Make sure you have **Ubuntu 22.04 (Jammy)** and **ROS 2 Humble** installed. Then install the required system packages:
 
 ```bash
-# 1) Base tools + ROS build dependencies
 sudo apt update
 sudo apt install -y \
   curl \
@@ -42,38 +48,96 @@ sudo apt install -y \
   ros-humble-tf2 \
   libopencv-dev \
   libjsoncpp-dev
+```
 
-# 2) Initialize rosdep once per machine
+> **GUI note:** The GUI requires **PySide6**. The `run.bash` workflow installs it automatically into a conda environment. For a plain system Python install, run:
+> ```bash
+> python3 -m pip install --user PySide6
+> ```
+
+### **Step 2 — Initialise rosdep**
+
+Run this once per machine (safe to repeat; the `|| true` suppresses the "already initialised" error):
+
+```bash
 sudo rosdep init || true
 rosdep update
+```
 
-# 3) Create workspace and clone EPD
+### **Step 3 — Create a ROS 2 workspace and clone the repository**
+
+```bash
 mkdir -p "$HOME/epd_ros2_ws/src"
 cd "$HOME/epd_ros2_ws/src"
 git clone https://github.com/Mukaram01/epd_Improved.git .
+```
 
-# The ONNX Runtime vendor package (epd_onnxruntime_vendor) is already
-# included in the repository - no vcs import needed.
-# It downloads a prebuilt binary at build time (~2 minutes).
+> The ONNX Runtime vendor package (`epd_onnxruntime_vendor`) is already included in the repository — no `vcs import` step is needed. It downloads a **prebuilt binary** (~2 minutes) at build time instead of compiling from source.
 
-# 4) Install package dependencies
+### **Step 4 — Install ROS package dependencies**
+
+```bash
 cd "$HOME/epd_ros2_ws"
 source /opt/ros/humble/setup.bash
 rosdep install --from-paths src --ignore-src -r -y
-
-# 5) Build and source
-colcon build --symlink-install --cmake-args -DEPD_DOWNLOAD_MODELS=ON
-source install/setup.bash
 ```
 
-Start the GUI workflow (downloads models and sets up the conda env as needed):
+### **Step 5 — Build the workspace**
+
+```bash
+cd "$HOME/epd_ros2_ws"
+colcon build --symlink-install --cmake-args -DEPD_DOWNLOAD_MODELS=ON
+```
+
+The `-DEPD_DOWNLOAD_MODELS=ON` flag downloads the required pretrained ONNX models into `easy_perception_deployment/data/model/` automatically during the build.
+
+### **Step 6 — Source the workspace**
+
+```bash
+source "$HOME/epd_ros2_ws/install/setup.bash"
+```
+
+Add this line to your `~/.bashrc` to avoid repeating it in every new terminal:
+
+```bash
+echo "source $HOME/epd_ros2_ws/install/setup.bash" >> ~/.bashrc
+```
+
+### **Step 7 — Launch the GUI**
 
 ```bash
 cd "$HOME/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment"
 bash run.bash
 ```
 
-## **RealSense setup (D435i)**
+The GUI guides you through model selection, use-case configuration, and starting the EPD node.
+
+---
+
+## **Model Downloads**
+
+Models are downloaded automatically when you build with `-DEPD_DOWNLOAD_MODELS=ON` (Step 5). If you skipped that flag or need to re-download them, use the helper script from the workspace root:
+
+```bash
+cd "$HOME/epd_ros2_ws/src"
+bash easy_perception_deployment/scripts/download_models.sh
+```
+
+Or download individual models manually:
+
+```bash
+mkdir -p easy_perception_deployment/easy_perception_deployment/data/model
+curl -L "https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx" \
+  -o "easy_perception_deployment/easy_perception_deployment/data/model/squeezenet1.1-7.onnx"
+curl -L "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx" \
+  -o "easy_perception_deployment/easy_perception_deployment/data/model/FasterRCNN-10.onnx"
+curl -L "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx" \
+  -o "easy_perception_deployment/easy_perception_deployment/data/model/MaskRCNN-10.onnx"
+```
+
+---
+
+## **RealSense Camera Setup (D435i)**
 
 On Ubuntu 22.04 + ROS 2 Humble, two RealSense issues are common:
 
@@ -83,21 +147,20 @@ On Ubuntu 22.04 + ROS 2 Humble, two RealSense issues are common:
 Apply both fixes:
 
 ```bash
-# 1) Stop iio-sensor-proxy and prevent it from restarting
+# Stop iio-sensor-proxy and prevent it from restarting
 sudo systemctl stop iio-sensor-proxy.service
 sudo systemctl disable iio-sensor-proxy.service
 sudo systemctl mask iio-sensor-proxy.service
 
-# 2) Grant camera-related device access to your user
+# Grant camera-related device access to your user
 sudo usermod -aG video,plugdev,input "$USER"
-
 # Re-login (or reboot) after changing groups
 ```
 
-Quick verification checklist:
+Verify the camera is working:
 
 ```bash
-# A) Device nodes exist (and are group-readable)
+# A) Device nodes exist and are group-readable
 ls -l /dev/video*
 
 # B) RealSense camera node launches with IMU enabled
@@ -109,6 +172,8 @@ ros2 launch realsense2_camera rs_launch.py \
 # C) Topics use /camera/camera prefix (expected with rs_launch.py)
 ros2 topic list | grep /camera/camera
 ```
+
+---
 
 ## **Run EPD node with RealSense topics**
 
@@ -162,6 +227,8 @@ ros2 launch easy_perception_deployment run.launch.py --ros-args \
 >   * `/camera/camera/gyro/sample`
 >   * `/camera/camera/accel/sample`
 
+---
+
 ## **run.bash notes**
 
 `run.bash` is hardened for shells that use `set -u` (nounset). Older copies could fail with:
@@ -177,76 +244,16 @@ cd "$HOME/epd_ros2_ws/src/easy_perception_deployment"
 git pull
 ```
 
-Environment variables recognized by `run.bash`:
+Environment variables recognised by `run.bash`:
 
-* `EPD_WS`: workspace root used to find `install/setup.bash`.
-* `EPD_SKIP_DOWNLOAD`: set to `1` to skip automatic model downloads.
-* `ROS_DISTRO`: ROS distro used when sourcing `/opt/ros/<distro>/setup.bash` (defaults to `humble`).
+| Variable | Description |
+|----------|-------------|
+| `EPD_WS` | Workspace root used to find `install/setup.bash`. |
+| `EPD_SKIP_DOWNLOAD` | Set to `1` to skip automatic model downloads. |
+| `ROS_DISTRO` | ROS distro used when sourcing `/opt/ros/<distro>/setup.bash` (defaults to `humble`). |
 
-## **Model Downloads**
+---
 
-The build requires pretrained ONNX models stored in:
-
-```
-easy_perception_deployment/data/model/
-```
-
-If you do not enable downloads at configure time, you can fetch them manually from the repository root:
-
-```bash
-mkdir -p easy_perception_deployment/data/model
-curl -L "https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx" -o "easy_perception_deployment/data/model/squeezenet1.1-7.onnx"
-curl -L "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx" -o "easy_perception_deployment/data/model/FasterRCNN-10.onnx"
-curl -L "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx" -o "easy_perception_deployment/data/model/MaskRCNN-10.onnx"
-```
-
-Alternatively, run the helper script:
-
-```bash
-./scripts/download_models.sh
-```
-
-If you prefer configure-time downloads, add the CMake option:
-
-```bash
-colcon build --cmake-args -DEPD_DOWNLOAD_MODELS=ON
-```
-
-## **Dependencies (Humble/Ubuntu 22.04)**
-
-Install the core vision stack and ROS image-related dependencies that EPD uses (OpenCV, cv_bridge, and ROS image messages) via apt:
-
-```bash
-sudo apt update
-sudo apt install -y \
-  ros-humble-vision-opencv \
-  ros-humble-cv-bridge \
-  ros-humble-pcl-conversions \
-  ros-humble-sensor-msgs \
-  ros-humble-message-filters \
-  ros-humble-geometry-msgs \
-  ros-humble-tf2 \
-  libopencv-dev \
-  libjsoncpp-dev
-```
-
-The ONNX Runtime vendor package (`epd_onnxruntime_vendor`) now downloads a
-**prebuilt binary** from the [official GitHub releases](https://github.com/microsoft/onnxruntime/releases)
-instead of building from source.  Installation takes **~2 minutes** (a single
-archive download + copy) rather than the 60–90 minutes previously needed to
-clone and compile the full C++ library.
-
-The `epd_onnxruntime_vendor` package is already included in this repository.
-No separate `vcs import` step is needed.
-
-No extra build prerequisites (`build-essential`, `cmake`, `python3-dev`, …)
-are needed for the vendor step.
-
-The GUI is built with **PySide6**. If you are using the included `run.bash` workflow, it installs PySide6 into a conda environment. For a system Python install, use pip:
-
-```bash
-python3 -m pip install --user PySide6
-```
 ## **Precision Levels & Model Selection**
 
 Use the **ONNX Model** selector in the Deploy window (see `gui/windows/Deploy.py`) to choose a detector that matches your throughput target. Place ONNX model files in `easy_perception_deployment/easy_perception_deployment/data/model/` (or any path you prefer) and point the GUI to the file. The default session config (`config/session_config.json`) is set to a lightweight SSD MobileNet model for CPU throughput.

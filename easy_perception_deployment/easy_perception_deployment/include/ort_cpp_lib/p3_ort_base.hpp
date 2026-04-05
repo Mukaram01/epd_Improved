@@ -68,7 +68,8 @@ public:
     const cv::Mat & inputImg,
     const cv::Mat & depthImg,
     sensor_msgs::msg::CameraInfo camera_info,
-    double camera_to_plane_distance_mm);
+    double camera_to_plane_distance_mm,
+    float confThresh = 0.5f);
 
   /*! \brief A auxillary Mutator function that calls the internal overloading
   infer function.*/
@@ -80,7 +81,8 @@ public:
     const std::string tracker_type,
     std::vector<cv::Ptr<cv::Tracker>> & trackers,
     std::vector<int> & tracker_logs,
-    std::vector<EPD::LabelledRect2d> & tracker_results);
+    std::vector<EPD::LabelledRect2d> & tracker_results,
+    float confThresh = 0.5f);
 
   /*! \brief A Getter function that gets the number of object names used for an
   ongoing session.*/
@@ -106,7 +108,10 @@ private:
   std::vector<std::string> m_classNames;
   /*! \brief Reusable scratch buffer for preprocessing tensor input.*/
   std::vector<float> preprocess_buffer_;
-  /*! \brief Guards access to reusable preprocessing buffer for concurrent infer calls.*/
+  /*! \brief Guards access to reusable preprocessing buffer.
+   * Note: EPD drives inference from a single worker thread so no two infer()
+   * calls are concurrent. This mutex protects against future API changes that
+   * might introduce concurrent callers. */
   mutable std::mutex preprocess_buffer_mutex_;
 
   /*! \brief A Mutator function that converts a 3-layered 2D RGB input image
@@ -148,7 +153,8 @@ private:
     float ratio,
     float * dst,
     float confThresh,
-    const cv::Scalar & meanVal);
+    const cv::Scalar & meanVal,
+    int max_depth_mm);
 
   /*! \brief A Mutator function that runs a P3 Ort Session and gets P3
   inference result with Tracking results for use by external agents.*/
@@ -168,7 +174,8 @@ private:
     float ratio,
     float * dst,
     float confThresh,
-    const cv::Scalar & meanVal);
+    const cv::Scalar & meanVal,
+    int max_depth_mm);
 
   /*! \brief A Mutator function that takes P2 inference outputs and illustrates
   derived bounding boxes with corresponding object labels for visualization
@@ -182,9 +189,9 @@ private:
     const float maskThreshold);
 
   /*! \brief A Getter function that returns the median z-value of the scene.*/
-  double findMedian(cv::Mat depthImg);
+  double findMedian(cv::Mat depthImg, int max_depth_mm = 2000);
   /*! \brief A Getter function that returns the largest z-value of the scene.*/
-  double findMin(cv::Mat depthImg);
+  double findMin(cv::Mat depthImg, int max_depth_mm = 2000);
   /*! \brief A Getter function that returns the Intersection-over-Union (IoU)
   area between two Rect2d objects.*/
   double getIOU(cv::Rect2d detected_box, cv::Rect2d tracked_box) const;

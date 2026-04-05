@@ -109,7 +109,8 @@ inline void matchColor(
   std::vector<cv::Mat> & masks,
   std::vector<std::string> allClassNames,
   const std::string filepath_to_refcolor,
-  const unsigned int histogram_metric)
+  const unsigned int histogram_metric,
+  const float color_match_threshold = 0.8f)
 {
   bool noMasksFound = false;
   if (masks.size() == 0) {
@@ -160,7 +161,7 @@ inline void matchColor(
       cv::NORM_MINMAX, -1, cv::Mat());
 
     base_base = compareHist(hist_base, hist_test1, histogram_metric);
-    if (base_base > 0.8) {
+    if (base_base > color_match_threshold) {
       local_bboxes.push_back(curBbox);
       local_classIndices.push_back(classIdx);
       local_scores.push_back(curScore);
@@ -192,19 +193,18 @@ inline void activateUseCase(
   const unsigned int useCaseMode,
   const std::vector<std::string> countClassNames,
   const std::string filepath_to_refcolor,
-  const unsigned int histogram_metric)
+  const unsigned int histogram_metric,
+  const float color_match_threshold = 0.8f)
 {
   // If default CLASSIFICATION_MODE is selected, do not alter anything and return.
   if (useCaseMode == EPD::CLASSIFICATION_MODE) {
     return;
   } else if (useCaseMode == EPD::COUNTING_MODE) {
-    printf("Use Case: [Counting] selected.\n");
     EPD::count(bboxes, classIndices, scores, masks, allClassNames, countClassNames);
   } else if (useCaseMode == EPD::COLOR_MATCHING_MODE) {
-    printf("Use Case: [Color-Matching] selected.\n");
     EPD::matchColor(
       img, bboxes, classIndices, scores, masks, allClassNames,
-      filepath_to_refcolor, histogram_metric);
+      filepath_to_refcolor, histogram_metric, color_match_threshold);
   } else {
     throw std::runtime_error("Invalid Use Case. Can only be [0, 1, 2].");
   }

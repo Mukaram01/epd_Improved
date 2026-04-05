@@ -17,6 +17,7 @@
 #define ORT_CPP_LIB__P2_ORT_BASE_HPP_
 
 #include <optional>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -79,6 +80,12 @@ private:
   int m_newW, m_newH, m_paddedW, m_paddedH;
   /*! \brief A vector of object text labels given an input label list.*/
   std::vector<std::string> m_classNames;
+  /*! \brief Reusable scratch buffer for preprocessing tensor input.*/
+  std::vector<float> preprocess_buffer_;
+  /*! \brief Guards access to reusable preprocessing buffer.
+   * Note: inference is driven by a single worker thread so this mutex
+   * primarily prevents races on future concurrent-infer API extensions. */
+  mutable std::mutex preprocess_buffer_mutex_;
 
   /*! \brief A Mutator function that converts a 3-layered 2D RGB input image
   into a 1D input data tensor to be passed to the Ort Session for processing.\n

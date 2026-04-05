@@ -60,6 +60,10 @@ public:
   std::string template_color_path;
   /*! \brief The histogram comparison metric for Color-Matching use-case.*/
   unsigned int color_match_histogram_metric;
+  /*! \brief The color similarity threshold for Color-Matching use-case.
+  * Detections whose HSV histogram comparison score falls below this value
+  * are excluded. Range [0.0, 1.0], default 0.8. */
+  float color_match_threshold{0.8f};
   /*! \brief The filepath to the essential class label list, that maps classIndices
   * to human-understandable object text labels.
   */

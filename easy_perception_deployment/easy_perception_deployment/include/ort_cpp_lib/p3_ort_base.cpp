@@ -590,6 +590,8 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
       }
     }
   }
+  // END of Populating EPDObjectLocalization object
+  return output_obj;
 }
 
 // A mutator function that will output an EPD::EPDObjectTracking object that

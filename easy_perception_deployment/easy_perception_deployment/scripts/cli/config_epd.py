@@ -108,8 +108,10 @@ class EPDConfigurator():
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
         print('--intra-op-threads   Sets intra-op thread count for ORT.')
-        print('--publish-segmentation   Enables detection mask/point-cloud output.')
-        print('--no-publish-segmentation   Disables detection mask/point-cloud output.')
+        print('--publish-segmentation   Enables detection '
+              'mask/point-cloud output.')
+        print('--no-publish-segmentation   Disables detection '
+              'mask/point-cloud output.')
 
     def isInEPDPackageRoot(self, start_dirpath):
         if (os.path.isdir(start_dirpath + "/scripts") and
@@ -126,21 +128,21 @@ class EPDConfigurator():
         # TODO(cardboardcode): Add options for usecase_config.json
         # CLI configuration.
         opts, _ = getopt.getopt(args, 'hvagcm:l:',
-                                        ['visualize',
-                                         'action',
-                                         'gpu',
-                                         'cpu',
-                                         'model=',
-                                         'label=',
-                                         'use=',
-                                         'class-list=',
-                                         'color-template=',
-                                         'color-hist-metric=',
-                                         'track-type=',
-                                         'topic=',
-                                         'intra-op-threads=',
-                                         'publish-segmentation',
-                                         'no-publish-segmentation'])
+                                ['visualize',
+                                 'action',
+                                 'gpu',
+                                 'cpu',
+                                 'model=',
+                                 'label=',
+                                 'use=',
+                                 'class-list=',
+                                 'color-template=',
+                                 'color-hist-metric=',
+                                 'track-type=',
+                                 'topic=',
+                                 'intra-op-threads=',
+                                 'publish-segmentation',
+                                 'no-publish-segmentation'])
 
         for opt, arg in opts:
             if opt == '-h':
@@ -222,10 +224,12 @@ class EPDConfigurator():
                     sys.exit(2)
                 self.intra_op_num_threads = thread_count
             elif opt in ('--publish-segmentation'):
-                print("[ session_config.json ] - Enabling detection segmentation output.")
+                print("[ session_config.json ] - Enabling detection "
+                      "segmentation output.")
                 self.publish_detection_segmentation = True
             elif opt in ('--no-publish-segmentation'):
-                print("[ session_config.json ] - Disabling detection segmentation output.")
+                print("[ session_config.json ] - Disabling detection "
+                      "segmentation output.")
                 self.publish_detection_segmentation = False
         self.validate_usecase_inputs()
 
@@ -401,7 +405,8 @@ class EPDConfigurator():
             "visualizeFlag": visualizeFlag_string,
             "useCPU": useCPU_string,
             "intra_op_num_threads": self.intra_op_num_threads,
-            "publish_detection_segmentation": self.publish_detection_segmentation
+            "publish_detection_segmentation":
+                self.publish_detection_segmentation
             }
         json_object_1 = json.dumps(dict, indent=4)
 

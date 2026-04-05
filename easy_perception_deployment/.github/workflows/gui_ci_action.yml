@@ -28,7 +28,7 @@ jobs:
           python -m pip install labelme==5.0.1
           python -m pip install pytest==6.0.1
           python -m pip install pytest-qt==3.3.0
-          python -m pip install pyyaml==5.4.1
+          python -m pip install "pyyaml>=6.0"
       - name: Static Analysis (pycodestyle)
         run: |
           pycodestyle --show-source easy_perception_deployment/gui/main.py \

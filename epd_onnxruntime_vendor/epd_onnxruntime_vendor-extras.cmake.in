@@ -1,4 +1,3 @@
-# add the local Modules directory to the modules path
 # NOTE: onnxruntime installs the ONNX headers it depends on, but it does not
 # ship an ONNXConfig.cmake. Downstream packages should consume the vendored
 # onnxruntime library and headers from this package, so we intentionally skip
@@ -20,7 +19,14 @@ find_path(
   NO_DEFAULT_PATH
 )
 
-message(WARNING "Find onnxruntime libraries at" ${onnxruntime_LIBRARIES})
+if(NOT onnxruntime_LIBRARIES)
+  message(FATAL_ERROR
+    "epd_onnxruntime_vendor: could not find libonnxruntime under "
+    "${onnxruntime_opt}/lib. "
+    "Make sure the package was built and installed before using it.")
+endif()
+
+message(STATUS "epd_onnxruntime_vendor: found onnxruntime library at ${onnxruntime_LIBRARIES}")
 
 set(epd_onnxruntime_vendor_LIBRARY_DIRS ${onnxruntime_opt}/lib)
 set(epd_onnxruntime_vendor_LIBRARIES ${onnxruntime_LIBRARIES})
@@ -28,3 +34,15 @@ set(epd_onnxruntime_vendor_INCLUDE_DIRS
   ${onnxruntime_opt}/include
   ${onnxruntime_INCLUDE_DIR}
 )
+
+# Provide a modern IMPORTED target so downstream packages can also use
+#   target_link_libraries(<target> epd_onnxruntime_vendor::onnxruntime)
+# find_library() always returns a single file path, so IMPORTED_LOCATION
+# is always a scalar value here.
+if(NOT TARGET epd_onnxruntime_vendor::onnxruntime)
+  add_library(epd_onnxruntime_vendor::onnxruntime SHARED IMPORTED)
+  set_target_properties(epd_onnxruntime_vendor::onnxruntime PROPERTIES
+    IMPORTED_LOCATION "${onnxruntime_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${epd_onnxruntime_vendor_INCLUDE_DIRS}"
+  )
+endif()

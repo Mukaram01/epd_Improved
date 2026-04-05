@@ -1,4 +1,5 @@
-# copied from epd_onnxruntime_vendor/env_hook/epd_onnxruntime_library_path.sh
+# Environment hook: prepend the vendored ONNX Runtime library directory to the
+# appropriate runtime-library search-path variable.
 
 # detect if running on Darwin platform
 _UNAME=`uname -s`

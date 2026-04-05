@@ -1,13 +1,12 @@
 name: VENDOR_BUILD
 
-# This file is kept for reference only.
-# The active CI workflow is at ../../.github/workflows/vendor_build.yml
-# which is picked up by GitHub Actions from the repository root.
-
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 3 * * 0'
+
+permissions:
+  contents: read
 
 jobs:
   humble_vendor_ci:

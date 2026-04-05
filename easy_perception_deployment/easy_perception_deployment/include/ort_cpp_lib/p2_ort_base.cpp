@@ -43,7 +43,8 @@ P2OrtBase::P2OrtBase(
   m_newW(newW),
   m_newH(newH),
   m_paddedW(paddedW),
-  m_paddedH(paddedH)
+  m_paddedH(paddedH),
+  preprocess_buffer_(3 * paddedH * paddedW)
 {}
 
 // Destructor
@@ -51,12 +52,12 @@ P2OrtBase::~P2OrtBase() {}
 
 EPD::EPDObjectDetection P2OrtBase::infer(const cv::Mat & inputImg)
 {
-  std::vector<float> dst(3 * m_paddedH * m_paddedW);
+  std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
   return this->infer(
     inputImg, m_newW, m_newH,
     m_paddedW, m_paddedH, m_ratio,
-    dst.data(), 0.5, cv::Scalar(102.9801, 115.9465, 122.7717));
+    preprocess_buffer_.data(), 0.0f, cv::Scalar(102.9801, 115.9465, 122.7717));
 }
 
 void P2OrtBase::initClassNames(const std::vector<std::string> & classNames)

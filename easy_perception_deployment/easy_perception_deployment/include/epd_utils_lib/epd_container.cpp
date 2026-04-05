@@ -276,6 +276,9 @@ void EPDContainer::setModelConfigFile()
   class_label_path = obj["path_to_label_list"].asString();
 
   std::string visualizeFlag = obj["visualizeFlag"].asString();
+  std::transform(
+    visualizeFlag.begin(), visualizeFlag.end(), visualizeFlag.begin(),
+    [](unsigned char c) {return static_cast<char>(std::tolower(c));});
 
   if (visualizeFlag.compare("visualize") == 0) {
     onlyVisualize = true;
@@ -379,6 +382,19 @@ void EPDContainer::setUseCaseConfigFile()
   if (useCaseMode == EPD::COLOR_MATCHING_MODE) {
     template_color_path = obj["path_to_color_template"].asString();
     color_match_histogram_metric = parseColorHistogramMetric(obj, usecase_config_path);
+    if (obj.isMember("color_match_threshold")) {
+      const Json::Value & cmt = obj["color_match_threshold"];
+      if (!cmt.isNumeric()) {
+        throw std::runtime_error(
+          "Config 'color_match_threshold' must be a number in: " + usecase_config_path);
+      }
+      const float cmt_val = cmt.asFloat();
+      if (cmt_val < 0.0f || cmt_val > 1.0f) {
+        throw std::runtime_error(
+          "Config 'color_match_threshold' must be in [0.0, 1.0] in: " + usecase_config_path);
+      }
+      color_match_threshold = cmt_val;
+    }
   }
 
   // Localization Mode

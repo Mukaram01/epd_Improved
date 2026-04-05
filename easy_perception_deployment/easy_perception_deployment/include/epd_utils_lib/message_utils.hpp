@@ -51,8 +51,12 @@ public:
   */
   std::vector<cv::Mat> masks;
 
-  /*! \brief A set size for all vectors in class.*/
+  /*! \brief A set size for all vectors in class.
+   * Invariant: must equal bboxes.size() at all times. Prefer size() for reads. */
   size_t data_size;
+
+  /*! \brief Returns the number of detections. Equivalent to bboxes.size().*/
+  size_t size() const {return bboxes.size();}
 
   /*! \brief A Constructor function. This object can only be called a known
   size to minimize memory use for storage.*/
@@ -84,11 +88,13 @@ class EPDObjectLocalization
 {
 public:
   std::vector<LocalizedObject> objects;
-  /*! \brief A set size for all vectors in class.*/
+  /*! \brief A set size for all vectors in class.
+   * Invariant: must equal objects.size() at all times. Prefer size() for reads. */
   size_t data_size;
 
-  // /*! \brief A Constructor function. This object can only be called a known
-  // size to minimize memory use for storage.*/
+  /*! \brief Returns the number of localized objects. Equivalent to objects.size().*/
+  size_t size() const {return objects.size();}
+
   explicit EPDObjectLocalization(size_t input_size)
   {
     data_size = input_size;
@@ -101,11 +107,13 @@ class EPDObjectTracking
 public:
   std::vector<std::string> object_ids;
   std::vector<LocalizedObject> objects;
-  /*! \brief A set size for all vectors in class.*/
+  /*! \brief A set size for all vectors in class.
+   * Invariant: must equal objects.size() at all times. Prefer size() for reads. */
   size_t data_size;
 
-  // /*! \brief A Constructor function. This object can only be called a known
-  // size to minimize memory use for storage.*/
+  /*! \brief Returns the number of tracked objects. Equivalent to objects.size().*/
+  size_t size() const {return objects.size();}
+
   explicit EPDObjectTracking(size_t input_size)
   {
     data_size = input_size;

@@ -752,12 +752,23 @@ void EasyPerceptionDeployment::process_localize_work(
       img,
       depth_img,
       *camera_info,
-      camera_to_plane_distance_mm);
+      camera_to_plane_distance_mm,
+      ortAgent_.confidence_threshold);
     const size_t input_size = inference_result.data_size;
     EPD::EPDObjectLocalization initialized_result(input_size);
     initialized_result = std::move(inference_result);
     return initialized_result;
   }());
+
+  // Apply max_detections limit.
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    const int max_det = ortAgent_.max_detections;
+    if (max_det > 0 && static_cast<int>(result.data_size) > max_det) {
+      result.objects.resize(max_det);
+      result.data_size = static_cast<size_t>(max_det);
+    }
+  }
 
   cv::Mat resultImg;
 
@@ -918,12 +929,24 @@ void EasyPerceptionDeployment::process_tracking_work(
       ortAgent_.tracker_type,
       ortAgent_.trackers,
       ortAgent_.tracker_logs,
-      ortAgent_.tracker_results);
+      ortAgent_.tracker_results,
+      ortAgent_.confidence_threshold);
     const size_t input_size = inference_result.data_size;
     EPD::EPDObjectTracking initialized_result(input_size);
     initialized_result = std::move(inference_result);
     return initialized_result;
   }());
+
+  // Apply max_detections limit.
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    const int max_det = ortAgent_.max_detections;
+    if (max_det > 0 && static_cast<int>(result.data_size) > max_det) {
+      result.objects.resize(max_det);
+      result.object_ids.resize(max_det);
+      result.data_size = static_cast<size_t>(max_det);
+    }
+  }
 
   cv::Mat resultImg;
 
@@ -1184,7 +1207,8 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.useCaseMode,
             ortAgent_.countClassNames,
             ortAgent_.template_color_path,
-            ortAgent_.color_match_histogram_metric);
+            ortAgent_.color_match_histogram_metric,
+            ortAgent_.color_match_threshold);
         }
 
         EPD::EPDObjectDetection output_obj(result.data_size);
@@ -1245,7 +1269,8 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.useCaseMode,
             ortAgent_.countClassNames,
             ortAgent_.template_color_path,
-            ortAgent_.color_match_histogram_metric);
+            ortAgent_.color_match_histogram_metric,
+            ortAgent_.color_match_threshold);
         }
 
         EPD::EPDObjectDetection output_obj(result.data_size);
@@ -1460,7 +1485,7 @@ void EasyPerceptionDeployment::process_image_work(
 
 void EasyPerceptionDeployment::worker_loop()
 {
-  while (rclcpp::ok()) {
+  while (rclcpp::ok() && !worker_stop_) {
     sensor_msgs::msg::Image::ConstSharedPtr image_msg;
     sensor_msgs::msg::Image::ConstSharedPtr depth_msg;
     sensor_msgs::msg::CameraInfo::SharedPtr camera_info;

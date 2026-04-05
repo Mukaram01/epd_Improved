@@ -69,9 +69,11 @@ EPD::EPDObjectDetection P3OrtBase::infer(const cv::Mat & inputImg)
 {
   std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
+  // Pass confThresh=0.0 so no detections are filtered at the ORT level;
+  // the caller applies confidence_threshold via applyDetectionFilters().
   return this->infer(
     inputImg, m_newW, m_newH,
-    m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.5,
+    m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.0f,
     cv::Scalar(102.9801, 115.9465, 122.7717));
 }
 
@@ -80,14 +82,16 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   const cv::Mat & inputImg,
   const cv::Mat & depthImg,
   sensor_msgs::msg::CameraInfo camera_info,
-  double camera_to_plane_distance_mm)
+  double camera_to_plane_distance_mm,
+  float confThresh)
 {
   std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
+  const int max_depth_mm = static_cast<int>(camera_to_plane_distance_mm);
   return this->infer(
     inputImg, depthImg, camera_info, camera_to_plane_distance_mm,
-    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.5,
-    cv::Scalar(102.9801, 115.9465, 122.7717));
+    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), confThresh,
+    cv::Scalar(102.9801, 115.9465, 122.7717), max_depth_mm);
 }
 
 // Mutator: Tracking
@@ -99,15 +103,17 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   const std::string tracker_type,
   std::vector<cv::Ptr<cv::Tracker>> & trackers,
   std::vector<int> & tracker_logs,
-  std::vector<EPD::LabelledRect2d> & tracker_results)
+  std::vector<EPD::LabelledRect2d> & tracker_results,
+  float confThresh)
 {
   std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
+  const int max_depth_mm = static_cast<int>(camera_to_plane_distance_mm);
   return this->infer(
     inputImg, depthImg, camera_info, camera_to_plane_distance_mm,
     tracker_type, trackers, tracker_logs, tracker_results,
-    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.5,
-    cv::Scalar(102.9801, 115.9465, 122.7717));
+    m_newW, m_newH, m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), confThresh,
+    cv::Scalar(102.9801, 115.9465, 122.7717), max_depth_mm);
 }
 
 
@@ -222,16 +228,14 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   return output_obj;
 }
 
-double P3OrtBase::findMedian(cv::Mat depthImg)
+double P3OrtBase::findMedian(cv::Mat depthImg, int max_depth_mm)
 {
   double m = (depthImg.rows * depthImg.cols) / 2;
   int bin = 0;
   double median = -1.0;
 
-  // Setting to hardcoded 2000 millimeters
-  // This is the limit of intel realsense D415.
-  int histSize = 2000;
-  float range[] = {0, 2000};
+  const int histSize = std::max(max_depth_mm, 1);
+  float range[] = {0, static_cast<float>(max_depth_mm)};
   const float * histRange = {range};
   bool uniform = true;
   bool accumulate = false;
@@ -248,15 +252,13 @@ double P3OrtBase::findMedian(cv::Mat depthImg)
   return median;
 }
 
-double P3OrtBase::findMin(cv::Mat depthImg)
+double P3OrtBase::findMin(cv::Mat depthImg, int max_depth_mm)
 {
   int bin = 0;
   double min = -1.0;
 
-  // Setting to hardcoded 2000 millimeters
-  // This is the limit of intel realsense D415.
-  int histSize = 2000;
-  float range[] = {0, 2000};
+  const int histSize = std::max(max_depth_mm, 1);
+  float range[] = {0, static_cast<float>(max_depth_mm)};
   const float * histRange = {range};
   bool uniform = true;
   bool accumulate = false;
@@ -268,7 +270,6 @@ double P3OrtBase::findMin(cv::Mat depthImg)
     // Store the first depth value that is shared among more than 1 point.
     // Break and escape for loop.
     if (i != 0 && cvRound(hist.at<float>(i)) > 0) {
-      // std::cout << "Depth Value = " << i << " has " << cvRound(hist.at<float>(i)) << std::endl;
       min = i;
       break;
     }
@@ -277,7 +278,6 @@ double P3OrtBase::findMin(cv::Mat depthImg)
   return min;
 }
 
-// DEBUG
 // A mutator function that will output an EPD::EPDObjectLocalization object that
 // contains all information required for Localization.
 EPD::EPDObjectLocalization P3OrtBase::infer(
@@ -292,7 +292,8 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   float ratio,
   float * dst,
   float confThresh,
-  const cv::Scalar & meanVal)
+  const cv::Scalar & meanVal,
+  int max_depth_mm)
 {
   cv::Mat tmpImg;
   cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
@@ -374,7 +375,14 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
 
   EPD::EPDObjectLocalization output_obj(bboxes.size());
 
-  float table_depth = this->findMedian(depthImg) * 0.001;
+  // Determine whether the depth image carries float (metres) or uint16 (mm) data.
+  const bool depth_is_float = (depthImg.type() == CV_32FC1);
+  // Use camera_info frame_id for the segmented point clouds.
+  const std::string pcl_frame_id = camera_info.header.frame_id.empty() ?
+    "camera_color_optical_frame" : camera_info.header.frame_id;
+
+  // Compute table/plane depth using the configurable max range.
+  float table_depth = this->findMedian(depthImg, max_depth_mm) * 0.001;
   // No. of objects will be equal to number of bboxes
   /* START of Populating EPDObjectLocalization object */
   for (size_t i = 0; i < bboxes.size(); ++i) {
@@ -424,14 +432,28 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
 
     // Getting rotated rectangle and draw the major axis
     std::vector<cv::RotatedRect> minRect(contours.size());
-    float obj_surface_depth;
+    float obj_surface_depth = 0.0f;
     cv::Point pt_a, pt_b, pt_c, pt_d;
     cv::Point rotated_mid;
+
+    // If there are no contours (e.g. zero-area mask), set default values and skip.
+    if (contours.empty()) {
+      output_obj.objects[i].centroid.x = 0.0;
+      output_obj.objects[i].centroid.y = 0.0;
+      output_obj.objects[i].centroid.z = 0.0;
+      output_obj.objects[i].length = 0.0f;
+      output_obj.objects[i].breadth = 0.0f;
+      output_obj.objects[i].height = 0.0f;
+      output_obj.objects[i].axis.x = 0.0f;
+      output_obj.objects[i].axis.y = 0.0f;
+      output_obj.objects[i].axis.z = 1.0f;
+      continue;
+    }
 
     // Getting only the largest contour
     // The largest contour is the one which has the largest area.
     double maxArea = 0;
-    int maxAreaContourId = 999;
+    int maxAreaContourId = -1;
     for (unsigned int j = 0; j < contours.size(); j++) {
       double newArea = cv::contourArea(contours[j]);
       if (newArea > maxArea) {
@@ -439,7 +461,12 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
         maxAreaContourId = j;
       }  // End if
     }  // End for
-    unsigned int maxID = maxAreaContourId;
+
+    if (maxAreaContourId < 0) {
+      // No valid contour found; skip this detection.
+      continue;
+    }
+    unsigned int maxID = static_cast<unsigned int>(maxAreaContourId);
 
     for (unsigned int index = 0; index < contours.size(); index++) {
       if (index != maxID) {
@@ -461,7 +488,7 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
       rotated_mid = (cv::Point(curBbox[0], curBbox[1]) +
         cv::Point(curBbox[2], curBbox[3])) / 2;
 
-      obj_surface_depth = this->findMin(depthImg(curBoxRect)) * 0.001;
+      obj_surface_depth = this->findMin(depthImg(curBoxRect), max_depth_mm) * 0.001;
       float x = (rotated_mid.x - ppx) / fx * obj_surface_depth;
       float y = (rotated_mid.y - ppy) / fy * obj_surface_depth;
 
@@ -497,24 +524,28 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
       output_obj.objects[i].height = table_depth - obj_surface_depth;
 
       pcl::PointCloud<pcl::PointXYZ>::Ptr segmented_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-      segmented_cloud->header.frame_id = "camera_color_optical_frame";
+      segmented_cloud->header.frame_id = pcl_frame_id;
       segmented_cloud->is_dense = true;
 
 
       // Converting Depth Image to PointCloud
       for (int j = 0; j < tempFinalMask.rows; j++) {
         for (int k = 0; k < tempFinalMask.cols; k++) {
-          // TODO(cardboardcode) convert segmented mask into segmented pointcloud
           int pixelValue = static_cast<int>(tempFinalMask.at<uchar>(j, k));
 
           if (pixelValue != 0) {
-            float z = static_cast<float>(depthImg.at<uint16_t>(
-                curBoxRect.y + j, curBoxRect.x + k) * 0.001);
+            float z = 0.0f;
+            if (depth_is_float) {
+              z = depthImg.at<float>(curBoxRect.y + j, curBoxRect.x + k);
+            } else {
+              z = static_cast<float>(
+                depthImg.at<uint16_t>(curBoxRect.y + j, curBoxRect.x + k)) * 0.001f;
+            }
             float x = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
             float y = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
 
             // Ignore all points that has a value of less than 0.1mm in z.
-            if (std::abs(z) < 0.0001 || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
+            if (std::abs(z) < 0.0001f || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
               continue;
             } else {
               pcl::PointXYZ curPoint(x, y, z);
@@ -559,13 +590,10 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
       }
     }
   }
-  // END of Populating EPDObjectLocalization object
-  return output_obj;
 }
 
-// DEBUG
 // A mutator function that will output an EPD::EPDObjectTracking object that
-// contains all information required for Localization.
+// contains all information required for Tracking.
 EPD::EPDObjectTracking P3OrtBase::infer(
   const cv::Mat & inputImg,
   const cv::Mat & depthImg,
@@ -582,7 +610,8 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   float ratio,
   float * dst,
   float confThresh,
-  const cv::Scalar & meanVal)
+  const cv::Scalar & meanVal,
+  int max_depth_mm)
 {
   cv::Mat tmpImg;
   cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
@@ -665,7 +694,13 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 
   EPD::EPDObjectTracking output_obj(bboxes.size());
 
-  float table_depth = this->findMedian(depthImg) * 0.001;
+  // Determine whether the depth image carries float (metres) or uint16 (mm) data.
+  const bool depth_is_float = (depthImg.type() == CV_32FC1);
+  // Use camera_info frame_id for the segmented point clouds.
+  const std::string pcl_frame_id = camera_info.header.frame_id.empty() ?
+    "camera_color_optical_frame" : camera_info.header.frame_id;
+
+  float table_depth = this->findMedian(depthImg, max_depth_mm) * 0.001;
 
   // No. of objects will be equal to number of bboxes
   /* START of Populating EPDObjectTracking object */
@@ -723,14 +758,28 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 
     // Getting rotated rectangle and draw the major axis
     std::vector<cv::RotatedRect> minRect(contours.size());
-    float obj_surface_depth;
+    float obj_surface_depth = 0.0f;
     cv::Point pt_a, pt_b, pt_c, pt_d;
     cv::Point rotated_mid;
+
+    // If there are no contours (e.g. zero-area mask), set default values and skip.
+    if (contours.empty()) {
+      output_obj.objects[i].centroid.x = 0.0;
+      output_obj.objects[i].centroid.y = 0.0;
+      output_obj.objects[i].centroid.z = 0.0;
+      output_obj.objects[i].length = 0.0f;
+      output_obj.objects[i].breadth = 0.0f;
+      output_obj.objects[i].height = 0.0f;
+      output_obj.objects[i].axis.x = 0.0f;
+      output_obj.objects[i].axis.y = 0.0f;
+      output_obj.objects[i].axis.z = 1.0f;
+      continue;
+    }
 
     // Getting only the largest contour
     // The largest contour is the one which has the largest area.
     double maxArea = 0;
-    int maxAreaContourId = 999;
+    int maxAreaContourId = -1;
     for (unsigned int j = 0; j < contours.size(); j++) {
       double newArea = cv::contourArea(contours[j]);
       if (newArea > maxArea) {
@@ -738,7 +787,12 @@ EPD::EPDObjectTracking P3OrtBase::infer(
         maxAreaContourId = j;
       }
     }
-    unsigned int maxID = maxAreaContourId;
+
+    if (maxAreaContourId < 0) {
+      // No valid contour found; skip this detection.
+      continue;
+    }
+    unsigned int maxID = static_cast<unsigned int>(maxAreaContourId);
 
     for (unsigned int index = 0; index < contours.size(); index++) {
       if (index != maxID) {
@@ -760,7 +814,7 @@ EPD::EPDObjectTracking P3OrtBase::infer(
       rotated_mid = (cv::Point(curBbox[0], curBbox[1]) +
         cv::Point(curBbox[2], curBbox[3])) / 2;
 
-      obj_surface_depth = this->findMin(depthImg(curBoxRect)) * 0.001;
+      obj_surface_depth = this->findMin(depthImg(curBoxRect), max_depth_mm) * 0.001;
       float x = (rotated_mid.x - ppx) / fx * obj_surface_depth;
       float y = (rotated_mid.y - ppy) / fy * obj_surface_depth;
 
@@ -796,24 +850,28 @@ EPD::EPDObjectTracking P3OrtBase::infer(
       output_obj.objects[i].height = table_depth - obj_surface_depth;
 
       pcl::PointCloud<pcl::PointXYZ>::Ptr segmented_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-      segmented_cloud->header.frame_id = "camera_color_optical_frame";
+      segmented_cloud->header.frame_id = pcl_frame_id;
       segmented_cloud->is_dense = true;
 
 
       // Converting Depth Image to PointCloud
       for (int j = 0; j < tempFinalMask.rows; j++) {
         for (int k = 0; k < tempFinalMask.cols; k++) {
-          // TODO(cardboardcode) convert segmented mask into segmented pointcloud
           int pixelValue = static_cast<int>(tempFinalMask.at<uchar>(j, k));
 
           if (pixelValue != 0) {
-            float z = static_cast<float>(depthImg.at<uint16_t>(
-                curBoxRect.y + j, curBoxRect.x + k) * 0.001);
+            float z = 0.0f;
+            if (depth_is_float) {
+              z = depthImg.at<float>(curBoxRect.y + j, curBoxRect.x + k);
+            } else {
+              z = static_cast<float>(
+                depthImg.at<uint16_t>(curBoxRect.y + j, curBoxRect.x + k)) * 0.001f;
+            }
             float x = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
             float y = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
 
             // Ignore all points that has a value of less than 0.1mm in z.
-            if (std::abs(z) < 0.0001 || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
+            if (std::abs(z) < 0.0001f || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
               continue;
             } else {
               pcl::PointXYZ curPoint(x, y, z);

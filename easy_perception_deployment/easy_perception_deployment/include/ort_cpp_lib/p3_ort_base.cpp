@@ -38,6 +38,9 @@
 
 namespace Ort
 {
+// Minimum valid z-depth (in metres) below which a point is considered invalid.
+static constexpr float MIN_DEPTH_THRESHOLD_M = 0.0001f;
+
 // Constructor
 P3OrtBase::P3OrtBase(
   float ratio,
@@ -69,8 +72,9 @@ EPD::EPDObjectDetection P3OrtBase::infer(const cv::Mat & inputImg)
 {
   std::lock_guard<std::mutex> preprocessBufferLock(preprocess_buffer_mutex_);
 
-  // Pass confThresh=0.0 so no detections are filtered at the ORT level;
-  // the caller applies confidence_threshold via applyDetectionFilters().
+  // Pass confThresh=0.0 so all detections pass through the ORT-level filter;
+  // the caller applies the user-configured confidence_threshold via
+  // applyDetectionFilters() (defined in easy_perception_deployment.hpp).
   return this->infer(
     inputImg, m_newW, m_newH,
     m_paddedW, m_paddedH, m_ratio, preprocess_buffer_.data(), 0.0f,
@@ -544,8 +548,8 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
             float x = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
             float y = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
 
-            // Ignore all points that has a value of less than 0.1mm in z.
-            if (std::abs(z) < 0.0001f || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
+            // Ignore all points that has a value of less than MIN_DEPTH_THRESHOLD_M in z.
+            if (std::abs(z) < MIN_DEPTH_THRESHOLD_M || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
               continue;
             } else {
               pcl::PointXYZ curPoint(x, y, z);
@@ -872,8 +876,8 @@ EPD::EPDObjectTracking P3OrtBase::infer(
             float x = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
             float y = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
 
-            // Ignore all points that has a value of less than 0.1mm in z.
-            if (std::abs(z) < 0.0001f || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
+            // Ignore all points that has a value of less than MIN_DEPTH_THRESHOLD_M in z.
+            if (std::abs(z) < MIN_DEPTH_THRESHOLD_M || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
               continue;
             } else {
               pcl::PointXYZ curPoint(x, y, z);

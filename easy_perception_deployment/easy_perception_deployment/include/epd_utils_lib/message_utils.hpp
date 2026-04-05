@@ -52,7 +52,9 @@ public:
   std::vector<cv::Mat> masks;
 
   /*! \brief A set size for all vectors in class.
-   * Invariant: must equal bboxes.size() at all times. Prefer size() for reads. */
+   * Invariant: must equal bboxes.size() at all times. Prefer size() for reads.
+   * Callers modifying the internal vectors are responsible for updating this field
+   * and must keep it in sync (e.g. after applyDetectionFilters() or resize()). */
   size_t data_size;
 
   /*! \brief Returns the number of detections. Equivalent to bboxes.size().*/

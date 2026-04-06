@@ -177,6 +177,7 @@ private:
 
   void subscribeImageInput();
   void subscribeLocalizeInputs();
+  void subscribeLocalizeNoDepth(const unsigned int use_case_mode);
   void subscribeDetectionDepthInputs();
   void enableDetectionInputs();
   void disableDetectionInputs();
@@ -190,10 +191,13 @@ private:
   std::string image_transport_;
   std::string depth_transport_;
   rmw_qos_profile_t sensor_qos_profile_;
+  bool use_depth_{true};
   bool image_input_active_{false};
   bool depth_input_active_{false};
   bool localize_input_active_{false};
+  bool localize_nodepth_active_{false};
   int sync_callback_mode_{-1};
+  image_transport::Subscriber localize_rgb_nodepth_;
   message_filters::Connection sync_connection_;
   void process_image_work(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
   void process_localize_work(
@@ -249,11 +253,13 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
   this->declare_parameter<std::string>("camera_info_topic", "/camera/color/camera_info");
   this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
+  this->declare_parameter<bool>("use_depth", true);
 
   rgb_topic_ = this->get_parameter("rgb_topic").as_string();
   depth_topic_ = this->get_parameter("depth_topic").as_string();
   camera_info_topic_ = this->get_parameter("camera_info_topic").as_string();
   image_transport_ = this->get_parameter("image_transport").as_string();
+  use_depth_ = this->get_parameter("use_depth").as_bool();
   std::transform(
     image_transport_.begin(),
     image_transport_.end(),
@@ -526,6 +532,69 @@ void EasyPerceptionDeployment::subscribeLocalizeInputs()
     subscription_options);
 }
 
+void EasyPerceptionDeployment::subscribeLocalizeNoDepth(const unsigned int use_case_mode)
+{
+  // Shut down any previous no-depth subscription before re-subscribing.
+  localize_rgb_nodepth_.shutdown();
+  camera_info_sub_.reset();
+  depth_input_active_ = false;
+
+  camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
+    camera_info_topic_,
+    rclcpp::SensorDataQoS().keep_last(1),
+    std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1));
+  depth_input_active_ = true;
+
+  RCLCPP_WARN(
+    this->get_logger(),
+    "use_depth=false: running without depth. "
+    "3D coordinates will be unavailable; only 2D detection results are valid.");
+
+  if (use_case_mode == EPD::LOCALISATION_MODE) {
+    localize_rgb_nodepth_ = image_transport::create_subscription(
+      this,
+      rgb_topic_,
+      [this](const sensor_msgs::msg::Image::ConstSharedPtr & msg) {
+        sensor_msgs::msg::CameraInfo::SharedPtr cam;
+        {
+          std::lock_guard<std::mutex> lk(data_mutex_);
+          cam = latest_camera_info_;
+        }
+        if (!cam) {
+          RCLCPP_WARN_THROTTLE(
+            this->get_logger(), *this->get_clock(), 2000,
+            "Waiting for camera_info on '%s'...", camera_info_topic_.c_str());
+          return;
+        }
+        process_localize_callback(
+          std::const_pointer_cast<sensor_msgs::msg::Image>(msg), nullptr, cam);
+      },
+      image_transport_,
+      sensor_qos_profile_);
+  } else {
+    localize_rgb_nodepth_ = image_transport::create_subscription(
+      this,
+      rgb_topic_,
+      [this](const sensor_msgs::msg::Image::ConstSharedPtr & msg) {
+        sensor_msgs::msg::CameraInfo::SharedPtr cam;
+        {
+          std::lock_guard<std::mutex> lk(data_mutex_);
+          cam = latest_camera_info_;
+        }
+        if (!cam) {
+          RCLCPP_WARN_THROTTLE(
+            this->get_logger(), *this->get_clock(), 2000,
+            "Waiting for camera_info on '%s'...", camera_info_topic_.c_str());
+          return;
+        }
+        process_tracking_callback(
+          std::const_pointer_cast<sensor_msgs::msg::Image>(msg), nullptr, cam);
+      },
+      image_transport_,
+      sensor_qos_profile_);
+  }
+}
+
 void EasyPerceptionDeployment::subscribeDetectionDepthInputs()
 {
   if (depth_input_active_) {
@@ -572,6 +641,16 @@ void EasyPerceptionDeployment::enableLocalizeInputs(const unsigned int use_case_
     image_input_active_ = false;
   }
 
+  if (!use_depth_) {
+    // No-depth path: subscribe RGB + camera_info only; no synchronizer needed.
+    if (!localize_nodepth_active_ || sync_callback_mode_ != static_cast<int>(use_case_mode)) {
+      subscribeLocalizeNoDepth(use_case_mode);
+      localize_nodepth_active_ = true;
+      sync_callback_mode_ = static_cast<int>(use_case_mode);
+    }
+    return;
+  }
+
   if (!localize_input_active_) {
     subscribeLocalizeInputs();
     localize_input_active_ = true;
@@ -596,6 +675,13 @@ void EasyPerceptionDeployment::disableLocalizeInputs()
 {
   sync_connection_.disconnect();
   sync_callback_mode_ = -1;
+
+  if (localize_nodepth_active_) {
+    localize_rgb_nodepth_.shutdown();
+    camera_info_sub_.reset();
+    depth_input_active_ = false;
+    localize_nodepth_active_ = false;
+  }
 
   if (!localize_input_active_) {
     return;
@@ -735,13 +821,18 @@ void EasyPerceptionDeployment::process_localize_work(
   }
   cv::Mat img = imgptr->image;
 
-  cv_bridge::CvImageConstPtr depth_imageptr;
-  if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-    depth_imageptr = cv_bridge::toCvShare(depth_msg);
+  cv::Mat depth_img;
+  if (depth_msg) {
+    cv_bridge::CvImageConstPtr depth_imageptr;
+    if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
+      depth_imageptr = cv_bridge::toCvShare(depth_msg);
+    } else {
+      depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+    }
+    depth_img = depth_imageptr->image;
   } else {
-    depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+    depth_img = cv::Mat::zeros(img.rows, img.cols, CV_16UC1);
   }
-  cv::Mat depth_img = depth_imageptr->image;
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -804,8 +895,10 @@ void EasyPerceptionDeployment::process_localize_work(
   output_msg.header = msg->header;
   output_msg.frame_width = img.cols;
   output_msg.frame_height = img.rows;
-  output_msg.depth_image = *depth_msg;
-  output_msg.depth_image.header = depth_msg->header;
+  if (depth_msg) {
+    output_msg.depth_image = *depth_msg;
+    output_msg.depth_image.header = depth_msg->header;
+  }
 
   output_msg.ppx = camera_info->k.at(2);
   output_msg.fx  = camera_info->k.at(0);
@@ -908,13 +1001,18 @@ void EasyPerceptionDeployment::process_tracking_work(
   }
   cv::Mat img = imgptr->image;
 
-  cv_bridge::CvImageConstPtr depth_imageptr;
-  if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-    depth_imageptr = cv_bridge::toCvShare(depth_msg);
+  cv::Mat depth_img;
+  if (depth_msg) {
+    cv_bridge::CvImageConstPtr depth_imageptr;
+    if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
+      depth_imageptr = cv_bridge::toCvShare(depth_msg);
+    } else {
+      depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+    }
+    depth_img = depth_imageptr->image;
   } else {
-    depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+    depth_img = cv::Mat::zeros(img.rows, img.cols, CV_16UC1);
   }
-  cv::Mat depth_img = depth_imageptr->image;
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
@@ -976,8 +1074,10 @@ void EasyPerceptionDeployment::process_tracking_work(
   output_msg.header = msg->header;
   output_msg.frame_width = img.cols;
   output_msg.frame_height = img.rows;
-  output_msg.depth_image = *depth_msg;
-  output_msg.depth_image.header = depth_msg->header;
+  if (depth_msg) {
+    output_msg.depth_image = *depth_msg;
+    output_msg.depth_image.header = depth_msg->header;
+  }
 
   output_msg.ppx = camera_info->k.at(2);
   output_msg.fx  = camera_info->k.at(0);
@@ -1527,7 +1627,7 @@ void EasyPerceptionDeployment::worker_loop()
     }
 
     if (do_localize) {
-      if (image_msg && depth_msg && camera_info) {
+      if (image_msg && (depth_msg || !use_depth_) && camera_info) {
         try {
           process_localize_work(image_msg, depth_msg, camera_info);
         } catch (const std::exception & e) {
@@ -1540,7 +1640,7 @@ void EasyPerceptionDeployment::worker_loop()
     }
 
     if (do_tracking) {
-      if (image_msg && depth_msg && camera_info) {
+      if (image_msg && (depth_msg || !use_depth_) && camera_info) {
         try {
           process_tracking_work(image_msg, depth_msg, camera_info);
         } catch (const std::exception & e) {

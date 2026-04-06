@@ -537,62 +537,47 @@ void EasyPerceptionDeployment::subscribeLocalizeNoDepth(const unsigned int use_c
   // Shut down any previous no-depth subscription before re-subscribing.
   localize_rgb_nodepth_.shutdown();
   camera_info_sub_.reset();
-  depth_input_active_ = false;
 
   camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
     camera_info_topic_,
     rclcpp::SensorDataQoS().keep_last(1),
     std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1));
-  depth_input_active_ = true;
 
   RCLCPP_WARN(
     this->get_logger(),
     "use_depth=false: running without depth. "
     "3D coordinates will be unavailable; only 2D detection results are valid.");
 
-  if (use_case_mode == EPD::LOCALISATION_MODE) {
-    localize_rgb_nodepth_ = image_transport::create_subscription(
-      this,
-      rgb_topic_,
-      [this](const sensor_msgs::msg::Image::ConstSharedPtr & msg) {
-        sensor_msgs::msg::CameraInfo::SharedPtr cam;
-        {
-          std::lock_guard<std::mutex> lk(data_mutex_);
-          cam = latest_camera_info_;
+  const bool is_localize = (use_case_mode == EPD::LOCALISATION_MODE);
+
+  localize_rgb_nodepth_ = image_transport::create_subscription(
+    this,
+    rgb_topic_,
+    [this, is_localize](const sensor_msgs::msg::Image::ConstSharedPtr & msg) {
+      bool has_cam = false;
+      {
+        std::lock_guard<std::mutex> lk(data_mutex_);
+        if (latest_camera_info_) {
+          latest_image_ = msg;
+          latest_depth_image_ = nullptr;
+          if (is_localize) {
+            localize_pending_ = true;
+          } else {
+            tracking_pending_ = true;
+          }
+          has_cam = true;
         }
-        if (!cam) {
-          RCLCPP_WARN_THROTTLE(
-            this->get_logger(), *this->get_clock(), 2000,
-            "Waiting for camera_info on '%s'...", camera_info_topic_.c_str());
-          return;
-        }
-        process_localize_callback(
-          std::const_pointer_cast<sensor_msgs::msg::Image>(msg), nullptr, cam);
-      },
-      image_transport_,
-      sensor_qos_profile_);
-  } else {
-    localize_rgb_nodepth_ = image_transport::create_subscription(
-      this,
-      rgb_topic_,
-      [this](const sensor_msgs::msg::Image::ConstSharedPtr & msg) {
-        sensor_msgs::msg::CameraInfo::SharedPtr cam;
-        {
-          std::lock_guard<std::mutex> lk(data_mutex_);
-          cam = latest_camera_info_;
-        }
-        if (!cam) {
-          RCLCPP_WARN_THROTTLE(
-            this->get_logger(), *this->get_clock(), 2000,
-            "Waiting for camera_info on '%s'...", camera_info_topic_.c_str());
-          return;
-        }
-        process_tracking_callback(
-          std::const_pointer_cast<sensor_msgs::msg::Image>(msg), nullptr, cam);
-      },
-      image_transport_,
-      sensor_qos_profile_);
-  }
+      }
+      if (!has_cam) {
+        RCLCPP_WARN_THROTTLE(
+          this->get_logger(), *this->get_clock(), 2000,
+          "Waiting for camera_info on '%s'...", camera_info_topic_.c_str());
+        return;
+      }
+      data_cv_.notify_one();
+    },
+    image_transport_,
+    sensor_qos_profile_);
 }
 
 void EasyPerceptionDeployment::subscribeDetectionDepthInputs()
@@ -679,7 +664,6 @@ void EasyPerceptionDeployment::disableLocalizeInputs()
   if (localize_nodepth_active_) {
     localize_rgb_nodepth_.shutdown();
     camera_info_sub_.reset();
-    depth_input_active_ = false;
     localize_nodepth_active_ = false;
   }
 

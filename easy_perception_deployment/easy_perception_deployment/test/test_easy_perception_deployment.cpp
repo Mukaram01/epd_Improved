@@ -22,7 +22,11 @@
 #include "bits/stdc++.h"
 #include "epd_utils_lib/epd_container.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
+#if __has_include("cv_bridge/cv_bridge.hpp")
 #include "cv_bridge/cv_bridge.hpp"
+#else
+#include "cv_bridge/cv_bridge.h"
+#endif
 #include "epd_utils_lib/easy_perception_deployment.hpp"
 
 std::string PATH_TO_SESSION_CONFIG(PATH_TO_PACKAGE "/config/session_config.json");

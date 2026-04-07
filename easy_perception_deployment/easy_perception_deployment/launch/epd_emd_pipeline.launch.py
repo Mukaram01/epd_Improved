@@ -10,6 +10,7 @@ def generate_launch_description():
     rgb_topic = LaunchConfiguration("rgb_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     depth_topic = LaunchConfiguration("depth_topic")
+    use_depth = LaunchConfiguration("use_depth")
     log_level = LaunchConfiguration("log_level")
 
     pkg_share = get_package_share_directory("easy_perception_deployment")
@@ -29,6 +30,14 @@ def generate_launch_description():
             "depth_topic",
             default_value="/camera/camera/aligned_depth_to_color/image_raw",
             description="Aligned depth topic (RealSense D435i default)"
+        ),
+        DeclareLaunchArgument(
+            "use_depth",
+            default_value="true",
+            description=(
+                "Set to 'false' to run without depth (e.g. when the aligned-depth "
+                "topic has no publisher). 3D coordinates will be unavailable."
+            )
         ),
         DeclareLaunchArgument(
             "log_level",
@@ -54,6 +63,7 @@ def generate_launch_description():
 
             cwd=pkg_share,
 
+            parameters=[{"use_depth": use_depth}],
             remappings=[
                 ("/camera/color/image_raw", rgb_topic),
                 ("/camera/color/camera_info", camera_info_topic),

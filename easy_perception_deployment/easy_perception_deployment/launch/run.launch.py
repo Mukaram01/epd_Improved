@@ -11,6 +11,7 @@ def generate_launch_description():
     rgb_topic = LaunchConfiguration("rgb_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     depth_topic = LaunchConfiguration("depth_topic")
+    use_depth = LaunchConfiguration("use_depth")
     log_level = LaunchConfiguration("log_level")
 
     # This is the key fix:
@@ -35,6 +36,14 @@ def generate_launch_description():
             description="Aligned depth topic"
         ),
         DeclareLaunchArgument(
+            "use_depth",
+            default_value="true",
+            description=(
+                "Set to 'false' to run without depth (e.g. when the aligned-depth "
+                "topic has no publisher). 3D coordinates will be unavailable."
+            )
+        ),
+        DeclareLaunchArgument(
             "log_level",
             default_value="info",
             description="debug/info/warn/error/fatal"
@@ -50,6 +59,7 @@ def generate_launch_description():
             # ✅ Critical fix: set working directory
             cwd=pkg_share,
 
+            parameters=[{"use_depth": use_depth}],
             remappings=[
                 ("/camera/color/image_raw", rgb_topic),
                 ("/camera/color/camera_info", camera_info_topic),
@@ -59,4 +69,3 @@ def generate_launch_description():
             arguments=["--ros-args", "--log-level", log_level],
         ),
     ])
-

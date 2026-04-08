@@ -210,13 +210,13 @@ class FPSMonitorThread:
 
     def _topic_for_usecase(self, usecase_mode):
         if usecase_mode in (0, 1):
-            return '/easy_perception_deployment/p2_inference', EPDObjectDetection
+            return '/easy_perception_deployment/epd_p2_output', EPDObjectDetection
         if usecase_mode == 2:
-            return '/easy_perception_deployment/p3_inference', EPDObjectDetection
+            return '/easy_perception_deployment/epd_p3_output', EPDObjectDetection
         if usecase_mode == 3:
-            return '/easy_perception_deployment/localization', EPDObjectLocalization
+            return '/easy_perception_deployment/epd_localize_output', EPDObjectLocalization
         if usecase_mode == 4:
-            return '/easy_perception_deployment/tracking', EPDObjectTracking
+            return '/easy_perception_deployment/epd_tracking_output', EPDObjectTracking
         return None, None
 
     def _message_callback(self, msg):
@@ -857,10 +857,6 @@ class DeployWindow(QWidget):
         self._deploy_timer = None
         self._kill_timer = None
 
-    def closeEvent(self, event):
-        self.shutdown()
-        event.accept()
-
     def setImageInput(self):
         '''
         A Mutator function that writes to line 25 of
@@ -1227,4 +1223,5 @@ class DeployWindow(QWidget):
 
     def closeEvent(self, event):
         self._stop_fps_monitor()
+        self.shutdown()
         super().closeEvent(event)

@@ -1127,7 +1127,14 @@ class DeployWindow(QWidget):
         if not input_filepath:
             return ''
         expanded_path = os.path.expandvars(os.path.expanduser(input_filepath))
-        return os.path.abspath(expanded_path)
+        if os.path.isabs(expanded_path):
+            return expanded_path
+        return os.path.abspath(os.path.join(self._package_root(), expanded_path))
+
+    @staticmethod
+    def _package_root():
+        '''Return the package root containing config/ and data/.'''
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
     def validateDeployInputs(self):
         '''Validate inputs and update the Run button state.'''

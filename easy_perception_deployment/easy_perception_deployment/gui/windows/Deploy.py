@@ -29,7 +29,7 @@ try:
     _RCLPY_AVAILABLE = True
 except ImportError:
     _RCLPY_AVAILABLE = False
-from PySide6.QtCore import QObject, QSize, QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QSize, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget,
@@ -48,6 +48,63 @@ class _FPSMonitorSignals(QObject):
     """
 
     fps_updated = Signal(str)
+
+
+class _ImageTopicsWorkerSignals(QObject):
+    """Signal carrier for async ROS topic discovery results."""
+
+    success = Signal(list)
+    error = Signal(str)
+    finished = Signal()
+
+
+class ImageTopicsWorker(QObject):
+    """Runs `ros2 topic list -t` in a Python thread managed by QThread."""
+
+    def __init__(self, timeout_sec=3):
+        super().__init__()
+        self.timeout_sec = timeout_sec
+        self.signals = _ImageTopicsWorkerSignals()
+
+    def run(self):
+        topics = []
+        try:
+            result = subprocess.run(
+                ['ros2', 'topic', 'list', '-t'],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=self.timeout_sec)
+        except FileNotFoundError:
+            self.signals.error.emit('Unable to refresh topics: ros2 command not found.')
+            self.signals.finished.emit()
+            return
+        except subprocess.TimeoutExpired:
+            self.signals.error.emit('Topic refresh timed out. Keeping current topic list.')
+            self.signals.finished.emit()
+            return
+        except Exception as exc:
+            self.signals.error.emit(f'Unable to refresh topics: {exc}')
+            self.signals.finished.emit()
+            return
+
+        if result.returncode != 0:
+            stderr = result.stderr.strip()
+            detail = f' ({stderr})' if stderr else ''
+            self.signals.error.emit(
+                f'Unable to refresh topics from ROS2{detail}. Keeping current topic list.')
+            self.signals.finished.emit()
+            return
+
+        for line in result.stdout.splitlines():
+            stripped = line.strip()
+            if not stripped or 'sensor_msgs/msg/Image' not in stripped:
+                continue
+            topic_name = stripped.split()[0]
+            topics.append(topic_name)
+
+        self.signals.success.emit(topics)
+        self.signals.finished.emit()
 
 
 class FPSMonitorThread:
@@ -239,6 +296,11 @@ class DeployWindow(QWidget):
         self.publish_detection_segmentation = True
         self._confidence_threshold = 0.5
         self._max_detections = 100
+        self._image_topics_cache = []
+        self._image_topics_cache_ts = 0.0
+        self._image_topics_cache_ttl_sec = 3.0
+        self._topics_worker_thread = None
+        self._topics_worker = None
 
         self._path_to_session_config = ('../config/session_config.json')
         self._path_to_usecase_config = ('../config/usecase_config.json')
@@ -546,40 +608,38 @@ class DeployWindow(QWidget):
         # Populate topics after widgets are created (avoids run_button init order issues)
         self.refreshImageTopics(select_topic=self._input_image_topic)
 
-    def _query_image_topics(self):
-        topics = []
-        try:
-            result = subprocess.run(
-                ['ros2', 'topic', 'list', '-t'],
-                capture_output=True,
-                text=True,
-                check=False)
-        except FileNotFoundError:
-            self.deploy_logger.warning('ros2 command not found.')
-            return topics
-
-        if result.returncode != 0:
-            self.deploy_logger.warning(
-                'Failed to query ROS2 topics: %s', result.stderr.strip())
-            return topics
-
-        for line in result.stdout.splitlines():
-            stripped = line.strip()
-            if not stripped:
-                continue
-            if 'sensor_msgs/msg/Image' not in stripped:
-                continue
-            topic_name = stripped.split()[0]
-            topics.append(topic_name)
-        return topics
-
     def refreshImageTopics(self, select_topic=None):
-        topics = self._query_image_topics()
         current_topic = (
             select_topic
             if select_topic is not None
             else self.topic_button.currentText().strip())
+        now = time.time()
+        if (now - self._image_topics_cache_ts) <= self._image_topics_cache_ttl_sec:
+            self._apply_image_topics(self._image_topics_cache, current_topic)
+            return
 
+        if self._topics_worker_thread is not None and self._topics_worker_thread.isRunning():
+            return
+
+        self.refresh_topics_button.setEnabled(False)
+        self.validation_label.setText('Refreshing topics...')
+
+        self._topics_worker = ImageTopicsWorker(timeout_sec=3)
+        self._topics_worker_thread = QThread(self)
+        self._topics_worker.moveToThread(self._topics_worker_thread)
+
+        self._topics_worker_thread.started.connect(self._topics_worker.run)
+        self._topics_worker.signals.success.connect(
+            lambda topics, selected=current_topic: self._on_topics_refresh_success(topics, selected))
+        self._topics_worker.signals.error.connect(self._on_topics_refresh_error)
+        self._topics_worker.signals.finished.connect(self._on_topics_refresh_finished)
+        self._topics_worker.signals.finished.connect(self._topics_worker_thread.quit)
+        self._topics_worker_thread.finished.connect(self._topics_worker.deleteLater)
+        self._topics_worker_thread.finished.connect(self._topics_worker_thread.deleteLater)
+        self._topics_worker_thread.finished.connect(self._clear_topics_worker_refs)
+        self._topics_worker_thread.start()
+
+    def _apply_image_topics(self, topics, current_topic):
         self.topic_button.blockSignals(True)
         self.topic_button.clear()
 
@@ -599,6 +659,27 @@ class DeployWindow(QWidget):
 
         self.topic_button.blockSignals(False)
         self.setImageInput()
+
+    @Slot(list)
+    def _on_topics_refresh_success(self, topics, current_topic):
+        self._image_topics_cache = topics
+        self._image_topics_cache_ts = time.time()
+        self.validation_label.setText('')
+        self._apply_image_topics(topics, current_topic)
+
+    @Slot(str)
+    def _on_topics_refresh_error(self, message):
+        self.deploy_logger.warning(message)
+        self.validation_label.setText(message)
+
+    @Slot()
+    def _on_topics_refresh_finished(self):
+        self.refresh_topics_button.setEnabled(True)
+
+    @Slot()
+    def _clear_topics_worker_refs(self):
+        self._topics_worker = None
+        self._topics_worker_thread = None
 
     def _start_fps_monitor(self):
         if not _RCLPY_AVAILABLE:

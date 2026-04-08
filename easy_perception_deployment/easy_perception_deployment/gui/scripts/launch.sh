@@ -42,6 +42,17 @@ else
 fi
 
 
+# Resolve the RGB topic from input_image_topic.json (written by the GUI).
+CONFIG_JSON="${SCRIPTPATH}/../../config/input_image_topic.json"
+RGB_TOPIC=$(python3 -c "
+import json, sys
+try:
+    with open('${CONFIG_JSON}') as f:
+        print(json.load(f).get('input_image_topic', '/camera/camera/color/image_raw'))
+except (FileNotFoundError, json.JSONDecodeError, KeyError):
+    print('/camera/camera/color/image_raw')
+" 2>/dev/null || echo '/camera/camera/color/image_raw')
+
 # Launch easy_perception_deployment.
 echo $msg3
-ros2 launch easy_perception_deployment run.launch.py
+ros2 launch easy_perception_deployment run.launch.py rgb_topic:="${RGB_TOPIC}"

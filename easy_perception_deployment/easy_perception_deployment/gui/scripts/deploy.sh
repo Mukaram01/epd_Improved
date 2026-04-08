@@ -1,143 +1,115 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 msg0="Constructing Docker"
 msg1="Sourcing [ROS2]"
 msg2="Sourcing [Local Package/Workspace]"
 msg3="Deploying package."
 
-useCPU=$1
-showImage=$2
+useCPU="${1:-False}"
+showImage="${2:-False}"
+shift $(( $# >= 2 ? 2 : $# ))
+
+rebuild="false"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rebuild)
+      rebuild="true"
+      ;;
+    --no-rebuild)
+      rebuild="false"
+      ;;
+    *)
+      echo "ERROR: Unknown option: $1" >&2
+      echo "Usage: $0 <useCPU> <showImage> [--rebuild|--no-rebuild]" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
 ROS_DISTRO="${ROS_DISTRO:-humble}"
+ros_setup="/opt/ros/${ROS_DISTRO}/setup.bash"
 
-if [ ! -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]; then
-  echo "ROS2 ${ROS_DISTRO} is not installed or setup.bash is missing."
-  echo "Please install ROS2 ${ROS_DISTRO} and ensure /opt/ros/${ROS_DISTRO}/setup.bash exists."
-  exit 1
+if [[ ! -f "${ros_setup}" ]]; then
+  echo "ERROR: Missing ROS setup file: ${ros_setup}" >&2
+  echo "Install ROS 2 ${ROS_DISTRO} and ensure setup.bash exists." >&2
+  exit 3
 fi
-source /opt/ros/${ROS_DISTRO}/setup.bash
+source "${ros_setup}"
 
-# Check if Docker is installed.
-# If not installed, install it.
-if output=$(sudo docker --version > /dev/null 2>&1); then
-    :
-else
-    echo "Installing Docker..."
-    echo "Reference: [ https://docs.docker.com/engine/install/ubuntu/ ]"
-    sudo apt-get remove -y docker \
-      docker-engine \
-      docker.io \
-      containerd \
-      runc
-    sudo apt-get update && \
-    sudo apt-get install -y \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg-agent \
-    software-properties-common
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
-   sudo apt-get update
-   sudo apt-get install docker-ce docker-ce-cli containerd.io
+if ! sudo docker --version >/dev/null 2>&1; then
+  echo "ERROR: Docker is not installed or not accessible via sudo." >&2
+  echo "Remediation: Install Docker, then retry." >&2
+  echo "  See: https://docs.docker.com/engine/install/ubuntu/" >&2
+  exit 4
 fi
 
 echo "Docker [ FOUND ]"
 
-if [ "$useCPU" = True ] ; then
-  # Check if epd-humble-base:CPU Docker Image has NOT been built.
-  # If true, build it.
-  if output=$(sudo docker images | grep cardboardcode/epd-humble-base | grep CPU > /dev/null 2>&1); then
-      echo "epd-humble-base:CPU  Docker Image [ FOUND ]"
-  else
-      # If there is internet connection,
-      # Download public docker image.
-      wget -q --spider http://google.com
-      if [ $? -eq 0 ]; then
-        sudo docker pull cardboardcode/epd-humble-base:CPU
-      # Otherwise, build locally
-      else
-        sudo docker build --tag cardboardcode/epd-humble-base:CPU ../../Dockerfiles/CPU/
-      fi
-      echo "epd-humble-base:CPU  Docker Image [ CREATED ]"
-  fi
-
+if [[ "${useCPU}" == "True" ]]; then
+  image_name="cardboardcode/epd-humble-base:CPU"
+  local_build_dir="../../Dockerfiles/CPU/"
 else
-  # Check if epd-humble-base:GPU Docker Image has NOT been built.
-  # If true, build it.
-  if output=$(sudo docker images | grep cardboardcode/epd-humble-base | grep GPU > /dev/null 2>&1); then
-      echo "epd-humble-base:GPU  Docker Image [ FOUND ]"
-  else
-      # If there is internet connection,
-      # Download public docker image.
-      wget -q --spider http://google.com
-      if [ $? -eq 0 ]; then
-        sudo docker pull cardboardcode/epd-humble-base:GPU
-      # Otherwise, build locally
-      else
-        sudo docker build --tag cardboardcode/epd-humble-base:GPU ../../Dockerfiles/GPU/
-      fi
-      echo "epd-humble-base:GPU  Docker Image [ CREATED ]"
-  fi
+  image_name="cardboardcode/epd-humble-base:GPU"
+  local_build_dir="../../Dockerfiles/GPU/"
 fi
 
-# Call ROS2 image_tool showimage.
-if [ "$showImage" = True ] ; then
-  ros_setup="/opt/ros/${ROS_DISTRO}/setup.bash"
-  if [ ! -f "$ros_setup" ]; then
-    echo "ROS 2 setup file not found: $ros_setup" >&2
-    exit 1
-  fi
-
-  source "$ros_setup"
-
-  ros2 run image_tools showimage --ros-args --remap /image:=/easy_perception_deployment/output > /dev/null 2>&1 &
+if ! sudo docker image inspect "${image_name}" >/dev/null 2>&1; then
+  echo "ERROR: Docker image not found: ${image_name}" >&2
+  echo "Remediation (choose one):" >&2
+  echo "  sudo docker pull ${image_name}" >&2
+  echo "  sudo docker build --tag ${image_name} ${local_build_dir}" >&2
+  exit 5
 fi
 
-START_DIR=$(pwd)
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-DEFAULT_WORKSPACE_ROOT=$(cd "${SCRIPT_DIR}/../../../../.." && pwd)
-WORKSPACE_ROOT="${EPD_WORKSPACE_ROOT:-$DEFAULT_WORKSPACE_ROOT}"
+echo "${image_name} Docker Image [ FOUND ]"
+
+if [[ "${showImage}" == "True" ]]; then
+  ros2 run image_tools showimage --ros-args --remap /image:=/easy_perception_deployment/output >/dev/null 2>&1 &
+fi
+
+START_DIR="$(pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_WORKSPACE_ROOT="$(cd "${SCRIPT_DIR}/../../../../.." && pwd)"
+WORKSPACE_ROOT="${EPD_WORKSPACE_ROOT:-${DEFAULT_WORKSPACE_ROOT}}"
 SCRIPT_RELATIVE_PATH="${SCRIPT_DIR#${WORKSPACE_ROOT}/}"
 if [[ -z "${SCRIPT_RELATIVE_PATH}" || "${SCRIPT_RELATIVE_PATH}" == "${SCRIPT_DIR}" ]]; then
-  echo "ERROR: Script directory ${SCRIPT_DIR} is not under workspace root ${WORKSPACE_ROOT}." >&2
-  exit 1
+  echo "ERROR: script dir not under workspace root." >&2
+  echo "script_dir=${SCRIPT_DIR}" >&2
+  echo "workspace_root=${WORKSPACE_ROOT}" >&2
+  exit 6
 fi
-
-read -p "Do you wish to rebuild? [y/n]: " input
 
 container_workspace="/root/epd_ros2_ws"
 container_script_dir="${container_workspace}/${SCRIPT_RELATIVE_PATH}"
-if [[ $input == "y" ]]; then
+if [[ "${rebuild}" == "true" ]]; then
   launch_script="${container_script_dir}/build_launch.sh"
-elif [[ $input == "n" ]]; then
+else
   launch_script="${container_script_dir}/launch.sh"
 fi
 
 docker_tty=()
-if [ -t 0 ]; then
+if [[ -t 0 ]]; then
   docker_tty=(-t)
 fi
 vendor_path="${container_workspace}/src/epd_onnxruntime_vendor"
-container_cmd="if [ ! -d \"${vendor_path}\" ]; then echo \"ERROR: Missing ${vendor_path}. Ensure the workspace is mounted to ${container_workspace} and includes epd_onnxruntime_vendor.\" >&2; exit 1; fi; exec ${launch_script}"
+container_cmd="if [ ! -d \"${vendor_path}\" ]; then echo \"ERROR: missing ${vendor_path}\" >&2; echo \"Remediation: mount workspace at ${container_workspace} and include epd_onnxruntime_vendor\" >&2; exit 7; fi; if [ ! -x \"${launch_script}\" ]; then echo \"ERROR: launch script missing or not executable: ${launch_script}\" >&2; exit 8; fi; exec \"${launch_script}\""
 
-if [ "$useCPU" = True ] ; then
+if [[ "${useCPU}" == "True" ]]; then
   sudo docker run -i "${docker_tty[@]}" --rm \
-  --name epd_test_container \
-  -v "${WORKSPACE_ROOT}:${container_workspace}" \
-  cardboardcode/epd-humble-base:CPU \
-  bash -lc "${container_cmd}"
+    --name epd_test_container \
+    -v "${WORKSPACE_ROOT}:${container_workspace}" \
+    "${image_name}" \
+    bash -lc "${container_cmd}"
 else
   sudo docker run -i "${docker_tty[@]}" --rm \
-  --name epd_test_container \
-  -v "${WORKSPACE_ROOT}:${container_workspace}" \
-  --gpus all \
-  cardboardcode/epd-humble-base:GPU \
-  bash -lc "${container_cmd}"
+    --name epd_test_container \
+    -v "${WORKSPACE_ROOT}:${container_workspace}" \
+    --gpus all \
+    "${image_name}" \
+    bash -lc "${container_cmd}"
 fi
 
-unset input
-
-cd $START_DIR
+cd "${START_DIR}"

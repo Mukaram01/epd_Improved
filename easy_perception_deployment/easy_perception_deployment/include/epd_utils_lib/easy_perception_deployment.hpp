@@ -239,6 +239,9 @@ private:
   bool service_result_ready_{false};
   epd_msgs::msg::EPDObjectLocalization latest_service_localization_;
   epd_msgs::msg::EPDObjectTracking latest_service_tracking_;
+  rclcpp::CallbackGroup::SharedPtr service_callback_group_;
+  rclcpp::CallbackGroup::SharedPtr sensor_callback_group_;
+  void set_empty_service_result_and_notify();
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
@@ -248,6 +251,9 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 {
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+  service_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+  sensor_callback_group_ = this->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+
   this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
   this->declare_parameter<std::string>("rgb_topic", "/camera/camera/color/image_raw");
   this->declare_parameter<std::string>("depth_topic", "/camera/camera/aligned_depth_to_color/image_raw");
@@ -399,6 +405,32 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         ortAgent_.requestAddressed = false;
       }
 
+      if (use_case_mode == EPD::LOCALISATION_MODE ||
+        use_case_mode == EPD::TRACKING_MODE)
+      {
+        bool queued = false;
+        {
+          std::lock_guard<std::mutex> data_guard(data_mutex_);
+          const bool ready_for_work = latest_image_ && latest_camera_info_ &&
+            (latest_depth_image_ || !use_depth_);
+          if (ready_for_work) {
+            if (use_case_mode == EPD::LOCALISATION_MODE) {
+              localize_pending_ = true;
+            } else {
+              tracking_pending_ = true;
+            }
+            queued = true;
+          }
+        }
+        if (queued) {
+          data_cv_.notify_one();
+        } else {
+          RCLCPP_INFO(
+            this->get_logger(),
+            "Service request queued; waiting for next synchronized sensor inputs");
+        }
+      }
+
       if (!(use_case_mode == EPD::LOCALISATION_MODE ||
         use_case_mode == EPD::TRACKING_MODE))
       {
@@ -430,7 +462,9 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 
   srv_ = this->create_service<epd_msgs::srv::Perception>(
     "epd_perception_service",
-    handle_emd_request);
+    handle_emd_request,
+    rmw_qos_profile_services_default,
+    service_callback_group_);
 
   // Log all session_config and usecase_config configurations for user to check on system boot
   RCLCPP_INFO(this->get_logger(), "[-ONNX Model-] - %s", ortAgent_.onnx_model_path.c_str());
@@ -512,6 +546,7 @@ void EasyPerceptionDeployment::subscribeLocalizeInputs()
 {
   rclcpp::SubscriptionOptions subscription_options;
   subscription_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
+  subscription_options.callback_group = sensor_callback_group_;
 
   localize_image_rgb.subscribe(
     this,
@@ -538,10 +573,13 @@ void EasyPerceptionDeployment::subscribeLocalizeNoDepth(const unsigned int use_c
   localize_rgb_nodepth_.shutdown();
   camera_info_sub_.reset();
 
+  rclcpp::SubscriptionOptions cam_info_options;
+  cam_info_options.callback_group = sensor_callback_group_;
   camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
     camera_info_topic_,
     rclcpp::SensorDataQoS().keep_last(1),
-    std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1));
+    std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1),
+    cam_info_options);
 
   RCLCPP_WARN(
     this->get_logger(),
@@ -1616,9 +1654,14 @@ void EasyPerceptionDeployment::worker_loop()
           process_localize_work(image_msg, depth_msg, camera_info);
         } catch (const std::exception & e) {
           RCLCPP_ERROR(this->get_logger(), "Exception in process_localize_work: %s", e.what());
+          set_empty_service_result_and_notify();
         } catch (...) {
           RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_localize_work");
+          set_empty_service_result_and_notify();
         }
+      } else {
+        RCLCPP_WARN(this->get_logger(), "Localize work skipped due to incomplete sensor data");
+        set_empty_service_result_and_notify();
       }
       continue;
     }
@@ -1629,9 +1672,14 @@ void EasyPerceptionDeployment::worker_loop()
           process_tracking_work(image_msg, depth_msg, camera_info);
         } catch (const std::exception & e) {
           RCLCPP_ERROR(this->get_logger(), "Exception in process_tracking_work: %s", e.what());
+          set_empty_service_result_and_notify();
         } catch (...) {
           RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_tracking_work");
+          set_empty_service_result_and_notify();
         }
+      } else {
+        RCLCPP_WARN(this->get_logger(), "Tracking work skipped due to incomplete sensor data");
+        set_empty_service_result_and_notify();
       }
       continue;
     }
@@ -1646,6 +1694,31 @@ void EasyPerceptionDeployment::worker_loop()
       }
     }
   }
+}
+
+void EasyPerceptionDeployment::set_empty_service_result_and_notify()
+{
+  bool should_notify = false;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    if (!ortAgent_.isService() || ortAgent_.requestAddressed) {
+      return;
+    }
+    ortAgent_.requestAddressed = true;
+    should_notify = true;
+  }
+
+  if (!should_notify) {
+    return;
+  }
+
+  {
+    std::lock_guard<std::mutex> service_guard(service_mutex_);
+    latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
+    latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
+    service_result_ready_ = true;
+  }
+  service_cv_.notify_one();
 }
 
 #endif  // EPD_UTILS_LIB__EASY_PERCEPTION_DEPLOYMENT_HPP_

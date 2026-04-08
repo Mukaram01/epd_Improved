@@ -257,6 +257,10 @@ class DeployWindow(QWidget):
     that is called by MainWindow class in order to configure a custom session
     and write to session_config.json.
     '''
+    DEFAULT_MODEL_PATH = './data/model/MaskRCNN-10.onnx'
+    DEFAULT_LABEL_LIST_PATH = './data/label_list/coco_classes.txt'
+    DEFAULT_INPUT_TOPIC = '/camera/camera/color/image_raw'
+
     def __init__(self, debug=False):
         '''
         The constructor.
@@ -406,7 +410,7 @@ class DeployWindow(QWidget):
             data = json.load(f)
             self._input_image_topic = data['input_image_topic']
         else:
-            self._input_image_topic = '/camera/camera/color/image_raw'
+            self._input_image_topic = self.DEFAULT_INPUT_TOPIC
 
         if self._image_transport not in self.image_transport_list:
             self.deploy_logger.warning(
@@ -515,6 +519,9 @@ class DeployWindow(QWidget):
         self.refresh_topics_button = QPushButton(self)
         self.refresh_topics_button.setText('Refresh topics')
 
+        self.use_defaults_button = QPushButton(self)
+        self.use_defaults_button.setText('Use defaults')
+
         self.topic_button = QComboBox(self)
         self.topic_button.setEditable(True)
         self.topic_button.setInsertPolicy(QComboBox.NoInsert)
@@ -551,6 +558,15 @@ class DeployWindow(QWidget):
         self.validation_label = QLabel(self)
         self.validation_label.setWordWrap(True)
 
+        # Readiness section (text + icon to avoid color-only signalling)
+        self.readiness_header_label = QLabel('Readiness', self)
+        self.model_readiness_label = QLabel(self)
+        self.label_list_readiness_label = QLabel(self)
+        self.topic_readiness_label = QLabel(self)
+        self.model_readiness_label.setWordWrap(True)
+        self.label_list_readiness_label.setWordWrap(True)
+        self.topic_readiness_label.setWordWrap(True)
+
         # Status label - shows run status (Stopped/Running)
         self.status_label = QLabel('Stopped', self)
         self.status_label.setIndent(10)
@@ -575,18 +591,23 @@ class DeployWindow(QWidget):
         layout.addWidget(self.usecase_config_button, 1, 1)
         layout.addWidget(self.segmentation_button, 2, 0)
         layout.addWidget(self.refresh_topics_button, 2, 1)
-        layout.addWidget(self.topic_button, 3, 0, 1, 2)
-        layout.addWidget(self.transport_label, 4, 0)
-        layout.addWidget(self.transport_combo, 4, 1)
-        layout.addWidget(self.docker_button, 5, 0, 1, 2)
-        layout.addWidget(self.confidence_label, 6, 0)
-        layout.addWidget(self.confidence_spinbox, 6, 1)
-        layout.addWidget(self.max_detections_label, 7, 0)
-        layout.addWidget(self.max_detections_spinbox, 7, 1)
-        layout.addWidget(self.validation_label, 8, 0, 1, 2)
-        layout.addWidget(self.status_label, 9, 0, 1, 2)
-        layout.addWidget(self.fps_label, 10, 0, 1, 2)
-        layout.addWidget(self.run_button, 11, 0, 1, 2)
+        layout.addWidget(self.use_defaults_button, 3, 0, 1, 2)
+        layout.addWidget(self.topic_button, 4, 0, 1, 2)
+        layout.addWidget(self.transport_label, 5, 0)
+        layout.addWidget(self.transport_combo, 5, 1)
+        layout.addWidget(self.docker_button, 6, 0, 1, 2)
+        layout.addWidget(self.confidence_label, 7, 0)
+        layout.addWidget(self.confidence_spinbox, 7, 1)
+        layout.addWidget(self.max_detections_label, 8, 0)
+        layout.addWidget(self.max_detections_spinbox, 8, 1)
+        layout.addWidget(self.validation_label, 9, 0, 1, 2)
+        layout.addWidget(self.status_label, 10, 0, 1, 2)
+        layout.addWidget(self.fps_label, 11, 0, 1, 2)
+        layout.addWidget(self.readiness_header_label, 12, 0, 1, 2)
+        layout.addWidget(self.model_readiness_label, 13, 0, 1, 2)
+        layout.addWidget(self.label_list_readiness_label, 14, 0, 1, 2)
+        layout.addWidget(self.topic_readiness_label, 15, 0, 1, 2)
+        layout.addWidget(self.run_button, 16, 0, 1, 2)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
 
@@ -601,6 +622,7 @@ class DeployWindow(QWidget):
 #         self.register_topic_button.clicked.connect(self.setImageInput)
         self.transport_combo.activated.connect(self.setImageTransport)
         self.refresh_topics_button.clicked.connect(self.refreshImageTopics)
+        self.use_defaults_button.clicked.connect(self.useDefaultDeployInputs)
         self.topic_button.currentTextChanged.connect(self.setImageInput)
         self.confidence_spinbox.valueChanged.connect(self._onConfidenceChanged)
         self.max_detections_spinbox.valueChanged.connect(self._onMaxDetectionsChanged)
@@ -1129,36 +1151,72 @@ class DeployWindow(QWidget):
         expanded_path = os.path.expandvars(os.path.expanduser(input_filepath))
         return os.path.abspath(expanded_path)
 
+    def _set_readiness_row(self, label, name, is_ready, detail):
+        state_icon = '✅' if is_ready else '❌'
+        detail_text = detail if detail else '(not set)'
+        label.setText(f'{name}: {state_icon} {detail_text}')
+
+    def _set_ready_style(self, widget, is_ready):
+        if is_ready:
+            widget.setStyleSheet('background-color: rgba(0,150,10,255);')
+        else:
+            widget.setStyleSheet('background-color: rgba(200,10,0,255);')
+
+    def useDefaultDeployInputs(self):
+        '''Restore default model, label list, and image topic values in one click.'''
+        self._path_to_model = self.DEFAULT_MODEL_PATH
+        self._path_to_label_list = self.DEFAULT_LABEL_LIST_PATH
+        self._input_image_topic = self.DEFAULT_INPUT_TOPIC
+        self.topic_button.setEditText(self.DEFAULT_INPUT_TOPIC)
+        self.updateSessionConfig()
+        dict = {"input_image_topic": self.DEFAULT_INPUT_TOPIC}
+        json_object = json.dumps(dict, indent=4)
+        self._write_json_atomic(self._path_to_input_image_json_file, json_object)
+        self.validateDeployInputs()
+
     def validateDeployInputs(self):
         '''Validate inputs and update the Run button state.'''
         if self._is_running:
             self.run_button.setEnabled(True)
             self.run_button.setToolTip('')
-            self.validation_label.setText('')
+            self.validation_label.setText('Run enabled: deployment is currently running.')
             return
 
-        missing_items = []
-
         model_path = self.resolveFilePath(self._path_to_model)
-        if not model_path or not os.path.isfile(model_path):
-            missing_items.append('ONNX model file')
-
+        model_ok = bool(model_path) and os.path.isfile(model_path)
         label_list_path = self.resolveFilePath(self._path_to_label_list)
-        if not label_list_path or not os.path.isfile(label_list_path):
-            missing_items.append('label list file')
+        label_ok = bool(label_list_path) and os.path.isfile(label_list_path)
+        topic_text = self._input_image_topic.strip()
+        topic_ok = bool(topic_text)
 
-        if not self._input_image_topic.strip():
-            missing_items.append('input image topic')
+        self._set_readiness_row(
+            self.model_readiness_label, 'ONNX model', model_ok, model_path)
+        self._set_readiness_row(
+            self.label_list_readiness_label, 'Label list', label_ok, label_list_path)
+        self._set_readiness_row(
+            self.topic_readiness_label, 'Input topic', topic_ok, topic_text)
+        self._set_ready_style(self.model_button, model_ok)
+        self._set_ready_style(self.list_button, label_ok)
 
-        if missing_items:
-            message = 'Missing: ' + ', '.join(missing_items)
+        if not model_ok:
+            message = f'Run disabled: model file not found at {model_path or "(not set)"}'
+            self.run_button.setEnabled(False)
+            self.run_button.setToolTip(message)
+            self.validation_label.setText(message)
+        elif not label_ok:
+            message = f'Run disabled: label list file not found at {label_list_path or "(not set)"}'
+            self.run_button.setEnabled(False)
+            self.run_button.setToolTip(message)
+            self.validation_label.setText(message)
+        elif not topic_ok:
+            message = 'Run disabled: input topic is empty. Set a ROS image topic.'
             self.run_button.setEnabled(False)
             self.run_button.setToolTip(message)
             self.validation_label.setText(message)
         else:
             self.run_button.setEnabled(True)
             self.run_button.setToolTip('')
-            self.validation_label.setText('')
+            self.validation_label.setText('Run enabled: all required inputs are ready.')
 
     def closeEvent(self, event):
         self._stop_fps_monitor()

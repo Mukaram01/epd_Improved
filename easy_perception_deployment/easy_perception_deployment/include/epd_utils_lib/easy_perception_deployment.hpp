@@ -249,9 +249,9 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   rclcpp::PublisherOptions publisher_options;
   publisher_options.use_intra_process_comm = rclcpp::IntraProcessSetting::Enable;
   this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
-  this->declare_parameter<std::string>("rgb_topic", "/camera/color/image_raw");
-  this->declare_parameter<std::string>("depth_topic", "/camera/depth/image_rect_raw");
-  this->declare_parameter<std::string>("camera_info_topic", "/camera/color/camera_info");
+  this->declare_parameter<std::string>("rgb_topic", "/camera/camera/color/image_raw");
+  this->declare_parameter<std::string>("depth_topic", "/camera/camera/aligned_depth_to_color/image_raw");
+  this->declare_parameter<std::string>("camera_info_topic", "/camera/camera/color/camera_info");
   this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
   this->declare_parameter<bool>("use_depth", true);
 

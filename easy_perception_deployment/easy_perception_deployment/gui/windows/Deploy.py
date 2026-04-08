@@ -344,7 +344,7 @@ class DeployWindow(QWidget):
             data = json.load(f)
             self._input_image_topic = data['input_image_topic']
         else:
-            self._input_image_topic = '/camera/color/image_raw'
+            self._input_image_topic = '/camera/camera/color/image_raw'
 
         if self._image_transport not in self.image_transport_list:
             self.deploy_logger.warning(

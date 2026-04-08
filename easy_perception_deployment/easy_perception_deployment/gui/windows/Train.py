@@ -140,6 +140,7 @@ class TrainWindow(QWidget):
         self.train_button.setFixedHeight(self._ROW_THICKNESS)
         self.train_button.setStyleSheet(
             'background-color: rgba(180,180,180,255);')
+        self.train_button.setEnabled(False)
 
         # Set Label List
         self.list_button = QPushButton('Choose Label List', self)
@@ -151,6 +152,8 @@ class TrainWindow(QWidget):
 
         self.training_config_label = QLabel(self)
         self.training_config_label.setText('Training Parameters')
+        self.training_status_label = QLabel(self)
+        self.training_status_label.setWordWrap(True)
 
         self.maxiter_button = QPushButton('MAX ITERATION', self)
         self.maxiter_button.setFixedHeight(self._ROW_THICKNESS // 2)
@@ -197,6 +200,7 @@ class TrainWindow(QWidget):
                          alignment=Qt.AlignHCenter)
         layout.addLayout(training_params_layout)
         layout.addWidget(self.train_button)
+        layout.addWidget(self.training_status_label)
 
         self.p2_button.clicked.connect(self.setP2)
         self.p3_button.clicked.connect(self.setP3)
@@ -212,6 +216,7 @@ class TrainWindow(QWidget):
         self.checkpointp_button.clicked.connect(self.setCheckPointPeriod)
         self.testp_button.clicked.connect(self.setTestPeriod)
         self.steps_button.clicked.connect(self.setSteps)
+        self.update_training_readiness()
 
     def setP2(self):
         '''A function that is triggered by the button labelled, P2.'''
@@ -247,6 +252,7 @@ class TrainWindow(QWidget):
             'background-color: rgba(0,200,10,255);')
         self._is_model_ready = True
         self.train_logger.info('Setting Model to ' + self.model_name)
+        self.update_training_readiness()
 
     def setLabelList(self):
         '''A function that is triggered by Choose Label List button.'''
@@ -268,9 +274,14 @@ class TrainWindow(QWidget):
                 open(input_classes_filepath)]
         else:
             self.train_logger.warning('No label list set.')
+            self._is_labellist_linked = False
+            self.training_status_label.setText(
+                'Label list was not selected. Choose Label List to continue.')
+            self.update_training_readiness()
             return
         self.list_button.setStyleSheet('background-color: rgba(0,150,10,255);')
         self._is_labellist_linked = True
+        self.update_training_readiness()
 
     def setDataset(self):
         '''A function that is triggered by Choose Dataset button.'''
@@ -286,6 +297,18 @@ class TrainWindow(QWidget):
 
         else:
             new_filepath_to_dataset = '../data/datasets'
+
+        if not new_filepath_to_dataset:
+            self.train_logger.warning('No dataset directory selected.')
+            self._is_dataset_linked = False
+            self._is_dataset_labelled = False
+            self.dataset_button.setIcon(QIcon('img/dataset.png'))
+            self.dataset_button.setStyleSheet('background-color: red;')
+            self.training_status_label.setText(
+                'Dataset directory was not selected. '
+                'Choose Dataset to continue.')
+            self.update_training_readiness()
+            return
 
         self._path_to_dataset = new_filepath_to_dataset
         self.validateDataset(new_filepath_to_dataset)
@@ -370,48 +393,48 @@ class TrainWindow(QWidget):
         that are all required to allow proper training given
         a certain requested precision level.
         '''
-        # Perform 4 checks to ensure
-        # all data is available for Training to start without issue.
-        if not self._is_model_ready:
+        unmet = self.update_training_readiness()
+        if unmet:
+            self.validate_button.setStyleSheet(
+                'background-color: rgba(255,255,255,255);')
             self.train_logger.warning(
-                "No model provided. Please choose Model.")
-            self.train_button.setStyleSheet(
-                'background-color: rgba(180,180,180,255);')
-            self.disconnectTrainingButton()
-            return
-        if not self._is_dataset_linked:
-            self.train_logger.warning(
-                'Dataset directory not provided. ' +
-                'Please choose Dataset.')
-            self.train_button.setStyleSheet(
-                'background-color: rgba(180,180,180,255);')
-            self.disconnectTrainingButton()
-            return
-        if not self._is_labellist_linked:
-            self.train_logger.warning(
-                'No label List provided. ' +
-                'Please choose Label List.')
-            self.train_button.setStyleSheet(
-                'background-color: rgba(180,180,180,255);')
-            self.disconnectTrainingButton()
-            return
-
-        if not self._is_dataset_labelled:
-            self.train_logger.warning(
-                'Dataset not labelled properly. ' +
-                'Please label Dataset.')
-            self.train_button.setStyleSheet(
-                'background-color: rgba(180,180,180,255);')
-            self.disconnectTrainingButton()
+                'Training validation failed. Unmet prerequisites: ' +
+                ', '.join(unmet))
             return
 
         self.validate_button.setStyleSheet(
             'background-color: rgba(0,200,10,255);')
-
         self.train_logger.info(
             "[ SUCCESS ] - Training Validated. Train button unlocked.")
-        self.train_button.setStyleSheet('background-color: white;')
+
+    def update_training_readiness(self):
+        unmet = []
+        if not self._is_model_ready:
+            unmet.append('model')
+        if not self._is_dataset_linked:
+            unmet.append('dataset')
+        if not self._is_labellist_linked:
+            unmet.append('label list')
+        if not self._is_dataset_labelled:
+            unmet.append('labelled dataset')
+
+        if unmet:
+            self.disconnectTrainingButton()
+            self.train_button.setEnabled(False)
+            self.train_button.setStyleSheet(
+                'background-color: rgba(180,180,180,255);')
+            self.training_status_label.setText(
+                'Training is not ready. Missing: ' +
+                ', '.join(unmet) +
+                '.\nNext step: provide ' + unmet[0] + '.')
+            return unmet
+
+        self.train_button.setEnabled(True)
+        self.train_button.setStyleSheet('background-color: rgba(255,255,255,255);')
         self.connectTrainingButton()
+        self.training_status_label.setText(
+            'Training is ready. Click Validate Training or Train to proceed.')
+        return []
 
     def validateDataset(self, new_filepath_to_dataset):
         isDatasetNamedRight = (
@@ -464,8 +487,10 @@ class TrainWindow(QWidget):
             # Set button color to red
             self.train_logger.warning(
                 'Invalid Dataset. Please choose another.')
+            self._is_dataset_linked = False
             self.dataset_button.setIcon(QIcon('img/dataset.png'))
             self.dataset_button.setStyleSheet('background-color: red;')
+        self.update_training_readiness()
 
     def startTraining(self):
 
@@ -533,10 +558,18 @@ class TrainWindow(QWidget):
         trainDirExists = os.path.exists(PATH_TO_TRAIN_DATASET)
         if not trainDirExists:
             self.train_logger.error('/train_dataset MISSING.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'Selected folder is missing /train_dataset.')
             return
         valDirExists = os.path.exists(PATH_TO_VAL_DATASET)
         if not valDirExists:
             self.train_logger.error('/val_dataset MISSING.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'Selected folder is missing /val_dataset.')
             return
         # Check if there are non-zero images in /train_dataset.
         no_of_train_image = 0
@@ -552,6 +585,10 @@ class TrainWindow(QWidget):
         if not doesTrainImagesExists:
             self.train_logger.error('No train images ' +
                                     'found in /train_dataset.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'No train images found in /train_dataset.')
             return
         # Check if there are non-zero json files in /train_dataset.
         # Check if there are non-zero images in /train_dataset.
@@ -566,6 +603,10 @@ class TrainWindow(QWidget):
         if not doesTrainJsonsExists:
             self.train_logger.error('No json files ' +
                                     'found in /train_dataset.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'No json files found in /train_dataset.')
             return
         # Check if there are non-zero images in /val_dataset.
         no_of_val_image = 0
@@ -581,6 +622,10 @@ class TrainWindow(QWidget):
         if not doesValImagesExists:
             self.train_logger.error('No val images ' +
                                     'found in /val_dataset.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'No validation images found in /val_dataset.')
             return
         # Check if there are non-zero json files in /val_dataset.
         no_of_val_json = 0
@@ -594,6 +639,10 @@ class TrainWindow(QWidget):
         if not doesValJsonsExists:
             self.train_logger.error('No json files ' +
                                     'found in /val_dataset.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'No json files found in /val_dataset.')
             return
         # Check if there is a corresponding number of .json
         # and image files in /train_dataset and /val_dataset
@@ -602,12 +651,20 @@ class TrainWindow(QWidget):
         if not isAnnotatedTrainImageInvalid:
             self.train_logger.error('Unequal images & .json files ' +
                                     'found in /train_dataset.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'Unequal images and json files in /train_dataset.')
             return
         isAnnotatedValImageInvalid = (
             no_of_val_image == no_of_val_json)
         if not isAnnotatedValImageInvalid:
             self.train_logger.error('Unequal images & .json files ' +
                                     'found in /val_dataset.')
+            QMessageBox.warning(
+                self,
+                'Invalid Dataset',
+                'Unequal images and json files in /val_dataset.')
             return
 
         outputTrainDir = '../data/datasets/custom_dataset/train_dataset'
@@ -616,6 +673,10 @@ class TrainWindow(QWidget):
         if self._path_to_label_list == '':
             self.train_logger.error('No Label List provided. ' +
                                     'Please choose Label List.')
+            self.training_status_label.setText(
+                'No label list provided. '
+                'Choose Label List before generating dataset.')
+            self.update_training_readiness()
             return
 
         if os.path.exists("../data/datasets/custom_dataset"):
@@ -630,6 +691,10 @@ class TrainWindow(QWidget):
                     QMessageBox.No)
                 if reply != QMessageBox.Yes:
                     self.train_logger.info('Dataset overwrite cancelled.')
+                    self.training_status_label.setText(
+                        'Dataset generation cancelled. '
+                        'Existing custom_dataset was kept.')
+                    self.update_training_readiness()
                     return
             try:
                 subprocess.run(
@@ -638,6 +703,10 @@ class TrainWindow(QWidget):
             except subprocess.CalledProcessError as e:
                 self.train_logger.error(
                     'Failed to remove pre-existing custom_dataset: ' + str(e))
+                QMessageBox.warning(
+                    self,
+                    'Dataset Generation Failed',
+                    'Failed to remove existing custom_dataset folder.')
                 return
 
         self.label_train_process = (
@@ -660,6 +729,12 @@ class TrainWindow(QWidget):
                 outputValDir]))
         if not self.debug:
             self.label_val_process.communicate()
+        self._path_to_dataset = '../data/datasets/custom_dataset'
+        self.validateDataset(self._path_to_dataset)
+        self.training_status_label.setText(
+            'Dataset conversion complete. '
+            'Validate training readiness before training.')
+        self.update_training_readiness()
 
     def populateModelSelector(self):
         '''

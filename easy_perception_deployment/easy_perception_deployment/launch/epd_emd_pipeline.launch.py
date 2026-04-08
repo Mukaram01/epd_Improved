@@ -63,14 +63,15 @@ def generate_launch_description():
 
             cwd=pkg_share,
 
-            parameters=[{"use_depth": use_depth}],
+            parameters=[
+                {"use_depth": use_depth},
+                {"rgb_topic": rgb_topic},
+                {"depth_topic": depth_topic},
+                {"camera_info_topic": camera_info_topic},
+            ],
             remappings=[
-                ("/camera/color/image_raw", rgb_topic),
-                ("/camera/color/camera_info", camera_info_topic),
-                # Both depth topic names are remapped so the node works whether
-                # the internal code subscribes to the rect_raw or aligned name.
-                ("/camera/depth/image_rect_raw", depth_topic),
-                ("/camera/aligned_depth_to_color/image_raw", depth_topic),
+                # Route the camera RGB topic into the node's primary image input.
+                ("/easy_perception_deployment/image_input", rgb_topic),
             ],
             arguments=["--ros-args", "--log-level", log_level],
         ),

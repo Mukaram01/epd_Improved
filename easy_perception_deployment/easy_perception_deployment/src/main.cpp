@@ -16,6 +16,7 @@
 // ROS2 LIB
 #include <memory>
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/executors/multi_threaded_executor.hpp"
 
 // EPD_UTILS LIB
 #include "epd_utils_lib/easy_perception_deployment.hpp"
@@ -27,7 +28,15 @@ int main(int argc, char * argv[])
 
   auto epd_node = std::make_shared<EasyPerceptionDeployment>();
 
-  rclcpp::spin(epd_node);
+  // Use MultiThreadedExecutor so the service callback (which blocks waiting for
+  // a worker result) does not starve the topic subscription callbacks that feed
+  // data to the worker.  The service runs in its own MutuallyExclusiveCallbackGroup
+  // (see the node constructor), while all subscriptions remain in the default
+  // callback group, so both sets of callbacks can execute concurrently.
+  rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(epd_node);
+  executor.spin();
+
   rclcpp::shutdown();
   return 0;
 }

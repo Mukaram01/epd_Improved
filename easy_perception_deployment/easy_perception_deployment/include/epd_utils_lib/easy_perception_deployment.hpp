@@ -239,6 +239,15 @@ private:
   bool service_result_ready_{false};
   epd_msgs::msg::EPDObjectLocalization latest_service_localization_;
   epd_msgs::msg::EPDObjectTracking latest_service_tracking_;
+
+  // Dedicated callback group for the service so its blocking wait_for() does
+  // not prevent subscription callbacks from executing when a MultiThreadedExecutor
+  // is used.
+  rclcpp::CallbackGroup::SharedPtr service_cb_group_;
+
+  /// Wake the service callback with an empty (failure) result.
+  /// Called from the worker when an exception prevents normal result delivery.
+  void notifyServiceFailure();
 };
 
 EasyPerceptionDeployment::EasyPerceptionDeployment(void)
@@ -344,6 +353,12 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     }
   }
 
+  // Create a dedicated callback group for the service so it runs on its own
+  // executor thread and its blocking wait_for() does not starve the subscription
+  // callbacks that live in the node's default (MutuallyExclusive) callback group.
+  service_cb_group_ = this->create_callback_group(
+    rclcpp::CallbackGroupType::MutuallyExclusive);
+
   auto handle_emd_request =
     [this](
     const std::shared_ptr<epd_msgs::srv::Perception::Request> request,
@@ -430,7 +445,9 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 
   srv_ = this->create_service<epd_msgs::srv::Perception>(
     "epd_perception_service",
-    handle_emd_request);
+    handle_emd_request,
+    rmw_qos_profile_services_default,
+    service_cb_group_);
 
   // Log all session_config and usecase_config configurations for user to check on system boot
   RCLCPP_INFO(this->get_logger(), "[-ONNX Model-] - %s", ortAgent_.onnx_model_path.c_str());
@@ -1571,6 +1588,21 @@ void EasyPerceptionDeployment::process_image_work(
     1000.0 / elapsedTime.count());
 }
 
+void EasyPerceptionDeployment::notifyServiceFailure()
+{
+  // Clear both localization and tracking results because only one is ever valid
+  // per request, and we cannot tell which was expected after an exception;
+  // clearing both guarantees the service callback receives a consistent empty
+  // response rather than stale data from a previous successful call.
+  {
+    std::lock_guard<std::mutex> service_guard(service_mutex_);
+    latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
+    latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
+    service_result_ready_ = true;
+  }
+  service_cv_.notify_all();
+}
+
 void EasyPerceptionDeployment::worker_loop()
 {
   while (rclcpp::ok() && !worker_stop_) {
@@ -1616,8 +1648,10 @@ void EasyPerceptionDeployment::worker_loop()
           process_localize_work(image_msg, depth_msg, camera_info);
         } catch (const std::exception & e) {
           RCLCPP_ERROR(this->get_logger(), "Exception in process_localize_work: %s", e.what());
+          notifyServiceFailure();
         } catch (...) {
           RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_localize_work");
+          notifyServiceFailure();
         }
       }
       continue;
@@ -1629,8 +1663,10 @@ void EasyPerceptionDeployment::worker_loop()
           process_tracking_work(image_msg, depth_msg, camera_info);
         } catch (const std::exception & e) {
           RCLCPP_ERROR(this->get_logger(), "Exception in process_tracking_work: %s", e.what());
+          notifyServiceFailure();
         } catch (...) {
           RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_tracking_work");
+          notifyServiceFailure();
         }
       }
       continue;

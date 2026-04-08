@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Init conda (do NOT prepend base anaconda bin to PATH)
-# set +u: conda.sh references PS1 which is unset in non-interactive shells
-set +u
-: "${PS1:=}"
-source "$HOME/anaconda3/etc/profile.d/conda.sh"
-set -u
-
 # export PATH=~/anaconda3/bin:$PATH
 PATH_TO_THIS_SCRIPT=$(realpath "$0")
 START_DIR=$(dirname "$PATH_TO_THIS_SCRIPT")
@@ -16,28 +9,56 @@ cd "$START_DIR"
 
 EPD_SKIP_DOWNLOAD="${EPD_SKIP_DOWNLOAD:-0}"
 EPD_WS="${EPD_WS:-}"
+EPD_NO_INSTALL="${EPD_NO_INSTALL:-0}"
+
+for arg in "$@"; do
+    case "$arg" in
+        --no-install)
+            EPD_NO_INSTALL=1
+            ;;
+        *)
+            echo "Unknown argument: $arg"
+            echo "Usage: $0 [--no-install]"
+            exit 1
+            ;;
+    esac
+done
 
 # Check if Anaconda has been installed in general.
 # If true, get the first digit of the string which should reflect the major version of conda.
+if ! command -v conda >/dev/null 2>&1; then
+    echo "Conda was not found in PATH."
+    echo "Install Anaconda or Miniconda, then re-run this script:"
+    echo "  https://docs.anaconda.com/anaconda/install/linux/"
+    exit 1
+fi
+
 if detected_conda=$(conda --version); then
-    # echo $detected_conda - FOUND
     declare -i conda_ver
     conda_ver=$(echo "$detected_conda" | grep -o -E '[0-9]+' | head -1 | sed -e 's/^0\+//')
-else
-    echo "Please install Anaconda by refering to the installation docs."
-    echo "Exiting terminal in 10 seconds."
-    echo "[ https://docs.anaconda.com/anaconda/install/linux/ ]"
-    sleep 10
-    exit 1
 fi
 
 # Check if Anaconda is Anaconda2 or below.
 if (( conda_ver < 2 )); then
     echo "Anaconda3 - NOTFOUND. Please install Anaconda3."
-    echo "Exiting terminal in 10 seconds."
-    sleep 10
     exit 1
 fi
+
+# Init conda (do NOT prepend base anaconda bin to PATH)
+# set +u: conda.sh references PS1 which is unset in non-interactive shells
+CONDA_BASE=$(conda info --base 2>/dev/null || true)
+CONDA_SH="${CONDA_BASE}/etc/profile.d/conda.sh"
+if [ -z "$CONDA_BASE" ] || [ ! -f "$CONDA_SH" ]; then
+    echo "Unable to locate conda.sh via 'conda info --base'."
+    echo "Expected at: ${CONDA_SH}"
+    echo "Please verify your Conda installation, then retry."
+    exit 1
+fi
+
+set +u
+: "${PS1:=}"
+source "$CONDA_SH"
+set -u
 
 # Check if pretrained models have been downloaded.
 verify_sha256() {
@@ -102,6 +123,14 @@ env_exists=$(conda env list | grep epd_gui_env || true)
 
 if [ -z "$env_exists" ]
 then
+      if [ "$EPD_NO_INSTALL" = "1" ]; then
+          echo "epd_gui_env does not exist and --no-install (or EPD_NO_INSTALL=1) is enabled."
+          echo "Create it manually with:"
+          echo "  conda create -n epd_gui_env python=3.10 -y"
+          echo "  conda activate epd_gui_env"
+          echo "  pip install PySide6 dateutils==0.6.12 \"pycocotools>=2.0.6\" labelme==5.0.1"
+          exit 1
+      fi
       echo "Installing epd_gui_env conda environment."
       conda create -n epd_gui_env python=3.10 -y
       conda activate epd_gui_env
@@ -136,12 +165,8 @@ resolve_epd_workspace_setup() {
 # Check for libxcb-cursor0, required by the Qt xcb platform plugin since Qt 6.5.0.
 if command -v dpkg >/dev/null 2>&1 && ! dpkg -l libxcb-cursor0 2>/dev/null | grep -q "^ii"; then
     echo "Missing dependency: libxcb-cursor0 (required by Qt xcb platform plugin since Qt 6.5.0)."
-    echo "Installing libxcb-cursor0..."
-    sudo apt-get install -y libxcb-cursor0 || {
-        echo "ERROR: Could not install libxcb-cursor0 automatically."
-        echo "Please run manually: sudo apt-get install -y libxcb-cursor0"
-        exit 1
-    }
+    echo "Install it manually if needed:"
+    echo "  sudo apt-get install -y libxcb-cursor0"
 fi
 
 conda activate epd_gui_env
@@ -150,6 +175,13 @@ conda activate epd_gui_env
 # Older epd_gui_env installations may only have PySide2; installing PySide6
 # here is a no-op when it is already present.
 if ! python -c "import PySide6" 2>/dev/null; then
+    if [ "$EPD_NO_INSTALL" = "1" ]; then
+        echo "PySide6 is missing in epd_gui_env and --no-install (or EPD_NO_INSTALL=1) is enabled."
+        echo "Install it manually with:"
+        echo "  conda activate epd_gui_env"
+        echo "  pip install PySide6"
+        exit 1
+    fi
     echo "PySide6 not found in epd_gui_env; installing..."
     pip install PySide6
 fi
@@ -175,8 +207,12 @@ source "$EPD_WS_SETUP"
 set -u
 # ---- end fix
 
+echo "Preflight:"
+echo "  ROS setup path       : /opt/ros/${ROS_DISTRO}/setup.bash"
+echo "  Workspace setup path : ${EPD_WS_SETUP}"
+echo "  Conda env            : epd_gui_env"
+
 cd "$START_DIR/gui"
 python main.py
 
 unset START_DIR PATH_TO_THIS_SCRIPT env_exists EPD_WS_SETUP EPD_SKIP_DOWNLOAD EPD_WS
-

@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QEvent, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
 
 import logging
 import os
+import sys
 from datetime import datetime
 
 from windows.Deploy import DeployWindow
@@ -47,38 +48,27 @@ class MainWindow(QWidget):
             filename='log/' + timestamp_string + '.log',
             filemode='w')
         root_logger = logging.getLogger('')
-        warn_console = logging.StreamHandler()
-        warn_console.setLevel(logging.WARN)
-        info_console = logging.StreamHandler()
-        info_console.setLevel(logging.INFO)
-        error_console = logging.StreamHandler()
-        error_console.setLevel(logging.ERROR)
+        console_stream = sys.stderr
+        console_handler = logging.StreamHandler(console_stream)
+        console_handler.setLevel(logging.INFO)
         formatter = logging.Formatter(
             '%(name)-12s: ' +
             '%(levelname)-8s %(message)s')
-        warn_console.setFormatter(formatter)
-        info_console.setFormatter(formatter)
-        error_console.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
         if not any(
-                isinstance(handler, logging.StreamHandler)
-                and handler.level == logging.WARN
+                type(handler) is logging.StreamHandler
+                and handler.stream is console_stream
                 for handler in root_logger.handlers):
-            root_logger.addHandler(warn_console)
-        if not any(
-                isinstance(handler, logging.StreamHandler)
-                and handler.level == logging.INFO
-                for handler in root_logger.handlers):
-            root_logger.addHandler(info_console)
-        if not any(
-                isinstance(handler, logging.StreamHandler)
-                and handler.level == logging.ERROR
-                for handler in root_logger.handlers):
-            root_logger.addHandler(error_console)
+            root_logger.addHandler(console_handler)
+        root_logger.propagate = False
 
         self.train_window = TrainWindow(False)
         self.deploy_window = DeployWindow(False)
         self.isTrainOpen = False
         self.isDeployOpen = False
+
+        self.train_window.installEventFilter(self)
+        self.deploy_window.installEventFilter(self)
 
         self._WINDOW_HEIGHT = 375
         self._WINDOW_WIDTH = 500
@@ -126,22 +116,33 @@ class MainWindow(QWidget):
 
     def deployPackage(self):
         '''A function that is triggered by the button labelled, Deploy.'''
-        # Start Deploy window that allows you to set the
-        self.isDeployOpen = not self.isDeployOpen
-
-        if (self.isDeployOpen):
-            self.deploy_window.show()
+        if self.deploy_window.isVisible():
+            self.deploy_window.raise_()
+            self.deploy_window.activateWindow()
         else:
-            self.deploy_window.close()
+            self.deploy_window.show()
+            self.deploy_window.raise_()
+            self.deploy_window.activateWindow()
+        self.isDeployOpen = self.deploy_window.isVisible()
 
     def openTrainWindow(self):
         '''A function that is triggered by the button labelled, Train.'''
-        self.isTrainOpen = not self.isTrainOpen
-
-        if (self.isTrainOpen):
-            self.train_window.show()
+        if self.train_window.isVisible():
+            self.train_window.raise_()
+            self.train_window.activateWindow()
         else:
-            self.train_window.close()
+            self.train_window.show()
+            self.train_window.raise_()
+            self.train_window.activateWindow()
+        self.isTrainOpen = self.train_window.isVisible()
+
+
+    def eventFilter(self, obj, event):
+        if obj is self.train_window and event.type() in (QEvent.Close, QEvent.Hide, QEvent.Show):
+            self.isTrainOpen = self.train_window.isVisible()
+        elif obj is self.deploy_window and event.type() in (QEvent.Close, QEvent.Hide, QEvent.Show):
+            self.isDeployOpen = self.deploy_window.isVisible()
+        return super().eventFilter(obj, event)
 
     def closeWindow(self):
         '''A function that is triggered by the button labelled, Quit.'''

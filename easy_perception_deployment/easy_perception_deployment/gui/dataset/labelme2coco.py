@@ -96,7 +96,9 @@ def main():
         )
 
     out_ann_file = osp.join(args.output_dir, 'annotations.json')
-    label_files = glob.glob(osp.join(args.input_dir, '*.json'))
+    # Sort input labels so image/annotation IDs are stable across runs and
+    # dataset generation remains reproducible across platforms.
+    label_files = sorted(glob.glob(osp.join(args.input_dir, '*.json')))
     for image_id, filename in enumerate(label_files):
         print('Generating dataset from:', filename)
 
@@ -173,6 +175,11 @@ def main():
                     iscrowd=0,
                 )
             )
+
+    # Optional deterministic ordering before serialization for full
+    # reproducibility of generated annotation files.
+    data['annotations'].sort(key=lambda ann: (ann['image_id'], ann['id']))
+    data['categories'].sort(key=lambda cat: cat['id'])
 
     with open(out_ann_file, 'w') as f:
         json.dump(data, f)

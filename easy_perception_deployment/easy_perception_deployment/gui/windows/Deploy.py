@@ -291,6 +291,8 @@ class DeployWindow(QWidget):
         self._kill_process = None
         self._deploy_timer = None
         self._kill_timer = None
+        self._deploy_log_file = None
+        self._kill_log_file = None
         self._fps_monitor = None
 
         self.visualizeFlag = True
@@ -774,12 +776,38 @@ class DeployWindow(QWidget):
     def _kill_script_path(self):
         return os.path.join(self._scripts_dir(), "kill.sh")
 
+    def _process_log_path(self, process_type):
+        logs_dir = os.path.join(self._scripts_dir(), "logs")
+        os.makedirs(logs_dir, exist_ok=True)
+        return os.path.join(logs_dir, f"{process_type}.log")
+
+    def _close_process_log_file(self, process_type):
+        log_attr = f"_{process_type}_log_file"
+        log_file = getattr(self, log_attr, None)
+        if log_file is not None and not log_file.closed:
+            log_file.close()
+        setattr(self, log_attr, None)
+
+    def _tail_process_log(self, process_type, max_chars=2000):
+        log_path = self._process_log_path(process_type)
+        if not os.path.exists(log_path):
+            return "(log file missing)"
+        try:
+            with open(log_path, 'r', encoding='utf-8', errors='replace') as log_file:
+                content = log_file.read()
+                return content[-max_chars:].strip() or "(empty)"
+        except OSError as exc:
+            return f"(unable to read log file: {exc})"
+
     def _start_process(self, args, process_type, cwd=None):
+        self._close_process_log_file(process_type)
+        log_path = self._process_log_path(process_type)
+        log_file = open(log_path, 'a', encoding='utf-8', buffering=1)
+        setattr(self, f"_{process_type}_log_file", log_file)
         process = subprocess.Popen(
             args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+            stdout=log_file,
+            stderr=log_file,
             cwd=cwd)
         timer = QTimer(self)
         timer.setInterval(200)
@@ -793,9 +821,9 @@ class DeployWindow(QWidget):
             return
 
         timer.stop()
-        stdout, stderr = process.communicate()
+        self._close_process_log_file(process_type)
         if process.returncode != 0:
-            self._handle_process_error(process_type, stdout, stderr)
+            self._handle_process_error(process_type)
             return
 
         if process_type == 'kill':
@@ -803,7 +831,7 @@ class DeployWindow(QWidget):
         elif process_type == 'deploy':
             self.status_label.setText('Running...')
 
-    def _handle_process_error(self, process_type, stdout, stderr):
+    def _handle_process_error(self, process_type):
         self.run_button.setText('Run')
         self.run_button.setIcon(QIcon('img/go.png'))
         self.run_button.setIconSize(QSize(100, 100))
@@ -811,16 +839,12 @@ class DeployWindow(QWidget):
         self._is_running = False
         self.status_label.setText('Error')
 
-        stdout_text = stdout.strip()
-        stderr_text = stderr.strip()
+        log_tail = self._tail_process_log(process_type)
         message_lines = [
             f"{process_type.capitalize()} failed.",
             "",
-            "stdout:",
-            stdout_text if stdout_text else "(empty)",
-            "",
-            "stderr:",
-            stderr_text if stderr_text else "(empty)"
+            "log output:",
+            log_tail
         ]
         msgBox = QMessageBox()
         msgBox.setText('\n'.join(message_lines))
@@ -852,6 +876,8 @@ class DeployWindow(QWidget):
             self._terminate_process(self._kill_process, self._kill_timer)
 
         self._terminate_process(self._deploy_process, self._deploy_timer)
+        self._close_process_log_file('deploy')
+        self._close_process_log_file('kill')
         self._deploy_process = None
         self._kill_process = None
         self._deploy_timer = None

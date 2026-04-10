@@ -1001,7 +1001,9 @@ void EasyPerceptionDeployment::process_localize_work(
     latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
     service_result_ready_ = true;
   }
-  RCLCPP_INFO(this->get_logger(), "Stored localization result for service response");
+  RCLCPP_DEBUG_THROTTLE(
+    this->get_logger(), *this->get_clock(), 2000,
+    "Updated latest localization result for service");
   service_cv_.notify_all();
 }
 
@@ -1175,7 +1177,9 @@ void EasyPerceptionDeployment::process_tracking_work(
     latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
     service_result_ready_ = true;
   }
-  RCLCPP_INFO(this->get_logger(), "Stored tracking result for service response");
+  RCLCPP_DEBUG_THROTTLE(
+    this->get_logger(), *this->get_clock(), 2000,
+    "Updated latest tracking result for service");
   service_cv_.notify_all();
 }
 

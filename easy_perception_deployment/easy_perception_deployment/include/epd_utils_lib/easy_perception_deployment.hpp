@@ -292,10 +292,15 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   subscribeImageInput();
 
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
+  // Use BEST_EFFORT QoS with depth 1 so the latest annotated frame is always
+  // forwarded immediately; old frames are dropped rather than queued.  This
+  // prevents backpressure from stalling the inference worker when the display
+  // consumer is slower than the camera rate.
   visual_pub = image_transport::create_publisher(
     this,
     "/easy_perception_deployment/image_output",
-    rclcpp::QoS(10).get_rmw_qos_profile());
+    rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile()
+    .get_rmw_qos_profile());
 
   // Creating Publisher to output Action P1 Detection Results.
   p1_pub = this->create_publisher<epd_msgs::msg::EPDImageClassification>(

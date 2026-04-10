@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from PySide6.QtCore import QSize
+from PySide6.QtCore import QEvent, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
 
@@ -67,6 +67,9 @@ class MainWindow(QWidget):
         self.isTrainOpen = False
         self.isDeployOpen = False
 
+        self.train_window.installEventFilter(self)
+        self.deploy_window.installEventFilter(self)
+
         self._WINDOW_HEIGHT = 375
         self._WINDOW_WIDTH = 500
 
@@ -113,22 +116,33 @@ class MainWindow(QWidget):
 
     def deployPackage(self):
         '''A function that is triggered by the button labelled, Deploy.'''
-        # Start Deploy window that allows you to set the
-        self.isDeployOpen = not self.isDeployOpen
-
-        if (self.isDeployOpen):
-            self.deploy_window.show()
+        if self.deploy_window.isVisible():
+            self.deploy_window.raise_()
+            self.deploy_window.activateWindow()
         else:
-            self.deploy_window.close()
+            self.deploy_window.show()
+            self.deploy_window.raise_()
+            self.deploy_window.activateWindow()
+        self.isDeployOpen = self.deploy_window.isVisible()
 
     def openTrainWindow(self):
         '''A function that is triggered by the button labelled, Train.'''
-        self.isTrainOpen = not self.isTrainOpen
-
-        if (self.isTrainOpen):
-            self.train_window.show()
+        if self.train_window.isVisible():
+            self.train_window.raise_()
+            self.train_window.activateWindow()
         else:
-            self.train_window.close()
+            self.train_window.show()
+            self.train_window.raise_()
+            self.train_window.activateWindow()
+        self.isTrainOpen = self.train_window.isVisible()
+
+
+    def eventFilter(self, obj, event):
+        if obj is self.train_window and event.type() in (QEvent.Close, QEvent.Hide, QEvent.Show):
+            self.isTrainOpen = self.train_window.isVisible()
+        elif obj is self.deploy_window and event.type() in (QEvent.Close, QEvent.Hide, QEvent.Show):
+            self.isDeployOpen = self.deploy_window.isVisible()
+        return super().eventFilter(obj, event)
 
     def closeWindow(self):
         '''A function that is triggered by the button labelled, Quit.'''

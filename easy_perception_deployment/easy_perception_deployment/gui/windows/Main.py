@@ -18,6 +18,7 @@ from PySide6.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
 
 import logging
 import os
+import sys
 from datetime import datetime
 
 from windows.Deploy import DeployWindow
@@ -47,33 +48,19 @@ class MainWindow(QWidget):
             filename='log/' + timestamp_string + '.log',
             filemode='w')
         root_logger = logging.getLogger('')
-        warn_console = logging.StreamHandler()
-        warn_console.setLevel(logging.WARN)
-        info_console = logging.StreamHandler()
-        info_console.setLevel(logging.INFO)
-        error_console = logging.StreamHandler()
-        error_console.setLevel(logging.ERROR)
+        console_stream = sys.stderr
+        console_handler = logging.StreamHandler(console_stream)
+        console_handler.setLevel(logging.INFO)
         formatter = logging.Formatter(
             '%(name)-12s: ' +
             '%(levelname)-8s %(message)s')
-        warn_console.setFormatter(formatter)
-        info_console.setFormatter(formatter)
-        error_console.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
         if not any(
-                isinstance(handler, logging.StreamHandler)
-                and handler.level == logging.WARN
+                type(handler) is logging.StreamHandler
+                and handler.stream is console_stream
                 for handler in root_logger.handlers):
-            root_logger.addHandler(warn_console)
-        if not any(
-                isinstance(handler, logging.StreamHandler)
-                and handler.level == logging.INFO
-                for handler in root_logger.handlers):
-            root_logger.addHandler(info_console)
-        if not any(
-                isinstance(handler, logging.StreamHandler)
-                and handler.level == logging.ERROR
-                for handler in root_logger.handlers):
-            root_logger.addHandler(error_console)
+            root_logger.addHandler(console_handler)
+        root_logger.propagate = False
 
         self.train_window = TrainWindow(False)
         self.deploy_window = DeployWindow(False)

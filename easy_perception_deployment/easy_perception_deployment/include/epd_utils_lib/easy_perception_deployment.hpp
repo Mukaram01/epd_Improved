@@ -533,12 +533,15 @@ std::string EasyPerceptionDeployment::resolveDepthTransport(const std::string & 
 
 void EasyPerceptionDeployment::subscribeImageInput()
 {
+  rclcpp::SubscriptionOptions sub_options;
+  sub_options.callback_group = sensor_callback_group_;
   image_sub = image_transport::create_subscription(
     this,
     "/easy_perception_deployment/image_input",
     std::bind(&EasyPerceptionDeployment::image_callback, this, std::placeholders::_1),
     image_transport_,
-    sensor_qos_profile_);
+    sensor_qos_profile_,
+    sub_options);
   image_input_active_ = true;
 }
 
@@ -588,6 +591,8 @@ void EasyPerceptionDeployment::subscribeLocalizeNoDepth(const unsigned int use_c
 
   const bool is_localize = (use_case_mode == EPD::LOCALISATION_MODE);
 
+  rclcpp::SubscriptionOptions rgb_nodepth_options;
+  rgb_nodepth_options.callback_group = sensor_callback_group_;
   localize_rgb_nodepth_ = image_transport::create_subscription(
     this,
     rgb_topic_,
@@ -615,7 +620,8 @@ void EasyPerceptionDeployment::subscribeLocalizeNoDepth(const unsigned int use_c
       data_cv_.notify_one();
     },
     image_transport_,
-    sensor_qos_profile_);
+    sensor_qos_profile_,
+    rgb_nodepth_options);
 }
 
 void EasyPerceptionDeployment::subscribeDetectionDepthInputs()
@@ -624,16 +630,23 @@ void EasyPerceptionDeployment::subscribeDetectionDepthInputs()
     return;
   }
 
+  rclcpp::SubscriptionOptions depth_sub_options;
+  depth_sub_options.callback_group = sensor_callback_group_;
   depth_sub_ = image_transport::create_subscription(
     this,
     depth_topic_,
     std::bind(&EasyPerceptionDeployment::depth_callback, this, std::placeholders::_1),
     depth_transport_,
-    sensor_qos_profile_);
+    sensor_qos_profile_,
+    depth_sub_options);
+
+  rclcpp::SubscriptionOptions cam_info_options;
+  cam_info_options.callback_group = sensor_callback_group_;
   camera_info_sub_ = this->create_subscription<sensor_msgs::msg::CameraInfo>(
     camera_info_topic_,
     rclcpp::SensorDataQoS().keep_last(1),
-    std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1));
+    std::bind(&EasyPerceptionDeployment::camera_info_callback, this, std::placeholders::_1),
+    cam_info_options);
   depth_input_active_ = true;
 }
 
@@ -908,7 +921,7 @@ void EasyPerceptionDeployment::process_localize_work(
     }
 
     sensor_msgs::msg::Image::SharedPtr output_msg =
-      cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
+      cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
     visual_pub.publish(*output_msg);
   }
 
@@ -1090,7 +1103,7 @@ void EasyPerceptionDeployment::process_tracking_work(
     }
 
     sensor_msgs::msg::Image::SharedPtr output_msg =
-      cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
+      cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
     visual_pub.publish(*output_msg);
   }
 
@@ -1363,7 +1376,7 @@ void EasyPerceptionDeployment::process_image_work(
             resultImg = ortAgent_.visualize(output_obj, img);
           }
           sensor_msgs::msg::Image::SharedPtr output_msg =
-            cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
+            cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
           visual_pub.publish(*output_msg);
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;
@@ -1561,7 +1574,7 @@ void EasyPerceptionDeployment::process_image_work(
             resultImg = ortAgent_.visualize(output_obj, img);
           }
           sensor_msgs::msg::Image::SharedPtr output_msg =
-            cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", resultImg).toImageMsg();
+            cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
           visual_pub.publish(*output_msg);
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;

@@ -37,7 +37,12 @@ if [[ ! -f "${ros_setup}" ]]; then
   echo "Install ROS 2 ${ROS_DISTRO} and ensure setup.bash exists." >&2
   exit 3
 fi
+# setup.bash can reference AMENT_TRACE_SETUP_FILES before assignment.
+# Temporarily relax nounset while sourcing to avoid unbound-variable aborts.
+set +u
+: "${AMENT_TRACE_SETUP_FILES:=}"
 source "${ros_setup}"
+set -u
 
 if ! sudo docker --version >/dev/null 2>&1; then
   echo "ERROR: Docker is not installed or not accessible via sudo." >&2

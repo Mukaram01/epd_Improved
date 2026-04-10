@@ -362,6 +362,7 @@ def test_set_UseCase_Counting(mocker):
         + "/config/usecase_config.json"
 
     mocker.patch('builtins.input', side_effect=["2", "person", "dog"])
+    mocker.patch('sys.stdin.isatty', return_value=True)
 
     configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
 
@@ -388,6 +389,7 @@ def test_set_UseCase_ColorMatching(mocker):
         + "/config/usecase_config.json"
 
     mocker.patch('builtins.input', side_effect=["./data/orange.png"])
+    mocker.patch('sys.stdin.isatty', return_value=True)
 
     configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
 
@@ -412,6 +414,7 @@ def test_set_UseCase_Tracking(mocker):
         + "/config/usecase_config.json"
 
     mocker.patch('builtins.input', side_effect=["KCF"])
+    mocker.patch('sys.stdin.isatty', return_value=True)
 
     configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
 

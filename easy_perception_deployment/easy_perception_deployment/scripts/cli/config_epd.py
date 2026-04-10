@@ -168,7 +168,7 @@ class EPDConfigurator():
                           resolved_path + ".")
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
-                self._path_to_model = resolved_path
+                self._path_to_model = arg
             elif opt in ('-l', '--label'):
                 resolved_path = os.path.abspath(os.path.expanduser(arg))
                 if not os.path.isfile(resolved_path):
@@ -177,7 +177,7 @@ class EPDConfigurator():
                           resolved_path + ".")
                     print("[ config_epd ] - Exiting.")
                     sys.exit(2)
-                self._path_to_label_list = resolved_path
+                self._path_to_label_list = arg
             elif opt in ('--use'):
                 try:
                     usecase_mode = int(arg)

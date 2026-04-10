@@ -471,6 +471,9 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   RCLCPP_INFO(this->get_logger(), "[-Label List-] - %s", ortAgent_.class_label_path.c_str());
   RCLCPP_INFO(this->get_logger(), "[-Precision Level-] - %d", ortAgent_.precision_level);
   RCLCPP_INFO(this->get_logger(), "[-Image Transport-] - %s", image_transport_.c_str());
+  RCLCPP_INFO(
+    this->get_logger(), "[-Confidence Threshold-] - %.2f", ortAgent_.confidence_threshold);
+  RCLCPP_INFO(this->get_logger(), "[-Max Detections-] - %d", ortAgent_.max_detections);
 
   if (ortAgent_.isVisualize()) {
     RCLCPP_INFO(this->get_logger(), "[-Mode-] - VISUALISE");
@@ -876,19 +879,15 @@ void EasyPerceptionDeployment::process_localize_work(
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  EPD::EPDObjectLocalization result([&]() {
+  EPD::EPDObjectLocalization result = [&]() {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    auto inference_result = ortAgent_.p3_ort_session->infer(
+    return ortAgent_.p3_ort_session->infer(
       img,
       depth_img,
       *camera_info,
       camera_to_plane_distance_mm,
       ortAgent_.confidence_threshold);
-    const size_t input_size = inference_result.data_size;
-    EPD::EPDObjectLocalization initialized_result(input_size);
-    initialized_result = std::move(inference_result);
-    return initialized_result;
-  }());
+  }();
 
   // Apply max_detections limit.
   {
@@ -991,25 +990,19 @@ void EasyPerceptionDeployment::process_localize_work(
   localize_pub->publish(output_msg);
   pose_pub->publish(pose_array);
 
-  bool is_service_mode = false;
-  {
+  if (ortAgent_.isService()) {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    is_service_mode = ortAgent_.isService();
-    if (is_service_mode) {
-      ortAgent_.requestAddressed = true;
-    }
+    ortAgent_.requestAddressed = true;
   }
 
-  if (is_service_mode) {
-    {
-      std::lock_guard<std::mutex> service_guard(service_mutex_);
-      latest_service_localization_ = output_msg;
-      latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
-      service_result_ready_ = true;
-    }
-    RCLCPP_INFO(this->get_logger(), "Stored localization result for service response");
-    service_cv_.notify_all();
+  {
+    std::lock_guard<std::mutex> service_guard(service_mutex_);
+    latest_service_localization_ = output_msg;
+    latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
+    service_result_ready_ = true;
   }
+  RCLCPP_INFO(this->get_logger(), "Stored localization result for service response");
+  service_cv_.notify_all();
 }
 
 void EasyPerceptionDeployment::process_tracking_work(
@@ -1059,9 +1052,9 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   auto begin = std::chrono::high_resolution_clock::now();
 
-  EPD::EPDObjectTracking result([&]() {
+  EPD::EPDObjectTracking result = [&]() {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    auto inference_result = ortAgent_.p3_ort_session->infer(
+    return ortAgent_.p3_ort_session->infer(
       img,
       depth_img,
       *camera_info,
@@ -1071,11 +1064,7 @@ void EasyPerceptionDeployment::process_tracking_work(
       ortAgent_.tracker_logs,
       ortAgent_.tracker_results,
       ortAgent_.confidence_threshold);
-    const size_t input_size = inference_result.data_size;
-    EPD::EPDObjectTracking initialized_result(input_size);
-    initialized_result = std::move(inference_result);
-    return initialized_result;
-  }());
+  }();
 
   // Apply max_detections limit.
   {
@@ -1175,25 +1164,19 @@ void EasyPerceptionDeployment::process_tracking_work(
   tracking_pub->publish(output_msg);
   pose_pub->publish(pose_array);
 
-  bool is_service_mode = false;
-  {
+  if (ortAgent_.isService()) {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    is_service_mode = ortAgent_.isService();
-    if (is_service_mode) {
-      ortAgent_.requestAddressed = true;
-    }
+    ortAgent_.requestAddressed = true;
   }
 
-  if (is_service_mode) {
-    {
-      std::lock_guard<std::mutex> service_guard(service_mutex_);
-      latest_service_tracking_ = output_msg;
-      latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
-      service_result_ready_ = true;
-    }
-    RCLCPP_INFO(this->get_logger(), "Stored tracking result for service response");
-    service_cv_.notify_all();
+  {
+    std::lock_guard<std::mutex> service_guard(service_mutex_);
+    latest_service_tracking_ = output_msg;
+    latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
+    service_result_ready_ = true;
   }
+  RCLCPP_INFO(this->get_logger(), "Stored tracking result for service response");
+  service_cv_.notify_all();
 }
 
 geometry_msgs::msg::Pose EasyPerceptionDeployment::buildObjectPose(
@@ -1360,6 +1343,9 @@ void EasyPerceptionDeployment::process_image_work(
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
+        // activateUseCase() modifies the vectors in-place without updating
+        // data_size, so sync data_size with the actual vector size here.
+        output_obj.data_size = output_obj.bboxes.size();
 
         // Apply confidence threshold and max_detections filters.
         {
@@ -1423,6 +1409,9 @@ void EasyPerceptionDeployment::process_image_work(
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
         output_obj.masks = result.masks;
+        // activateUseCase() modifies the vectors in-place without updating
+        // data_size, so sync data_size with the actual vector size here.
+        output_obj.data_size = output_obj.bboxes.size();
 
         // Apply confidence threshold and max_detections filters.
         {
@@ -1720,22 +1709,11 @@ void EasyPerceptionDeployment::worker_loop()
 
 void EasyPerceptionDeployment::set_empty_service_result_and_notify()
 {
-  bool should_notify = false;
-  {
-    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    if (!ortAgent_.isService() || ortAgent_.requestAddressed) {
-      return;
-    }
-    ortAgent_.requestAddressed = true;
-    should_notify = true;
-  }
-
-  if (!should_notify) {
-    return;
-  }
-
   {
     std::lock_guard<std::mutex> service_guard(service_mutex_);
+    if (service_result_ready_) {
+      return;
+    }
     latest_service_localization_ = epd_msgs::msg::EPDObjectLocalization();
     latest_service_tracking_ = epd_msgs::msg::EPDObjectTracking();
     service_result_ready_ = true;

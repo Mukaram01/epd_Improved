@@ -177,6 +177,23 @@ private:
     const cv::Scalar & meanVal,
     int max_depth_mm);
 
+  /*! \brief Populates geometry fields (roi, mask, centroid, length, breadth, height,
+   * segmented_pcl, axis) for a single detected object.
+   * @return true on success; false when the mask is degenerate and the object should be skipped.
+   */
+  bool populateObjectGeometry(
+    EPD::LocalizedObject & obj,
+    const std::array<float, 4> & curBbox,
+    const cv::Mat & rawMask,
+    const cv::Mat & depthImg,
+    float ppx, float fx, float ppy, float fy,
+    float table_depth,
+    bool depth_is_float,
+    double camera_to_plane_distance_mm,
+    int max_depth_mm,
+    const std::string & pcl_frame_id,
+    float maskThreshold);
+
   /*! \brief A Mutator function that takes P2 inference outputs and illustrates
   derived bounding boxes with corresponding object labels for visualization
   purposes.*/

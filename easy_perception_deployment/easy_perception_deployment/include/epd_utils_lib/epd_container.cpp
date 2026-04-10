@@ -280,9 +280,16 @@ void EPDContainer::setModelConfigFile()
     visualizeFlag.begin(), visualizeFlag.end(), visualizeFlag.begin(),
     [](unsigned char c) {return static_cast<char>(std::tolower(c));});
 
-  if (visualizeFlag.compare("visualize") == 0) {
+  if (visualizeFlag == "visualize") {
     onlyVisualize = true;
   } else {
+    if (visualizeFlag != "robot") {
+      fprintf(
+        stderr,
+        "[EPDContainer] WARNING: Unrecognized visualizeFlag '%s' in session_config.json. "
+        "Expected 'visualize' or 'robot'. Defaulting to 'robot' (action) mode.\n",
+        obj["visualizeFlag"].asString().c_str());
+    }
     onlyVisualize = false;
   }
 
@@ -370,17 +377,42 @@ void EPDContainer::setUseCaseConfigFile()
 
   useCaseMode = obj["usecase_mode"].asInt();
 
+  // Validate the use case mode before processing any mode-specific config.
+  if (useCaseMode > 4) {
+    throw std::runtime_error("Invalid Use Case.\n");
+  }
+
   // Classification Mode. Do nothing.
   // Counting Mode
   if (useCaseMode == EPD::COUNTING_MODE) {
+    if (!obj.isMember("class_list") || obj["class_list"].isNull()) {
+      throw std::runtime_error(
+        "Missing required key 'class_list' for Counting Mode in use case config file: " +
+        usecase_config_path);
+    }
     Json::Value class_list = obj["class_list"];
+    if (!class_list.isArray() || class_list.empty()) {
+      throw std::runtime_error(
+        "'class_list' must be a non-empty array for Counting Mode in use case config file: " +
+        usecase_config_path);
+    }
     for (size_t index = 0; index < class_list.size(); ++index) {
       countClassNames.emplace_back(class_list[static_cast<Json::ArrayIndex>(index)].asString());
     }
   }
 
   if (useCaseMode == EPD::COLOR_MATCHING_MODE) {
+    if (!obj.isMember("path_to_color_template") || obj["path_to_color_template"].isNull()) {
+      throw std::runtime_error(
+        "Missing required key 'path_to_color_template' for Color Matching Mode in "
+        "use case config file: " + usecase_config_path);
+    }
     template_color_path = obj["path_to_color_template"].asString();
+    if (template_color_path.empty()) {
+      throw std::runtime_error(
+        "'path_to_color_template' must not be empty in use case config file: " +
+        usecase_config_path);
+    }
     color_match_histogram_metric = parseColorHistogramMetric(obj, usecase_config_path);
     if (obj.isMember("color_match_threshold")) {
       const Json::Value & cmt = obj["color_match_threshold"];
@@ -419,11 +451,6 @@ void EPDContainer::setUseCaseConfigFile()
       );
     }
     tracker_type = obj["track_type"].asString();
-  }
-
-  // Invalid Use Case Mode
-  if (useCaseMode > 4) {
-    throw std::runtime_error("Invalid Use Case.\n");
   }
 
   ifs_1.close();

@@ -2,7 +2,6 @@
     "path_to_model": "./data/model/MaskRCNN-10.onnx",
     "path_to_label_list": "./data/label_list/coco_classes.txt",
     "visualizeFlag": "robot",
-    "useCPU": "CPU",
     "intra_op_num_threads": 0,
     "image_transport": "raw",
     "publish_detection_segmentation": true,

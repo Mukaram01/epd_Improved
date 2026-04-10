@@ -89,9 +89,9 @@ TEST(EPD_TestSuite, Test_P3Model_Localize_Visualize)
     camera_info,
     0.1);
 
-  EPD::EPDObjectTracking converted_result(result.data_size);
+  EPD::EPDObjectTracking converted_result(result.size());
   converted_result.object_ids.clear();
-  for (size_t i = 0; i < result.data_size; i++) {
+  for (size_t i = 0; i < result.size(); i++) {
     converted_result.objects.emplace_back(result.objects[i]);
   }
 

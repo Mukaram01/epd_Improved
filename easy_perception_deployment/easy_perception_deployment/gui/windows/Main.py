@@ -24,6 +24,7 @@ from datetime import datetime
 from windows.Deploy import DeployWindow
 from windows.Train import TrainWindow
 
+
 class MainWindow(QWidget):
     '''
     The MainWindow class is a PySide6 Graphical User Interface (GUI) window
@@ -136,11 +137,11 @@ class MainWindow(QWidget):
             self.train_window.activateWindow()
         self.isTrainOpen = self.train_window.isVisible()
 
-
     def eventFilter(self, obj, event):
-        if obj is self.train_window and event.type() in (QEvent.Close, QEvent.Hide, QEvent.Show):
+        close_hide_show = (QEvent.Close, QEvent.Hide, QEvent.Show)
+        if obj is self.train_window and event.type() in close_hide_show:
             self.isTrainOpen = self.train_window.isVisible()
-        elif obj is self.deploy_window and event.type() in (QEvent.Close, QEvent.Hide, QEvent.Show):
+        elif obj is self.deploy_window and event.type() in close_hide_show:
             self.isDeployOpen = self.deploy_window.isVisible()
         return super().eventFilter(obj, event)
 

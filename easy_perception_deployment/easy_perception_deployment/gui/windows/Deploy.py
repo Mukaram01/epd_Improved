@@ -655,7 +655,8 @@ class DeployWindow(QWidget):
 
         self._topics_worker_thread.started.connect(self._topics_worker.run)
         self._topics_worker.signals.success.connect(
-            lambda topics, selected=current_topic: self._on_topics_refresh_success(topics, selected))
+            lambda topics, selected=current_topic:
+            self._on_topics_refresh_success(topics, selected))
         self._topics_worker.signals.error.connect(self._on_topics_refresh_error)
         self._topics_worker.signals.finished.connect(self._on_topics_refresh_finished)
         self._topics_worker.signals.finished.connect(self._topics_worker_thread.quit)

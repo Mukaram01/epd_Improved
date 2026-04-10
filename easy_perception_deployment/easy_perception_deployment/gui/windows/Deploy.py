@@ -294,6 +294,7 @@ class DeployWindow(QWidget):
         self._deploy_log_file = None
         self._kill_log_file = None
         self._fps_monitor = None
+        self._is_shutting_down = False
 
         self.visualizeFlag = True
 
@@ -864,28 +865,38 @@ class DeployWindow(QWidget):
                 process.wait()
 
     def shutdown(self):
-        if self._is_running:
-            self._stop_deployment()
+        if self._is_shutting_down:
+            return
 
-        if self._kill_process is not None and self._kill_process.poll() is None:
-            try:
-                self._kill_process.wait(timeout=2)
-            except subprocess.TimeoutExpired:
+        self._is_shutting_down = True
+        try:
+            if self._is_running:
+                self._stop_deployment()
+
+            if self._kill_process is not None and self._kill_process.poll() is None:
+                try:
+                    self._kill_process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    self._terminate_process(self._kill_process, self._kill_timer)
+            else:
                 self._terminate_process(self._kill_process, self._kill_timer)
-        else:
-            self._terminate_process(self._kill_process, self._kill_timer)
 
-        self._terminate_process(self._deploy_process, self._deploy_timer)
-        self._close_process_log_file('deploy')
-        self._close_process_log_file('kill')
-        self._deploy_process = None
-        self._kill_process = None
-        self._deploy_timer = None
-        self._kill_timer = None
+            self._terminate_process(self._deploy_process, self._deploy_timer)
+            self._close_process_log_file('deploy')
+            self._close_process_log_file('kill')
+            self._deploy_process = None
+            self._kill_process = None
+            self._deploy_timer = None
+            self._kill_timer = None
+        finally:
+            self._is_shutting_down = False
 
+    # Keep exactly one closeEvent override in this class; duplicate overrides
+    # can silently shadow each other and skip important shutdown steps.
     def closeEvent(self, event):
         self.shutdown()
-        event.accept()
+        self._stop_fps_monitor()
+        super().closeEvent(event)
 
     def setImageInput(self):
         '''
@@ -1250,7 +1261,3 @@ class DeployWindow(QWidget):
             self.run_button.setEnabled(True)
             self.run_button.setToolTip('')
             self.validation_label.setText('Run enabled: all required inputs are ready.')
-
-    def closeEvent(self, event):
-        self._stop_fps_monitor()
-        super().closeEvent(event)

@@ -963,15 +963,18 @@ void EasyPerceptionDeployment::process_localize_work(
   }
 
   auto end = std::chrono::high_resolution_clock::now();
-  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  const auto ms = elapsedTime.count();
+  const double fps = (ms > 0) ? (1000.0 / static_cast<double>(ms)) : 0.0;
   RCLCPP_INFO_THROTTLE(
     this->get_logger(),
     *this->get_clock(),
     2000,
-    "[-FPS-]= %f\n",
-    1000.0 / elapsedTime.count());
+    "[-FPS-]= %.2f (dt_ms=%lld)",
+    fps,
+    static_cast<long long>(ms));
 
-  output_msg.process_time = elapsedTime.count();
+  output_msg.process_time = ms;
   localize_pub->publish(output_msg);
   pose_pub->publish(pose_array);
 
@@ -1144,15 +1147,18 @@ void EasyPerceptionDeployment::process_tracking_work(
   }
 
   auto end = std::chrono::high_resolution_clock::now();
-  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  const auto ms = elapsedTime.count();
+  const double fps = (ms > 0) ? (1000.0 / static_cast<double>(ms)) : 0.0;
   RCLCPP_INFO_THROTTLE(
     this->get_logger(),
     *this->get_clock(),
     2000,
-    "[-FPS-]= %f\n",
-    1000.0 / elapsedTime.count());
+    "[-FPS-]= %.2f (dt_ms=%lld)",
+    fps,
+    static_cast<long long>(ms));
 
-  output_msg.process_time = elapsedTime.count();
+  output_msg.process_time = ms;
   tracking_pub->publish(output_msg);
   pose_pub->publish(pose_array);
 
@@ -1600,13 +1606,16 @@ void EasyPerceptionDeployment::process_image_work(
   }
 
   auto end = std::chrono::high_resolution_clock::now();
-  auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
+  const auto ms = elapsedTime.count();
+  const double fps = (ms > 0) ? (1000.0 / static_cast<double>(ms)) : 0.0;
   RCLCPP_INFO_THROTTLE(
     this->get_logger(),
     *this->get_clock(),
     2000,
-    "[-FPS-]= %f\n",
-    1000.0 / elapsedTime.count());
+    "[-FPS-]= %.2f (dt_ms=%lld)",
+    fps,
+    static_cast<long long>(ms));
 }
 
 void EasyPerceptionDeployment::worker_loop()

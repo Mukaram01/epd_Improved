@@ -26,7 +26,8 @@ from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
                                QHBoxLayout, QInputDialog, QLabel, QLineEdit,
-                               QMessageBox, QPushButton, QVBoxLayout, QWidget)
+                               QMessageBox, QPushButton, QSizePolicy,
+                               QVBoxLayout, QWidget)
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
 
@@ -94,25 +95,41 @@ class TrainWindow(QWidget):
 
     def setButtons(self):
         '''A Mutator function that defines all buttons in TrainWindow.'''
+        font_height = self.fontMetrics().height()
+        # Keep controls comfortably clickable across DPI/font scaling.
+        control_min_height = max(40, int(font_height * 1.9))  # usability floor
+        # Preferred height for primary actions while still allowing growth.
+        action_pref_height = max(self._ROW_THICKNESS, int(font_height * 3.6))
+        # Preferred icon size; decoupled from button height.
+        standard_icon_size = QSize(50, 50)
+        emphasis_icon_size = QSize(75, 75)
+
+        def _set_row_button_sizing(button, min_height=control_min_height):
+            button.setMinimumHeight(min_height)
+            button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
 
         self.p2_button = QPushButton('P2', self)
-        self.p2_button.setFixedSize(50, 100)
+        self.p2_button.setMinimumHeight(action_pref_height)
+        self.p2_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
         self.p2_button.setStyleSheet(
             'background-color: rgba(180,180,180,255);')
 
         self.p3_button = QPushButton('P3', self)
-        self.p3_button.setFixedSize(50, 100)
+        self.p3_button.setMinimumHeight(action_pref_height)
+        self.p3_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
 
         # Model dropdown menu to select Precision Level specific model
         self.model_selector = QComboBox(self)
+        self.model_selector.setMinimumHeight(control_min_height)
+        self.model_selector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.model_selector.setStyleSheet('background-color: red;')
         self.populateModelSelector()
 
         # Labeller button to initiate labelme
         self.label_button = QPushButton('Label Dataset', self)
         self.label_button.setIcon(QIcon(self._image_path('label_labelme.png')))
-        self.label_button.setIconSize(QSize(50, 50))
-        self.label_button.setFixedHeight(self._ROW_THICKNESS)
+        self.label_button.setIconSize(standard_icon_size)
+        _set_row_button_sizing(self.label_button, action_pref_height)
         self.label_button.setStyleSheet(
             'background-color: rgba(0,200,10,255);')
         if self._precision_level == 1:
@@ -120,29 +137,29 @@ class TrainWindow(QWidget):
 
         self.generate_button = QPushButton('Generate Dataset', self)
         self.generate_button.setIcon(QIcon(self._image_path('label_generate.png')))
-        self.generate_button.setIconSize(QSize(50, 50))
-        self.generate_button.setFixedHeight(self._ROW_THICKNESS)
+        self.generate_button.setIconSize(standard_icon_size)
+        _set_row_button_sizing(self.generate_button, action_pref_height)
         self.generate_button.setStyleSheet(
             'background-color: rgba(0,200,10,255);')
 
         # Labeller button to initiate labelme
         self.validate_button = QPushButton('Validate Training', self)
         self.validate_button.setIcon(QIcon(self._image_path('validate.png')))
-        self.validate_button.setIconSize(QSize(50, 50))
-        self.validate_button.setFixedHeight(self._ROW_THICKNESS)
+        self.validate_button.setIconSize(standard_icon_size)
+        _set_row_button_sizing(self.validate_button, action_pref_height)
 
         # Dataset button to prompt input via FileDialogue
         self.dataset_button = QPushButton('Choose Dataset', self)
         self.dataset_button.setIcon(QIcon(self._image_path('dataset.png')))
-        self.dataset_button.setIconSize(QSize(50, 50))
-        self.dataset_button.setFixedHeight(self._ROW_THICKNESS)
+        self.dataset_button.setIconSize(standard_icon_size)
+        _set_row_button_sizing(self.dataset_button, action_pref_height)
         self.dataset_button.setStyleSheet('background-color: red;')
 
         # Start Training button to start and display training process
         self.train_button = QPushButton('Train', self)
         self.train_button.setIcon(QIcon(self._image_path('train.png')))
-        self.train_button.setIconSize(QSize(75, 75))
-        self.train_button.setFixedHeight(self._ROW_THICKNESS)
+        self.train_button.setIconSize(emphasis_icon_size)
+        _set_row_button_sizing(self.train_button, action_pref_height)
         self.train_button.setStyleSheet(
             'background-color: rgba(180,180,180,255);')
         self.train_button.setEnabled(False)
@@ -150,8 +167,8 @@ class TrainWindow(QWidget):
         # Set Label List
         self.list_button = QPushButton('Choose Label List', self)
         self.list_button.setIcon(QIcon(self._image_path('label_list.png')))
-        self.list_button.setIconSize(QSize(75, 75))
-        self.list_button.setFixedHeight(self._ROW_THICKNESS)
+        self.list_button.setIconSize(emphasis_icon_size)
+        _set_row_button_sizing(self.list_button, action_pref_height)
         self.list_button.setStyleSheet(
             'background-color: rgba(200,10,0,255);')
 
@@ -159,25 +176,33 @@ class TrainWindow(QWidget):
         self.training_config_label.setText('Training Parameters')
         self.training_status_label = QLabel(self)
         self.training_status_label.setWordWrap(True)
+        self.training_status_label.setMinimumHeight(control_min_height)
+        self.training_status_label.setSizePolicy(
+            QSizePolicy.Preferred, QSizePolicy.MinimumExpanding)
 
         self.maxiter_button = QPushButton('MAX ITERATION', self)
-        self.maxiter_button.setFixedHeight(self._ROW_THICKNESS // 2)
+        _set_row_button_sizing(self.maxiter_button, control_min_height)
         self.checkpointp_button = QPushButton('CHECKPOINT PERIOD', self)
-        self.checkpointp_button.setFixedHeight(self._ROW_THICKNESS // 2)
+        _set_row_button_sizing(self.checkpointp_button, control_min_height)
         self.steps_button = QPushButton('STEPS', self)
-        self.steps_button.setFixedHeight(self._ROW_THICKNESS // 2)
+        _set_row_button_sizing(self.steps_button, control_min_height)
         self.testp_button = QPushButton('TEST PERIOD', self)
-        self.testp_button.setFixedHeight(self._ROW_THICKNESS // 2)
+        _set_row_button_sizing(self.testp_button, control_min_height)
 
         top_layout = QHBoxLayout()
+        top_layout.setSpacing(max(8, int(font_height * 0.45)))
         top_layout.addWidget(self.p2_button)
         top_layout.addWidget(self.p3_button)
         top_layout.addStretch(1)
         top_layout.addWidget(self.model_selector)
+        top_layout.setStretch(0, 0)
+        top_layout.setStretch(1, 0)
+        top_layout.setStretch(2, 1)
+        top_layout.setStretch(3, 3)
 
         dataset_layout = QGridLayout()
-        dataset_layout.setHorizontalSpacing(10)
-        dataset_layout.setVerticalSpacing(10)
+        dataset_layout.setHorizontalSpacing(max(8, int(font_height * 0.45)))
+        dataset_layout.setVerticalSpacing(max(8, int(font_height * 0.45)))
         dataset_layout.addWidget(self.label_button, 0, 0)
         dataset_layout.addWidget(self.generate_button, 0, 1)
         dataset_layout.addWidget(self.dataset_button, 1, 0)
@@ -186,8 +211,8 @@ class TrainWindow(QWidget):
         dataset_layout.setColumnStretch(1, 1)
 
         training_params_layout = QGridLayout()
-        training_params_layout.setHorizontalSpacing(10)
-        training_params_layout.setVerticalSpacing(10)
+        training_params_layout.setHorizontalSpacing(max(8, int(font_height * 0.45)))
+        training_params_layout.setVerticalSpacing(max(8, int(font_height * 0.45)))
         training_params_layout.addWidget(self.maxiter_button, 0, 0)
         training_params_layout.addWidget(self.checkpointp_button, 0, 1)
         training_params_layout.addWidget(self.steps_button, 1, 0)
@@ -196,8 +221,11 @@ class TrainWindow(QWidget):
         training_params_layout.setColumnStretch(1, 1)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(10)
+        layout_margin = max(10, int(font_height * 0.6))
+        layout_spacing = max(8, int(font_height * 0.5))
+        layout.setContentsMargins(layout_margin, layout_margin,
+                                  layout_margin, layout_margin)
+        layout.setSpacing(layout_spacing)
         layout.addLayout(top_layout)
         layout.addWidget(self.list_button)
         layout.addLayout(dataset_layout)
@@ -206,6 +234,13 @@ class TrainWindow(QWidget):
         layout.addLayout(training_params_layout)
         layout.addWidget(self.train_button)
         layout.addWidget(self.training_status_label)
+        layout.setStretch(0, 0)
+        layout.setStretch(1, 0)
+        layout.setStretch(2, 0)
+        layout.setStretch(3, 0)
+        layout.setStretch(4, 0)
+        layout.setStretch(5, 0)
+        layout.setStretch(6, 1)
 
         self.p2_button.clicked.connect(self.setP2)
         self.p3_button.clicked.connect(self.setP3)

@@ -234,9 +234,14 @@ class EPDConfigurator():
         self.validate_usecase_inputs()
 
     def parse_session_config(self, session_config_filepath):
-
-        f = open(session_config_filepath)
-        data = json.load(f)
+        data = self._load_json_config(
+            session_config_filepath,
+            "session_config.json",
+            required_keys=[
+                "path_to_model",
+                "path_to_label_list",
+                "useCPU",
+                "visualizeFlag"])
         self._path_to_model = data["path_to_model"]
         self._path_to_label_list = data["path_to_label_list"]
         self.intra_op_num_threads = data.get("intra_op_num_threads", 0)
@@ -251,12 +256,12 @@ class EPDConfigurator():
             self.visualizeFlag = True
         else:
             self.visualizeFlag = False
-        f.close()
 
     def parse_usecase_config(self, usecase_config_filepath):
-
-        f = open(usecase_config_filepath)
-        data = json.load(f)
+        data = self._load_json_config(
+            usecase_config_filepath,
+            "usecase_config.json",
+            required_keys=["usecase_mode"])
         self.usecase_mode = data["usecase_mode"]
         if self.usecase_mode == 0:
             print("[ Use Case ] - CLASSIFICATION")
@@ -278,15 +283,52 @@ class EPDConfigurator():
         else:
             print("[ Use Case ] - INVALID. Please rectify" +
                   " usecase_config.json. Exiting...")
-            f.close()
             sys.exit(1)
-        f.close()
 
     def parse_inputimagetopic_config(self, inputimagetopic_config_filepath):
-        f = open(inputimagetopic_config_filepath)
-        data = json.load(f)
+        data = self._load_json_config(
+            inputimagetopic_config_filepath,
+            "input_image_topic.json",
+            required_keys=["input_image_topic"])
         self.input_image_topic = data["input_image_topic"]
-        f.close()
+
+    def _load_json_config(
+            self,
+            filepath,
+            config_name,
+            required_keys=None,
+            defaults=None):
+        required_keys = required_keys or []
+        defaults = defaults or {}
+        try:
+            with open(filepath, encoding="utf-8") as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            print("[ config_epd ] - ERROR. " +
+                  f"{config_name} is malformed JSON: {e}.")
+            print("[ config_epd ] - Exiting.")
+            sys.exit(1)
+        except OSError as e:
+            print("[ config_epd ] - ERROR. " +
+                  f"Unable to read {config_name}: {e}.")
+            print("[ config_epd ] - Exiting.")
+            sys.exit(1)
+
+        if not isinstance(data, dict):
+            print("[ config_epd ] - ERROR. " +
+                  f"{config_name} must contain a JSON object.")
+            print("[ config_epd ] - Exiting.")
+            sys.exit(1)
+
+        merged = dict(defaults)
+        merged.update(data)
+        missing = [key for key in required_keys if key not in merged]
+        if missing:
+            print("[ config_epd ] - ERROR. " +
+                  f"{config_name} missing required keys: {missing}.")
+            print("[ config_epd ] - Exiting.")
+            sys.exit(1)
+        return merged
 
     def normalize_color_histogram_metric(self, metric):
         if isinstance(metric, int):

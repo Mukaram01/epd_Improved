@@ -324,29 +324,33 @@ class DeployWindow(QWidget):
             'raw',
             'compressed']
 
-        session_config = None
-        usecase_config = None
-        if self.doesFileExist(self._path_to_session_config):
-            session_config_json_obj = open(self._path_to_session_config)
-            session_config = json.load(session_config_json_obj)
-        else:
-            self.deploy_logger.warning(
-                '[ session_config.json ] is missing.' +
-                'Assigning default values')
-            self._path_to_model = 'filepath/to/onnx/model'
-            self._path_to_label_list = 'filepath/to/classes/list/txt'
-            self.visualizeFlag = True
-            self.useCPU = True
-
-        if self.doesFileExist(self._path_to_usecase_config):
-            usecase_config_json_obj = open(self._path_to_usecase_config)
-            usecase_config = json.load(usecase_config_json_obj)
-        else:
-            self.deploy_logger.warning(
-                '[usecase_config.json] is missing.'
-                'Assigning default Use Case MODE : ' +
-                '[CLASSIFICATION] ')
-            self.usecase_mode = 0
+        session_config = self._load_json_config(
+            self._path_to_session_config,
+            config_name='session_config.json',
+            required_keys=[
+                'path_to_model',
+                'path_to_label_list',
+                'visualizeFlag',
+                'useCPU'],
+            defaults={
+                'path_to_model': 'filepath/to/onnx/model',
+                'path_to_label_list': 'filepath/to/classes/list/txt',
+                'visualizeFlag': 'visualize',
+                'useCPU': 'CPU',
+                'intra_op_num_threads': 0,
+                'image_transport': 'raw',
+                'publish_detection_segmentation': True,
+                'confidence_threshold': 0.5,
+                'max_detections': 100},
+            allow_missing_defaults=True,
+            abort_on_json_error=True)
+        usecase_config = self._load_json_config(
+            self._path_to_usecase_config,
+            config_name='usecase_config.json',
+            required_keys=['usecase_mode'],
+            defaults={'usecase_mode': 0},
+            allow_missing_defaults=True,
+            abort_on_json_error=True)
 
         try:
             self._path_to_model = session_config["path_to_model"]
@@ -407,13 +411,14 @@ class DeployWindow(QWidget):
                 "[CLASSIFICATION] ")
             self.usecase_mode = 0
 
-        if self.doesFileExist(self._path_to_input_image_json_file):
-            # Load input_image_topic.json
-            f = open(self._path_to_input_image_json_file)
-            data = json.load(f)
-            self._input_image_topic = data['input_image_topic']
-        else:
-            self._input_image_topic = self.DEFAULT_INPUT_TOPIC
+        image_topic_data = self._load_json_config(
+            self._path_to_input_image_json_file,
+            config_name='input_image_topic.json',
+            required_keys=['input_image_topic'],
+            defaults={'input_image_topic': self.DEFAULT_INPUT_TOPIC},
+            allow_missing_defaults=True,
+            abort_on_json_error=False)
+        self._input_image_topic = image_topic_data['input_image_topic']
 
         if self._image_transport not in self.image_transport_list:
             self.deploy_logger.warning(
@@ -1206,6 +1211,85 @@ class DeployWindow(QWidget):
             widget.setStyleSheet('background-color: rgba(0,150,10,255);')
         else:
             widget.setStyleSheet('background-color: rgba(200,10,0,255);')
+
+    def _load_json_config(
+            self,
+            path,
+            config_name,
+            required_keys=None,
+            defaults=None,
+            allow_missing_defaults=False,
+            abort_on_json_error=False):
+        required_keys = required_keys or []
+        defaults = defaults or {}
+
+        if not self.doesFileExist(path):
+            if allow_missing_defaults:
+                self.deploy_logger.warning(
+                    '[ %s ] is missing. Assigning default values.',
+                    config_name)
+                return dict(defaults)
+            self._show_blocking_config_error(
+                f'Missing required configuration file: {config_name}.',
+                abort_operation=True)
+
+        try:
+            with open(path, encoding='utf-8') as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            message = (f'{config_name} contains malformed JSON: {e}.')
+            if abort_on_json_error:
+                self._show_blocking_config_error(message, abort_operation=True)
+            self.deploy_logger.warning(
+                '[ %s ] malformed JSON. Using defaults. Details: %s',
+                config_name,
+                e)
+            return dict(defaults)
+        except OSError as e:
+            if allow_missing_defaults:
+                self.deploy_logger.warning(
+                    '[ %s ] read error. Using defaults. Details: %s',
+                    config_name,
+                    e)
+                return dict(defaults)
+            self._show_blocking_config_error(
+                f'Unable to read {config_name}: {e}.',
+                abort_operation=True)
+
+        if not isinstance(data, dict):
+            if abort_on_json_error:
+                self._show_blocking_config_error(
+                    f'{config_name} must contain a JSON object.',
+                    abort_operation=True)
+            self.deploy_logger.warning(
+                '[ %s ] is not a JSON object. Using defaults.',
+                config_name)
+            return dict(defaults)
+
+        merged = dict(defaults)
+        merged.update(data)
+        missing_keys = [key for key in required_keys if key not in merged]
+        if missing_keys:
+            if allow_missing_defaults:
+                self.deploy_logger.warning(
+                    '[ %s ] missing required keys %s. Applying defaults.',
+                    config_name,
+                    missing_keys)
+                return merged
+            self._show_blocking_config_error(
+                f'{config_name} missing required keys: {missing_keys}.',
+                abort_operation=True)
+        return merged
+
+    def _show_blocking_config_error(self, message, abort_operation=False):
+        self.deploy_logger.error(message)
+        if not self.debug:
+            msg_box = QMessageBox()
+            msg_box.setWindowTitle('Configuration Error')
+            msg_box.setText(message)
+            msg_box.exec()
+        if abort_operation:
+            raise RuntimeError(message)
 
     def useDefaultDeployInputs(self):
         '''Restore default model, label list, and image topic values in one click.'''

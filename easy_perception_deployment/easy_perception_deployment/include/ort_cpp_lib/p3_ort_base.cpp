@@ -180,6 +180,21 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   }
   size_t nBoxes = inferenceOutput[1].second[0];
 
+  // Determine mask dimensions from the inference output shape.
+  // MaskRCNN outputs masks with shape [N, 1, H, W]; fall back to 28x28 if unreadable.
+  int64_t mask_H = 28;
+  int64_t mask_W = 28;
+  {
+    const auto & mask_shape = inferenceOutput[3].second;
+    if (mask_shape.size() >= 4 && mask_shape[2] > 0 && mask_shape[3] > 0) {
+      mask_H = mask_shape[2];
+      mask_W = mask_shape[3];
+    } else if (mask_shape.size() >= 3 && mask_shape[1] > 0 && mask_shape[2] > 0) {
+      mask_H = mask_shape[1];
+      mask_W = mask_shape[2];
+    }
+  }
+
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
   const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
 
@@ -209,11 +224,11 @@ EPD::EPDObjectDetection P3OrtBase::infer(
       classIndices.emplace_back(reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
       scores.emplace_back(inferenceOutput[2].first[i]);
 
-      cv::Mat curMask(28, 28, CV_32FC1);
+      cv::Mat curMask(mask_H, mask_W, CV_32FC1);
       memcpy(
         curMask.data,
-        inferenceOutput[3].first + i * 28 * 28,
-        28 * 28 * sizeof(float));
+        inferenceOutput[3].first + i * mask_H * mask_W,
+        mask_H * mask_W * sizeof(float));
       masks.emplace_back(curMask);
     }
   }
@@ -258,7 +273,6 @@ double P3OrtBase::findMedian(cv::Mat depthImg, int max_depth_mm)
 
 double P3OrtBase::findMin(cv::Mat depthImg, int max_depth_mm)
 {
-  int bin = 0;
   double min = -1.0;
 
   const int histSize = std::max(max_depth_mm, 1);
@@ -269,11 +283,11 @@ double P3OrtBase::findMin(cv::Mat depthImg, int max_depth_mm)
   cv::Mat hist;
   cv::calcHist(&depthImg, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
 
-  for (int i = 0; i < histSize; ++i) {
-    bin += cvRound(hist.at<float>(i));
-    // Store the first depth value that is shared among more than 1 point.
-    // Break and escape for loop.
-    if (i != 0 && cvRound(hist.at<float>(i)) > 0) {
+  // Skip bin 0, which represents zero-depth (invalid) pixels.
+  // Return the first bin index > 0 that has at least one point — this is
+  // the nearest valid surface depth.
+  for (int i = 1; i < histSize; ++i) {
+    if (cvRound(hist.at<float>(i)) > 0) {
       min = i;
       break;
     }
@@ -284,6 +298,177 @@ double P3OrtBase::findMin(cv::Mat depthImg, int max_depth_mm)
 
 // A mutator function that will output an EPD::EPDObjectLocalization object that
 // contains all information required for Localization.
+
+// Shared per-object geometry helper used by both localization and tracking infer.
+// Fills roi, mask, centroid, length, breadth, height, segmented_pcl, and axis
+// fields on the provided LocalizedObject.
+// Returns true on success, false when the mask is degenerate (no valid contour)
+// and the caller should skip this detection.
+bool P3OrtBase::populateObjectGeometry(
+  EPD::LocalizedObject & obj,
+  const std::array<float, 4> & curBbox,
+  const cv::Mat & rawMask,
+  const cv::Mat & depthImg,
+  float ppx, float fx, float ppy, float fy,
+  float table_depth,
+  bool depth_is_float,
+  double camera_to_plane_distance_mm,
+  int max_depth_mm,
+  const std::string & pcl_frame_id,
+  float maskThreshold)
+{
+  // ROI
+  obj.roi.x_offset = curBbox[0];
+  obj.roi.y_offset = curBbox[1];
+  obj.roi.height   = curBbox[3] - curBbox[1];
+  obj.roi.width    = curBbox[2] - curBbox[0];
+
+  // Store original (un-resized) mask
+  obj.mask = rawMask.clone();
+
+  const cv::Rect curBoxRect(
+    cv::Point(static_cast<int>(curBbox[0]), static_cast<int>(curBbox[1])),
+    cv::Point(static_cast<int>(curBbox[2]), static_cast<int>(curBbox[3])));
+
+  // Resize raw mask to bbox dimensions and binarize
+  cv::Mat resizedMask;
+  cv::resize(rawMask, resizedMask, curBoxRect.size());
+  cv::Mat finalMask = (resizedMask > maskThreshold);
+
+  cv::Mat tempFinalMask;
+  finalMask.convertTo(tempFinalMask, CV_8U);
+
+  std::vector<cv::Mat> contours;
+  cv::Mat hierarchy;
+  cv::findContours(
+    tempFinalMask, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+
+  // If there are no contours (e.g. zero-area mask), set default values and signal skip.
+  if (contours.empty()) {
+    obj.centroid.x = 0.0;
+    obj.centroid.y = 0.0;
+    obj.centroid.z = 0.0;
+    obj.length  = 0.0f;
+    obj.breadth = 0.0f;
+    obj.height  = 0.0f;
+    obj.axis.x  = 0.0f;
+    obj.axis.y  = 0.0f;
+    obj.axis.z  = 1.0f;
+    return false;
+  }
+
+  // Find the largest contour
+  double maxArea = 0;
+  int maxAreaContourId = -1;
+  for (unsigned int j = 0; j < contours.size(); j++) {
+    double newArea = cv::contourArea(contours[j]);
+    if (newArea > maxArea) {
+      maxArea = newArea;
+      maxAreaContourId = j;
+    }
+  }
+
+  if (maxAreaContourId < 0) {
+    return false;
+  }
+  const unsigned int maxID = static_cast<unsigned int>(maxAreaContourId);
+
+  // Compute oriented bounding rect from the largest contour
+  cv::RotatedRect minRect = cv::minAreaRect(cv::Mat(contours[maxID]));
+  cv::Point2f rect_points[4];
+  minRect.points(rect_points);
+
+  // Mid-points of each side
+  const cv::Point pt_a = (rect_points[0] + rect_points[3]) / 2;
+  const cv::Point pt_b = (rect_points[1] + rect_points[2]) / 2;
+  const cv::Point pt_c = (rect_points[0] + rect_points[1]) / 2;
+  const cv::Point pt_d = (rect_points[3] + rect_points[2]) / 2;
+
+  // Bbox centre in image coordinates
+  const cv::Point rotated_mid(
+    static_cast<int>((curBbox[0] + curBbox[2]) / 2.0f),
+    static_cast<int>((curBbox[1] + curBbox[3]) / 2.0f));
+
+  const float obj_surface_depth = this->findMin(depthImg(curBoxRect), max_depth_mm) * 0.001f;
+  const float cx = (rotated_mid.x - ppx) / fx * obj_surface_depth;
+  const float cy = (rotated_mid.y - ppy) / fy * obj_surface_depth;
+
+  obj.centroid.x = cx;
+  obj.centroid.y = cy;
+  obj.centroid.z = obj_surface_depth + (table_depth - obj_surface_depth) / 2.0f;
+
+  // Object real-world size: longer side → length, shorter side → breadth
+  if (cv::norm(rect_points[0] - rect_points[1]) > cv::norm(rect_points[1] - rect_points[2])) {
+    obj.length  = obj_surface_depth * std::sqrt(
+      std::pow((pt_a.x - pt_b.x) / fx, 2) + std::pow((pt_a.y - pt_b.y) / fy, 2));
+    obj.breadth = obj_surface_depth * std::sqrt(
+      std::pow((pt_c.x - pt_d.x) / fx, 2) + std::pow((pt_c.y - pt_d.y) / fy, 2));
+  } else {
+    obj.breadth = obj_surface_depth * std::sqrt(
+      std::pow((pt_a.x - pt_b.x) / fx, 2) + std::pow((pt_a.y - pt_b.y) / fy, 2));
+    obj.length  = obj_surface_depth * std::sqrt(
+      std::pow((pt_c.x - pt_d.x) / fx, 2) + std::pow((pt_c.y - pt_d.y) / fy, 2));
+  }
+  obj.height = table_depth - obj_surface_depth;
+
+  // Build segmented point cloud from masked depth pixels
+  pcl::PointCloud<pcl::PointXYZ>::Ptr segmented_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  segmented_cloud->header.frame_id = pcl_frame_id;
+  segmented_cloud->is_dense = true;
+
+  for (int j = 0; j < tempFinalMask.rows; j++) {
+    for (int k = 0; k < tempFinalMask.cols; k++) {
+      if (tempFinalMask.at<uchar>(j, k) == 0) {
+        continue;
+      }
+      float z = 0.0f;
+      if (depth_is_float) {
+        z = depthImg.at<float>(curBoxRect.y + j, curBoxRect.x + k);
+      } else {
+        z = static_cast<float>(
+          depthImg.at<uint16_t>(curBoxRect.y + j, curBoxRect.x + k)) * 0.001f;
+      }
+      if (std::abs(z) < MIN_DEPTH_THRESHOLD_M ||
+        std::abs(z) > camera_to_plane_distance_mm * 0.001)
+      {
+        continue;
+      }
+      const float px = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
+      const float py = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
+      segmented_cloud->points.emplace_back(px, py, z);
+    }
+  }
+  obj.segmented_pcl = *segmented_cloud;
+
+  // Determine principal axis via PCA on the segmented cloud
+  if (obj.segmented_pcl.empty()) {
+    obj.axis.x = 0.0f;
+    obj.axis.y = 0.0f;
+    obj.axis.z = 1.0f;
+  } else {
+    Eigen::Vector4f centerpoint;
+    Eigen::Vector3f eigenvalues;
+    Eigen::Matrix3f eigenvectors;
+    Eigen::Matrix3f covariance_matrix;
+
+    pcl::compute3DCentroid(obj.segmented_pcl, centerpoint);
+    pcl::computeCovarianceMatrix(obj.segmented_pcl, centerpoint, covariance_matrix);
+    pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
+
+    Eigen::Vector3f axis(
+      eigenvectors.col(2)(0),
+      eigenvectors.col(2)(1),
+      eigenvectors.col(2)(2));
+    axis = axis.normalized();
+
+    obj.axis.x = axis(0);
+    obj.axis.y = axis(1);
+    obj.axis.z = axis(2);
+  }
+
+  return true;
+}
+
 EPD::EPDObjectLocalization P3OrtBase::infer(
   const cv::Mat & inputImg,
   const cv::Mat & depthImg,
@@ -320,6 +505,21 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   }
   size_t nBoxes = inferenceOutput[1].second[0];
 
+  // Determine mask dimensions from the inference output shape.
+  // MaskRCNN outputs masks with shape [N, 1, H, W]; fall back to 28x28 if unreadable.
+  int64_t mask_H = 28;
+  int64_t mask_W = 28;
+  {
+    const auto & mask_shape = inferenceOutput[3].second;
+    if (mask_shape.size() >= 4 && mask_shape[2] > 0 && mask_shape[3] > 0) {
+      mask_H = mask_shape[2];
+      mask_W = mask_shape[3];
+    } else if (mask_shape.size() >= 3 && mask_shape[1] > 0 && mask_shape[2] > 0) {
+      mask_H = mask_shape[1];
+      mask_W = mask_shape[2];
+    }
+  }
+
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
   const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
 
@@ -349,11 +549,11 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
       classIndices.emplace_back(reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
       scores.emplace_back(inferenceOutput[2].first[i]);
 
-      cv::Mat curMask(28, 28, CV_32FC1);
+      cv::Mat curMask(mask_H, mask_W, CV_32FC1);
       memcpy(
         curMask.data,
-        inferenceOutput[3].first + i * 28 * 28,
-        28 * 28 * sizeof(float));
+        inferenceOutput[3].first + i * mask_H * mask_W,
+        mask_H * mask_W * sizeof(float));
       masks.emplace_back(curMask);
     }
   }
@@ -387,212 +587,31 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
 
   // Compute table/plane depth using the configurable max range.
   float table_depth = this->findMedian(depthImg, max_depth_mm) * 0.001;
-  // No. of objects will be equal to number of bboxes
+
+  const float ppx = camera_info.k.at(2);
+  const float fx  = camera_info.k.at(0);
+  const float ppy = camera_info.k.at(5);
+  const float fy  = camera_info.k.at(4);
+
   /* START of Populating EPDObjectLocalization object */
   for (size_t i = 0; i < bboxes.size(); ++i) {
     const auto & curBbox = bboxes[i];
     const uint64_t classIdx = classIndices[i];
-    cv::Mat curMask = masks[i].clone();
-    const std::string curLabel = allClassNames.empty() ?
-      std::to_string(classIdx) :
-      allClassNames[classIdx];
+    output_obj.objects[i].name = allClassNames.empty() ?
+      std::to_string(classIdx) : allClassNames[classIdx];
 
-    output_obj.objects[i].name = curLabel;
-    // Top x of ROI
-    output_obj.objects[i].roi.x_offset = curBbox[0];
-    // Top y of ROI
-    output_obj.objects[i].roi.y_offset = curBbox[1];
-    // Bounding Box height as ROI
-    output_obj.objects[i].roi.height = curBbox[3] - curBbox[1];
-    // Bounding Box width as ROI
-    output_obj.objects[i].roi.width = curBbox[2] - curBbox[0];
-
-    output_obj.objects[i].mask = curMask;
-
-    // Visualizing masks
-    const cv::Rect curBoxRect(cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]));
-
-    cv::resize(curMask, curMask, curBoxRect.size());
-
-    // Assigning masks that exceed the maskThreshold.
-    cv::Mat finalMask = (curMask > maskThreshold);
-
-    std::vector<cv::Mat> contours;
-    cv::Mat hierarchy;
-    cv::Mat tempFinalMask;
-    finalMask.convertTo(tempFinalMask, CV_8U);
-    // Generate contours.
-    cv::findContours(
-      tempFinalMask, contours, hierarchy, cv::RETR_TREE,
-      cv::CHAIN_APPROX_SIMPLE);
-
-    // For more details, refer to link below:
-    // https://tinyurl.com/y5qnnxud
-    float ppx = camera_info.k.at(2);
-    float fx = camera_info.k.at(0);
-    float ppy = camera_info.k.at(5);
-    float fy = camera_info.k.at(4);
-
-    // Getting rotated rectangle and draw the major axis
-    std::vector<cv::RotatedRect> minRect(contours.size());
-    float obj_surface_depth = 0.0f;
-    cv::Point pt_a, pt_b, pt_c, pt_d;
-    cv::Point rotated_mid;
-
-    // If there are no contours (e.g. zero-area mask), set default values and skip.
-    if (contours.empty()) {
-      output_obj.objects[i].centroid.x = 0.0;
-      output_obj.objects[i].centroid.y = 0.0;
-      output_obj.objects[i].centroid.z = 0.0;
-      output_obj.objects[i].length = 0.0f;
-      output_obj.objects[i].breadth = 0.0f;
-      output_obj.objects[i].height = 0.0f;
-      output_obj.objects[i].axis.x = 0.0f;
-      output_obj.objects[i].axis.y = 0.0f;
-      output_obj.objects[i].axis.z = 1.0f;
-      continue;
-    }
-
-    // Getting only the largest contour
-    // The largest contour is the one which has the largest area.
-    double maxArea = 0;
-    int maxAreaContourId = -1;
-    for (unsigned int j = 0; j < contours.size(); j++) {
-      double newArea = cv::contourArea(contours[j]);
-      if (newArea > maxArea) {
-        maxArea = newArea;
-        maxAreaContourId = j;
-      }  // End if
-    }  // End for
-
-    if (maxAreaContourId < 0) {
-      // No valid contour found; skip this detection.
-      continue;
-    }
-    unsigned int maxID = static_cast<unsigned int>(maxAreaContourId);
-
-    for (unsigned int index = 0; index < contours.size(); index++) {
-      if (index != maxID) {
-        continue;
-      }
-      // Function that compute rotated rectangle based on contours
-      minRect[index] = cv::minAreaRect(cv::Mat(contours[index]));
-      cv::Point2f rect_points[4];
-      // 4 points of the rotated rectangle
-      minRect[index].points(rect_points);
-
-      // Mid points of the each side of the rotated rectangle
-      pt_a = (rect_points[0] + rect_points[3]) / 2;
-      pt_b = (rect_points[1] + rect_points[2]) / 2;
-      pt_c = (rect_points[0] + rect_points[1]) / 2;
-      pt_d = (rect_points[3] + rect_points[2]) / 2;
-
-      // For temporary, bboxes center
-      rotated_mid = (cv::Point(curBbox[0], curBbox[1]) +
-        cv::Point(curBbox[2], curBbox[3])) / 2;
-
-      obj_surface_depth = this->findMin(depthImg(curBoxRect), max_depth_mm) * 0.001;
-      float x = (rotated_mid.x - ppx) / fx * obj_surface_depth;
-      float y = (rotated_mid.y - ppy) / fy * obj_surface_depth;
-
-      output_obj.objects[i].centroid.x = x;
-      output_obj.objects[i].centroid.y = y;
-      output_obj.objects[i].centroid.z = obj_surface_depth +
-        (table_depth - obj_surface_depth) / 2;
-
-      // Get Real Size and angle of object
-      // Compare the length of 2 side of the rectangle,
-      // the longer side will be the major axis
-      if (cv::norm(rect_points[0] - rect_points[1]) >
-        cv::norm(rect_points[1] - rect_points[2]))
-      {
-        // Calculates the length of the object
-        output_obj.objects[i].length = obj_surface_depth * sqrt(
-          pow((pt_a.x - pt_b.x) / fx, 2) +
-          pow((pt_a.y - pt_b.y) / fy, 2));
-        // Calculates the breadth of the object
-        output_obj.objects[i].breadth = obj_surface_depth * sqrt(
-          pow((pt_c.x - pt_d.x) / fx, 2) +
-          pow((pt_c.y - pt_d.y) / fy, 2));
-      } else {
-        // Gets object breadth and length
-        output_obj.objects[i].breadth = obj_surface_depth * sqrt(
-          pow((pt_a.x - pt_b.x) / fx, 2) +
-          pow((pt_a.y - pt_b.y) / fy, 2));
-        output_obj.objects[i].length = obj_surface_depth * sqrt(
-          pow((pt_c.x - pt_d.x) / fx, 2) +
-          pow((pt_c.y - pt_d.y) / fy, 2));
-      }
-      // Setting height of object
-      output_obj.objects[i].height = table_depth - obj_surface_depth;
-
-      pcl::PointCloud<pcl::PointXYZ>::Ptr segmented_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-      segmented_cloud->header.frame_id = pcl_frame_id;
-      segmented_cloud->is_dense = true;
-
-
-      // Converting Depth Image to PointCloud
-      for (int j = 0; j < tempFinalMask.rows; j++) {
-        for (int k = 0; k < tempFinalMask.cols; k++) {
-          int pixelValue = static_cast<int>(tempFinalMask.at<uchar>(j, k));
-
-          if (pixelValue != 0) {
-            float z = 0.0f;
-            if (depth_is_float) {
-              z = depthImg.at<float>(curBoxRect.y + j, curBoxRect.x + k);
-            } else {
-              z = static_cast<float>(
-                depthImg.at<uint16_t>(curBoxRect.y + j, curBoxRect.x + k)) * 0.001f;
-            }
-            float x = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
-            float y = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
-
-            // Ignore all points that has a value of less than MIN_DEPTH_THRESHOLD_M in z.
-            if (std::abs(z) < MIN_DEPTH_THRESHOLD_M || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
-              continue;
-            } else {
-              pcl::PointXYZ curPoint(x, y, z);
-              segmented_cloud->points.push_back(curPoint);
-            }
-          }
-        }
-      }
-
-      output_obj.objects[i].segmented_pcl = *segmented_cloud;
-
-      // Determine object axis of segmented_pcl
-      Eigen::Vector3f axis;
-      Eigen::Vector4f centerpoint;
-      Eigen::Vector3f eigenvalues;
-      Eigen::Matrix3f eigenvectors;
-      Eigen::Matrix3f covariance_matrix;
-
-      if (output_obj.objects[i].segmented_pcl.empty()) {
-        output_obj.objects[i].axis.x = 0.0f;
-        output_obj.objects[i].axis.y = 0.0f;
-        output_obj.objects[i].axis.z = 1.0f;
-      } else {
-        pcl::compute3DCentroid(output_obj.objects[i].segmented_pcl, centerpoint);
-
-        pcl::computeCovarianceMatrix(
-          output_obj.objects[i].segmented_pcl,
-          centerpoint,
-          covariance_matrix);
-        pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
-
-        axis = Eigen::Vector3f(
-          eigenvectors.col(2)(0),
-          eigenvectors.col(2)(1),
-          eigenvectors.col(2)(2));
-
-        axis = axis.normalized();
-
-        output_obj.objects[i].axis.x = axis(0);
-        output_obj.objects[i].axis.y = axis(1);
-        output_obj.objects[i].axis.z = axis(2);
-      }
-    }
+    populateObjectGeometry(
+      output_obj.objects[i],
+      curBbox,
+      masks[i],
+      depthImg,
+      ppx, fx, ppy, fy,
+      table_depth,
+      depth_is_float,
+      camera_to_plane_distance_mm,
+      max_depth_mm,
+      pcl_frame_id,
+      maskThreshold);
   }
   // END of Populating EPDObjectLocalization object
   return output_obj;
@@ -640,6 +659,21 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   }
   size_t nBoxes = inferenceOutput[1].second[0];
 
+  // Determine mask dimensions from the inference output shape.
+  // MaskRCNN outputs masks with shape [N, 1, H, W]; fall back to 28x28 if unreadable.
+  int64_t mask_H = 28;
+  int64_t mask_W = 28;
+  {
+    const auto & mask_shape = inferenceOutput[3].second;
+    if (mask_shape.size() >= 4 && mask_shape[2] > 0 && mask_shape[3] > 0) {
+      mask_H = mask_shape[2];
+      mask_W = mask_shape[3];
+    } else if (mask_shape.size() >= 3 && mask_shape[1] > 0 && mask_shape[2] > 0) {
+      mask_H = mask_shape[1];
+      mask_W = mask_shape[2];
+    }
+  }
+
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
   const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
 
@@ -669,11 +703,11 @@ EPD::EPDObjectTracking P3OrtBase::infer(
       classIndices.emplace_back(reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
       scores.emplace_back(inferenceOutput[2].first[i]);
 
-      cv::Mat curMask(28, 28, CV_32FC1);
+      cv::Mat curMask(mask_H, mask_W, CV_32FC1);
       memcpy(
         curMask.data,
-        inferenceOutput[3].first + i * 28 * 28,
-        28 * 28 * sizeof(float));
+        inferenceOutput[3].first + i * mask_H * mask_W,
+        mask_H * mask_W * sizeof(float));
       masks.emplace_back(curMask);
     }
   }
@@ -708,27 +742,18 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 
   float table_depth = this->findMedian(depthImg, max_depth_mm) * 0.001;
 
+  const float ppx = camera_info.k.at(2);
+  const float fx  = camera_info.k.at(0);
+  const float ppy = camera_info.k.at(5);
+  const float fy  = camera_info.k.at(4);
+
   // No. of objects will be equal to number of bboxes
   /* START of Populating EPDObjectTracking object */
   for (size_t i = 0; i < bboxes.size(); ++i) {
     const auto & curBbox = bboxes[i];
     const uint64_t classIdx = classIndices[i];
-    cv::Mat curMask = masks[i].clone();
-    const std::string curLabel = allClassNames.empty() ?
-      std::to_string(classIdx) :
-      allClassNames[classIdx];
-
-    output_obj.objects[i].name = curLabel;
-    // Top x of ROI
-    output_obj.objects[i].roi.x_offset = curBbox[0];
-    // Top y of ROI
-    output_obj.objects[i].roi.y_offset = curBbox[1];
-    // Bounding Box height as ROI
-    output_obj.objects[i].roi.height = curBbox[3] - curBbox[1];
-    // Bounding Box width as ROI
-    output_obj.objects[i].roi.width = curBbox[2] - curBbox[0];
-
-    output_obj.objects[i].mask = curMask;
+    output_obj.objects[i].name = allClassNames.empty() ?
+      std::to_string(classIdx) : allClassNames[classIdx];
 
     // Map each detection to its matched tracker and preserve persistent object ids.
     if (i < detection_to_tracker.size() && detection_to_tracker[i].has_value()) {
@@ -737,190 +762,18 @@ EPD::EPDObjectTracking P3OrtBase::infer(
       output_obj.object_ids[i] = "untracked";
     }
 
-    // Visualizing masks
-    const cv::Rect curBoxRect(cv::Point(curBbox[0], curBbox[1]),
-      cv::Point(curBbox[2], curBbox[3]));
-
-    cv::resize(curMask, curMask, curBoxRect.size());
-
-    // Assigning masks that exceed the maskThreshold.
-    cv::Mat finalMask = (curMask > maskThreshold);
-
-    std::vector<cv::Mat> contours;
-    cv::Mat hierarchy;
-    cv::Mat tempFinalMask;
-    finalMask.convertTo(tempFinalMask, CV_8U);
-    // Generate contours.
-    cv::findContours(
-      tempFinalMask, contours, hierarchy, cv::RETR_TREE,
-      cv::CHAIN_APPROX_SIMPLE);
-
-    // For more details, refer to link below:
-    // https://tinyurl.com/y5qnnxud
-    float ppx = camera_info.k.at(2);
-    float fx = camera_info.k.at(0);
-    float ppy = camera_info.k.at(5);
-    float fy = camera_info.k.at(4);
-
-    // Getting rotated rectangle and draw the major axis
-    std::vector<cv::RotatedRect> minRect(contours.size());
-    float obj_surface_depth = 0.0f;
-    cv::Point pt_a, pt_b, pt_c, pt_d;
-    cv::Point rotated_mid;
-
-    // If there are no contours (e.g. zero-area mask), set default values and skip.
-    if (contours.empty()) {
-      output_obj.objects[i].centroid.x = 0.0;
-      output_obj.objects[i].centroid.y = 0.0;
-      output_obj.objects[i].centroid.z = 0.0;
-      output_obj.objects[i].length = 0.0f;
-      output_obj.objects[i].breadth = 0.0f;
-      output_obj.objects[i].height = 0.0f;
-      output_obj.objects[i].axis.x = 0.0f;
-      output_obj.objects[i].axis.y = 0.0f;
-      output_obj.objects[i].axis.z = 1.0f;
-      continue;
-    }
-
-    // Getting only the largest contour
-    // The largest contour is the one which has the largest area.
-    double maxArea = 0;
-    int maxAreaContourId = -1;
-    for (unsigned int j = 0; j < contours.size(); j++) {
-      double newArea = cv::contourArea(contours[j]);
-      if (newArea > maxArea) {
-        maxArea = newArea;
-        maxAreaContourId = j;
-      }
-    }
-
-    if (maxAreaContourId < 0) {
-      // No valid contour found; skip this detection.
-      continue;
-    }
-    unsigned int maxID = static_cast<unsigned int>(maxAreaContourId);
-
-    for (unsigned int index = 0; index < contours.size(); index++) {
-      if (index != maxID) {
-        continue;
-      }
-      // Function that compute rotated rectangle based on contours
-      minRect[index] = cv::minAreaRect(cv::Mat(contours[index]));
-      cv::Point2f rect_points[4];
-      // 4 points of the rotated rectangle
-      minRect[index].points(rect_points);
-
-      // Mid points of the each side of the rotated rectangle
-      pt_a = (rect_points[0] + rect_points[3]) / 2;
-      pt_b = (rect_points[1] + rect_points[2]) / 2;
-      pt_c = (rect_points[0] + rect_points[1]) / 2;
-      pt_d = (rect_points[3] + rect_points[2]) / 2;
-
-      // For temporary, bboxes center
-      rotated_mid = (cv::Point(curBbox[0], curBbox[1]) +
-        cv::Point(curBbox[2], curBbox[3])) / 2;
-
-      obj_surface_depth = this->findMin(depthImg(curBoxRect), max_depth_mm) * 0.001;
-      float x = (rotated_mid.x - ppx) / fx * obj_surface_depth;
-      float y = (rotated_mid.y - ppy) / fy * obj_surface_depth;
-
-      output_obj.objects[i].centroid.x = x;
-      output_obj.objects[i].centroid.y = y;
-      output_obj.objects[i].centroid.z = obj_surface_depth +
-        (table_depth - obj_surface_depth) / 2;
-
-      // Get Real Size and angle of object
-      // Compare the length of 2 side of the rectangle,
-      // the longer side will be the major axis
-      if (cv::norm(rect_points[0] - rect_points[1]) >
-        cv::norm(rect_points[1] - rect_points[2]))
-      {
-        // Calculates the length of the object
-        output_obj.objects[i].length = obj_surface_depth * sqrt(
-          pow((pt_a.x - pt_b.x) / fx, 2) +
-          pow((pt_a.y - pt_b.y) / fy, 2));
-        // Calculates the breadth of the object
-        output_obj.objects[i].breadth = obj_surface_depth * sqrt(
-          pow((pt_c.x - pt_d.x) / fx, 2) +
-          pow((pt_c.y - pt_d.y) / fy, 2));
-      } else {
-        // Gets object breadth and length
-        output_obj.objects[i].breadth = obj_surface_depth * sqrt(
-          pow((pt_a.x - pt_b.x) / fx, 2) +
-          pow((pt_a.y - pt_b.y) / fy, 2));
-        output_obj.objects[i].length = obj_surface_depth * sqrt(
-          pow((pt_c.x - pt_d.x) / fx, 2) +
-          pow((pt_c.y - pt_d.y) / fy, 2));
-      }
-      // Setting height of object
-      output_obj.objects[i].height = table_depth - obj_surface_depth;
-
-      pcl::PointCloud<pcl::PointXYZ>::Ptr segmented_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-      segmented_cloud->header.frame_id = pcl_frame_id;
-      segmented_cloud->is_dense = true;
-
-
-      // Converting Depth Image to PointCloud
-      for (int j = 0; j < tempFinalMask.rows; j++) {
-        for (int k = 0; k < tempFinalMask.cols; k++) {
-          int pixelValue = static_cast<int>(tempFinalMask.at<uchar>(j, k));
-
-          if (pixelValue != 0) {
-            float z = 0.0f;
-            if (depth_is_float) {
-              z = depthImg.at<float>(curBoxRect.y + j, curBoxRect.x + k);
-            } else {
-              z = static_cast<float>(
-                depthImg.at<uint16_t>(curBoxRect.y + j, curBoxRect.x + k)) * 0.001f;
-            }
-            float x = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
-            float y = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
-
-            // Ignore all points that has a value of less than MIN_DEPTH_THRESHOLD_M in z.
-            if (std::abs(z) < MIN_DEPTH_THRESHOLD_M || std::abs(z) > camera_to_plane_distance_mm * 0.001) {
-              continue;
-            } else {
-              pcl::PointXYZ curPoint(x, y, z);
-              segmented_cloud->points.push_back(curPoint);
-            }
-          }
-        }
-      }
-
-      output_obj.objects[i].segmented_pcl = *segmented_cloud;
-
-      // Determine object axis of segmented_pcl
-      Eigen::Vector3f axis;
-      Eigen::Vector4f centerpoint;
-      Eigen::Vector3f eigenvalues;
-      Eigen::Matrix3f eigenvectors;
-      Eigen::Matrix3f covariance_matrix;
-
-      if (output_obj.objects[i].segmented_pcl.empty()) {
-        output_obj.objects[i].axis.x = 0.0f;
-        output_obj.objects[i].axis.y = 0.0f;
-        output_obj.objects[i].axis.z = 1.0f;
-      } else {
-        pcl::compute3DCentroid(output_obj.objects[i].segmented_pcl, centerpoint);
-
-        pcl::computeCovarianceMatrix(
-          output_obj.objects[i].segmented_pcl,
-          centerpoint,
-          covariance_matrix);
-        pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
-
-        axis = Eigen::Vector3f(
-          eigenvectors.col(2)(0),
-          eigenvectors.col(2)(1),
-          eigenvectors.col(2)(2));
-
-        axis = axis.normalized();
-
-        output_obj.objects[i].axis.x = axis(0);
-        output_obj.objects[i].axis.y = axis(1);
-        output_obj.objects[i].axis.z = axis(2);
-      }
-    }
+    populateObjectGeometry(
+      output_obj.objects[i],
+      curBbox,
+      masks[i],
+      depthImg,
+      ppx, fx, ppy, fy,
+      table_depth,
+      depth_is_float,
+      camera_to_plane_distance_mm,
+      max_depth_mm,
+      pcl_frame_id,
+      maskThreshold);
   }
   // END of Populating EPDObjectTracking object
   return output_obj;

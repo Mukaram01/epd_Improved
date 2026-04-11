@@ -150,7 +150,16 @@ inline void matchColor(
       classIdx >= allClassNames.size() ?
       std::to_string(classIdx) : allClassNames[classIdx];
 
-    cv::Rect objectROI(cv::Point(curBbox[0], curBbox[1]), cv::Point(curBbox[2], curBbox[3]));
+    // Clamp the bbox to the image boundaries before cropping to prevent
+    // out-of-bounds access when a detection box slightly exceeds image dimensions.
+    const int left = std::clamp(curBbox[0], 0, img.cols - 1);
+    const int top = std::clamp(curBbox[1], 0, img.rows - 1);
+    const int right = std::clamp(curBbox[2], left + 1, img.cols);
+    const int bottom = std::clamp(curBbox[3], top + 1, img.rows);
+    cv::Rect objectROI(cv::Point(left, top), cv::Point(right, bottom));
+    if (objectROI.width <= 0 || objectROI.height <= 0) {
+      continue;
+    }
     croppedImage = img(objectROI);
     cv::cvtColor(croppedImage, hsv_test1, cv::COLOR_BGR2HSV);
     cv::calcHist(

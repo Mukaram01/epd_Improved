@@ -171,9 +171,9 @@ private:
     const int img_height,
     const int img_width) const;
 
-  void checkOrtAgentIsInitialized(
+  void ensureOrtAgentInitialized(
     const int img_height,
-    const int img_width) const;
+    const int img_width);
 
   void subscribeImageInput();
   void subscribeLocalizeInputs();
@@ -260,6 +260,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<std::string>("camera_info_topic", "/camera/camera/color/camera_info");
   this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
   this->declare_parameter<bool>("use_depth", true);
+  this->declare_parameter<double>("service_timeout_s", 5.0);
 
   rgb_topic_ = this->get_parameter("rgb_topic").as_string();
   depth_topic_ = this->get_parameter("depth_topic").as_string();
@@ -443,7 +444,9 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         return;
       }
 
-      constexpr auto service_timeout = std::chrono::seconds(5);
+      const double timeout_s = this->get_parameter("service_timeout_s").as_double();
+      const auto service_timeout = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::duration<double>(timeout_s));
       RCLCPP_INFO(this->get_logger(), "Waiting for EPD service result...");
 
       std::unique_lock<std::mutex> service_lock(service_mutex_);
@@ -743,9 +746,9 @@ void EasyPerceptionDeployment::hasCameraChanged(const int img_height, const int 
   }
 }
 
-void EasyPerceptionDeployment::checkOrtAgentIsInitialized(
+void EasyPerceptionDeployment::ensureOrtAgentInitialized(
   const int img_height,
-  const int img_width) const
+  const int img_width)
 {
   if (!ortAgent_.isInit()) {
     ortAgent_.setFrameDimension(img_width, img_height);
@@ -879,7 +882,7 @@ void EasyPerceptionDeployment::process_localize_work(
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    checkOrtAgentIsInitialized(img.rows, img.cols);
+    ensureOrtAgentInitialized(img.rows, img.cols);
   }
 
   auto begin = std::chrono::high_resolution_clock::now();
@@ -898,9 +901,8 @@ void EasyPerceptionDeployment::process_localize_work(
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
     const int max_det = ortAgent_.max_detections;
-    if (max_det > 0 && static_cast<int>(result.data_size) > max_det) {
+    if (max_det > 0 && static_cast<int>(result.size()) > max_det) {
       result.objects.resize(max_det);
-      result.data_size = static_cast<size_t>(max_det);
     }
   }
 
@@ -913,9 +915,9 @@ void EasyPerceptionDeployment::process_localize_work(
   }
 
   if (visualize) {
-    EPD::EPDObjectTracking converted_result(result.data_size);
+    EPD::EPDObjectTracking converted_result(result.size());
     converted_result.object_ids.clear();
-    for (size_t i = 0; i < result.data_size; i++) {
+    for (size_t i = 0; i < result.size(); i++) {
       converted_result.objects.emplace_back(result.objects[i]);
     }
 
@@ -944,13 +946,13 @@ void EasyPerceptionDeployment::process_localize_work(
   output_msg.ppy = camera_info->k.at(5);
   output_msg.fy  = camera_info->k.at(4);
 
-  output_msg.objects.reserve(result.data_size);
+  output_msg.objects.reserve(result.size());
 
   geometry_msgs::msg::PoseArray pose_array;
   pose_array.header = msg->header;
-  pose_array.poses.reserve(result.data_size);
+  pose_array.poses.reserve(result.size());
 
-  for (size_t i = 0; i < result.data_size; i++) {
+  for (size_t i = 0; i < result.size(); i++) {
     epd_msgs::msg::LocalizedObject object;
     object.name = result.objects[i].name;
     object.roi = result.objects[i].roi;
@@ -1054,7 +1056,7 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    checkOrtAgentIsInitialized(img.rows, img.cols);
+    ensureOrtAgentInitialized(img.rows, img.cols);
   }
 
   auto begin = std::chrono::high_resolution_clock::now();
@@ -1077,10 +1079,9 @@ void EasyPerceptionDeployment::process_tracking_work(
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
     const int max_det = ortAgent_.max_detections;
-    if (max_det > 0 && static_cast<int>(result.data_size) > max_det) {
+    if (max_det > 0 && static_cast<int>(result.size()) > max_det) {
       result.objects.resize(max_det);
       result.object_ids.resize(max_det);
-      result.data_size = static_cast<size_t>(max_det);
     }
   }
 
@@ -1118,14 +1119,14 @@ void EasyPerceptionDeployment::process_tracking_work(
   output_msg.ppy = camera_info->k.at(5);
   output_msg.fy  = camera_info->k.at(4);
 
-  output_msg.object_ids.reserve(result.data_size);
-  output_msg.objects.reserve(result.data_size);
+  output_msg.object_ids.reserve(result.size());
+  output_msg.objects.reserve(result.size());
 
   geometry_msgs::msg::PoseArray pose_array;
   pose_array.header = msg->header;
-  pose_array.poses.reserve(result.data_size);
+  pose_array.poses.reserve(result.size());
 
-  for (size_t i = 0; i < result.data_size; i++) {
+  for (size_t i = 0; i < result.size(); i++) {
     epd_msgs::msg::LocalizedObject object;
     object.name = result.objects[i].name;
     object.roi = result.objects[i].roi;
@@ -1266,7 +1267,15 @@ EPD::EPDObjectDetection EasyPerceptionDeployment::applyDetectionFilters(
   EPD::EPDObjectDetection filtered(0);
   const bool has_masks = !raw.masks.empty();
 
-  for (size_t i = 0; i < raw.data_size; i++) {
+  // Verify mask vector is consistent: either empty (no masks) or same size as bboxes.
+  if (has_masks && raw.masks.size() != raw.size()) {
+    throw std::runtime_error(
+      "applyDetectionFilters: masks.size() (" + std::to_string(raw.masks.size()) +
+      ") != bboxes.size() (" + std::to_string(raw.size()) +
+      "). Inference output is inconsistent.");
+  }
+
+  for (size_t i = 0; i < raw.size(); i++) {
     if (raw.scores[i] < confidence_threshold) {
       continue;
     }
@@ -1278,11 +1287,10 @@ EPD::EPDObjectDetection EasyPerceptionDeployment::applyDetectionFilters(
     filtered.bboxes.push_back(raw.bboxes[i]);
     filtered.classIndices.push_back(raw.classIndices[i]);
     filtered.scores.push_back(raw.scores[i]);
-    if (has_masks && i < raw.masks.size()) {
+    if (has_masks) {
       filtered.masks.push_back(raw.masks[i]);
     }
   }
-  filtered.data_size = filtered.bboxes.size();
   return filtered;
 }
 
@@ -1304,7 +1312,7 @@ void EasyPerceptionDeployment::process_image_work(
 
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    checkOrtAgentIsInitialized(img.rows, img.cols);
+    ensureOrtAgentInitialized(img.rows, img.cols);
   }
 
   auto begin = std::chrono::high_resolution_clock::now();
@@ -1348,13 +1356,10 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.color_match_threshold);
         }
 
-        EPD::EPDObjectDetection output_obj(result.data_size);
+        EPD::EPDObjectDetection output_obj(result.size());
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
-        // activateUseCase() modifies the vectors in-place without updating
-        // data_size, so sync data_size with the actual vector size here.
-        output_obj.data_size = output_obj.bboxes.size();
 
         // Apply confidence threshold and max_detections filters.
         {
@@ -1376,7 +1381,7 @@ void EasyPerceptionDeployment::process_image_work(
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;
           output_msg.header = msg->header;
-          for (size_t i = 0; i < output_obj.data_size; i++) {
+          for (size_t i = 0; i < output_obj.size(); i++) {
             output_msg.class_indices.push_back(output_obj.classIndices[i]);
             output_msg.scores.push_back(output_obj.scores[i]);
 
@@ -1413,14 +1418,11 @@ void EasyPerceptionDeployment::process_image_work(
             ortAgent_.color_match_threshold);
         }
 
-        EPD::EPDObjectDetection output_obj(result.data_size);
+        EPD::EPDObjectDetection output_obj(result.size());
         output_obj.bboxes = result.bboxes;
         output_obj.classIndices = result.classIndices;
         output_obj.scores = result.scores;
         output_obj.masks = result.masks;
-        // activateUseCase() modifies the vectors in-place without updating
-        // data_size, so sync data_size with the actual vector size here.
-        output_obj.data_size = output_obj.bboxes.size();
 
         // Apply confidence threshold and max_detections filters.
         {
@@ -1482,8 +1484,8 @@ void EasyPerceptionDeployment::process_image_work(
           const float ppy = static_cast<float>(camera_info->k.at(5));
           const float fy = static_cast<float>(camera_info->k.at(4));
 
-          segmented_pcls.reserve(output_obj.data_size);
-          for (size_t i = 0; i < output_obj.data_size; i++) {
+          segmented_pcls.reserve(output_obj.size());
+          for (size_t i = 0; i < output_obj.size(); i++) {
             const auto & bbox = output_obj.bboxes[i];
             const int left = std::clamp(bbox[0], 0, img.cols);
             const int top = std::clamp(bbox[1], 0, img.rows);
@@ -1577,7 +1579,7 @@ void EasyPerceptionDeployment::process_image_work(
         } else {
           epd_msgs::msg::EPDObjectDetection output_msg;
           output_msg.header = msg->header;
-          for (size_t i = 0; i < output_obj.data_size; i++) {
+          for (size_t i = 0; i < output_obj.size(); i++) {
             output_msg.class_indices.push_back(output_obj.classIndices[i]);
             output_msg.scores.push_back(output_obj.scores[i]);
 

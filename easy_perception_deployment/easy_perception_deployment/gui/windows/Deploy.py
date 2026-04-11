@@ -287,8 +287,10 @@ class DeployWindow(QWidget):
 
         self._is_running = False
 
-        self._DEPLOY_WIN_H = 540
-        self._DEPLOY_WIN_W = 500
+        self._DEFAULT_DEPLOY_WIN_H = 540
+        self._DEFAULT_DEPLOY_WIN_W = 500
+        self._MIN_DEPLOY_WIN_H = 500
+        self._MIN_DEPLOY_WIN_W = 420
 
         self.setWindowIcon(QIcon(self._image_path("epd_desktop.png")))
 
@@ -436,11 +438,8 @@ class DeployWindow(QWidget):
         self.image_transport_list.insert(0, self._image_transport)
 
         self.setWindowTitle('Deploy')
-        self.setGeometry(self._DEPLOY_WIN_W,
-                         0,
-                         self._DEPLOY_WIN_W,
-                         self._DEPLOY_WIN_H)
-        self.setFixedSize(self._DEPLOY_WIN_W, self._DEPLOY_WIN_H)
+        self.resize(self._DEFAULT_DEPLOY_WIN_W, self._DEFAULT_DEPLOY_WIN_H)
+        self.setMinimumSize(self._MIN_DEPLOY_WIN_W, self._MIN_DEPLOY_WIN_H)
 
         self.setButtons()
         self._start_fps_monitor()

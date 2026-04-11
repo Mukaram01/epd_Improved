@@ -53,8 +53,10 @@ class TrainWindow(QWidget):
 
         self.debug = debug
 
-        self._TRAIN_WIN_H = 650
-        self._TRAIN_WIN_W = 500
+        self._DEFAULT_TRAIN_WIN_H = 650
+        self._DEFAULT_TRAIN_WIN_W = 500
+        self._MIN_TRAIN_WIN_H = 560
+        self._MIN_TRAIN_WIN_W = 440
         self._ROW_THICKNESS = 100
 
         self.setWindowIcon(QIcon(self._image_path("epd_desktop.png")))
@@ -85,12 +87,8 @@ class TrainWindow(QWidget):
         self.steps = '(1000, 1500, 2000, 2500)'
 
         self.setWindowTitle('Train')
-        self.setGeometry(
-            self._TRAIN_WIN_W*2,
-            0,
-            self._TRAIN_WIN_W,
-            self._TRAIN_WIN_H)
-        self.setFixedSize(self._TRAIN_WIN_W, self._TRAIN_WIN_H)
+        self.resize(self._DEFAULT_TRAIN_WIN_W, self._DEFAULT_TRAIN_WIN_H)
+        self.setMinimumSize(self._MIN_TRAIN_WIN_W, self._MIN_TRAIN_WIN_H)
 
         self.setButtons()
 

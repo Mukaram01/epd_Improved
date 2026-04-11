@@ -80,6 +80,8 @@ public:
   /*! \brief Maximum number of detections to publish per frame.
   * Set to 0 to disable the limit. */
   int max_detections{100};
+  /*! \brief Enable verbose ONNX model input/output info logs at runtime. */
+  bool log_model_info{false};
 
   /*! \brief The selected use-case mode. Values can only be 0,1,2.\n
   *  See usecase_config.hpp for more details.\n

@@ -41,7 +41,8 @@ public:
     const boost::optional<size_t> & gpuIdx = boost::none,
     const boost::optional<int> & intraOpNumThreads = boost::none,
     const boost::optional<std::vector<std::vector<std::int64_t>>> &
-    inputShapes = boost::none);
+    inputShapes = boost::none,
+    const boost::optional<bool> & logModelInfo = boost::none);
   /*! \brief A Destructor function*/
   ~OrtBase();
   /*! \brief A convienence datatype to store output inference result.*/
@@ -53,6 +54,7 @@ public:
   /*! \brief A Getter function that gets the number of outputs which is
   used to determine the level of precision in EPDContainer class object.*/
   int getNumOutputs(void);
+  static bool resolveModelInfoLoggingEnabled(const boost::optional<bool> & logModelInfo);
 
 private:
   /*! \brief An internal class object that interfaces with Ort CPP API.*/

@@ -51,7 +51,8 @@ public:
     const boost::optional<size_t> & gpuIdx = boost::none,
     const boost::optional<int> & intraOpNumThreads = boost::none,
     const boost::optional<std::vector<std::vector<int64_t>>> &
-    inputShapes = boost::none);
+    inputShapes = boost::none,
+    const boost::optional<bool> & logModelInfo = boost::none);
   /*! \brief A Destructor function*/
   ~P2OrtBase();
   /*! \brief A auxillary Mutator function that calls the internal overloading

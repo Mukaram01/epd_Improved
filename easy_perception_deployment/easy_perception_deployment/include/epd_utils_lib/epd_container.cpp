@@ -236,7 +236,8 @@ void EPDContainer::initORTSessionHandler()
         onnx_model_path,
         0,
         intra_op_num_threads,
-        std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}}
+        std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}},
+        log_model_info
       );
       p2_ort_session->initClassNames(classNames);
       break;
@@ -247,7 +248,8 @@ void EPDContainer::initORTSessionHandler()
         onnx_model_path,
         0,
         intra_op_num_threads,
-        std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}}
+        std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}},
+        log_model_info
       );
       p3_ort_session->initClassNames(classNames);
       break;
@@ -314,6 +316,11 @@ void EPDContainer::setModelConfigFile()
     obj,
     "publish_detection_segmentation",
     publish_detection_segmentation,
+    PATH_TO_SESSION_CONFIG);
+  log_model_info = parseBooleanField(
+    obj,
+    "log_model_info",
+    log_model_info,
     PATH_TO_SESSION_CONFIG);
 
   if (obj.isMember("confidence_threshold")) {

@@ -420,7 +420,7 @@ def test_set_UseCase_Counting(monkeypatch):
     assert count_class_list[1] == "dog"
 
 
-def test_set_UseCase_ColorMatching(monkeypatch):
+def test_set_UseCase_ColorMatching(monkeypatch, tmp_path):
 
     test_args = [
         'scripts/cli/config_epd.py',
@@ -429,7 +429,9 @@ def test_set_UseCase_ColorMatching(monkeypatch):
     usecase_config_filepath = REQUIRED_START_DIR \
         + "/config/usecase_config.json"
 
-    responses = iter([str(PACKAGE_ROOT / "data/orange.png")])
+    template_path = tmp_path / "orange.png"
+    template_path.write_text("dummy", encoding="utf-8")
+    responses = iter([str(template_path)])
     monkeypatch.setattr('builtins.input', lambda _: next(responses))
     monkeypatch.setattr('sys.stdin.isatty', lambda: True)
 
@@ -443,7 +445,7 @@ def test_set_UseCase_ColorMatching(monkeypatch):
     f.close()
 
     assert usecase_mode == 2
-    assert path_to_color_template == str(PACKAGE_ROOT / "data/orange.png")
+    assert path_to_color_template == str(template_path)
 
 
 def test_set_UseCase_Tracking(monkeypatch):
@@ -506,3 +508,133 @@ def test_set_InputImageTopic():
     f.close()
 
     assert input_image_topic == '/virtual_camera/image_raw'
+
+
+def test_set_UseCase_Counting_WithClassListCli():
+
+    test_args = [
+        'scripts/cli/config_epd.py',
+        '--use',
+        '1',
+        '--class-list',
+        'person, dog,  bottle  ']
+    usecase_config_filepath = REQUIRED_START_DIR \
+        + "/config/usecase_config.json"
+
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
+
+    with open(usecase_config_filepath, encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert data["usecase_mode"] == 1
+    assert data["class_list"] == ["person", "dog", "bottle"]
+
+
+def test_set_UseCase_Counting_InvalidClassList():
+
+    test_args = [
+        'scripts/cli/config_epd.py',
+        '--use',
+        '1',
+        '--class-list',
+        ',  ,']
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
+
+    assert pytest_wrapped_e.type == SystemExit
+
+
+def test_set_UseCase_ColorMatching_WithTemplateAndMetric(tmp_path):
+
+    template_path = tmp_path / "template.png"
+    template_path.write_text("dummy", encoding="utf-8")
+    test_args = [
+        'scripts/cli/config_epd.py',
+        '--use',
+        '2',
+        '--color-template',
+        str(template_path),
+        '--color-hist-metric',
+        '3']
+    usecase_config_filepath = REQUIRED_START_DIR \
+        + "/config/usecase_config.json"
+
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
+
+    with open(usecase_config_filepath, encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert data["usecase_mode"] == 2
+    assert data["path_to_color_template"] == str(template_path)
+    assert data["color_match_histogram_metric"] == "Bhattacharyya"
+
+
+def test_set_UseCase_ColorMatching_InvalidTemplate():
+
+    test_args = [
+        'scripts/cli/config_epd.py',
+        '--use',
+        '2',
+        '--color-template',
+        str(PACKAGE_ROOT / "data/missing_color_template.png")]
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
+
+    assert pytest_wrapped_e.type == SystemExit
+
+
+def test_set_UseCase_ColorMatching_InvalidHistogramMetric(tmp_path):
+
+    template_path = tmp_path / "template.png"
+    template_path.write_text("dummy", encoding="utf-8")
+
+    test_args = [
+        'scripts/cli/config_epd.py',
+        '--use',
+        '2',
+        '--color-template',
+        str(template_path),
+        '--color-hist-metric',
+        'bogus']
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
+
+    assert pytest_wrapped_e.type == SystemExit
+
+
+def test_set_UseCase_Tracking_WithTrackTypeCli():
+
+    test_args = [
+        'scripts/cli/config_epd.py',
+        '--use',
+        '4',
+        '--track-type',
+        'medianflow']
+    usecase_config_filepath = REQUIRED_START_DIR \
+        + "/config/usecase_config.json"
+
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
+
+    with open(usecase_config_filepath, encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert data["usecase_mode"] == 4
+    assert data["track_type"] == "MEDIANFLOW"
+
+
+def test_set_UseCase_Tracking_InvalidTrackType():
+
+    test_args = [
+        'scripts/cli/config_epd.py',
+        '--use',
+        '4',
+        '--track-type',
+        'invalid_tracker']
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
+
+    assert pytest_wrapped_e.type == SystemExit

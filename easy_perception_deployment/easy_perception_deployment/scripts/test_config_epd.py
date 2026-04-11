@@ -233,6 +233,66 @@ def test_set_CPU_long():
     assert useCPU == "CPU"
 
 
+@pytest.mark.parametrize(
+    "filename,parser_name,required_key",
+    [
+        ("session_config.json", "parse_session_config", "path_to_model"),
+        ("usecase_config.json", "parse_usecase_config", "usecase_mode"),
+        ("input_image_topic.json", "parse_inputimagetopic_config", "input_image_topic"),
+    ],
+)
+def test_parse_config_malformed_json_raises_system_exit(
+        tmp_path, filename, parser_name, required_key):
+    config_path = tmp_path / filename
+    config_path.write_text("{ malformed json", encoding="utf-8")
+
+    configurator = EPDConfigurator.__new__(EPDConfigurator)
+    parser = getattr(configurator, parser_name)
+
+    with pytest.raises(SystemExit):
+        parser(str(config_path))
+
+
+@pytest.mark.parametrize(
+    "filename,parser_name,payload",
+    [
+        ("session_config.json", "parse_session_config", {}),
+        ("usecase_config.json", "parse_usecase_config", {}),
+        ("input_image_topic.json", "parse_inputimagetopic_config", {}),
+    ],
+)
+def test_parse_config_missing_required_keys_raises_system_exit(
+        tmp_path, filename, parser_name, payload):
+    config_path = tmp_path / filename
+    config_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    configurator = EPDConfigurator.__new__(EPDConfigurator)
+    parser = getattr(configurator, parser_name)
+
+    with pytest.raises(SystemExit):
+        parser(str(config_path))
+
+
+@pytest.mark.parametrize(
+    "filename,parser_name",
+    [
+        ("session_config.json", "parse_session_config"),
+        ("usecase_config.json", "parse_usecase_config"),
+        ("input_image_topic.json", "parse_inputimagetopic_config"),
+    ],
+)
+def test_parse_config_empty_file_raises_system_exit(
+        tmp_path, filename, parser_name):
+    config_path = tmp_path / filename
+    config_path.write_text("", encoding="utf-8")
+
+    configurator = EPDConfigurator.__new__(EPDConfigurator)
+    parser = getattr(configurator, parser_name)
+
+    with pytest.raises(SystemExit):
+        parser(str(config_path))
+
+
 def test_set_ValidModel():
 
     # Create dummy model file in /data

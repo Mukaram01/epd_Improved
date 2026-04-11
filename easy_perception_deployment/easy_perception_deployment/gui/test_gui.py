@@ -17,6 +17,7 @@ import os
 import json
 import yaml
 import subprocess
+import pytest
 
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
@@ -176,6 +177,95 @@ def test_validSession_validUseCase_DeployWindow(qtbot):
     assert widget._path_to_model == local_path_to_model
     assert widget._path_to_label_list == local_path_to_label_list
     assert widget.usecase_mode == 0
+
+
+@pytest.mark.parametrize(
+    "config_name,required_keys,defaults,abort_on_json_error",
+    [
+        ("session_config.json", ["path_to_model"], {"path_to_model": "fallback"}, True),
+        ("usecase_config.json", ["usecase_mode"], {"usecase_mode": 0}, True),
+        ("input_image_topic.json", ["input_image_topic"], {"input_image_topic": "/fallback"}, False),
+    ],
+)
+def test_load_json_config_malformed_json(
+        qtbot, tmp_path, config_name, required_keys, defaults, abort_on_json_error):
+    config_path = tmp_path / config_name
+    config_path.write_text("{ malformed json", encoding="utf-8")
+
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    if abort_on_json_error:
+        with pytest.raises(RuntimeError):
+            widget._load_json_config(
+                str(config_path),
+                config_name=config_name,
+                required_keys=required_keys,
+                defaults=defaults,
+                allow_missing_defaults=True,
+                abort_on_json_error=True)
+    else:
+        data = widget._load_json_config(
+            str(config_path),
+            config_name=config_name,
+            required_keys=required_keys,
+            defaults=defaults,
+            allow_missing_defaults=True,
+            abort_on_json_error=False)
+        assert data == defaults
+
+
+@pytest.mark.parametrize(
+    "config_name,required_keys,defaults",
+    [
+        ("session_config.json", ["path_to_model", "path_to_label_list"], {"path_to_model": "m"}),
+        ("usecase_config.json", ["usecase_mode"], {}),
+        ("input_image_topic.json", ["input_image_topic"], {}),
+    ],
+)
+def test_load_json_config_missing_keys_returns_defaults(
+        qtbot, tmp_path, config_name, required_keys, defaults):
+    config_path = tmp_path / config_name
+    config_path.write_text(json.dumps({}), encoding="utf-8")
+
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    data = widget._load_json_config(
+        str(config_path),
+        config_name=config_name,
+        required_keys=required_keys,
+        defaults=defaults,
+        allow_missing_defaults=True,
+        abort_on_json_error=False)
+    for key, value in defaults.items():
+        assert data[key] == value
+
+
+@pytest.mark.parametrize(
+    "config_name,required_keys,defaults",
+    [
+        ("session_config.json", ["path_to_model"], {"path_to_model": "fallback"}),
+        ("usecase_config.json", ["usecase_mode"], {"usecase_mode": 0}),
+        ("input_image_topic.json", ["input_image_topic"], {"input_image_topic": "/topic"}),
+    ],
+)
+def test_load_json_config_empty_file(
+        qtbot, tmp_path, config_name, required_keys, defaults):
+    config_path = tmp_path / config_name
+    config_path.write_text("", encoding="utf-8")
+
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    data = widget._load_json_config(
+        str(config_path),
+        config_name=config_name,
+        required_keys=required_keys,
+        defaults=defaults,
+        allow_missing_defaults=True,
+        abort_on_json_error=False)
+    assert data == defaults
 
 
 def test_deployPackage_DeployWindow(qtbot):

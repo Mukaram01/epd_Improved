@@ -13,23 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import json
 import pytest
 import subprocess
+from pathlib import Path
 
 from cli.config_epd import EPDConfigurator
 
-# Change directory to root of easy_perception_deployment ROS2 package.
-os.chdir(r"../")
-REQUIRED_START_DIR = os.getcwd()
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+REQUIRED_START_DIR = str(PACKAGE_ROOT)
 
 # Reset session_config.json and usecase_config.json to default.
-if (os.path.exists('./config/session_config.json') and
-   os.path.exists('./config/usecase_config.json')):
-    p1 = subprocess.Popen(['rm', './config/session_config.json'])
+if ((PACKAGE_ROOT / "config/session_config.json").exists() and
+   (PACKAGE_ROOT / "config/usecase_config.json").exists()):
+    p1 = subprocess.Popen(['rm', str(PACKAGE_ROOT / "config/session_config.json")])
     p1.communicate()
-    p2 = subprocess.Popen(['rm', './config/usecase_config.json'])
+    p2 = subprocess.Popen(['rm', str(PACKAGE_ROOT / "config/usecase_config.json")])
     p2.communicate()
 
     dict = {
@@ -39,34 +38,32 @@ if (os.path.exists('./config/session_config.json') and
         "useCPU": 'CPU'
         }
     json_object = json.dumps(dict, indent=4)
-    with open('./config/session_config.json', 'w') as outfile:
+    with open(PACKAGE_ROOT / 'config/session_config.json', 'w') as outfile:
         outfile.write(json_object)
 
     dict = {"usecase_mode": 0}
     json_object = json.dumps(dict, indent=4)
-    with open('./config/usecase_config.json', 'w') as outfile:
+    with open(PACKAGE_ROOT / 'config/usecase_config.json', 'w') as outfile:
         outfile.write(json_object)
 
 
 def test_invalid_ExeDirectory():
     # Change to invalid directory.
-    os.chdir(r"./scripts")
     test_args = ['scripts/cli/config_epd.py', '-v']
-    INVALID_START_DIR = os.getcwd()
+    INVALID_START_DIR = str(PACKAGE_ROOT / "scripts")
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
-        configurator = EPDConfigurator(INVALID_START_DIR, test_args)
+        EPDConfigurator(INVALID_START_DIR, test_args)
 
     # Check for sys.exit() due to invalid_start_dir
     assert pytest_wrapped_e.type == SystemExit
-    os.chdir(r"../")
 
 
 def test_print_help_NoArgs(capfd):
     test_args = ['scripts/cli/config_epd.py']
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
-        configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     assert pytest_wrapped_e.type == SystemExit
 
@@ -75,7 +72,7 @@ def test_print_help_HelpArg(capfd):
     test_args = ['scripts/cli/config_epd.py', '-h']
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
-        configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     assert pytest_wrapped_e.type == SystemExit
 
@@ -86,7 +83,7 @@ def test_set_VisualizeMode_short():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -103,7 +100,7 @@ def test_set_VisualizeMode_long():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -120,7 +117,7 @@ def test_set_ActionMode_short():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -137,24 +134,7 @@ def test_set_ActionMode_long():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    # Load session_config.json
-    f = open(session_config_filepath)
-    data = json.load(f)
-    visualizeFlag = data["visualizeFlag"]
-    f.close()
-
-    assert visualizeFlag == "robot"
-
-
-def test_set_ActionMode_long():
-
-    test_args = ['scripts/cli/config_epd.py', '--action']
-    session_config_filepath = REQUIRED_START_DIR \
-        + "/config/session_config.json"
-
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -171,7 +151,7 @@ def test_set_GPU_short():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -188,7 +168,7 @@ def test_set_GPU_long():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -205,7 +185,7 @@ def test_set_CPU_short():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -222,7 +202,7 @@ def test_set_CPU_long():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -296,7 +276,7 @@ def test_parse_config_empty_file_raises_system_exit(
 def test_set_ValidModel():
 
     # Create dummy model file in /data
-    PATH_TO_DUMMY_MODEL = './data/model/DUMMY_MODEL.onnx'
+    PATH_TO_DUMMY_MODEL = str(PACKAGE_ROOT / 'data/model/DUMMY_MODEL.onnx')
     p1 = subprocess.Popen(['touch', PATH_TO_DUMMY_MODEL])
     p1.communicate()
 
@@ -304,7 +284,7 @@ def test_set_ValidModel():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -321,21 +301,21 @@ def test_set_ValidModel():
 
 def test_set_InvalidModel():
 
-    PATH_TO_INVALID_MODEL = './data/model/NONEXISTENT_MODEL.onnx'
+    PATH_TO_INVALID_MODEL = str(PACKAGE_ROOT / 'data/model/NONEXISTENT_MODEL.onnx')
 
     test_args = ['scripts/cli/config_epd.py', '--model', PATH_TO_INVALID_MODEL]
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
-        configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     assert pytest_wrapped_e.type == SystemExit
 
 
 def test_set_ValidLabelList():
 
-    PATH_TO_VALID_LABEL_LIST = './data/label_list/coco_classes.txt'
+    PATH_TO_VALID_LABEL_LIST = str(PACKAGE_ROOT / 'data/label_list/coco_classes.txt')
 
     test_args = [
         'scripts/cli/config_epd.py',
@@ -344,7 +324,7 @@ def test_set_ValidLabelList():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load session_config.json
     f = open(session_config_filepath)
@@ -357,7 +337,7 @@ def test_set_ValidLabelList():
 
 def test_set_InvalidLabelList():
 
-    PATH_TO_INVALID_LABEL_LIST = './data/label_list/NONEXISTENT_LABEL_LIST.txt'
+    PATH_TO_INVALID_LABEL_LIST = str(PACKAGE_ROOT / 'data/label_list/NONEXISTENT_LABEL_LIST.txt')
 
     test_args = [
         'scripts/cli/config_epd.py',
@@ -367,7 +347,7 @@ def test_set_InvalidLabelList():
         + "/config/session_config.json"
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
-        configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     assert pytest_wrapped_e.type == SystemExit
 
@@ -381,7 +361,7 @@ def test_set_UseCase_Classification():
     usecase_config_filepath = REQUIRED_START_DIR \
         + "/config/usecase_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load usecase_config.json
     f = open(usecase_config_filepath)
@@ -401,7 +381,7 @@ def test_set_UseCase_Localization():
     usecase_config_filepath = REQUIRED_START_DIR \
         + "/config/usecase_config.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load usecase_config.json
     f = open(usecase_config_filepath)
@@ -412,7 +392,7 @@ def test_set_UseCase_Localization():
     assert usecase_mode == 3
 
 
-def test_set_UseCase_Counting(mocker):
+def test_set_UseCase_Counting(monkeypatch):
 
     test_args = [
         'scripts/cli/config_epd.py',
@@ -421,10 +401,11 @@ def test_set_UseCase_Counting(mocker):
     usecase_config_filepath = REQUIRED_START_DIR \
         + "/config/usecase_config.json"
 
-    mocker.patch('builtins.input', side_effect=["2", "person", "dog"])
-    mocker.patch('sys.stdin.isatty', return_value=True)
+    responses = iter(["2", "person", "dog"])
+    monkeypatch.setattr('builtins.input', lambda _: next(responses))
+    monkeypatch.setattr('sys.stdin.isatty', lambda: True)
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load usecase_config.json
     f = open(usecase_config_filepath)
@@ -439,7 +420,7 @@ def test_set_UseCase_Counting(mocker):
     assert count_class_list[1] == "dog"
 
 
-def test_set_UseCase_ColorMatching(mocker):
+def test_set_UseCase_ColorMatching(monkeypatch):
 
     test_args = [
         'scripts/cli/config_epd.py',
@@ -448,10 +429,11 @@ def test_set_UseCase_ColorMatching(mocker):
     usecase_config_filepath = REQUIRED_START_DIR \
         + "/config/usecase_config.json"
 
-    mocker.patch('builtins.input', side_effect=["./data/orange.png"])
-    mocker.patch('sys.stdin.isatty', return_value=True)
+    responses = iter([str(PACKAGE_ROOT / "data/orange.png")])
+    monkeypatch.setattr('builtins.input', lambda _: next(responses))
+    monkeypatch.setattr('sys.stdin.isatty', lambda: True)
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load usecase_config.json
     f = open(usecase_config_filepath)
@@ -461,10 +443,10 @@ def test_set_UseCase_ColorMatching(mocker):
     f.close()
 
     assert usecase_mode == 2
-    assert path_to_color_template == "./data/orange.png"
+    assert path_to_color_template == str(PACKAGE_ROOT / "data/orange.png")
 
 
-def test_set_UseCase_Tracking(mocker):
+def test_set_UseCase_Tracking(monkeypatch):
 
     test_args = [
         'scripts/cli/config_epd.py',
@@ -473,10 +455,11 @@ def test_set_UseCase_Tracking(mocker):
     usecase_config_filepath = REQUIRED_START_DIR \
         + "/config/usecase_config.json"
 
-    mocker.patch('builtins.input', side_effect=["KCF"])
-    mocker.patch('sys.stdin.isatty', return_value=True)
+    responses = iter(["KCF"])
+    monkeypatch.setattr('builtins.input', lambda _: next(responses))
+    monkeypatch.setattr('sys.stdin.isatty', lambda: True)
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load usecase_config.json
     f = open(usecase_config_filepath)
@@ -499,7 +482,7 @@ def test_set_Invalid_UseCase():
         + "/config/usecase_config.json"
 
     with pytest.raises(SystemExit) as pytest_wrapped_e:
-        configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+        EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Check for sys.exit() due to invalid Use Case.
     assert pytest_wrapped_e.type == SystemExit
@@ -514,7 +497,7 @@ def test_set_InputImageTopic():
     inputimagetopic_config_filepath = REQUIRED_START_DIR \
         + "/config/input_image_topic.json"
 
-    configurator = EPDConfigurator(REQUIRED_START_DIR, test_args)
+    EPDConfigurator(REQUIRED_START_DIR, test_args)
 
     # Load usecase_config.json
     f = open(inputimagetopic_config_filepath)

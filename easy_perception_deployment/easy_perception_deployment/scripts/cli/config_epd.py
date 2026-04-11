@@ -18,12 +18,17 @@
 
 import os
 import sys
-import argparse
 import getopt
 import json
 
 
 class EPDConfigurator():
+    COLOR_HISTOGRAM_METRIC_CHOICES = (
+        "Correlation",
+        "Chi-square",
+        "Intersection",
+        "Bhattacharyya")
+    TRACK_TYPE_CHOICES = ("KCF", "MEDIANFLOW", "CSRT")
 
     def __init__(self, start_dirpath, args):
 
@@ -98,13 +103,15 @@ class EPDConfigurator():
         print('--use   Sets usecase mode to be deployed via EPD. ' +
               'Eg. [0,1,2,3,4].')
         print('--class-list   Sets class names for COUNTING use case ' +
-              '(comma-separated).')
+              '(comma-separated, required when --use 1).')
         print('--color-template   Sets color template file path for ' +
-              'COLOR-MATCHING use case.')
+              'COLOR-MATCHING use case (required when --use 2).')
         print('--color-hist-metric   Sets histogram comparison metric for ' +
               'COLOR-MATCHING use case. Acceptable values: ' +
-              'Correlation, Chi-square, Intersection, Bhattacharyya.')
-        print('--track-type   Sets tracker type for TRACKING use case.')
+              '0-3 or Correlation, Chi-square, Intersection, Bhattacharyya.')
+        print('--track-type   Sets tracker type for TRACKING use case ' +
+              '(required when --use 4). Acceptable values: ' +
+              'KCF, MEDIANFLOW, CSRT.')
         print('--topic   Sets the subscriber topic name EPD uses ' +
               'to get input images.')
         print('--intra-op-threads   Sets intra-op thread count for ORT.')
@@ -125,7 +132,6 @@ class EPDConfigurator():
             sys.exit(1)
 
     def parse_args(self, args):
-        # TODO(cardboardcode): Add options for usecase_config.json
         # CLI configuration.
         opts, _ = getopt.getopt(args, 'hvagcm:l:',
                                 ['visualize',
@@ -199,12 +205,15 @@ class EPDConfigurator():
                     sys.exit(2)
                 self.count_class_list = class_list
             elif opt in ('--color-template'):
-                self.path_to_color_template = arg
+                self.path_to_color_template = \
+                    self.validate_existing_file_path(
+                        arg,
+                        "color template")
             elif opt in ('--color-hist-metric'):
                 self.color_match_histogram_metric = \
                     self.normalize_color_histogram_metric(arg)
             elif opt in ('--track-type'):
-                self.track_type = arg
+                self.track_type = self.normalize_track_type(arg)
             elif opt in ('--topic'):
                 print("[ session_config.json ] - Setting new input " +
                       "image topic to", arg)
@@ -267,10 +276,13 @@ class EPDConfigurator():
             print("[ Use Case ] - CLASSIFICATION")
         elif self.usecase_mode == 1:
             print("[ Use Case ] - COUNTING")
-            self.count_class_list = data["class_list"]
+            self.count_class_list = self.normalize_class_list(
+                data.get("class_list"))
         elif self.usecase_mode == 2:
             print("[ Use Case ] - COLOR-MATCHING")
-            self.path_to_color_template = data["path_to_color_template"]
+            self.path_to_color_template = self.validate_existing_file_path(
+                data.get("path_to_color_template"),
+                "color template")
             if "color_match_histogram_metric" in data:
                 self.color_match_histogram_metric = \
                     self.normalize_color_histogram_metric(
@@ -279,7 +291,7 @@ class EPDConfigurator():
             print("[ Use Case ] - LOCALIZATION")
         elif self.usecase_mode == 4:
             print("[ Use Case ] - TRACKING")
-            self.track_type = data["track_type"]
+            self.track_type = self.normalize_track_type(data.get("track_type"))
         else:
             print("[ Use Case ] - INVALID. Please rectify" +
                   " usecase_config.json. Exiting...")
@@ -349,8 +361,8 @@ class EPDConfigurator():
                     return "Bhattacharyya"
                 print("[ config_epd ] - ERROR." +
                       " Invalid color-hist-metric provided. " +
-                      "Expected Correlation, Chi-square, Intersection, " +
-                      "or Bhattacharyya.")
+                      "Expected " +
+                      ", ".join(self.COLOR_HISTOGRAM_METRIC_CHOICES) + ".")
                 sys.exit(2)
 
         if metric_value == 0:
@@ -363,9 +375,49 @@ class EPDConfigurator():
             return "Bhattacharyya"
         print("[ config_epd ] - ERROR." +
               " Invalid color-hist-metric provided. " +
-              "Expected 0-3 or Correlation, Chi-square, Intersection, " +
-              "or Bhattacharyya.")
+              "Expected 0-3 or " +
+              ", ".join(self.COLOR_HISTOGRAM_METRIC_CHOICES) + ".")
         sys.exit(2)
+
+    def normalize_track_type(self, track_type):
+        normalized = str(track_type or "").strip().upper()
+        if normalized in self.TRACK_TYPE_CHOICES:
+            return normalized
+        print("[ config_epd ] - ERROR." +
+              " Invalid track-type provided. " +
+              "Expected one of: " +
+              ", ".join(self.TRACK_TYPE_CHOICES) + ".")
+        sys.exit(2)
+
+    def normalize_class_list(self, class_list):
+        if not isinstance(class_list, list):
+            print("[ config_epd ] - ERROR." +
+                  " class_list must be a list of non-empty class names.")
+            sys.exit(2)
+        normalized_class_list = []
+        for class_name in class_list:
+            class_name_str = str(class_name).strip()
+            if class_name_str:
+                normalized_class_list.append(class_name_str)
+        if not normalized_class_list:
+            print("[ config_epd ] - ERROR." +
+                  " class_list must contain at least one class name.")
+            sys.exit(2)
+        return normalized_class_list
+
+    def validate_existing_file_path(self, filepath, option_name):
+        candidate_path = str(filepath or "").strip()
+        if not candidate_path:
+            print("[ config_epd ] - ERROR." +
+                  f" {option_name} path cannot be empty.")
+            sys.exit(2)
+        resolved_path = os.path.abspath(os.path.expanduser(candidate_path))
+        if not os.path.isfile(resolved_path):
+            print("[ config_epd ] - ERROR." +
+                  f" {option_name} file does not exist at {resolved_path}.")
+            print("[ config_epd ] - Exiting.")
+            sys.exit(2)
+        return candidate_path
 
     def set_use_case_from_cli(self, usecase_mode):
         self.usecase_mode = usecase_mode
@@ -405,6 +457,8 @@ class EPDConfigurator():
                 for _ in range(0, n):
                     ele = input("Please enter class name: ")
                     self.count_class_list.append(ele)
+            self.count_class_list = self.normalize_class_list(
+                self.count_class_list)
         elif self.usecase_mode == 2:
             if not self.path_to_color_template:
                 if not is_interactive:
@@ -415,6 +469,9 @@ class EPDConfigurator():
                     sys.exit(2)
                 self.path_to_color_template = input(
                     "Please enter Color Image File Path: ")
+            self.path_to_color_template = self.validate_existing_file_path(
+                self.path_to_color_template,
+                "color template")
             self.color_match_histogram_metric = \
                 self.normalize_color_histogram_metric(
                     self.color_match_histogram_metric)
@@ -428,6 +485,7 @@ class EPDConfigurator():
                     sys.exit(2)
                 self.track_type = input(
                     "Please enter Tracker Type [KCF, MEDIANFLOW, CSRT]: ")
+            self.track_type = self.normalize_track_type(self.track_type)
 
     def write_out(self, session_config_filepath, usecase_config_filepath):
 

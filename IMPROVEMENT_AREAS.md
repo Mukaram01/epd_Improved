@@ -42,19 +42,19 @@ Each item includes evidence and a recommended next step.
 
 ## 3) CLI config script: error handling and maintainability (High)
 
-**What to improve**
-- `config_epd.py` has extensive `sys.exit(...)` paths inside helper methods and still contains an unresolved TODO for CLI options.
+**Current status**
+- CLI option coverage has been expanded in `config_epd.py` (including use-case-specific flags such as `--class-list`, `--color-template`, `--color-hist-metric`, `--track-type`, `--topic`, and segmentation/thread controls), so the earlier "missing CLI options" TODO is now resolved.
 
 **Evidence**
-- TODO note in `parse_args` mentions missing options.
-- Several helper functions (`_load_json_config`, `normalize_color_histogram_metric`, validators) terminate directly instead of raising typed exceptions.
+- `parse_args` now recognizes extended long options for use-case and runtime configuration.
+- Several helper functions (`_load_json_config`, `normalize_color_histogram_metric`, validators) still terminate directly via `sys.exit(...)` instead of raising typed exceptions.
 
 **Why it matters**
 - Direct process exits make the module harder to reuse as a library and complicate unit testing.
 
-**Recommended action**
+**Remaining follow-up**
 - Replace internal `sys.exit(...)` with custom exceptions and keep process exit at `main()` only.
-- Migrate from `getopt` to `argparse` fully (already imported), including type validation and better help UX.
+- Migrate from `getopt` to `argparse` for declarative validation, cleaner help text, and simpler extension of future flags.
 
 ## 4) GUI test suite uses shell subprocesses for filesystem operations (Medium)
 
@@ -107,7 +107,7 @@ Each item includes evidence and a recommended next step.
 
 ## Suggested execution order
 
-1. CLI exception model + argparse migration.
+1. CLI exception model + argparse migration (option coverage TODO already closed).
 2. Add SSD model hash and tighten model reproducibility policy.
 3. Move `.cpp` implementations from `include/` to `src/`.
 4. Refactor GUI tests to fixture-based file handling.

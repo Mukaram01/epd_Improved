@@ -18,6 +18,7 @@ import json
 import yaml
 import subprocess
 import pytest
+from pathlib import Path
 
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
@@ -177,6 +178,24 @@ def test_validSession_validUseCase_DeployWindow(qtbot):
     assert widget._path_to_model == local_path_to_model
     assert widget._path_to_label_list == local_path_to_label_list
     assert widget.usecase_mode == 0
+
+
+def test_window_paths_resolve_from_different_cwd(qtbot, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    deploy_window = DeployWindow(True)
+    train_window = TrainWindow(True)
+    main_window = MainWindow()
+    qtbot.addWidget(deploy_window)
+    qtbot.addWidget(train_window)
+    qtbot.addWidget(main_window)
+
+    assert Path(deploy_window._path_to_session_config).is_absolute()
+    assert Path(deploy_window._path_to_usecase_config).is_absolute()
+    assert Path(deploy_window._deploy_script_path()).is_absolute()
+    assert Path(train_window._list_path('p2_model_list.txt')).is_file()
+    assert len(train_window._model_list) > 0
+    assert Path(main_window._image_path('train.png')).is_file()
 
 
 @pytest.mark.parametrize(

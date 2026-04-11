@@ -19,6 +19,7 @@ import subprocess
 import logging
 import threading
 import time
+from pathlib import Path
 from collections import deque
 
 try:
@@ -257,6 +258,10 @@ class DeployWindow(QWidget):
     that is called by MainWindow class in order to configure a custom session
     and write to session_config.json.
     '''
+    _MODULE_DIR = Path(__file__).resolve().parent
+    _GUI_DIR = _MODULE_DIR.parent
+    _PACKAGE_ROOT = _GUI_DIR.parent
+
     DEFAULT_MODEL_PATH = './data/model/MaskRCNN-10.onnx'
     DEFAULT_LABEL_LIST_PATH = './data/label_list/coco_classes.txt'
     DEFAULT_INPUT_TOPIC = '/camera/camera/color/image_raw'
@@ -285,7 +290,7 @@ class DeployWindow(QWidget):
         self._DEPLOY_WIN_H = 540
         self._DEPLOY_WIN_W = 500
 
-        self.setWindowIcon(QIcon("img/epd_desktop.png"))
+        self.setWindowIcon(QIcon(self._image_path("epd_desktop.png")))
 
         self._deploy_process = None
         self._kill_process = None
@@ -309,10 +314,10 @@ class DeployWindow(QWidget):
         self._topics_worker_thread = None
         self._topics_worker = None
 
-        self._path_to_session_config = ('../config/session_config.json')
-        self._path_to_usecase_config = ('../config/usecase_config.json')
-        self._path_to_input_image_json_file = (
-            '../config/input_image_topic.json')
+        self._path_to_session_config = str(self._config_path('session_config.json'))
+        self._path_to_usecase_config = str(self._config_path('usecase_config.json'))
+        self._path_to_input_image_json_file = str(
+            self._config_path('input_image_topic.json'))
 
         self.usecase_list = [
             'Classification',
@@ -463,15 +468,11 @@ class DeployWindow(QWidget):
         # ONNX Model to set the path to ONNX model and
         # store in session_config.json
         self.model_button = QPushButton('ONNX Model', self)
-        self.model_button.setIcon(QIcon('img/model.png'))
+        self.model_button.setIcon(QIcon(self._image_path('model.png')))
         self.model_button.setIconSize(QSize(75, 75))
         self.model_button.setMinimumHeight(80)
 
-        index = self._path_to_model.find('data/model')
-        if index == -1:
-            model_path = self._path_to_model
-        else:
-            model_path = '../' + self._path_to_model[index:]
+        model_path = self.resolveFilePath(self._path_to_model)
         if self.doesFileExist(model_path):
             self.model_button.setStyleSheet(
                 'background-color: rgba(0,150,10,255);')
@@ -482,15 +483,11 @@ class DeployWindow(QWidget):
         # Label List to set the path to ONNX model
         # and store in session_config.json
         self.list_button = QPushButton('Label List', self)
-        self.list_button.setIcon(QIcon('img/label_list.png'))
+        self.list_button.setIcon(QIcon(self._image_path('label_list.png')))
         self.list_button.setIconSize(QSize(75, 75))
         self.list_button.setMinimumHeight(80)
 
-        index = self._path_to_label_list.find('data/label_list')
-        if index == -1:
-            label_list_path = self._path_to_label_list
-        else:
-            label_list_path = '../' + self._path_to_label_list[index:]
+        label_list_path = self.resolveFilePath(self._path_to_label_list)
         if self.doesFileExist(label_list_path):
             self.list_button.setStyleSheet(
                 'background-color: rgba(0,150,10,255);')
@@ -586,7 +583,7 @@ class DeployWindow(QWidget):
         # Run button to deploy ROS2 package with info
         # from usecase_config.json and session_config.json
         self.run_button = QPushButton('Run', self)
-        self.run_button.setIcon(QIcon('img/go.png'))
+        self.run_button.setIcon(QIcon(self._image_path('go.png')))
         self.run_button.setIconSize(QSize(100, 100))
         self.run_button.setMinimumHeight(100)
 
@@ -752,7 +749,7 @@ class DeployWindow(QWidget):
                 'deploy',
                 cwd=self._scripts_dir())
             self.run_button.setText('Stop')
-            self.run_button.setIcon(QIcon('img/quit.png'))
+            self.run_button.setIcon(QIcon(self._image_path('quit.png')))
             self.run_button.setIconSize(QSize(100, 100))
             self.run_button.updateGeometry()
             self._is_running = True
@@ -767,26 +764,25 @@ class DeployWindow(QWidget):
             'kill',
             cwd=self._scripts_dir())
         self.run_button.setText('Run')
-        self.run_button.setIcon(QIcon('img/go.png'))
+        self.run_button.setIcon(QIcon(self._image_path('go.png')))
         self.run_button.setIconSize(QSize(100, 100))
         self.run_button.updateGeometry()
         self._is_running = False
         self.status_label.setText('Stopped')
 
     def _scripts_dir(self):
-        return os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "scripts"))
+        return self._GUI_DIR / "scripts"
 
     def _deploy_script_path(self):
-        return os.path.join(self._scripts_dir(), "deploy.sh")
+        return str(self._scripts_dir() / "deploy.sh")
 
     def _kill_script_path(self):
-        return os.path.join(self._scripts_dir(), "kill.sh")
+        return str(self._scripts_dir() / "kill.sh")
 
     def _process_log_path(self, process_type):
-        logs_dir = os.path.join(self._scripts_dir(), "logs")
-        os.makedirs(logs_dir, exist_ok=True)
-        return os.path.join(logs_dir, f"{process_type}.log")
+        logs_dir = self._scripts_dir() / "logs"
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        return str(logs_dir / f"{process_type}.log")
 
     def _close_process_log_file(self, process_type):
         log_attr = f"_{process_type}_log_file"
@@ -840,7 +836,7 @@ class DeployWindow(QWidget):
 
     def _handle_process_error(self, process_type):
         self.run_button.setText('Run')
-        self.run_button.setIcon(QIcon('img/go.png'))
+        self.run_button.setIcon(QIcon(self._image_path('go.png')))
         self.run_button.setIconSize(QSize(100, 100))
         self.run_button.updateGeometry()
         self._is_running = False
@@ -1010,7 +1006,7 @@ class DeployWindow(QWidget):
                     QFileDialog.getOpenFileName(
                         self,
                         'Set the .png/.jpg color image to use',
-                        os.path.abspath('../data'),
+                        str(self._data_dir()),
                         'Image Files (*.png *.jpg *.jpeg)'))
             else:
                 input_refimage_filepath = 'dummy_filepath_to_refimage'
@@ -1097,20 +1093,14 @@ class DeployWindow(QWidget):
             input_model_filepath, ok = (
                 QFileDialog.getOpenFileName(self,
                                             'Set the .onnx model to use',
-                                            os.path.abspath('../data'),
+                                            str(self._data_dir()),
                                             'ONNX Model Files (*.onnx)'))
         else:
             input_model_filepath = 'dummy_model_filepath'
             ok = True
 
         if ok:
-            self._path_to_model = input_model_filepath
-
-            index = input_model_filepath.find('/data/model')
-            if index == -1:
-                self._path_to_model = input_model_filepath
-            else:
-                self._path_to_model = '.' + input_model_filepath[index:]
+            self._path_to_model = self._normalize_data_path(input_model_filepath)
         else:
             self.deploy_logger.warning('No ONNX model set.')
             return
@@ -1126,7 +1116,7 @@ class DeployWindow(QWidget):
             input_classes_filepath, ok = (
                 QFileDialog.getOpenFileName(self,
                                             'Set the .json to use',
-                                            os.path.abspath('../data'),
+                                            str(self._data_dir()),
                                             'Text Files (*.txt)'))
         else:
             input_classes_filepath = 'dummy_label_list_filepath'
@@ -1155,11 +1145,7 @@ class DeployWindow(QWidget):
                 msgBox.exec()
             return
 
-        index = input_classes_filepath.find('/data/label_list')
-        if index == -1:
-            self._path_to_label_list = input_classes_filepath
-        else:
-            self._path_to_label_list = '.' + input_classes_filepath[index:]
+        self._path_to_label_list = self._normalize_data_path(input_classes_filepath)
 
         self.list_button.setStyleSheet('background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
@@ -1194,12 +1180,26 @@ class DeployWindow(QWidget):
         expanded_path = os.path.expandvars(os.path.expanduser(input_filepath))
         if os.path.isabs(expanded_path):
             return expanded_path
-        return os.path.abspath(os.path.join(self._package_root(), expanded_path))
+        return str((self._PACKAGE_ROOT / expanded_path).resolve())
 
-    @staticmethod
-    def _package_root():
-        '''Return the package root containing config/ and data/.'''
-        return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    def _data_dir(self):
+        return self._PACKAGE_ROOT / 'data'
+
+    def _normalize_data_path(self, filepath):
+        if not filepath:
+            return filepath
+        resolved = Path(filepath).expanduser().resolve()
+        try:
+            relative_to_data = resolved.relative_to(self._data_dir())
+            return str(Path('.') / 'data' / relative_to_data)
+        except ValueError:
+            return str(resolved)
+
+    def _config_path(self, filename):
+        return self._PACKAGE_ROOT / 'config' / filename
+
+    def _image_path(self, image_name):
+        return str(self._GUI_DIR / 'img' / image_name)
 
     def _set_readiness_row(self, label, name, is_ready, detail):
         state_icon = '✅' if is_ready else '❌'

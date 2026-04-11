@@ -18,6 +18,7 @@ import json
 import yaml
 import subprocess
 import pytest
+import shutil
 from pathlib import Path
 
 from trainer.P2Trainer import P2Trainer
@@ -30,6 +31,7 @@ from windows.Train import TrainWindow
 
 from datetime import date
 from PySide6 import QtCore
+from PySide6.QtWidgets import QMessageBox
 
 # Clear all stored session_config.json usecase_config.json
 if (os.path.exists('../config/session_config.json') and
@@ -739,3 +741,89 @@ def test_checkGPUAvailability_P3Trainer_no_shell_true():
 
     src = inspect.getsource(_P3T.checkGPUAvailability)
     assert 'shell=True' not in src
+
+
+def _prepare_annotated_dataset(tmp_path):
+    labelled = tmp_path / 'labelled'
+    train = labelled / 'train_dataset'
+    val = labelled / 'val_dataset'
+    train.mkdir(parents=True)
+    val.mkdir(parents=True)
+    (train / 'img.jpg').write_bytes(b'jpg')
+    (train / 'img.json').write_text('{}', encoding='utf-8')
+    (val / 'img.jpg').write_bytes(b'jpg')
+    (val / 'img.json').write_text('{}', encoding='utf-8')
+    return labelled
+
+
+def test_conform_dataset_overwrite_permission_denied(qtbot, tmp_path, monkeypatch):
+    widget = TrainWindow(True)
+    qtbot.addWidget(widget)
+
+    data_dir = tmp_path / 'data'
+    custom_dataset_dir = data_dir / 'datasets' / 'custom_dataset'
+    custom_dataset_dir.mkdir(parents=True)
+    labelled = _prepare_annotated_dataset(tmp_path)
+    label_list = tmp_path / 'labels.txt'
+    label_list.write_text('item\n', encoding='utf-8')
+
+    widget._path_to_label_list = str(label_list)
+    widget._path_to_dataset = str(labelled)
+    monkeypatch.setattr(widget, '_data_dir', lambda: data_dir)
+
+    warnings = []
+    monkeypatch.setattr(QMessageBox, 'warning', lambda *args: warnings.append(args))
+    monkeypatch.setattr(
+        shutil,
+        'rmtree',
+        lambda *args, **kwargs: (_ for _ in ()).throw(PermissionError('denied')))
+
+    run_calls = []
+    monkeypatch.setattr(subprocess, 'run', lambda *args, **kwargs: run_calls.append((args, kwargs)))
+
+    widget.conformDatasetToCOCO()
+
+    assert len(warnings) == 1
+    assert 'Failed to remove existing custom_dataset folder.' in warnings[0][3]
+    assert run_calls == []
+
+
+def test_conform_dataset_overwrite_missing_directory_continues(
+        qtbot, tmp_path, monkeypatch):
+    widget = TrainWindow(True)
+    qtbot.addWidget(widget)
+
+    data_dir = tmp_path / 'data'
+    custom_dataset_dir = data_dir / 'datasets' / 'custom_dataset'
+    custom_dataset_dir.mkdir(parents=True)
+    labelled = _prepare_annotated_dataset(tmp_path)
+    label_list = tmp_path / 'labels.txt'
+    label_list.write_text('item\n', encoding='utf-8')
+
+    widget._path_to_label_list = str(label_list)
+    widget._path_to_dataset = str(labelled)
+    monkeypatch.setattr(widget, '_data_dir', lambda: data_dir)
+    monkeypatch.setattr(QMessageBox, 'warning', lambda *args: None)
+
+    def _raise_missing(*args, **kwargs):
+        raise FileNotFoundError('already removed')
+
+    monkeypatch.setattr(shutil, 'rmtree', _raise_missing)
+
+    run_calls = []
+
+    class _Completed:
+        returncode = 0
+
+    def _fake_run(*args, **kwargs):
+        run_calls.append((args, kwargs))
+        return _Completed()
+
+    monkeypatch.setattr(subprocess, 'run', _fake_run)
+    monkeypatch.setattr(widget, 'validateDataset', lambda path: None)
+
+    widget.conformDatasetToCOCO()
+
+    assert len(run_calls) == 2
+    for call_args, _ in run_calls:
+        assert call_args[0][0] == os.sys.executable

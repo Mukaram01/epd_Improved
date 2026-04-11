@@ -14,6 +14,7 @@
 
 import os
 import glob
+import sys
 import threading
 import subprocess
 import logging
@@ -705,44 +706,91 @@ class TrainWindow(QWidget):
                     self.update_training_readiness()
                     return
             try:
-                shutil.rmtree(custom_dataset_dir)
+                shutil.rmtree(custom_dataset_dir, ignore_errors=False)
+            except FileNotFoundError:
+                self.train_logger.warning(
+                    'Pre-existing custom_dataset was already removed: %s',
+                    custom_dataset_dir)
             except OSError as e:
                 self.train_logger.error(
-                    'Failed to remove pre-existing custom_dataset: ' + str(e))
+                    'Failed to remove pre-existing custom_dataset %s: %s',
+                    custom_dataset_dir, e)
                 QMessageBox.warning(
                     self,
                     'Dataset Generation Failed',
                     'Failed to remove existing custom_dataset folder.')
                 return
 
-        self.label_train_process = (
-            subprocess.Popen([
-                'python',
-                str(self._dataset_script_path()),
-                '--labels',
-                self._path_to_label_list,
-                PATH_TO_TRAIN_DATASET,
-                outputTrainDir],
-                cwd=str(self._GUI_DIR)))
-        if not self.debug:
-            self.label_train_process.communicate()
-        self.label_val_process = (
-            subprocess.Popen([
-                'python',
-                str(self._dataset_script_path()),
-                '--labels',
-                self._path_to_label_list,
-                PATH_TO_VAL_DATASET,
-                outputValDir],
-                cwd=str(self._GUI_DIR)))
-        if not self.debug:
-            self.label_val_process.communicate()
+        train_cmd = [
+            sys.executable,
+            str(self._dataset_script_path()),
+            '--labels',
+            self._path_to_label_list,
+            PATH_TO_TRAIN_DATASET,
+            outputTrainDir]
+        val_cmd = [
+            sys.executable,
+            str(self._dataset_script_path()),
+            '--labels',
+            self._path_to_label_list,
+            PATH_TO_VAL_DATASET,
+            outputValDir]
+
+        if not self._run_dataset_conversion(
+                train_cmd, context='train_dataset conversion'):
+            return
+        if not self._run_dataset_conversion(
+                val_cmd, context='val_dataset conversion'):
+            return
         self._path_to_dataset = str(custom_dataset_dir)
         self.validateDataset(self._path_to_dataset)
         self.training_status_label.setText(
             'Dataset conversion complete. '
             'Validate training readiness before training.')
         self.update_training_readiness()
+
+    def _run_dataset_conversion(self, cmd, context, timeout_sec=300):
+        self.train_logger.info('Running dataset conversion [%s]: %s', context, cmd)
+        try:
+            completed = subprocess.run(
+                cmd,
+                cwd=str(self._GUI_DIR),
+                check=True,
+                timeout=timeout_sec,
+                capture_output=True,
+                text=True)
+        except subprocess.TimeoutExpired:
+            self.train_logger.error(
+                'Dataset conversion timed out [%s] command=%s timeout=%ss',
+                context, cmd, timeout_sec)
+            QMessageBox.warning(
+                self,
+                'Dataset Generation Failed',
+                f'Dataset generation timed out during {context}.')
+            return False
+        except subprocess.CalledProcessError as e:
+            self.train_logger.error(
+                'Dataset conversion failed [%s] command=%s returncode=%s stderr=%s',
+                context, cmd, e.returncode, e.stderr)
+            QMessageBox.warning(
+                self,
+                'Dataset Generation Failed',
+                f'Dataset generation failed during {context}.')
+            return False
+        except OSError as e:
+            self.train_logger.error(
+                'Failed to invoke dataset conversion [%s] command=%s: %s',
+                context, cmd, e)
+            QMessageBox.warning(
+                self,
+                'Dataset Generation Failed',
+                f'Failed to run dataset generation during {context}.')
+            return False
+
+        self.train_logger.debug(
+            'Dataset conversion completed [%s] returncode=%s',
+            context, completed.returncode)
+        return True
 
     def populateModelSelector(self):
         '''

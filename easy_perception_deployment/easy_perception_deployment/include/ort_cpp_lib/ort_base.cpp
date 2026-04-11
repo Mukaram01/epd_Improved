@@ -14,6 +14,8 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <cctype>
+#include <cstdlib>
 #include <functional>
 #include <utility>
 #include <numeric>
@@ -52,7 +54,8 @@ public:
     const std::string & modelPath,         //
     const boost::optional<size_t> & gpuIdx,  //
     const boost::optional<int> & intraOpNumThreads,
-    const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes);
+    const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
+    const boost::optional<bool> & logModelInfo);
   ~OrtBaseImpl();
 
   int getNumOutputs(void);
@@ -61,6 +64,7 @@ public:
 private:
   void initSession();
   void initModelInfo();
+  void logModelInfo() const;
 
   Ort::Session m_session;
   Ort::Env m_env;
@@ -81,6 +85,7 @@ private:
   uint8_t m_numOutputs;
   std::string m_modelPath;
   bool m_inputShapesProvided = false;
+  bool m_logModelInfo = false;
 };
 
 // Constructor
@@ -88,8 +93,11 @@ OrtBase::OrtBase(
   const std::string & modelPath,
   const boost::optional<size_t> & gpuIdx,
   const boost::optional<int> & intraOpNumThreads,
-  const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes)
-: base_impl_(std::make_unique<OrtBaseImpl>(modelPath, gpuIdx, intraOpNumThreads, inputShapes))
+  const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
+  const boost::optional<bool> & logModelInfo)
+: base_impl_(
+    std::make_unique<OrtBaseImpl>(
+      modelPath, gpuIdx, intraOpNumThreads, inputShapes, logModelInfo))
 {}
 
 // Destructor
@@ -105,12 +113,31 @@ int OrtBase::getNumOutputs()
   return base_impl_->getNumOutputs();
 }
 
+bool OrtBase::resolveModelInfoLoggingEnabled(const boost::optional<bool> & logModelInfo)
+{
+  if (logModelInfo.is_initialized()) {
+    return logModelInfo.value();
+  }
+
+  const char * envModelInfo = std::getenv("EPD_LOG_MODEL_INFO");
+  if (envModelInfo == nullptr) {
+    return false;
+  }
+
+  std::string envValue(envModelInfo);
+  std::transform(
+    envValue.begin(), envValue.end(), envValue.begin(),
+    [](unsigned char c) {return static_cast<char>(std::tolower(c));});
+  return envValue == "1" || envValue == "true" || envValue == "yes" || envValue == "on";
+}
+
 // Constructor
 OrtBase::OrtBaseImpl::OrtBaseImpl(
   const std::string & modelPath,         //
   const boost::optional<size_t> & gpuIdx,  //
   const boost::optional<int> & intraOpNumThreads,
-  const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes)
+  const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
+  const boost::optional<bool> & logModelInfo)
 : m_session(nullptr),
   m_env(nullptr),
   m_ortAllocator(),
@@ -122,7 +149,8 @@ OrtBase::OrtBaseImpl::OrtBaseImpl(
   m_outputShapes(),
   m_numInputs(0),
   m_numOutputs(0),
-  m_modelPath(modelPath)
+  m_modelPath(modelPath),
+  m_logModelInfo(OrtBase::resolveModelInfoLoggingEnabled(logModelInfo))
 {
   this->initSession();
 
@@ -217,19 +245,6 @@ void OrtBase::OrtBaseImpl::initModelInfo()
     m_ortAllocator.Free(inputName);
   }
 
-  {
-  #if PRINT_MODEL_INFO
-    std::stringstream ssInputs;
-    ssInputs << "Input shapes: ";
-    ssInputs << m_inputShapes << std::endl;
-    ssInputs << "Input node names: ";
-    ssInputs << m_inputNodeNames << std::endl;
-    ssInputs << "Input length: ";
-    ssInputs << unsigned(m_numInputs) << std::endl;
-    printf("%s\n", ssInputs.str().c_str());
-  #endif
-  }
-
   for (int i = 0; i < m_numOutputs; ++i) {
     Ort::TypeInfo typeInfo = m_session.GetOutputTypeInfo(i);
     auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
@@ -241,28 +256,26 @@ void OrtBase::OrtBaseImpl::initModelInfo()
     m_ortAllocator.Free(outputName);
   }
 
-  {
   #if PRINT_MODEL_INFO
-    std::stringstream ssOutputs;
-    ssOutputs << "Output shapes: ";
-    ssOutputs << m_outputShapes << std::endl;
-    ssOutputs << "Output node names: ";
-    ssOutputs << m_outputNodeNames << std::endl;
-    ssOutputs << "Output length: ";
-    ssOutputs << unsigned(m_numOutputs) << std::endl;
-    printf("%s\n", ssOutputs.str().c_str());
-  #endif
+  this->logModelInfo();
+  #else
+  if (m_logModelInfo) {
+    this->logModelInfo();
   }
-  // TODO(cardboardcode) To allow flexible printing of model info for DEBUG.
-  // DEBUG Print out model output shapes and node names.
-  // std::stringstream ssOutputs;
-  // ssOutputs << "Model output shapes: ";
-  // ssOutputs << m_outputShapes << std::endl;
-  // ssOutputs << "Model output node names: ";
-  // ssOutputs << m_outputNodeNames << std::endl;
-  // ssOutputs << "Model output length: ";
-  // ssOutputs << unsigned(m_numOutputs) << std::endl;
-  // std::cout << ssOutputs.str().c_str()  << std::endl;
+  #endif
+}
+
+void OrtBase::OrtBaseImpl::logModelInfo() const
+{
+  std::stringstream ss;
+  ss << "Model IO info\n";
+  ss << "Input count: " << unsigned(m_numInputs) << "\n";
+  ss << "Input node names: " << m_inputNodeNames << "\n";
+  ss << "Input shapes: " << m_inputShapes << "\n";
+  ss << "Output count: " << unsigned(m_numOutputs) << "\n";
+  ss << "Output node names: " << m_outputNodeNames << "\n";
+  ss << "Output shapes: " << m_outputShapes << "\n";
+  std::cout << ss.str();
 }
 
 // Run ORT session on processed input image.

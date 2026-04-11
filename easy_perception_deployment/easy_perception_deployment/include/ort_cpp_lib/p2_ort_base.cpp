@@ -36,8 +36,9 @@ P2OrtBase::P2OrtBase(
   const std::string & modelPath,
   const boost::optional<size_t> & gpuIdx,
   const boost::optional<int> & intraOpNumThreads,
-  const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes)
-: OrtBase(modelPath, gpuIdx, intraOpNumThreads, inputShapes),
+  const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
+  const boost::optional<bool> & logModelInfo)
+: OrtBase(modelPath, gpuIdx, intraOpNumThreads, inputShapes, logModelInfo),
   m_numClasses(numClasses),
   m_ratio(ratio),
   m_newW(newW),

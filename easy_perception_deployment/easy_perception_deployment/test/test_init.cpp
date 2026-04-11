@@ -14,6 +14,7 @@
 // limitations under the License.
 
 #include <jsoncpp/json/json.h>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -21,6 +22,7 @@
 #include "gtest/gtest.h"
 #include "bits/stdc++.h"
 #include "epd_utils_lib/epd_container.hpp"
+#include "ort_cpp_lib/ort_base.hpp"
 
 std::string PATH_TO_SESSION_CONFIG(PATH_TO_PACKAGE "/config/session_config.json");
 std::string PATH_TO_USECASE_CONFIG(PATH_TO_PACKAGE "/config/usecase_config.json");
@@ -89,6 +91,18 @@ TEST(EPD_TestSuite, Test_setInitBoolean_EPDContainer)
   EXPECT_EQ(ortAgent_->isInit(), false);
   ortAgent_->setInitBoolean(true);
   EXPECT_EQ(ortAgent_->isInit(), true);
+}
+
+TEST(EPD_TestSuite, Test_resolveModelInfoLoggingEnabled_OrtBase)
+{
+  unsetenv("EPD_LOG_MODEL_INFO");
+  EXPECT_FALSE(Ort::OrtBase::resolveModelInfoLoggingEnabled(boost::none));
+
+  setenv("EPD_LOG_MODEL_INFO", "true", 1);
+  EXPECT_TRUE(Ort::OrtBase::resolveModelInfoLoggingEnabled(boost::none));
+
+  EXPECT_FALSE(Ort::OrtBase::resolveModelInfoLoggingEnabled(false));
+  EXPECT_TRUE(Ort::OrtBase::resolveModelInfoLoggingEnabled(true));
 }
 
 int main(int argc, char ** argv)

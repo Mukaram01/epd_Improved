@@ -825,6 +825,18 @@ class DeployWindow(QWidget):
 
         timer.stop()
         self._close_process_log_file(process_type)
+        if process_type == 'kill':
+            kill_result = self._get_kill_status_from_log()
+            if process.returncode == 0:
+                self.status_label.setText(
+                    'Stopped' if kill_result == 'STOPPED'
+                    else 'Stopped (already stopped)')
+                return
+            if process.returncode == 2 and kill_result == 'PARTIAL_CLEANUP':
+                self.status_label.setText('Stopped (partial cleanup)')
+                self._show_kill_partial_cleanup_warning()
+                return
+
         if process.returncode != 0:
             self._handle_process_error(process_type)
             return
@@ -833,6 +845,29 @@ class DeployWindow(QWidget):
             self.status_label.setText('Stopped')
         elif process_type == 'deploy':
             self.status_label.setText('Running...')
+
+    def _get_kill_status_from_log(self):
+        kill_log = self._tail_process_log('kill', max_chars=4000)
+        if 'STATUS: PARTIAL_CLEANUP' in kill_log:
+            return 'PARTIAL_CLEANUP'
+        if 'STATUS: ALREADY_STOPPED' in kill_log:
+            return 'ALREADY_STOPPED'
+        if 'STATUS: STOPPED' in kill_log:
+            return 'STOPPED'
+        return None
+
+    def _show_kill_partial_cleanup_warning(self):
+        log_tail = self._tail_process_log('kill')
+        message_lines = [
+            "Stop completed with partial cleanup.",
+            "",
+            "Some processes may still be running. See log output:",
+            log_tail
+        ]
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Warning)
+        msgBox.setText('\n'.join(message_lines))
+        msgBox.exec()
 
     def _handle_process_error(self, process_type):
         self.run_button.setText('Run')

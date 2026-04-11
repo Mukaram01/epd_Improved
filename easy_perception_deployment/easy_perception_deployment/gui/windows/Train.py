@@ -17,6 +17,8 @@ import glob
 import threading
 import subprocess
 import logging
+from pathlib import Path
+import shutil
 from ast import literal_eval as make_tuple
 
 from PySide6.QtCore import QSize, Qt
@@ -34,6 +36,10 @@ class TrainWindow(QWidget):
     that is called by MainWindow class in order to configure a custom training
     session and initiates training for a selected Precision-Level.
     '''
+    _MODULE_DIR = Path(__file__).resolve().parent
+    _GUI_DIR = _MODULE_DIR.parent
+    _PACKAGE_ROOT = _GUI_DIR.parent
+
     def __init__(self, debug=False):
         '''
         The constructor.
@@ -50,7 +56,7 @@ class TrainWindow(QWidget):
         self._TRAIN_WIN_W = 500
         self._ROW_THICKNESS = 100
 
-        self.setWindowIcon(QIcon("img/epd_desktop.png"))
+        self.setWindowIcon(QIcon(self._image_path("epd_desktop.png")))
 
         self.model_name = ''
         self._model_list = []
@@ -105,7 +111,7 @@ class TrainWindow(QWidget):
 
         # Labeller button to initiate labelme
         self.label_button = QPushButton('Label Dataset', self)
-        self.label_button.setIcon(QIcon('img/label_labelme.png'))
+        self.label_button.setIcon(QIcon(self._image_path('label_labelme.png')))
         self.label_button.setIconSize(QSize(50, 50))
         self.label_button.setFixedHeight(self._ROW_THICKNESS)
         self.label_button.setStyleSheet(
@@ -114,7 +120,7 @@ class TrainWindow(QWidget):
             self.label_button.hide()
 
         self.generate_button = QPushButton('Generate Dataset', self)
-        self.generate_button.setIcon(QIcon('img/label_generate.png'))
+        self.generate_button.setIcon(QIcon(self._image_path('label_generate.png')))
         self.generate_button.setIconSize(QSize(50, 50))
         self.generate_button.setFixedHeight(self._ROW_THICKNESS)
         self.generate_button.setStyleSheet(
@@ -122,20 +128,20 @@ class TrainWindow(QWidget):
 
         # Labeller button to initiate labelme
         self.validate_button = QPushButton('Validate Training', self)
-        self.validate_button.setIcon(QIcon('img/validate.png'))
+        self.validate_button.setIcon(QIcon(self._image_path('validate.png')))
         self.validate_button.setIconSize(QSize(50, 50))
         self.validate_button.setFixedHeight(self._ROW_THICKNESS)
 
         # Dataset button to prompt input via FileDialogue
         self.dataset_button = QPushButton('Choose Dataset', self)
-        self.dataset_button.setIcon(QIcon('img/dataset.png'))
+        self.dataset_button.setIcon(QIcon(self._image_path('dataset.png')))
         self.dataset_button.setIconSize(QSize(50, 50))
         self.dataset_button.setFixedHeight(self._ROW_THICKNESS)
         self.dataset_button.setStyleSheet('background-color: red;')
 
         # Start Training button to start and display training process
         self.train_button = QPushButton('Train', self)
-        self.train_button.setIcon(QIcon('img/train.png'))
+        self.train_button.setIcon(QIcon(self._image_path('train.png')))
         self.train_button.setIconSize(QSize(75, 75))
         self.train_button.setFixedHeight(self._ROW_THICKNESS)
         self.train_button.setStyleSheet(
@@ -144,7 +150,7 @@ class TrainWindow(QWidget):
 
         # Set Label List
         self.list_button = QPushButton('Choose Label List', self)
-        self.list_button.setIcon(QIcon('img/label_list.png'))
+        self.list_button.setIcon(QIcon(self._image_path('label_list.png')))
         self.list_button.setIconSize(QSize(75, 75))
         self.list_button.setFixedHeight(self._ROW_THICKNESS)
         self.list_button.setStyleSheet(
@@ -261,17 +267,18 @@ class TrainWindow(QWidget):
                 QFileDialog.getOpenFileName(
                     self,
                     'Set the .txt to use',
-                    os.path.abspath('../data'),
+                    str(self._data_dir()),
                     'Text Files (*.txt)'))
         else:
-            input_classes_filepath = '../data/label_list/coco_classes.txt'
+            input_classes_filepath = str(
+                self._data_dir() / 'label_list' / 'coco_classes.txt')
             ok = True
 
         if ok:
             self._path_to_label_list = input_classes_filepath
-            self._label_list = [
-                line.rstrip('\n') for line in
-                open(input_classes_filepath)]
+            with open(input_classes_filepath, encoding='utf-8') as class_file:
+                self._label_list = [
+                    line.rstrip('\n') for line in class_file]
         else:
             self.train_logger.warning('No label list set.')
             self._is_labellist_linked = False
@@ -290,19 +297,19 @@ class TrainWindow(QWidget):
                 QFileDialog.getExistingDirectory(
                     self,
                     'Set directory of the dataset',
-                    os.path.abspath('../data'),
+                    str(self._data_dir()),
                     QFileDialog.ShowDirsOnly
                     | QFileDialog.
                     DontResolveSymlinks))
 
         else:
-            new_filepath_to_dataset = '../data/datasets'
+            new_filepath_to_dataset = str(self._data_dir() / 'datasets')
 
         if not new_filepath_to_dataset:
             self.train_logger.warning('No dataset directory selected.')
             self._is_dataset_linked = False
             self._is_dataset_labelled = False
-            self.dataset_button.setIcon(QIcon('img/dataset.png'))
+            self.dataset_button.setIcon(QIcon(self._image_path('dataset.png')))
             self.dataset_button.setStyleSheet('background-color: red;')
             self.training_status_label.setText(
                 'Dataset directory was not selected. '
@@ -480,7 +487,7 @@ class TrainWindow(QWidget):
             self.train_logger.info('[ SUCCESS ] - Training Dataset VALID.')
             # Set button color to green
             self._is_dataset_linked = True
-            self.dataset_button.setIcon(QIcon('img/valid_dataset.png'))
+            self.dataset_button.setIcon(QIcon(self._image_path('valid_dataset.png')))
             self.dataset_button.setStyleSheet(
                 'background-color: rgba(0,200,10,255);')
         else:
@@ -488,7 +495,7 @@ class TrainWindow(QWidget):
             self.train_logger.warning(
                 'Invalid Dataset. Please choose another.')
             self._is_dataset_linked = False
-            self.dataset_button.setIcon(QIcon('img/dataset.png'))
+            self.dataset_button.setIcon(QIcon(self._image_path('dataset.png')))
             self.dataset_button.setStyleSheet('background-color: red;')
         self.update_training_readiness()
 
@@ -544,7 +551,7 @@ class TrainWindow(QWidget):
                 QFileDialog.getExistingDirectory(
                     self,
                     'Select your labeled dataset.',
-                    os.path.abspath('../data'),
+                    str(self._data_dir()),
                     QFileDialog.ShowDirsOnly
                     | QFileDialog.DontResolveSymlinks))
         else:
@@ -667,8 +674,9 @@ class TrainWindow(QWidget):
                 'Unequal images and json files in /val_dataset.')
             return
 
-        outputTrainDir = '../data/datasets/custom_dataset/train_dataset'
-        outputValDir = '../data/datasets/custom_dataset/val_dataset'
+        outputTrainDir = str(self._data_dir() / 'datasets' / 'custom_dataset' / 'train_dataset')
+        outputValDir = str(self._data_dir() / 'datasets' / 'custom_dataset' / 'val_dataset')
+        custom_dataset_dir = self._data_dir() / 'datasets' / 'custom_dataset'
 
         if self._path_to_label_list == '':
             self.train_logger.error('No Label List provided. ' +
@@ -679,7 +687,7 @@ class TrainWindow(QWidget):
             self.update_training_readiness()
             return
 
-        if os.path.exists("../data/datasets/custom_dataset"):
+        if custom_dataset_dir.exists():
             self.train_logger.warning('Pre-existing /custom_dataset FOUND.')
             if not self.debug:
                 reply = QMessageBox.question(
@@ -697,10 +705,8 @@ class TrainWindow(QWidget):
                     self.update_training_readiness()
                     return
             try:
-                subprocess.run(
-                    ['rm', '-rf', '../data/datasets/custom_dataset'],
-                    check=True)
-            except subprocess.CalledProcessError as e:
+                shutil.rmtree(custom_dataset_dir)
+            except OSError as e:
                 self.train_logger.error(
                     'Failed to remove pre-existing custom_dataset: ' + str(e))
                 QMessageBox.warning(
@@ -712,24 +718,26 @@ class TrainWindow(QWidget):
         self.label_train_process = (
             subprocess.Popen([
                 'python',
-                'dataset/labelme2coco.py',
+                str(self._dataset_script_path()),
                 '--labels',
                 self._path_to_label_list,
                 PATH_TO_TRAIN_DATASET,
-                outputTrainDir]))
+                outputTrainDir],
+                cwd=str(self._GUI_DIR)))
         if not self.debug:
             self.label_train_process.communicate()
         self.label_val_process = (
             subprocess.Popen([
                 'python',
-                'dataset/labelme2coco.py',
+                str(self._dataset_script_path()),
                 '--labels',
                 self._path_to_label_list,
                 PATH_TO_VAL_DATASET,
-                outputValDir]))
+                outputValDir],
+                cwd=str(self._GUI_DIR)))
         if not self.debug:
             self.label_val_process.communicate()
-        self._path_to_dataset = '../data/datasets/custom_dataset'
+        self._path_to_dataset = str(custom_dataset_dir)
         self.validateDataset(self._path_to_dataset)
         self.training_status_label.setText(
             'Dataset conversion complete. '
@@ -744,14 +752,14 @@ class TrainWindow(QWidget):
         # Implement different model list based on different precision level.
         list_path = ''
         if self._precision_level == 2:
-            list_path = './lists/p2_model_list.txt'
+            list_path = self._list_path('p2_model_list.txt')
         elif self._precision_level == 3:
-            list_path = './lists/p3_model_list.txt'
+            list_path = self._list_path('p3_model_list.txt')
 
         if list_path:
             try:
                 self._model_list = [
-                    line.rstrip('\n') for line in open(list_path)]
+                    line.rstrip('\n') for line in open(list_path, encoding='utf-8')]
             except FileNotFoundError:
                 self.train_logger.error(
                     'Model list file not found: ' + list_path)
@@ -759,7 +767,7 @@ class TrainWindow(QWidget):
                 QMessageBox.warning(
                     self,
                     'Model List Missing',
-                    'Model list file not found:\n' + list_path +
+                    'Model list file not found:\n' + str(list_path) +
                     '\n\nPlease ensure the lists/ directory exists.')
 
         self.model_selector.clear()
@@ -782,6 +790,18 @@ class TrainWindow(QWidget):
                 'background-color: rgba(255,255,255,255);')
             self.train_button.updateGeometry()
             self.buttonConnected = True
+
+    def _data_dir(self):
+        return self._PACKAGE_ROOT / 'data'
+
+    def _image_path(self, image_name):
+        return str(self._GUI_DIR / 'img' / image_name)
+
+    def _list_path(self, filename):
+        return str(self._GUI_DIR / 'lists' / filename)
+
+    def _dataset_script_path(self):
+        return (self._GUI_DIR / 'dataset' / 'labelme2coco.py').resolve()
 
     def disconnectTrainingButton(self):
         '''

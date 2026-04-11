@@ -19,6 +19,7 @@ from PySide6.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
 import logging
 import os
 import sys
+from pathlib import Path
 from datetime import datetime
 
 from windows.Deploy import DeployWindow
@@ -30,6 +31,9 @@ class MainWindow(QWidget):
     The MainWindow class is a PySide6 Graphical User Interface (GUI) window
     that starts up as the first user interface.
     '''
+    _MODULE_DIR = Path(__file__).resolve().parent
+    _GUI_DIR = _MODULE_DIR.parent
+
     def __init__(self):
         '''
         The constructor.
@@ -41,12 +45,13 @@ class MainWindow(QWidget):
         timestamp = datetime.now()
         timestamp_string = timestamp.strftime("%d-%m-%Y-%H-%M-%S")
 
-        os.makedirs("log", exist_ok=True)
+        log_dir = self._GUI_DIR / "log"
+        log_dir.mkdir(parents=True, exist_ok=True)
         logging.basicConfig(
             level=logging.NOTSET,
             format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
             datefmt='%m-%d %H:%M',
-            filename='log/' + timestamp_string + '.log',
+            filename=str(log_dir / f'{timestamp_string}.log'),
             filemode='w')
         root_logger = logging.getLogger('')
         console_stream = sys.stderr
@@ -74,7 +79,7 @@ class MainWindow(QWidget):
         self._WINDOW_HEIGHT = 375
         self._WINDOW_WIDTH = 500
 
-        self.setWindowIcon(QIcon("img/epd_desktop.png"))
+        self.setWindowIcon(QIcon(self._image_path("epd_desktop.png")))
 
         self.setWindowTitle('easy_perception_deployment')
         self.setGeometry(0, 0, self._WINDOW_WIDTH, self._WINDOW_HEIGHT)
@@ -84,17 +89,17 @@ class MainWindow(QWidget):
     def setButtons(self):
         '''A Mutator function that defines all buttons in MainWindow.'''
         self.train_button = QPushButton('Train', self)
-        self.train_button.setIcon(QIcon('img/train.png'))
+        self.train_button.setIcon(QIcon(self._image_path('train.png')))
         self.train_button.setIconSize(QSize(100, 100))
         self.train_button.setFixedHeight(250)
 
         self.deploy_button = QPushButton('Deploy', self)
-        self.deploy_button.setIcon(QIcon('img/deploy.png'))
+        self.deploy_button.setIcon(QIcon(self._image_path('deploy.png')))
         self.deploy_button.setIconSize(QSize(100, 100))
         self.deploy_button.setFixedHeight(250)
 
         self.quit_button = QPushButton('Quit', self)
-        self.quit_button.setIcon(QIcon('img/quit.png'))
+        self.quit_button.setIcon(QIcon(self._image_path('quit.png')))
         self.quit_button.setIconSize(QSize(250, 250))
         self.quit_button.setFixedHeight(125)
 
@@ -155,3 +160,6 @@ class MainWindow(QWidget):
         self.deploy_window.shutdown()
         self.train_window.close()
         event.accept()
+
+    def _image_path(self, image_name):
+        return str(self._GUI_DIR / 'img' / image_name)

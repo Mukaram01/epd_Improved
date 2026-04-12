@@ -19,7 +19,7 @@
 #include <string>
 #include <memory>
 #include "gtest/gtest.h"
-#include "bits/stdc++.h"
+#include <filesystem>
 #include "epd_utils_lib/epd_container.hpp"
 
 std::string PATH_TO_SESSION_CONFIG(PATH_TO_PACKAGE "/config/session_config.json");
@@ -37,11 +37,11 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Visualize)
   builder["indentation"] = "    ";
 
   // Reset session_config.json
-  system(("rm -f " + PATH_TO_SESSION_CONFIG).c_str());
-  system(("touch " + PATH_TO_SESSION_CONFIG).c_str());
+  std::filesystem::remove(PATH_TO_SESSION_CONFIG);
+  { std::ofstream tmp(PATH_TO_SESSION_CONFIG); }
   // Reset usecase_config.json
-  system(("rm -f " + PATH_TO_USECASE_CONFIG).c_str());
-  system(("touch " + PATH_TO_USECASE_CONFIG).c_str());
+  std::filesystem::remove(PATH_TO_USECASE_CONFIG);
+  { std::ofstream tmp(PATH_TO_USECASE_CONFIG); }
 
   Json::Value session_config_json;
   session_config_json["path_to_model"] = PATH_TO_ONNX_MODEL;

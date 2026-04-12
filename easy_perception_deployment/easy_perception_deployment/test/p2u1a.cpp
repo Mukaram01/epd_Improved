@@ -18,7 +18,7 @@
 #include <fstream>
 #include <string>
 #include <memory>
-#include "bits/stdc++.h"
+#include <filesystem>
 #include "epd_utils_lib/epd_container.hpp"
 #include "gtest/gtest.h"
 
@@ -36,11 +36,11 @@ TEST(EPD_TestSuite, Test_P2Model_Counting_Action)
   builder["indentation"] = "    ";
 
   // Reset session_config.json
-  system(("rm -f " + PATH_TO_SESSION_CONFIG).c_str());
-  system(("touch " + PATH_TO_SESSION_CONFIG).c_str());
+  std::filesystem::remove(PATH_TO_SESSION_CONFIG);
+  { std::ofstream tmp(PATH_TO_SESSION_CONFIG); }
   // Reset usecase_config.json
-  system(("rm -f " + PATH_TO_USECASE_CONFIG).c_str());
-  system(("touch " + PATH_TO_USECASE_CONFIG).c_str());
+  std::filesystem::remove(PATH_TO_USECASE_CONFIG);
+  { std::ofstream tmp(PATH_TO_USECASE_CONFIG); }
 
   Json::Value session_config_json;
   session_config_json["path_to_model"] = PATH_TO_ONNX_MODEL;

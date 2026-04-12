@@ -762,6 +762,12 @@ void EasyPerceptionDeployment::disableLocalizeInputs()
 void EasyPerceptionDeployment::hasCameraChanged(const int img_height, const int img_width) const
 {
   if (ortAgent_.getWidth() != img_width || ortAgent_.getHeight() != img_height) {
+    RCLCPP_FATAL(
+      this->get_logger(),
+      "Input camera resolution changed (%dx%d → %dx%d). "
+      "Requesting graceful shutdown — please restart the node.",
+      ortAgent_.getWidth(), ortAgent_.getHeight(), img_width, img_height);
+    rclcpp::shutdown();
     throw std::runtime_error("Input camera changed. Please restart.");
   }
 }

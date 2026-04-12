@@ -1,9 +1,9 @@
-PySide6
+PySide6>=6.6.0,<7
 dateutils==0.6.12
-pycocotools>=2.0.6
+pycocotools>=2.0.6,<3
 labelme==5.0.1
 torch==2.7.1
 torchvision==0.22.0
 lark-parser==0.11.2
 empy==3.3.4
-docker>=6.0.0
+docker>=6.0.0,<8

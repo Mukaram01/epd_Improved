@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "p2_ort_base.hpp"
+#include "ort_cpp_lib/p2_ort_base.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 #include "epd_utils_lib/message_utils.hpp"
 

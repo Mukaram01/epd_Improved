@@ -215,7 +215,11 @@ inline void activateUseCase(
       img, bboxes, classIndices, scores, masks, allClassNames,
       filepath_to_refcolor, histogram_metric, color_match_threshold);
   } else {
-    throw std::runtime_error("Invalid Use Case. Can only be [0, 1, 2].");
+    throw std::runtime_error(
+      "activateUseCase called with unsupported mode " + std::to_string(useCaseMode) +
+      ". This function only accepts detection use-case modes: "
+      "CLASSIFICATION_MODE(0), COUNTING_MODE(1), or COLOR_MATCHING_MODE(2). "
+      "LOCALISATION_MODE(3) and TRACKING_MODE(4) use separate inference paths.");
   }
 }
 

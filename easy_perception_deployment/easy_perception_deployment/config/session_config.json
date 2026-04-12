@@ -1,12 +1,8 @@
 {
-    "path_to_model": "./data/model/MaskRCNN-10.onnx",
-    "path_to_label_list": "./data/label_list/coco_classes.txt",
+    "path_to_model": "/home/runner/work/epd_Improved/epd_Improved/easy_perception_deployment/easy_perception_deployment/data/model/DUMMY_MODEL.onnx",
+    "path_to_label_list": "/home/runner/work/epd_Improved/epd_Improved/easy_perception_deployment/easy_perception_deployment/data/label_list/coco_classes.txt",
     "visualizeFlag": "robot",
-    "intra_op_num_threads": 2,
-    "inter_op_num_threads": 1,
-    "execution_mode": "sequential",
-    "image_transport": "raw",
-    "publish_detection_segmentation": true,
-    "confidence_threshold": 0.5,
-    "max_detections": 100
+    "useCPU": "CPU",
+    "intra_op_num_threads": 0,
+    "publish_detection_segmentation": true
 }

@@ -26,6 +26,12 @@
 
 namespace Ort
 {
+enum class SessionExecutionMode
+{
+  SEQUENTIAL,
+  PARALLEL
+};
+
 /*! \class OrtBase
     \brief An ONNXRuntime (Ort) Base class object.
     This is the base class for P1OrtBase, P2OrtBase and P3OrtBase. It serves an
@@ -40,6 +46,8 @@ public:
     const std::string & modelPath,  //
     const boost::optional<size_t> & gpuIdx = boost::none,
     const boost::optional<int> & intraOpNumThreads = boost::none,
+    const boost::optional<int> & interOpNumThreads = boost::none,
+    const boost::optional<SessionExecutionMode> & executionMode = boost::none,
     const boost::optional<std::vector<std::vector<std::int64_t>>> &
     inputShapes = boost::none,
     const boost::optional<bool> & logModelInfo = boost::none);

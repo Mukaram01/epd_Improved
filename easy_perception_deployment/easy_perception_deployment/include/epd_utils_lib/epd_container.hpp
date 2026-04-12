@@ -164,6 +164,8 @@ private:
   void setLabelList();
 
   boost::optional<int> intra_op_num_threads;
+  boost::optional<int> inter_op_num_threads;
+  boost::optional<Ort::SessionExecutionMode> execution_mode;
 };
 
 }  // namespace EPD

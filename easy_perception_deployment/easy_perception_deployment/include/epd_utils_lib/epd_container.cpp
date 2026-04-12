@@ -221,12 +221,18 @@ void EPDContainer::setFrameDimension(int input_width, int input_height)
 
 void EPDContainer::initORTSessionHandler()
 {
-  float ratio = 800.0 / std::min(frame_width, frame_height);
-  int newW = ratio * frame_width;
-  int newH = ratio * frame_height;
-  // Ensure that padded dimensions are divisible by 32.
-  int paddedW = static_cast<int>(((newW + 31) / 32) * 32);
-  int paddedH = static_cast<int>(((newH + 31) / 32) * 32);
+  const ResizeParams resize_params = calculateResizeParams();
+  const float ratio = resize_params.ratio;
+  const int newW = resize_params.resized_width;
+  const int newH = resize_params.resized_height;
+  const int paddedW = resize_params.padded_width;
+  const int paddedH = resize_params.padded_height;
+
+  fprintf(
+    stdout,
+    "[EPDContainer] Inference resize: ratio=%.4f, resized=%dx%d, tensor=%dx%d "
+    "(target_min_side=%d, allow_upscale=%s)\n",
+    ratio, newW, newH, paddedW, paddedH, target_min_side, allow_upscale ? "true" : "false");
 
   switch (precision_level) {
     case 2:
@@ -254,6 +260,27 @@ void EPDContainer::initORTSessionHandler()
       p3_ort_session->initClassNames(classNames);
       break;
   }
+}
+
+EPDContainer::ResizeParams EPDContainer::calculateResizeParams() const
+{
+  if (frame_width <= 0 || frame_height <= 0) {
+    throw std::runtime_error(
+            "Invalid frame dimension. Width and height must be positive integers.");
+  }
+
+  const int input_min_side = std::min(frame_width, frame_height);
+  float ratio = static_cast<float>(target_min_side) / static_cast<float>(input_min_side);
+  if (!allow_upscale) {
+    ratio = std::min(ratio, 1.0f);
+  }
+
+  const int resized_width = static_cast<int>(ratio * frame_width);
+  const int resized_height = static_cast<int>(ratio * frame_height);
+  const int padded_width = static_cast<int>(((resized_width + 31) / 32) * 32);
+  const int padded_height = static_cast<int>(((resized_height + 31) / 32) * 32);
+
+  return ResizeParams{ratio, resized_width, resized_height, padded_width, padded_height};
 }
 
 void EPDContainer::setModelConfigFile()
@@ -322,6 +349,27 @@ void EPDContainer::setModelConfigFile()
     "log_model_info",
     log_model_info,
     PATH_TO_SESSION_CONFIG);
+  allow_upscale = parseBooleanField(
+    obj,
+    "allow_upscale",
+    allow_upscale,
+    PATH_TO_SESSION_CONFIG);
+
+  if (obj.isMember("target_min_side")) {
+    const Json::Value & side = obj["target_min_side"];
+    if (!side.isInt()) {
+      throw std::runtime_error(
+              "Config 'target_min_side' must be an integer in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    const int target_val = side.asInt();
+    if (target_val <= 0) {
+      throw std::runtime_error(
+              "Config 'target_min_side' must be > 0 in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    target_min_side = target_val;
+  }
 
   if (obj.isMember("confidence_threshold")) {
     const Json::Value & ct = obj["confidence_threshold"];

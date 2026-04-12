@@ -41,6 +41,15 @@ namespace EPD
 class EPDContainer
 {
 public:
+  struct ResizeParams
+  {
+    float ratio;
+    int resized_width;
+    int resized_height;
+    int padded_width;
+    int padded_height;
+  };
+
   /*! \brief An pointer for a Precision Level 3 OrtBase object*/
   std::unique_ptr<Ort::P3OrtBase> p3_ort_session;
   /*! \brief An pointer for a Precision Level 2 OrtBase object*/
@@ -82,6 +91,10 @@ public:
   int max_detections{100};
   /*! \brief Enable verbose ONNX model input/output info logs at runtime. */
   bool log_model_info{false};
+  /*! \brief Target size for model pre-processing shortest side before padding. */
+  int target_min_side{800};
+  /*! \brief Allow upscaling frames smaller than target_min_side. */
+  bool allow_upscale{false};
 
   /*! \brief The selected use-case mode. Values can only be 0,1,2.\n
   *  See usecase_config.hpp for more details.\n
@@ -129,6 +142,7 @@ public:
   *   specific OrtBase object.
   */
   void initORTSessionHandler();
+  ResizeParams calculateResizeParams() const;
 
   cv::Mat visualize(
     const EPD::EPDObjectDetection result,

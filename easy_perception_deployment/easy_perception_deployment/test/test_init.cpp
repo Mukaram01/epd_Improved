@@ -70,6 +70,8 @@ TEST(EPD_TestSuite, Test_readSessionUseCaseConfigTextFile_EPDContainer)
   EXPECT_EQ(
     ortAgent_->class_label_path,
     PATH_TO_PACKAGE "/data/label_list/coco_classes.txt");
+  EXPECT_EQ(ortAgent_->target_min_side, 800);
+  EXPECT_EQ(ortAgent_->allow_upscale, false);
 }
 
 TEST(EPD_TestSuite, Test_setFrameDimension_EPDContainer)
@@ -91,6 +93,70 @@ TEST(EPD_TestSuite, Test_setInitBoolean_EPDContainer)
   EXPECT_EQ(ortAgent_->isInit(), false);
   ortAgent_->setInitBoolean(true);
   EXPECT_EQ(ortAgent_->isInit(), true);
+}
+
+TEST(EPD_TestSuite, Test_readResizeConfig_EPDContainer)
+{
+  Json::StreamWriterBuilder builder;
+  std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+  builder["commentStyle"] = "None";
+  builder["indentation"] = "    ";
+
+  Json::Value session_config_json;
+  session_config_json["path_to_model"] = PATH_TO_ONNX_MODEL;
+  session_config_json["path_to_label_list"] = PATH_TO_LABEL_LIST;
+  session_config_json["visualizeFlag"] = "visualize";
+  session_config_json["target_min_side"] = 640;
+  session_config_json["allow_upscale"] = true;
+
+  Json::Value usecase_config_json;
+  usecase_config_json["usecase_mode"] = 0;
+
+  std::ofstream outputFileStream1(PATH_TO_SESSION_CONFIG);
+  writer->write(session_config_json, &outputFileStream1);
+  outputFileStream1.close();
+
+  std::ofstream outputFileStream2(PATH_TO_USECASE_CONFIG);
+  writer->write(usecase_config_json, &outputFileStream2);
+  outputFileStream2.close();
+
+  EPD::EPDContainer * ortAgent_;
+  ortAgent_ = new EPD::EPDContainer();
+
+  EXPECT_EQ(ortAgent_->target_min_side, 640);
+  EXPECT_EQ(ortAgent_->allow_upscale, true);
+}
+
+TEST(EPD_TestSuite, Test_calculateResizeParams_NoUpscale_EPDContainer)
+{
+  EPD::EPDContainer * ortAgent_;
+  ortAgent_ = new EPD::EPDContainer();
+  ortAgent_->target_min_side = 800;
+  ortAgent_->allow_upscale = false;
+  ortAgent_->setFrameDimension(640, 480);
+
+  EPD::EPDContainer::ResizeParams resize_params = ortAgent_->calculateResizeParams();
+  EXPECT_FLOAT_EQ(resize_params.ratio, 1.0f);
+  EXPECT_EQ(resize_params.resized_width, 640);
+  EXPECT_EQ(resize_params.resized_height, 480);
+  EXPECT_EQ(resize_params.padded_width, 640);
+  EXPECT_EQ(resize_params.padded_height, 480);
+}
+
+TEST(EPD_TestSuite, Test_calculateResizeParams_WithUpscale_EPDContainer)
+{
+  EPD::EPDContainer * ortAgent_;
+  ortAgent_ = new EPD::EPDContainer();
+  ortAgent_->target_min_side = 800;
+  ortAgent_->allow_upscale = true;
+  ortAgent_->setFrameDimension(640, 480);
+
+  EPD::EPDContainer::ResizeParams resize_params = ortAgent_->calculateResizeParams();
+  EXPECT_FLOAT_EQ(resize_params.ratio, 800.0f / 480.0f);
+  EXPECT_EQ(resize_params.resized_width, 1066);
+  EXPECT_EQ(resize_params.resized_height, 800);
+  EXPECT_EQ(resize_params.padded_width, 1088);
+  EXPECT_EQ(resize_params.padded_height, 800);
 }
 
 TEST(EPD_TestSuite, Test_resolveModelInfoLoggingEnabled_OrtBase)

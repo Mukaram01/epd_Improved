@@ -173,6 +173,32 @@ ros2 launch realsense2_camera rs_launch.py \
 ros2 topic list | grep /camera/camera
 ```
 
+### **Recommended `rs_launch.py` command for EPD (D435i)**
+
+Use these parameters to start the camera at 640×480 @ 15 FPS with aligned depth and
+point cloud enabled (good balance of resolution and CPU cost when running EPD on CPU):
+
+```bash
+ros2 launch realsense2_camera rs_launch.py \
+  rgb_camera.color_profile:=640x480x15 \
+  depth_module.depth_profile:=640x480x15 \
+  align_depth.enable:=true \
+  pointcloud.enable:=true \
+  enable_gyro:=false \
+  enable_accel:=false \
+  device_type:=d435i
+```
+
+> **Common parameter mistakes** — the following names are **not** recognised by `realsense2_camera` ≥ v4 and will be silently ignored:
+>
+> | ❌ Wrong (legacy / unsupported) | ✅ Correct |
+> |---|---|
+> | `rgb_camera.profile:=640,480,15` | `rgb_camera.color_profile:=640x480x15` |
+> | `depth_module.profile:=640,480,15` | `depth_module.depth_profile:=640x480x15` |
+> | `enable_imu:=false` | `enable_gyro:=false enable_accel:=false` |
+>
+> When an unsupported parameter is passed, ROS 2 prints a `Warning: Parameter '…' is not supported` message and uses the driver default instead (typically 848×480 @ 30 FPS).  This means your requested resolution/FPS is silently **not** applied.
+
 ---
 
 ## **Run EPD node with RealSense topics**
@@ -269,6 +295,12 @@ To switch models, open the Deploy window and click **ONNX Model** to pick the ap
 ## **Throughput Tuning**
 
 For CPU-bound deployments, start by selecting a lighter detector using the **ONNX Model** button in the Deploy window (`gui/windows/Deploy.py`). Pair that with the `useCPU` and threading settings in `config/session_config.json` to balance throughput and latency. If you need more accuracy, move up to Precision Level 2 or 3 models and reassess performance.
+
+> **⚠️ MaskRCNN / FasterRCNN on CPU warning** — Precision Level 3 models (`MaskRCNN-10.onnx`, `FasterRCNN-10.onnx`) are computationally expensive.  On a typical desktop CPU **expect ≤ 0.2 FPS** (5–8 seconds per frame).  If you observe FPS in the range 0.10–0.20 this is normal behaviour for these models without a GPU.  To achieve real-time or near-real-time throughput:
+> * Switch to a **Precision Level 1** model (`ssd_mobilenet_v1_12.onnx`) for 5–15 FPS on CPU.
+> * Or lower the input resolution — use `rgb_camera.color_profile:=640x480x15` (see the [RealSense setup section](#realsense-camera-setup-d435i)) to reduce per-frame data volume.
+> * Or run on a machine with an ONNX Runtime–compatible GPU and set `"useCPU": "GPU"` in `config/session_config.json`.
+
 Wayland note: on Wayland sessions, set the Qt backend to X11 by exporting `QT_QPA_PLATFORM=xcb`
 (for example, `export QT_QPA_PLATFORM=xcb`) before launching the GUI.
 

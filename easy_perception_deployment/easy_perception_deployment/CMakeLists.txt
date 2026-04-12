@@ -68,7 +68,7 @@ set(EPD_UTILS
 # Model downloads
 # -----------------------------
 option(EPD_DOWNLOAD_MODELS "Download pretrained ONNX models at configure time" OFF)
-option(EPD_REQUIRE_MODELS "Fail configuration when pretrained ONNX models are missing" ON)
+option(EPD_REQUIRE_MODELS "Fail configuration when pretrained ONNX models are missing" OFF)
 
 if(NOT EPD_DOWNLOAD_MODELS)
   message(WARNING

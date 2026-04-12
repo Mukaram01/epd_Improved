@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "ort_base.hpp"
+#include "ort_cpp_lib/ort_base.hpp"
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
 
 #if USE_GPU

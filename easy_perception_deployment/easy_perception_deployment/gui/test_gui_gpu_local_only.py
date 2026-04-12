@@ -18,6 +18,7 @@ import sys
 import json
 import yaml
 import subprocess
+from pathlib import Path
 
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
@@ -70,10 +71,8 @@ else:
 # Reset p2_train_verification.json and p3_train_verification
 FILE_PATH_TO_P2_TRAIN_VERIFICATION = '../config/p2_train_verification.json'
 FILE_PATH_TO_P3_TRAIN_VERIFICATION = '../config/p3_train_verification.json'
-remove_1 = subprocess.Popen(['rm', FILE_PATH_TO_P2_TRAIN_VERIFICATION])
-remove_1.communicate()
-remove_2 = subprocess.Popen(['rm', FILE_PATH_TO_P3_TRAIN_VERIFICATION])
-remove_2.communicate()
+Path(FILE_PATH_TO_P2_TRAIN_VERIFICATION).unlink(missing_ok=True)
+Path(FILE_PATH_TO_P3_TRAIN_VERIFICATION).unlink(missing_ok=True)
 
 dict = {
     "isTrainFarmDockerImagePulled": False,

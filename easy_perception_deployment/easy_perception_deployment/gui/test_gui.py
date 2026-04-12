@@ -16,7 +16,6 @@
 import os
 import json
 import yaml
-import subprocess
 import pytest
 import shutil
 from pathlib import Path
@@ -36,23 +35,21 @@ from PySide6.QtWidgets import QMessageBox
 # Clear all stored session_config.json usecase_config.json
 if (os.path.exists('../config/session_config.json') and
    os.path.exists('../config/usecase_config.json')):
-    p1 = subprocess.Popen(['rm', '../config/session_config.json'])
-    p1.communicate()
-    p2 = subprocess.Popen(['rm', '../config/usecase_config.json'])
-    p2.communicate()
+    Path('../config/session_config.json').unlink(missing_ok=True)
+    Path('../config/usecase_config.json').unlink(missing_ok=True)
 
-    dict = {
+    session_config = {
         "path_to_model": './data/model/MaskRCNN-10.onnx',
         "path_to_label_list": './data/label_list/coco_classes.txt',
         "visualizeFlag": 'visualize',
         "useCPU": 'CPU'
         }
-    json_object = json.dumps(dict, indent=4)
+    json_object = json.dumps(session_config, indent=4)
     with open('../config/session_config.json', 'w') as outfile:
         outfile.write(json_object)
 
-    dict = {"usecase_mode": 0}
-    json_object = json.dumps(dict, indent=4)
+    usecase_config = {"usecase_mode": 0}
+    json_object = json.dumps(usecase_config, indent=4)
     with open('../config/usecase_config.json', 'w') as outfile:
         outfile.write(json_object)
 
@@ -115,10 +112,8 @@ def test_emptySession_emptyUseCase_DeployWindow(qtbot):
 
     if (os.path.exists('../config/session_config.json') and
             os.path.exists('../config/usecase_config.json')):
-        p1 = subprocess.Popen(['rm', '../config/session_config.json'])
-        p1.communicate()
-        p2 = subprocess.Popen(['rm', '../config/usecase_config.json'])
-        p2.communicate()
+        Path('../config/session_config.json').unlink(missing_ok=True)
+        Path('../config/usecase_config.json').unlink(missing_ok=True)
 
     widget = DeployWindow()
     qtbot.addWidget(widget)
@@ -130,18 +125,18 @@ def test_emptySession_emptyUseCase_DeployWindow(qtbot):
 
 def test_invalidSession_invalidUseCase_DeployWindow(qtbot):
 
-    dict = {
+    session_config = {
         "path_to_model": 'test_filepath_to_model',
         "path_to_label_list": 'test_filepath_to_label_list',
         "visualizeFlag": 'visualize',
         "throwCPU": 'CPU'
         }
-    json_object = json.dumps(dict, indent=4)
+    json_object = json.dumps(session_config, indent=4)
     with open('../config/session_config.json', 'w') as outfile:
         outfile.write(json_object)
 
-    dict = {"usecase_mode": -1}
-    json_object = json.dumps(dict, indent=4)
+    usecase_config = {"usecase_mode": -1}
+    json_object = json.dumps(usecase_config, indent=4)
     with open('../config/usecase_config.json', 'w') as outfile:
         outfile.write(json_object)
 
@@ -159,18 +154,18 @@ def test_validSession_validUseCase_DeployWindow(qtbot):
     local_path_to_label_list = ('./data/label_list/' +
                                 'coco_classes.txt')
 
-    dict = {
+    session_config = {
         "path_to_model": local_path_to_model,
         "path_to_label_list": local_path_to_label_list,
         "visualizeFlag": 'visualize',
         "useCPU": 'CPU'
         }
-    json_object = json.dumps(dict, indent=4)
+    json_object = json.dumps(session_config, indent=4)
     with open('../config/session_config.json', 'w') as outfile:
         outfile.write(json_object)
 
-    dict = {"usecase_mode": 0}
-    json_object = json.dumps(dict, indent=4)
+    usecase_config = {"usecase_mode": 0}
+    json_object = json.dumps(usecase_config, indent=4)
     with open('../config/usecase_config.json', 'w') as outfile:
         outfile.write(json_object)
 
@@ -599,15 +594,15 @@ def test_P2Trainer_Training_Config(qtbot):
         100,
         '(100, 200, 300)')
 
-    dict = {}
+    yaml_data = {}
     with open('trainer/training_files/fasterrcnn_training.yaml') as file:
-        dict = yaml.load(file, Loader=yaml.FullLoader)
+        yaml_data = yaml.load(file, Loader=yaml.FullLoader)
 
-    assert dict['MODEL']['ROI_BOX_HEAD']['NUM_CLASSES'] == 3
-    assert dict['SOLVER']['MAX_ITER'] == 1000
-    assert dict['SOLVER']['CHECKPOINT_PERIOD'] == 100
-    assert dict['SOLVER']['TEST_PERIOD'] == 100
-    assert dict['SOLVER']['STEPS'] == '(100, 200, 300)'
+    assert yaml_data['MODEL']['ROI_BOX_HEAD']['NUM_CLASSES'] == 3
+    assert yaml_data['SOLVER']['MAX_ITER'] == 1000
+    assert yaml_data['SOLVER']['CHECKPOINT_PERIOD'] == 100
+    assert yaml_data['SOLVER']['TEST_PERIOD'] == 100
+    assert yaml_data['SOLVER']['STEPS'] == '(100, 200, 300)'
 
 
 def test_P3Trainer_Training_Config(qtbot):
@@ -633,15 +628,15 @@ def test_P3Trainer_Training_Config(qtbot):
         100,
         '(100, 200, 300)')
 
-    dict = {}
+    yaml_data = {}
     with open('trainer/training_files/maskrcnn_training.yaml') as file:
-        dict = yaml.load(file, Loader=yaml.FullLoader)
+        yaml_data = yaml.load(file, Loader=yaml.FullLoader)
 
-    assert dict['MODEL']['ROI_BOX_HEAD']['NUM_CLASSES'] == 3
-    assert dict['SOLVER']['MAX_ITER'] == 1000
-    assert dict['SOLVER']['CHECKPOINT_PERIOD'] == 100
-    assert dict['SOLVER']['TEST_PERIOD'] == 100
-    assert dict['SOLVER']['STEPS'] == '(100, 200, 300)'
+    assert yaml_data['MODEL']['ROI_BOX_HEAD']['NUM_CLASSES'] == 3
+    assert yaml_data['SOLVER']['MAX_ITER'] == 1000
+    assert yaml_data['SOLVER']['CHECKPOINT_PERIOD'] == 100
+    assert yaml_data['SOLVER']['TEST_PERIOD'] == 100
+    assert yaml_data['SOLVER']['STEPS'] == '(100, 200, 300)'
 
 
 # ---------------------------------------------------------------------------

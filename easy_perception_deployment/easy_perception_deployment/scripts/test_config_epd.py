@@ -15,10 +15,9 @@
 
 import json
 import pytest
-import subprocess
 from pathlib import Path
 
-from cli.config_epd import EPDConfigurator
+from cli.config_epd import EPDConfigurator, EPDConfigError
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_START_DIR = str(PACKAGE_ROOT)
@@ -26,10 +25,8 @@ REQUIRED_START_DIR = str(PACKAGE_ROOT)
 # Reset session_config.json and usecase_config.json to default.
 if ((PACKAGE_ROOT / "config/session_config.json").exists() and
    (PACKAGE_ROOT / "config/usecase_config.json").exists()):
-    p1 = subprocess.Popen(['rm', str(PACKAGE_ROOT / "config/session_config.json")])
-    p1.communicate()
-    p2 = subprocess.Popen(['rm', str(PACKAGE_ROOT / "config/usecase_config.json")])
-    p2.communicate()
+    (PACKAGE_ROOT / "config/session_config.json").unlink(missing_ok=True)
+    (PACKAGE_ROOT / "config/usecase_config.json").unlink(missing_ok=True)
 
     dict = {
         "path_to_model": './data/model/squeezenet1.1-7.onnx',
@@ -52,20 +49,15 @@ def test_invalid_ExeDirectory():
     test_args = ['scripts/cli/config_epd.py', '-v']
     INVALID_START_DIR = str(PACKAGE_ROOT / "scripts")
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(INVALID_START_DIR, test_args)
-
-    # Check for sys.exit() due to invalid_start_dir
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_print_help_NoArgs(capfd):
     test_args = ['scripts/cli/config_epd.py']
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_print_help_HelpArg(capfd):
@@ -74,7 +66,7 @@ def test_print_help_HelpArg(capfd):
     with pytest.raises(SystemExit) as pytest_wrapped_e:
         EPDConfigurator(REQUIRED_START_DIR, test_args)
 
-    assert pytest_wrapped_e.type == SystemExit
+    assert pytest_wrapped_e.value.code == 0
 
 
 def test_set_VisualizeMode_short():
@@ -221,7 +213,7 @@ def test_set_CPU_long():
         ("input_image_topic.json", "parse_inputimagetopic_config", "input_image_topic"),
     ],
 )
-def test_parse_config_malformed_json_raises_system_exit(
+def test_parse_config_malformed_json_raises_epd_config_error(
         tmp_path, filename, parser_name, required_key):
     config_path = tmp_path / filename
     config_path.write_text("{ malformed json", encoding="utf-8")
@@ -229,7 +221,7 @@ def test_parse_config_malformed_json_raises_system_exit(
     configurator = EPDConfigurator.__new__(EPDConfigurator)
     parser = getattr(configurator, parser_name)
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(EPDConfigError):
         parser(str(config_path))
 
 
@@ -241,7 +233,7 @@ def test_parse_config_malformed_json_raises_system_exit(
         ("input_image_topic.json", "parse_inputimagetopic_config", {}),
     ],
 )
-def test_parse_config_missing_required_keys_raises_system_exit(
+def test_parse_config_missing_required_keys_raises_epd_config_error(
         tmp_path, filename, parser_name, payload):
     config_path = tmp_path / filename
     config_path.write_text(json.dumps(payload), encoding="utf-8")
@@ -249,7 +241,7 @@ def test_parse_config_missing_required_keys_raises_system_exit(
     configurator = EPDConfigurator.__new__(EPDConfigurator)
     parser = getattr(configurator, parser_name)
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(EPDConfigError):
         parser(str(config_path))
 
 
@@ -261,7 +253,7 @@ def test_parse_config_missing_required_keys_raises_system_exit(
         ("input_image_topic.json", "parse_inputimagetopic_config"),
     ],
 )
-def test_parse_config_empty_file_raises_system_exit(
+def test_parse_config_empty_file_raises_epd_config_error(
         tmp_path, filename, parser_name):
     config_path = tmp_path / filename
     config_path.write_text("", encoding="utf-8")
@@ -269,7 +261,7 @@ def test_parse_config_empty_file_raises_system_exit(
     configurator = EPDConfigurator.__new__(EPDConfigurator)
     parser = getattr(configurator, parser_name)
 
-    with pytest.raises(SystemExit):
+    with pytest.raises(EPDConfigError):
         parser(str(config_path))
 
 
@@ -277,8 +269,7 @@ def test_set_ValidModel():
 
     # Create dummy model file in /data
     PATH_TO_DUMMY_MODEL = str(PACKAGE_ROOT / 'data/model/DUMMY_MODEL.onnx')
-    p1 = subprocess.Popen(['touch', PATH_TO_DUMMY_MODEL])
-    p1.communicate()
+    (PACKAGE_ROOT / 'data/model/DUMMY_MODEL.onnx').touch()
 
     test_args = ['scripts/cli/config_epd.py', '--model', PATH_TO_DUMMY_MODEL]
     session_config_filepath = REQUIRED_START_DIR \
@@ -295,8 +286,7 @@ def test_set_ValidModel():
     assert model_path == PATH_TO_DUMMY_MODEL
 
     # Remove dummy model file in /data
-    p1 = subprocess.Popen(['rm', PATH_TO_DUMMY_MODEL])
-    p1.communicate()
+    (PACKAGE_ROOT / 'data/model/DUMMY_MODEL.onnx').unlink(missing_ok=True)
 
 
 def test_set_InvalidModel():
@@ -307,10 +297,8 @@ def test_set_InvalidModel():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_set_ValidLabelList():
@@ -346,10 +334,8 @@ def test_set_InvalidLabelList():
     session_config_filepath = REQUIRED_START_DIR \
         + "/config/session_config.json"
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_set_UseCase_Classification():
@@ -483,11 +469,8 @@ def test_set_Invalid_UseCase():
     usecase_config_filepath = REQUIRED_START_DIR \
         + "/config/usecase_config.json"
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    # Check for sys.exit() due to invalid Use Case.
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_set_InputImageTopic():
@@ -539,10 +522,8 @@ def test_set_UseCase_Counting_InvalidClassList():
         '--class-list',
         ',  ,']
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_set_UseCase_ColorMatching_WithTemplateAndMetric(tmp_path):
@@ -579,10 +560,8 @@ def test_set_UseCase_ColorMatching_InvalidTemplate():
         '--color-template',
         str(PACKAGE_ROOT / "data/missing_color_template.png")]
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_set_UseCase_ColorMatching_InvalidHistogramMetric(tmp_path):
@@ -599,10 +578,8 @@ def test_set_UseCase_ColorMatching_InvalidHistogramMetric(tmp_path):
         '--color-hist-metric',
         'bogus']
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    assert pytest_wrapped_e.type == SystemExit
 
 
 def test_set_UseCase_Tracking_WithTrackTypeCli():
@@ -634,7 +611,5 @@ def test_set_UseCase_Tracking_InvalidTrackType():
         '--track-type',
         'invalid_tracker']
 
-    with pytest.raises(SystemExit) as pytest_wrapped_e:
+    with pytest.raises(EPDConfigError):
         EPDConfigurator(REQUIRED_START_DIR, test_args)
-
-    assert pytest_wrapped_e.type == SystemExit

@@ -58,10 +58,10 @@ include_directories(
 
 # Add all custom library sources for compilation.
 set(EPD_UTILS
-  include/epd_utils_lib/epd_container.cpp
-  include/ort_cpp_lib/ort_base.cpp
-  include/ort_cpp_lib/p3_ort_base.cpp
-  include/ort_cpp_lib/p2_ort_base.cpp
+  src/epd_container.cpp
+  src/ort_base.cpp
+  src/p3_ort_base.cpp
+  src/p2_ort_base.cpp
 )
 
 # -----------------------------
@@ -99,13 +99,11 @@ set(EPD_MODEL_MASK_RCNN_URL "https://github.com/onnx/models/raw/main/validated/v
 # Hugging Face direct download (stable)
 set(EPD_MODEL_SSD_MOBILENET_URL "https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_12/resolve/main/ssd_mobilenet_v1_12.onnx?download=true")
 
-# SHA256 (keep your existing values; add SSD hash only if you want strict verification)
+# SHA256 checksums for all pretrained ONNX models
 set(EPD_MODEL_SQUEEZENET_SHA256 "1eeff551a67ae8d565ca33b572fc4b66e3ef357b0eb2863bb9ff47a918cc4088")
 set(EPD_MODEL_FASTER_RCNN_SHA256 "dfb81423efbea52e45df242ade64cfca0ba05fae78e00cf0c68a0979987f87eb")
 set(EPD_MODEL_MASK_RCNN_SHA256 "a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757")
-
-# If you don't have SSD hash, leave empty and skip hash checking for it.
-set(EPD_MODEL_SSD_MOBILENET_SHA256 "")
+set(EPD_MODEL_SSD_MOBILENET_SHA256 "b8fba5e404077d4048d27fcd1667e85e27e192eb9bf51e696c46a3acd7d21058")
 
 set(EPD_MISSING_MODELS "")
 

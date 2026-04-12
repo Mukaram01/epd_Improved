@@ -164,7 +164,9 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
 
   tmpImg.convertTo(tmpImg, CV_32FC3);
-  tmpImg -= meanVal;
+  if (!isInputUint8()) {
+    tmpImg -= meanVal;
+  }
 
   cv::Mat paddedImg(paddedH, paddedW, CV_32FC3, cv::Scalar(0, 0, 0));
   tmpImg.copyTo(paddedImg(cv::Rect(0, 0, newW, newH)));
@@ -489,7 +491,9 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
 
   tmpImg.convertTo(tmpImg, CV_32FC3);
-  tmpImg -= meanVal;
+  if (!isInputUint8()) {
+    tmpImg -= meanVal;
+  }
 
   cv::Mat paddedImg(paddedH, paddedW, CV_32FC3, cv::Scalar(0, 0, 0));
   tmpImg.copyTo(paddedImg(cv::Rect(0, 0, newW, newH)));
@@ -643,7 +647,9 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
 
   tmpImg.convertTo(tmpImg, CV_32FC3);
-  tmpImg -= meanVal;
+  if (!isInputUint8()) {
+    tmpImg -= meanVal;
+  }
 
   cv::Mat paddedImg(paddedH, paddedW, CV_32FC3, cv::Scalar(0, 0, 0));
   tmpImg.copyTo(paddedImg(cv::Rect(0, 0, newW, newH)));

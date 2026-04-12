@@ -54,6 +54,10 @@ public:
   /*! \brief A Getter function that gets the number of outputs which is
   used to determine the level of precision in EPDContainer class object.*/
   int getNumOutputs(void);
+  /*! \brief Returns true if the model's input at the given index expects uint8
+  tensor data rather than float. Used by subclasses to choose the correct
+  preprocessing path (skip mean subtraction for uint8 models). */
+  bool isInputUint8(int inputIdx = 0) const;
   static bool resolveModelInfoLoggingEnabled(const boost::optional<bool> & logModelInfo);
 
 private:

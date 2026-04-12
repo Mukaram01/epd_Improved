@@ -59,6 +59,7 @@ public:
   ~OrtBaseImpl();
 
   int getNumOutputs(void);
+  bool isInputUint8(int inputIdx) const;
   std::vector<DataOutputType> operator()(const std::vector<float *> & inputData);
 
 private:
@@ -77,6 +78,7 @@ private:
   std::vector<char *> m_outputNodeNames;
   std::vector<std::vector<int64_t>> m_inputShapes;
   std::vector<std::vector<int64_t>> m_outputShapes;
+  std::vector<ONNXTensorElementDataType> m_inputElementTypes;
 
   std::vector<int64_t> m_inputTensorSizes;
   std::vector<int64_t> m_outputTensorSizes;
@@ -111,6 +113,11 @@ std::vector<OrtBase::DataOutputType> OrtBase::operator()(const std::vector<float
 int OrtBase::getNumOutputs()
 {
   return base_impl_->getNumOutputs();
+}
+
+bool OrtBase::isInputUint8(int inputIdx) const
+{
+  return base_impl_->isInputUint8(inputIdx);
 }
 
 bool OrtBase::resolveModelInfoLoggingEnabled(const boost::optional<bool> & logModelInfo)
@@ -182,6 +189,14 @@ int OrtBase::OrtBaseImpl::getNumOutputs()
   return unsigned(m_numOutputs);
 }
 
+bool OrtBase::OrtBaseImpl::isInputUint8(int inputIdx) const
+{
+  if (inputIdx < 0 || static_cast<size_t>(inputIdx) >= m_inputElementTypes.size()) {
+    return false;
+  }
+  return m_inputElementTypes[inputIdx] == ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8;
+}
+
 void OrtBase::OrtBaseImpl::initSession()
 {
   m_env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Ort");
@@ -222,10 +237,12 @@ void OrtBase::OrtBaseImpl::initModelInfo()
     // If m_inputShapes not initialized,
     // then look at m_session and derive.
     // Ensures that m_inputShapes is filled properly before use.
-    if (!m_inputShapesProvided) {
-      Ort::TypeInfo typeInfo = m_session.GetInputTypeInfo(i);
-      auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
+    // Always query TypeInfo to capture the element type declared by the model.
+    Ort::TypeInfo typeInfo = m_session.GetInputTypeInfo(i);
+    auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
+    m_inputElementTypes.emplace_back(tensorInfo.GetElementType());
 
+    if (!m_inputShapesProvided) {
       m_inputShapes.emplace_back(tensorInfo.GetShape());
     }
 
@@ -290,16 +307,40 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
   // Create inputTensors
   std::vector<Ort::Value> inputTensors;
   inputTensors.reserve(m_numInputs);
+  // uint8 conversion buffers; must outlive inputTensors until Run() completes.
+  std::vector<std::vector<uint8_t>> uint8Buffers;
   // Populate inputTensors with device-specific memoryInfo, the input image and the inputShapes.
   for (int i = 0; i < m_numInputs; ++i) {
-    inputTensors.emplace_back(
-      std::move(
-        Ort::Value::CreateTensor<float>(
-          memoryInfo,
-          const_cast<float *>(inputData[i]),
-          m_inputTensorSizes[i],
-          m_inputShapes[i].data(),
-          m_inputShapes[i].size())));
+    if (m_inputElementTypes[i] == ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8) {
+      // The model expects raw uint8 pixel values (0-255).
+      // The preprocessing path has already skipped mean subtraction and stored
+      // float values in the 0-255 range; clamp and cast them here.
+      const int64_t tensorSize = m_inputTensorSizes[i];
+      uint8Buffers.emplace_back(static_cast<size_t>(tensorSize));
+      std::vector<uint8_t> & buf = uint8Buffers.back();
+      const float * src = inputData[i];
+      for (int64_t j = 0; j < tensorSize; ++j) {
+        buf[j] = static_cast<uint8_t>(
+          std::clamp(src[j], 0.0f, 255.0f));
+      }
+      inputTensors.emplace_back(
+        std::move(
+          Ort::Value::CreateTensor<uint8_t>(
+            memoryInfo,
+            buf.data(),
+            static_cast<size_t>(tensorSize),
+            m_inputShapes[i].data(),
+            m_inputShapes[i].size())));
+    } else {
+      inputTensors.emplace_back(
+        std::move(
+          Ort::Value::CreateTensor<float>(
+            memoryInfo,
+            const_cast<float *>(inputData[i]),
+            m_inputTensorSizes[i],
+            m_inputShapes[i].data(),
+            m_inputShapes[i].size())));
+    }
   }
   // INFERENCE DONE HERE.
   auto outputTensors = m_session.Run(

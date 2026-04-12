@@ -165,6 +165,7 @@ private:
   void image_callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
   void depth_callback(const sensor_msgs::msg::Image::ConstSharedPtr & msg);
   void camera_info_callback(const sensor_msgs::msg::CameraInfo::SharedPtr msg);
+  void rgb_input_watchdog_callback();
   void image_worker_loop();
 
   void hasCameraChanged(
@@ -190,6 +191,7 @@ private:
   std::string camera_info_topic_;
   std::string image_transport_;
   std::string depth_transport_;
+  double rgb_input_watchdog_timeout_s_{5.0};
   rmw_qos_profile_t sensor_qos_profile_;
   bool use_depth_{true};
   bool image_input_active_{false};
@@ -231,6 +233,10 @@ private:
   sensor_msgs::msg::Image::ConstSharedPtr latest_image_;
   sensor_msgs::msg::Image::ConstSharedPtr latest_depth_image_;
   sensor_msgs::msg::CameraInfo::SharedPtr latest_camera_info_;
+  rclcpp::Time last_rgb_frame_time_;
+  bool has_received_rgb_frame_{false};
+  bool rgb_stream_missing_{false};
+  rclcpp::TimerBase::SharedPtr rgb_input_watchdog_timer_;
 
   std::mutex ort_mutex_;
 
@@ -261,12 +267,14 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
   this->declare_parameter<bool>("use_depth", true);
   this->declare_parameter<double>("service_timeout_s", 5.0);
+  this->declare_parameter<double>("rgb_input_watchdog_timeout_s", 5.0);
 
   rgb_topic_ = this->get_parameter("rgb_topic").as_string();
   depth_topic_ = this->get_parameter("depth_topic").as_string();
   camera_info_topic_ = this->get_parameter("camera_info_topic").as_string();
   image_transport_ = this->get_parameter("image_transport").as_string();
   use_depth_ = this->get_parameter("use_depth").as_bool();
+  rgb_input_watchdog_timeout_s_ = this->get_parameter("rgb_input_watchdog_timeout_s").as_double();
   std::transform(
     image_transport_.begin(),
     image_transport_.end(),
@@ -283,6 +291,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     image_transport_ = "raw";
   }
   depth_transport_ = resolveDepthTransport(image_transport_);
+  last_rgb_frame_time_ = this->now();
 
   if (ortAgent_.publish_detection_segmentation &&
     ortAgent_.useCaseMode <= EPD::COLOR_MATCHING_MODE)
@@ -291,6 +300,17 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   }
 
   subscribeImageInput();
+  if (rgb_input_watchdog_timeout_s_ > 0.0) {
+    rgb_input_watchdog_timer_ = this->create_wall_timer(
+      std::chrono::seconds(1),
+      std::bind(&EasyPerceptionDeployment::rgb_input_watchdog_callback, this),
+      sensor_callback_group_);
+  } else {
+    RCLCPP_INFO(
+      this->get_logger(),
+      "RGB input watchdog disabled because rgb_input_watchdog_timeout_s is %.3f.",
+      rgb_input_watchdog_timeout_s_);
+  }
 
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
   // Use BEST_EFFORT QoS with depth 1 so the latest annotated frame is always
@@ -819,7 +839,69 @@ void EasyPerceptionDeployment::process_image_callback(
 void EasyPerceptionDeployment::image_callback(
   const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    last_rgb_frame_time_ = this->now();
+    has_received_rgb_frame_ = true;
+  }
   this->process_image_callback(msg);
+}
+
+void EasyPerceptionDeployment::rgb_input_watchdog_callback()
+{
+  if (!image_input_active_ || rgb_input_watchdog_timeout_s_ <= 0.0) {
+    return;
+  }
+
+  const rclcpp::Time now = this->now();
+  bool has_received_rgb_frame = false;
+  rclcpp::Time last_rgb_frame_time = now;
+  {
+    std::lock_guard<std::mutex> lock(data_mutex_);
+    has_received_rgb_frame = has_received_rgb_frame_;
+    last_rgb_frame_time = last_rgb_frame_time_;
+  }
+
+  if (!has_received_rgb_frame) {
+    rgb_stream_missing_ = true;
+    RCLCPP_WARN_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      5000,
+      "No RGB frame received yet on topic '%s' (transport '%s'). "
+      "Watchdog timeout is %.1f seconds.",
+      rgb_topic_.c_str(),
+      image_transport_.c_str(),
+      rgb_input_watchdog_timeout_s_);
+    return;
+  }
+
+  const double missing_for_s = (now - last_rgb_frame_time).seconds();
+  if (missing_for_s > rgb_input_watchdog_timeout_s_) {
+    rgb_stream_missing_ = true;
+    RCLCPP_WARN_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      5000,
+      "No RGB frame received on topic '%s' (transport '%s') for %.1f seconds "
+      "(watchdog timeout %.1f seconds).",
+      rgb_topic_.c_str(),
+      image_transport_.c_str(),
+      missing_for_s,
+      rgb_input_watchdog_timeout_s_);
+    return;
+  }
+
+  if (rgb_stream_missing_) {
+    rgb_stream_missing_ = false;
+    RCLCPP_INFO_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      5000,
+      "RGB frames resumed on topic '%s' (transport '%s').",
+      rgb_topic_.c_str(),
+      image_transport_.c_str());
+  }
 }
 
 void EasyPerceptionDeployment::depth_callback(

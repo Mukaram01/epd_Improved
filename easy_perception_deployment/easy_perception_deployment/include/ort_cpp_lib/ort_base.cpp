@@ -55,6 +55,8 @@ public:
     const std::string & modelPath,         //
     const boost::optional<size_t> & gpuIdx,  //
     const boost::optional<int> & intraOpNumThreads,
+    const boost::optional<int> & interOpNumThreads,
+    const boost::optional<SessionExecutionMode> & executionMode,
     const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
     const boost::optional<bool> & logModelInfo);
   ~OrtBaseImpl();
@@ -74,6 +76,8 @@ private:
 
   boost::optional<size_t> m_gpuIdx;
   boost::optional<int> m_intraOpNumThreads;
+  boost::optional<int> m_interOpNumThreads;
+  boost::optional<SessionExecutionMode> m_executionMode;
 
   std::vector<char *> m_inputNodeNames;
   std::vector<char *> m_outputNodeNames;
@@ -96,11 +100,19 @@ OrtBase::OrtBase(
   const std::string & modelPath,
   const boost::optional<size_t> & gpuIdx,
   const boost::optional<int> & intraOpNumThreads,
+  const boost::optional<int> & interOpNumThreads,
+  const boost::optional<SessionExecutionMode> & executionMode,
   const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
   const boost::optional<bool> & logModelInfo)
 : base_impl_(
     std::make_unique<OrtBaseImpl>(
-      modelPath, gpuIdx, intraOpNumThreads, inputShapes, logModelInfo))
+      modelPath,
+      gpuIdx,
+      intraOpNumThreads,
+      interOpNumThreads,
+      executionMode,
+      inputShapes,
+      logModelInfo))
 {}
 
 // Destructor
@@ -144,6 +156,8 @@ OrtBase::OrtBaseImpl::OrtBaseImpl(
   const std::string & modelPath,         //
   const boost::optional<size_t> & gpuIdx,  //
   const boost::optional<int> & intraOpNumThreads,
+  const boost::optional<int> & interOpNumThreads,
+  const boost::optional<SessionExecutionMode> & executionMode,
   const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
   const boost::optional<bool> & logModelInfo)
 : m_session(nullptr),
@@ -151,6 +165,8 @@ OrtBase::OrtBaseImpl::OrtBaseImpl(
   m_ortAllocator(),
   m_gpuIdx(gpuIdx),
   m_intraOpNumThreads(intraOpNumThreads),
+  m_interOpNumThreads(interOpNumThreads),
+  m_executionMode(executionMode),
   m_inputNodeNames(),
   m_outputNodeNames(),
   m_inputShapes(),
@@ -202,13 +218,23 @@ void OrtBase::OrtBaseImpl::initSession()
 {
   m_env = Ort::Env(ORT_LOGGING_LEVEL_WARNING, "Ort");
   Ort::SessionOptions sessionOptions;
+  constexpr int kDefaultCpuIntraOpNumThreads = 2;
+  constexpr int kDefaultCpuInterOpNumThreads = 1;
 
-  if (m_intraOpNumThreads.is_initialized()) {
-    const int thread_count = m_intraOpNumThreads.value();
-    if (thread_count > 0) {
-      sessionOptions.SetIntraOpNumThreads(thread_count);
-    }
-  }
+  const int intra_op_threads = m_intraOpNumThreads.is_initialized() &&
+    m_intraOpNumThreads.value() > 0 ?
+    m_intraOpNumThreads.value() : kDefaultCpuIntraOpNumThreads;
+  const int inter_op_threads = m_interOpNumThreads.is_initialized() &&
+    m_interOpNumThreads.value() > 0 ?
+    m_interOpNumThreads.value() : kDefaultCpuInterOpNumThreads;
+  const SessionExecutionMode execution_mode = m_executionMode.is_initialized() ?
+    m_executionMode.value() : SessionExecutionMode::SEQUENTIAL;
+  const bool is_parallel_execution = execution_mode == SessionExecutionMode::PARALLEL;
+
+  sessionOptions.SetIntraOpNumThreads(intra_op_threads);
+  sessionOptions.SetInterOpNumThreads(inter_op_threads);
+  sessionOptions.SetExecutionMode(
+    is_parallel_execution ? ExecutionMode::ORT_PARALLEL : ExecutionMode::ORT_SEQUENTIAL);
 
   #if USE_GPU
   if (m_gpuIdx.is_initialized()) {
@@ -218,6 +244,12 @@ void OrtBase::OrtBaseImpl::initSession()
         m_gpuIdx.value()));
   }
   #endif
+
+  std::cout << "[ORT] Session config: execution_mode="
+            << (is_parallel_execution ? "parallel" : "sequential")
+            << ", intra_op_num_threads=" << intra_op_threads
+            << ", inter_op_num_threads=" << inter_op_threads
+            << std::endl;
 
   sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
   m_session = Ort::Session(m_env, m_modelPath.c_str(), sessionOptions);

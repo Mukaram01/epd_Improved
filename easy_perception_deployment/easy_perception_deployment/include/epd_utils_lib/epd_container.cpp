@@ -26,6 +26,39 @@
 
 namespace
 {
+Ort::SessionExecutionMode parseExecutionMode(
+  const Json::Value & obj,
+  const std::string & config_path,
+  const Ort::SessionExecutionMode default_value)
+{
+  if (!obj.isMember("execution_mode")) {
+    return default_value;
+  }
+
+  const Json::Value & execution_mode = obj["execution_mode"];
+  if (!execution_mode.isString()) {
+    throw std::runtime_error(
+      "Config 'execution_mode' must be a string in: " + config_path +
+      ". Expected 'sequential' or 'parallel'.");
+  }
+
+  std::string mode = execution_mode.asString();
+  std::transform(mode.begin(), mode.end(), mode.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+
+  if (mode == "sequential") {
+    return Ort::SessionExecutionMode::SEQUENTIAL;
+  }
+  if (mode == "parallel") {
+    return Ort::SessionExecutionMode::PARALLEL;
+  }
+
+  throw std::runtime_error(
+    "Config 'execution_mode' must be 'sequential' or 'parallel' in: " +
+    config_path);
+}
+
 unsigned int parseColorHistogramMetric(const Json::Value & obj, const std::string & usecase_config_path)
 {
   if (!obj.isMember("color_match_histogram_metric")) {
@@ -242,6 +275,8 @@ void EPDContainer::initORTSessionHandler()
         onnx_model_path,
         0,
         intra_op_num_threads,
+        inter_op_num_threads,
+        execution_mode,
         std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}},
         log_model_info
       );
@@ -254,6 +289,8 @@ void EPDContainer::initORTSessionHandler()
         onnx_model_path,
         0,
         intra_op_num_threads,
+        inter_op_num_threads,
+        execution_mode,
         std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}},
         log_model_info
       );
@@ -337,6 +374,27 @@ void EPDContainer::setModelConfigFile()
               PATH_TO_SESSION_CONFIG);
     }
   }
+
+  if (obj.isMember("inter_op_num_threads")) {
+    if (!obj["inter_op_num_threads"].isInt()) {
+      throw std::runtime_error(
+              "Config 'inter_op_num_threads' must be an integer in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    const int thread_count = obj["inter_op_num_threads"].asInt();
+    if (thread_count > 0) {
+      inter_op_num_threads = thread_count;
+    } else if (thread_count < 0) {
+      throw std::runtime_error(
+              "Config 'inter_op_num_threads' must be >= 0 in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+  }
+
+  execution_mode = parseExecutionMode(
+    obj,
+    PATH_TO_SESSION_CONFIG,
+    Ort::SessionExecutionMode::SEQUENTIAL);
 
   image_transport = parseImageTransport(obj, PATH_TO_SESSION_CONFIG);
   publish_detection_segmentation = parseBooleanField(
@@ -515,7 +573,13 @@ void EPDContainer::setPrecisionLevel()
 {
   std::vector<std::vector<int64_t>> empty_inputShapes;
 
-  Ort::OrtBase ort_session(onnx_model_path, 0, intra_op_num_threads, empty_inputShapes);
+  Ort::OrtBase ort_session(
+    onnx_model_path,
+    0,
+    intra_op_num_threads,
+    inter_op_num_threads,
+    execution_mode,
+    empty_inputShapes);
 
   switch (ort_session.getNumOutputs()) {
     case 1:

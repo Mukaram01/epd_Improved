@@ -54,6 +54,8 @@ public:
     const std::string & modelPath,
     const boost::optional<size_t> & gpuIdx = boost::none,
     const boost::optional<int> & intraOpNumThreads = boost::none,
+    const boost::optional<int> & interOpNumThreads = boost::none,
+    const boost::optional<SessionExecutionMode> & executionMode = boost::none,
     const boost::optional<std::vector<std::vector<int64_t>>> &
     inputShapes = boost::none,
     const boost::optional<bool> & logModelInfo = boost::none);

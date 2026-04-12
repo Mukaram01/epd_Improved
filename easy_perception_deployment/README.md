@@ -466,7 +466,9 @@ All parameters are stored in `config/session_config.json`:
 | `path_to_label_list` | string | `./data/label_list/coco_classes.txt` | Path to the class label `.txt` file (one label per line). |
 | `visualizeFlag` | string | `"robot"` | `"visualize"` publishes an annotated image; `"robot"` publishes structured detection messages. |
 | `useCPU` | string | `"CPU"` | `"CPU"` uses CPU-only inference; `"GPU"` enables CUDA. |
-| `intra_op_num_threads` | int | `0` | Number of ONNX Runtime intra-op threads (0 = default). |
+| `intra_op_num_threads` | int | `2` | Number of ONNX Runtime intra-op threads (`2..4` is a good CPU starting point). |
+| `inter_op_num_threads` | int | `1` | Number of ONNX Runtime inter-op threads (`1` is conservative for CPU). |
+| `execution_mode` | string | `"sequential"` | ONNX Runtime scheduler mode: `"sequential"` (default) or `"parallel"`. |
 | `image_transport` | string | `"raw"` | Image transport plugin: `"raw"` or `"compressed"`. |
 | `publish_detection_segmentation` | bool | `true` | Publish per-object segmentation masks and point clouds in P3 detection mode. |
 | `confidence_threshold` | float | `0.5` | Minimum detection confidence score [0.0–1.0]. Detections below this are filtered out before publishing. |
@@ -499,6 +501,14 @@ If training fails immediately with _"GPU not detected"_:
 2. Run `nvcc --version` to confirm the CUDA toolkit is on your `PATH`.
 3. If both commands succeed, re-run the trainer — `checkGPUAvailability` now
    properly detects GPU availability via return codes, not just exit code 127.
+
+### CPU Throughput/Latency Tuning
+If CPU usage is high or frame rate is unstable, tune ONNX Runtime session threading in
+`config/session_config.json`:
+1. Keep `execution_mode` as `"sequential"` first (best baseline for deterministic latency).
+2. Start with `intra_op_num_threads` in the `2..4` range.
+3. Keep `inter_op_num_threads` at `1` for most single-model deployments.
+4. Increase values gradually while watching end-to-end FPS and callback latency.
 
 ### Qt / GUI Issues
 - On Wayland, set `export QT_QPA_PLATFORM=xcb` before starting the GUI.

@@ -237,18 +237,13 @@ void OrtBase::OrtBaseImpl::initModelInfo()
     // If m_inputShapes not initialized,
     // then look at m_session and derive.
     // Ensures that m_inputShapes is filled properly before use.
+    // Always query TypeInfo to capture the element type declared by the model.
+    Ort::TypeInfo typeInfo = m_session.GetInputTypeInfo(i);
+    auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
+    m_inputElementTypes.emplace_back(tensorInfo.GetElementType());
+
     if (!m_inputShapesProvided) {
-      Ort::TypeInfo typeInfo = m_session.GetInputTypeInfo(i);
-      auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
-
       m_inputShapes.emplace_back(tensorInfo.GetShape());
-    }
-
-    // Capture the element type declared by the model for this input.
-    {
-      Ort::TypeInfo typeInfo = m_session.GetInputTypeInfo(i);
-      auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
-      m_inputElementTypes.emplace_back(tensorInfo.GetElementType());
     }
 
     const auto & curInputShape = m_inputShapes[i];
@@ -326,7 +321,7 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
       const float * src = inputData[i];
       for (int64_t j = 0; j < tensorSize; ++j) {
         buf[j] = static_cast<uint8_t>(
-          std::min(255.0f, std::max(0.0f, src[j])));
+          std::clamp(src[j], 0.0f, 255.0f));
       }
       inputTensors.emplace_back(
         std::move(

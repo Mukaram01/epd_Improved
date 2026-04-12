@@ -19,6 +19,7 @@
 #include <functional>
 #include <utility>
 #include <numeric>
+#include <iostream>
 #include <sstream>
 #include <memory>
 #include <string>

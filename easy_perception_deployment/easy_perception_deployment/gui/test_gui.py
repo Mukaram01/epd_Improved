@@ -331,6 +331,37 @@ def test_setUseCase_DeployWindow(qtbot):
     assert usecase_mode == 2
 
 
+def test_setUseCase_color_matching_cancel_keeps_previous_mode(qtbot, monkeypatch):
+
+    widget = DeployWindow()
+    qtbot.addWidget(widget)
+
+    classification_index = widget.usecase_list.index('Classification')
+    color_matching_index = widget.usecase_list.index('Color-Matching')
+
+    widget.setUseCase(classification_index)
+    previous_mode = widget.usecase_mode
+    previous_text = widget.usecase_config_button.currentText()
+    previous_index = widget.usecase_config_button.currentIndex()
+
+    def _cancel_file_dialog(*args, **kwargs):
+        return ('', False)
+
+    monkeypatch.setattr(
+        'windows.Deploy.QFileDialog.getOpenFileName',
+        _cancel_file_dialog)
+
+    widget.setUseCase(color_matching_index)
+
+    with open('../config/usecase_config.json') as f:
+        data = json.load(f)
+
+    assert widget.usecase_mode == previous_mode == 0
+    assert data['usecase_mode'] == previous_mode == 0
+    assert widget.usecase_config_button.currentText() == previous_text
+    assert widget.usecase_config_button.currentIndex() == previous_index
+
+
 def test_setP2_TrainWindow(qtbot):
 
     widget = TrainWindow()

@@ -1167,12 +1167,37 @@ class DeployWindow(QWidget):
         self.docker_button.updateGeometry()
         self.updateSessionConfig()
 
+    def _set_usecase_combo_to_mode(self, usecase_mode):
+        usecase_name = self._usecase_name_from_mode(usecase_mode)
+        usecase_index = self.usecase_config_button.findText(usecase_name)
+        if usecase_index >= 0:
+            self.usecase_config_button.blockSignals(True)
+            self.usecase_config_button.setCurrentIndex(usecase_index)
+            self.usecase_config_button.blockSignals(False)
+
+    def _usecase_name_from_mode(self, usecase_mode):
+        usecase_names_by_mode = [
+            'Classification',
+            'Counting',
+            'Color-Matching',
+            'Localization',
+            'Tracking']
+        if 0 <= usecase_mode < len(usecase_names_by_mode):
+            return usecase_names_by_mode[usecase_mode]
+        return usecase_names_by_mode[0]
+
+    def _commit_selected_mode(self, usecase_mode):
+        self.usecase_mode = usecase_mode
+        self.usecase_config_button.setStyleSheet(
+            'background-color: rgba(0,150,10,255);')
+        self._update_fps_monitor_mode(self.usecase_mode)
+
     def setUseCase(self, index):
         '''A function is triggered by the DropDown Menu labelled, UseCase.'''
+        previous_usecase_mode = self.usecase_mode
         selected_usecase = self.usecase_list[index]
 
         if selected_usecase == 'Classification':
-            self.usecase_mode = 0
             if not self.debug:
                 msgBox = QMessageBox()
                 msgBox.setText('[Classification] Selected.'
@@ -1188,14 +1213,14 @@ class DeployWindow(QWidget):
                 return
             json_object = json.dumps(dict, indent=4)
             self._write_json_atomic(self._path_to_usecase_config, json_object)
+            self._commit_selected_mode(0)
 
         elif selected_usecase == 'Counting':
-            self.usecase_mode = 1
             self.counting_window = CountingWindow(self._path_to_label_list,
                                                   self._path_to_usecase_config)
             self.counting_window.show()
+            self._commit_selected_mode(1)
         elif selected_usecase == 'Localization':
-            self.usecase_mode = 3
             dict = {"schema_version": SCHEMA_VERSION, "usecase_mode": 3}
             try:
                 dict = validate_usecase_config(dict, require_mode_specific=True)
@@ -1204,12 +1229,12 @@ class DeployWindow(QWidget):
                 return
             json_object = json.dumps(dict, indent=4)
             self._write_json_atomic(self._path_to_usecase_config, json_object)
+            self._commit_selected_mode(3)
         elif selected_usecase == 'Tracking':
-            self.usecase_mode = 4
             self.tracking_window = TrackingWindow(self._path_to_usecase_config)
             self.tracking_window.show()
+            self._commit_selected_mode(4)
         elif selected_usecase == 'Color-Matching':
-            self.usecase_mode = 2
             if not self.debug:
                 input_refimage_filepath, ok = (
                     QFileDialog.getOpenFileName(
@@ -1223,17 +1248,20 @@ class DeployWindow(QWidget):
 
             if not ok:
                 self.deploy_logger.warning('No reference color template set.')
+                self._set_usecase_combo_to_mode(previous_usecase_mode)
                 return
 
             resolved_template_path = self.resolveFilePath(input_refimage_filepath)
             if not resolved_template_path or not Path(resolved_template_path).exists():
                 self.deploy_logger.warning('No reference color template set.')
+                self._set_usecase_combo_to_mode(previous_usecase_mode)
                 return
 
             path_to_color_template = self._normalize_data_path(
                 input_refimage_filepath)
             if not path_to_color_template:
                 self.deploy_logger.warning('No reference color template set.')
+                self._set_usecase_combo_to_mode(previous_usecase_mode)
                 return
 
             self.deploy_logger.info('Wrote to ../data/usecase_config.json')
@@ -1247,16 +1275,14 @@ class DeployWindow(QWidget):
                 dict = validate_usecase_config(dict, require_mode_specific=True)
             except ConfigSchemaError as exc:
                 self._show_blocking_config_error(str(exc))
+                self._set_usecase_combo_to_mode(previous_usecase_mode)
                 return
             json_object = json.dumps(dict, indent=4)
             self._write_json_atomic(self._path_to_usecase_config, json_object)
+            self._commit_selected_mode(2)
         else:
             self.deploy_logger.warning('Invalid Use Case')
             sys.exit()
-
-        self.usecase_config_button.setStyleSheet(
-            'background-color: rgba(0,150,10,255);')
-        self._update_fps_monitor_mode(self.usecase_mode)
 
     def setImageTransport(self, index):
         '''A function triggered by the Image Transport dropdown.'''

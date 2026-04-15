@@ -14,7 +14,13 @@
 
 from PySide6.QtCore import QEvent, QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QGridLayout,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
 
 import logging
 import os
@@ -33,6 +39,8 @@ class MainWindow(QWidget):
     '''
     _MODULE_DIR = Path(__file__).resolve().parent
     _GUI_DIR = _MODULE_DIR.parent
+    _DEFAULT_MARGIN = 10
+    _DEFAULT_SPACING = 10
 
     def __init__(self):
         '''
@@ -88,37 +96,87 @@ class MainWindow(QWidget):
 
     def setButtons(self):
         '''A Mutator function that defines all buttons in MainWindow.'''
-        self.train_button = QPushButton('Train', self)
-        self.train_button.setIcon(QIcon(self._image_path('train.png')))
-        self.train_button.setIconSize(QSize(100, 100))
-        self.train_button.setFixedHeight(250)
+        self.train_button = self._configure_main_button(
+            text='&Train',
+            icon_name='train.png',
+            tooltip='Train a model (Alt+T)',
+            min_height=180,
+        )
 
-        self.deploy_button = QPushButton('Deploy', self)
-        self.deploy_button.setIcon(QIcon(self._image_path('deploy.png')))
-        self.deploy_button.setIconSize(QSize(100, 100))
-        self.deploy_button.setFixedHeight(250)
+        self.deploy_button = self._configure_main_button(
+            text='&Deploy',
+            icon_name='deploy.png',
+            tooltip='Deploy a model (Alt+D)',
+            min_height=180,
+        )
 
-        self.quit_button = QPushButton('Quit', self)
-        self.quit_button.setIcon(QIcon(self._image_path('quit.png')))
-        self.quit_button.setIconSize(QSize(250, 250))
-        self.quit_button.setFixedHeight(125)
+        self.quit_button = self._configure_main_button(
+            text='&Quit',
+            icon_name='quit.png',
+            tooltip='Quit the application (Alt+Q)',
+            min_height=100,
+        )
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
+        layout.setContentsMargins(
+            self._DEFAULT_MARGIN,
+            self._DEFAULT_MARGIN,
+            self._DEFAULT_MARGIN,
+            self._DEFAULT_MARGIN,
+        )
+        layout.setSpacing(self._DEFAULT_SPACING)
         top_layout = QGridLayout()
         top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.setSpacing(0)
+        top_layout.setSpacing(self._DEFAULT_SPACING)
         top_layout.addWidget(self.train_button, 0, 0)
         top_layout.addWidget(self.deploy_button, 0, 1)
         top_layout.setColumnStretch(0, 1)
         top_layout.setColumnStretch(1, 1)
+        top_layout.setRowStretch(0, 1)
         layout.addLayout(top_layout)
         layout.addWidget(self.quit_button)
+        layout.setStretch(0, 3)
+        layout.setStretch(1, 2)
 
         self.train_button.clicked.connect(self.openTrainWindow)
         self.deploy_button.clicked.connect(self.deployPackage)
         self.quit_button.clicked.connect(self.closeWindow)
+        self._update_button_icon_sizes()
+
+    def _configure_main_button(self, text, icon_name, tooltip, min_height):
+        button = QPushButton(text, self)
+        button.setIcon(QIcon(self._image_path(icon_name)))
+        button.setToolTip(tooltip)
+        button.setMinimumHeight(min_height)
+        button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        return button
+
+    def _update_button_icon_sizes(self):
+        if self.width() < 520:
+            top_icon = 60
+            quit_icon = 44
+        elif self.width() < 760:
+            top_icon = 84
+            quit_icon = 60
+        else:
+            top_icon = 108
+            quit_icon = 76
+
+        self.train_button.setIconSize(
+            self._adaptive_icon_size(self.train_button, top_icon)
+        )
+        self.deploy_button.setIconSize(
+            self._adaptive_icon_size(self.deploy_button, top_icon)
+        )
+        self.quit_button.setIconSize(
+            self._adaptive_icon_size(self.quit_button, quit_icon)
+        )
+
+    def _adaptive_icon_size(self, button, preferred):
+        button_width = max(button.width() - 30, 32)
+        button_height = max(button.height() - 60, 32)
+        icon_edge = max(24, min(preferred, button_width, button_height))
+        return QSize(icon_edge, icon_edge)
 
     def deployPackage(self):
         '''A function that is triggered by the button labelled, Deploy.'''
@@ -160,6 +218,10 @@ class MainWindow(QWidget):
         self.deploy_window.shutdown()
         self.train_window.close()
         event.accept()
+
+    def resizeEvent(self, event):
+        self._update_button_icon_sizes()
+        super().resizeEvent(event)
 
     def _image_path(self, image_name):
         return str(self._GUI_DIR / 'img' / image_name)

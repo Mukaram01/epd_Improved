@@ -927,13 +927,6 @@ class DeployWindow(QWidget):
         finally:
             self._is_shutting_down = False
 
-    # Keep exactly one closeEvent override in this class; duplicate overrides
-    # can silently shadow each other and skip important shutdown steps.
-    def closeEvent(self, event):
-        self.shutdown()
-        self._stop_fps_monitor()
-        super().closeEvent(event)
-
     def setImageInput(self):
         '''
         A Mutator function that writes to line 25 of

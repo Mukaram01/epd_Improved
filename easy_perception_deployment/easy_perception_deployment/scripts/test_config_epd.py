@@ -29,6 +29,7 @@ if ((PACKAGE_ROOT / "config/session_config.json").exists() and
     (PACKAGE_ROOT / "config/usecase_config.json").unlink(missing_ok=True)
 
     dict = {
+        "schema_version": 2,
         "path_to_model": './data/model/squeezenet1.1-7.onnx',
         "path_to_label_list": './data/label_list/imagenet_classes.txt',
         "visualizeFlag": 'visualize',
@@ -38,7 +39,7 @@ if ((PACKAGE_ROOT / "config/session_config.json").exists() and
     with open(PACKAGE_ROOT / 'config/session_config.json', 'w') as outfile:
         outfile.write(json_object)
 
-    dict = {"usecase_mode": 0}
+    dict = {"schema_version": 2, "usecase_mode": 0}
     json_object = json.dumps(dict, indent=4)
     with open(PACKAGE_ROOT / 'config/usecase_config.json', 'w') as outfile:
         outfile.write(json_object)

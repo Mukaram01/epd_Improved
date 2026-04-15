@@ -40,6 +40,20 @@ from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
 from windows.job_controller import JobController, JobState
 
+_SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2])
+if _SCHEMA_IMPORT_ROOT not in sys.path:
+    sys.path.append(_SCHEMA_IMPORT_ROOT)
+from scripts.cli.config_schema import (  # noqa: E402
+    ConfigSchemaError,
+    SCHEMA_VERSION,
+    migrate_input_topic_config,
+    migrate_session_config,
+    migrate_usecase_config,
+    validate_input_topic_config,
+    validate_session_config,
+    validate_usecase_config,
+)
+
 
 class _FPSMonitorSignals(QObject):
     """QObject carrier for the fps_updated signal.
@@ -361,6 +375,11 @@ class DeployWindow(QWidget):
             defaults={'usecase_mode': 0},
             allow_missing_defaults=True,
             abort_on_json_error=True)
+        try:
+            session_config = migrate_session_config(session_config)
+            usecase_config = migrate_usecase_config(usecase_config)
+        except ConfigSchemaError as exc:
+            self._show_blocking_config_error(str(exc), abort_operation=True)
 
         try:
             self._path_to_model = session_config["path_to_model"]
@@ -402,13 +421,6 @@ class DeployWindow(QWidget):
         try:
             self.usecase_mode = int(usecase_config["usecase_mode"])
 
-            if self.usecase_mode < 0 or self.usecase_mode > 4:
-                self.deploy_logger.warning(
-                    '[ usecase_config.json ] - Invalid Usecase Mode' +
-                    ' - FOUND.\n'
-                    'Assigning default Use Case MODE : [CLASSIFICATION] ')
-                self.usecase_mode = 0
-
             # Rearranging usecase_list based on saved configuration.
             curr_usecase_mode = self.usecase_list[int(self.usecase_mode)]
             self.usecase_list.remove(curr_usecase_mode)
@@ -428,6 +440,16 @@ class DeployWindow(QWidget):
             defaults={'input_image_topic': self.DEFAULT_INPUT_TOPIC},
             allow_missing_defaults=True,
             abort_on_json_error=False)
+        try:
+            image_topic_data = migrate_input_topic_config(image_topic_data)
+        except ConfigSchemaError as exc:
+            self._show_blocking_config_error(str(exc), abort_operation=True)
+        self._write_json_atomic(
+            self._path_to_session_config, json.dumps(session_config, indent=4))
+        self._write_json_atomic(
+            self._path_to_usecase_config, json.dumps(usecase_config, indent=4))
+        self._write_json_atomic(
+            self._path_to_input_image_json_file, json.dumps(image_topic_data, indent=4))
         self._input_image_topic = image_topic_data['input_image_topic']
 
         if self._image_transport not in self.image_transport_list:
@@ -1041,7 +1063,12 @@ class DeployWindow(QWidget):
             self.validateDeployInputs()
             return
 
-        dict = {"input_image_topic": new_image_topic}
+        dict = {"schema_version": SCHEMA_VERSION, "input_image_topic": new_image_topic}
+        try:
+            dict = validate_input_topic_config(dict)
+        except ConfigSchemaError as exc:
+            self._show_blocking_config_error(str(exc))
+            return
         json_object = json.dumps(dict, indent=4)
         self._write_json_atomic(self._path_to_input_image_json_file, json_object)
 
@@ -1105,7 +1132,12 @@ class DeployWindow(QWidget):
                 msgBox.exec()
 
             self.deploy_logger.info('Wrote to ../data/usecase_config.json')
-            dict = {"usecase_mode": 0}
+            dict = {"schema_version": SCHEMA_VERSION, "usecase_mode": 0}
+            try:
+                dict = validate_usecase_config(dict, require_mode_specific=True)
+            except ConfigSchemaError as exc:
+                self._show_blocking_config_error(str(exc))
+                return
             json_object = json.dumps(dict, indent=4)
             self._write_json_atomic(self._path_to_usecase_config, json_object)
 
@@ -1116,7 +1148,12 @@ class DeployWindow(QWidget):
             self.counting_window.show()
         elif selected_usecase == 'Localization':
             self.usecase_mode = 3
-            dict = {"usecase_mode": 3}
+            dict = {"schema_version": SCHEMA_VERSION, "usecase_mode": 3}
+            try:
+                dict = validate_usecase_config(dict, require_mode_specific=True)
+            except ConfigSchemaError as exc:
+                self._show_blocking_config_error(str(exc))
+                return
             json_object = json.dumps(dict, indent=4)
             self._write_json_atomic(self._path_to_usecase_config, json_object)
         elif selected_usecase == 'Tracking':
@@ -1153,10 +1190,16 @@ class DeployWindow(QWidget):
 
             self.deploy_logger.info('Wrote to ../data/usecase_config.json')
             dict = {
+                "schema_version": SCHEMA_VERSION,
                 "usecase_mode": 2,
                 "path_to_color_template": path_to_color_template,
                 "color_match_histogram_metric": "Correlation"
                 }
+            try:
+                dict = validate_usecase_config(dict, require_mode_specific=True)
+            except ConfigSchemaError as exc:
+                self._show_blocking_config_error(str(exc))
+                return
             json_object = json.dumps(dict, indent=4)
             self._write_json_atomic(self._path_to_usecase_config, json_object)
         else:
@@ -1203,6 +1246,7 @@ class DeployWindow(QWidget):
             useCPU_string = "GPU"
 
         dict = {
+            "schema_version": SCHEMA_VERSION,
             "path_to_model": self._path_to_model,
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
@@ -1214,6 +1258,11 @@ class DeployWindow(QWidget):
             "confidence_threshold": self._confidence_threshold,
             "max_detections": self._max_detections
             }
+        try:
+            dict = validate_session_config(dict)
+        except ConfigSchemaError as exc:
+            self._show_blocking_config_error(str(exc))
+            return
         json_object = json.dumps(dict, indent=4)
         self._write_json_atomic(self._path_to_session_config, json_object)
 
@@ -1428,7 +1477,10 @@ class DeployWindow(QWidget):
         self._input_image_topic = self.DEFAULT_INPUT_TOPIC
         self.topic_button.setEditText(self.DEFAULT_INPUT_TOPIC)
         self.updateSessionConfig()
-        dict = {"input_image_topic": self.DEFAULT_INPUT_TOPIC}
+        dict = {
+            "schema_version": SCHEMA_VERSION,
+            "input_image_topic": self.DEFAULT_INPUT_TOPIC}
+        dict = validate_input_topic_config(dict)
         json_object = json.dumps(dict, indent=4)
         self._write_json_atomic(self._path_to_input_image_json_file, json_object)
         self.validateDeployInputs()

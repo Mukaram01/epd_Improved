@@ -744,7 +744,8 @@ class DeployWindow(QWidget):
             self._deploy_process, self._deploy_timer = self._start_process(
                 [self._deploy_script_path(),
                  str(self.useCPU),
-                 str(self.visualizeFlag)],
+                 str(self.visualizeFlag),
+                 '--non-interactive'],
                 'deploy',
                 cwd=self._scripts_dir())
             self.run_button.setText('Stop')
@@ -877,15 +878,58 @@ class DeployWindow(QWidget):
         self.status_label.setText('Error')
 
         log_tail = self._tail_process_log(process_type)
+        error_code = self._extract_epd_error_code(log_tail)
+        remediation_text = self._epd_remediation_message(error_code)
         message_lines = [
             f"{process_type.capitalize()} failed.",
+        ]
+        if error_code:
+            message_lines.extend([
+                "",
+                f"Error code: {error_code}",
+            ])
+        if remediation_text:
+            message_lines.extend([
+                "",
+                "Suggested remediation:",
+                remediation_text
+            ])
+        message_lines.extend([
             "",
             "log output:",
             log_tail
-        ]
+        ])
         msgBox = QMessageBox()
         msgBox.setText('\n'.join(message_lines))
         msgBox.exec()
+
+    def _extract_epd_error_code(self, log_tail):
+        for line in log_tail.splitlines():
+            stripped = line.strip()
+            if stripped.startswith('EPD_ERR_') and ':' in stripped:
+                return stripped.split(':', 1)[0]
+        return None
+
+    def _epd_remediation_message(self, error_code):
+        remediations = {
+            'EPD_ERR_ROS_SETUP_MISSING':
+                'ROS 2 setup was not found. Install the configured ROS distro and verify setup.bash exists.',
+            'EPD_ERR_DOCKER_NOT_FOUND':
+                'Docker command was not found. Install Docker or set EPD_DOCKER_CMD to a valid command.',
+            'EPD_ERR_DOCKER_UNAVAILABLE':
+                'Docker is not accessible. Add your user to docker group, run with --sudo-docker, or set EPD_DOCKER_CMD.',
+            'EPD_ERR_IMAGE_NOT_FOUND':
+                'Required EPD image is missing. Pull or build the image and retry deployment.',
+            'EPD_ERR_WORKSPACE_MISSING':
+                'Workspace path is missing. Ensure EPD_WORKSPACE_ROOT points to a valid workspace directory.',
+            'EPD_ERR_WORKSPACE_LAYOUT':
+                'deploy.sh is not inside the expected workspace layout. Verify checkout structure and EPD_WORKSPACE_ROOT.',
+            'EPD_ERR_VENDOR_MISSING':
+                'Mounted workspace is missing epd_onnxruntime_vendor. Verify repository content and mount path.',
+            'EPD_ERR_LAUNCH_SCRIPT_INVALID':
+                'Container launch script was not found/executable. Check launch.sh/build_launch.sh permissions and paths.'
+        }
+        return remediations.get(error_code)
 
     def _terminate_process(self, process, timer):
         if timer is not None and timer.isActive():

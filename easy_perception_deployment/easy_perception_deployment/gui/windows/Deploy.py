@@ -30,7 +30,7 @@ try:
     _RCLPY_AVAILABLE = True
 except ImportError:
     _RCLPY_AVAILABLE = False
-from PySide6.QtCore import QObject, QSize, QThread, QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QSize, QThread, QTimer, QElapsedTimer, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget,
@@ -313,10 +313,14 @@ class DeployWindow(QWidget):
         self._kill_timer = None
         self._deploy_start_timeout_timer = None
         self._stop_timeout_timer = None
+        self._shutdown_poll_timer = None
+        self._shutdown_elapsed = None
+        self._shutdown_timeout_ms = 0
         self._deploy_log_file = None
         self._kill_log_file = None
         self._fps_monitor = None
         self._is_shutting_down = False
+        self._is_app_exiting = False
         self._job_controller = JobController('Deployment', self)
         self._job_controller.state_changed.connect(self._on_job_state_changed)
 
@@ -795,6 +799,8 @@ class DeployWindow(QWidget):
             self._stop_deployment()
 
     def _stop_deployment(self):
+        if self._job_controller.state == JobState.STOPPING:
+            return
         self._job_controller.set_state(JobState.STOPPING, 'Stopping deployment...')
         self.deploy_logger.info("Killing epd_test_container docker.")
         self._kill_process, self._kill_timer = self._start_process(
@@ -864,6 +870,12 @@ class DeployWindow(QWidget):
             return
 
         timer.stop()
+        if process_type == 'deploy':
+            self._deploy_timer = None
+            self._deploy_process = process
+        elif process_type == 'kill':
+            self._kill_timer = None
+            self._kill_process = process
         self._close_process_log_file(process_type)
         if process_type == 'kill':
             if self._stop_timeout_timer is not None:
@@ -984,41 +996,77 @@ class DeployWindow(QWidget):
                 process.kill()
                 process.wait()
 
+    def _all_stop_processes_finished(self):
+        kill_done = (self._kill_process is None) or (self._kill_process.poll() is not None)
+        deploy_done = (self._deploy_process is None) or (self._deploy_process.poll() is not None)
+        return kill_done and deploy_done
+
+    def _cleanup_shutdown_resources(self):
+        if self._deploy_start_timeout_timer is not None:
+            self._deploy_start_timeout_timer.stop()
+        if self._stop_timeout_timer is not None:
+            self._stop_timeout_timer.stop()
+        if self._shutdown_poll_timer is not None:
+            self._shutdown_poll_timer.stop()
+        if self._deploy_timer is not None and self._deploy_timer.isActive():
+            self._deploy_timer.stop()
+        if self._kill_timer is not None and self._kill_timer.isActive():
+            self._kill_timer.stop()
+        self._close_process_log_file('deploy')
+        self._close_process_log_file('kill')
+        self._deploy_process = None
+        self._kill_process = None
+        self._deploy_timer = None
+        self._kill_timer = None
+        self._deploy_start_timeout_timer = None
+        self._stop_timeout_timer = None
+        self._shutdown_poll_timer = None
+        self._shutdown_elapsed = None
+        self._shutdown_timeout_ms = 0
+
+    def _finalize_shutdown_cleanup(self):
+        self._cleanup_shutdown_resources()
+        if self._job_controller.state != JobState.FAILED:
+            self._job_controller.set_state(JobState.IDLE, 'Stopped')
+        self._is_shutting_down = False
+
     def shutdown(self):
         if self._is_shutting_down:
             return
 
         self._is_shutting_down = True
-        try:
-            if self._job_controller.state in (JobState.STARTING, JobState.RUNNING):
-                self._stop_deployment()
+        if self._job_controller.state in (JobState.STARTING, JobState.RUNNING):
+            self._stop_deployment()
 
-            stop_result = self._wait_for_graceful_stop(timeout_sec=4)
-            if not stop_result:
-                self._handle_stop_timeout()
-                self._wait_for_graceful_stop(timeout_sec=1)
-
-            self._terminate_process(self._deploy_process, self._deploy_timer)
-            self._close_process_log_file('deploy')
-            self._close_process_log_file('kill')
-            self._deploy_process = None
-            self._kill_process = None
-            self._deploy_timer = None
-            self._kill_timer = None
-            if self._job_controller.state != JobState.FAILED:
-                self._job_controller.set_state(JobState.IDLE, 'Stopped')
-        finally:
-            self._is_shutting_down = False
+        self._wait_for_graceful_stop(timeout_sec=4)
 
     def _wait_for_graceful_stop(self, timeout_sec):
-        deadline = time.time() + timeout_sec
-        while time.time() < deadline:
-            kill_done = (self._kill_process is None) or (self._kill_process.poll() is not None)
-            deploy_done = (self._deploy_process is None) or (self._deploy_process.poll() is not None)
-            if kill_done and deploy_done:
-                return True
-            time.sleep(0.1)
-        return False
+        self._shutdown_timeout_ms = int(max(timeout_sec, 0) * 1000)
+        self._shutdown_elapsed = QElapsedTimer()
+        self._shutdown_elapsed.start()
+
+        if self._shutdown_poll_timer is None:
+            self._shutdown_poll_timer = QTimer(self)
+            self._shutdown_poll_timer.setInterval(100)
+            self._shutdown_poll_timer.timeout.connect(self._on_shutdown_poll_tick)
+
+        if self._all_stop_processes_finished():
+            self._finalize_shutdown_cleanup()
+            return
+
+        self._shutdown_poll_timer.start()
+
+    def _on_shutdown_poll_tick(self):
+        if self._all_stop_processes_finished():
+            self._finalize_shutdown_cleanup()
+            return
+
+        if self._shutdown_elapsed is None:
+            return
+
+        if self._shutdown_elapsed.elapsed() >= self._shutdown_timeout_ms:
+            self._handle_stop_timeout()
+            self._finalize_shutdown_cleanup()
 
     def _handle_start_timeout(self):
         if self._job_controller.state != JobState.STARTING:
@@ -1040,7 +1088,7 @@ class DeployWindow(QWidget):
         self._job_controller.set_state(
             JobState.IDLE,
             'Stopped (forced after timeout escalation).')
-        if not self.debug:
+        if not self.debug and not self._is_app_exiting and not self._is_shutting_down:
             QMessageBox.warning(
                 self,
                 'Stop Escalated',
@@ -1530,13 +1578,7 @@ class DeployWindow(QWidget):
             self.validation_label.setText('Run enabled: all required inputs are ready.')
 
     def closeEvent(self, event):
+        self._is_app_exiting = True
         self._stop_fps_monitor()
         self.shutdown()
-        final_message = self._job_controller.message
-        if ('forced' in final_message.lower() or
-                self._job_controller.state == JobState.FAILED):
-            QMessageBox.information(
-                self,
-                'Deployment Shutdown',
-                f'Window closed with shutdown result: {final_message}')
         super().closeEvent(event)

@@ -83,7 +83,7 @@ class EPDConfigurator:
             print("[ config_epd ] - ERROR. usecase_config.json MISSING.")
             raise EPDConfigError("usecase_config.json missing")
 
-        arg_list = args[1:]
+        arg_list = self._validate_and_get_arg_list(args)
         if not arg_list:
             print('Please specify a configuration.')
             self._build_arg_parser().print_help()
@@ -94,6 +94,21 @@ class EPDConfigurator:
         self.write_out(
             self.session_config_filepath,
             self.usecase_config_filepath)
+
+    def _validate_and_get_arg_list(self, args):
+        if args is None:
+            raise EPDConfigError(
+                "Malformed CLI args: expected list/tuple like sys.argv, got None")
+        if not isinstance(args, (list, tuple)):
+            raise EPDConfigError(
+                "Malformed CLI args: expected list/tuple like sys.argv")
+        if not args:
+            raise EPDConfigError(
+                "Malformed CLI args: expected argv[0] script name")
+        if not all(isinstance(arg, str) for arg in args):
+            raise EPDConfigError(
+                "Malformed CLI args: all argv entries must be strings")
+        return list(args[1:])
 
     def _build_arg_parser(self):
         parser = argparse.ArgumentParser(
@@ -601,6 +616,11 @@ def main(args=None):
     # when script is being executed:
     # /data, /scripts, /launch, CMakeLists.txt and package.xml
     try:
+        if args is None:
+            args = sys.argv
+        elif not isinstance(args, (list, tuple)):
+            raise EPDConfigError(
+                "Malformed CLI args: expected list/tuple like sys.argv")
         EPDConfigurator(start_dirpath, args)
     except EPDConfigError as exc:
         print(f"[ config_epd ] - Fatal: {exc}")

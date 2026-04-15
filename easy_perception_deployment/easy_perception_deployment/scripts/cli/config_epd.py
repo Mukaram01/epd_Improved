@@ -21,6 +21,23 @@ import os
 import sys
 import json
 
+from cli.config_schema import (
+    ConfigSchemaError,
+    SCHEMA_VERSION,
+    USECASE_MODE_LABELS,
+    migrate_input_topic_config,
+    migrate_session_config,
+    migrate_usecase_config,
+    normalize_class_list,
+    normalize_color_histogram_metric,
+    normalize_track_type,
+    validate_existing_file_path,
+    validate_input_topic_config,
+    validate_session_config,
+    validate_usecase_config,
+    validate_usecase_mode,
+)
+
 
 class EPDConfigError(ValueError):
     """Raised for invalid EPD configuration input; caught in main() to set exit code."""
@@ -214,26 +231,12 @@ class EPDConfigurator:
             self.useCPU = True
 
         if namespace.model is not None:
-            resolved_path = os.path.abspath(os.path.expanduser(namespace.model))
-            if not os.path.isfile(resolved_path):
-                print("[ config_epd ] - ERROR."
-                      " input model file does not exist at "
-                      + resolved_path + ".")
-                print("[ config_epd ] - Exiting.")
-                raise EPDConfigError(
-                    "Model file does not exist: " + resolved_path)
-            self._path_to_model = namespace.model
+            self._path_to_model = self.validate_existing_file_path(
+                namespace.model, "path_to_model")
 
         if namespace.label is not None:
-            resolved_path = os.path.abspath(os.path.expanduser(namespace.label))
-            if not os.path.isfile(resolved_path):
-                print("[ config_epd ] - ERROR."
-                      " input label list does not exist at "
-                      + resolved_path + ".")
-                print("[ config_epd ] - Exiting.")
-                raise EPDConfigError(
-                    "Label list file does not exist: " + resolved_path)
-            self._path_to_label_list = namespace.label
+            self._path_to_label_list = self.validate_existing_file_path(
+                namespace.label, "path_to_label_list")
 
         if namespace.use is not None:
             self.set_use_case_from_cli(namespace.use)
@@ -267,11 +270,6 @@ class EPDConfigurator:
             self.input_image_topic = namespace.topic
 
         if namespace.intra_op_threads is not None:
-            if namespace.intra_op_threads < 0:
-                print("[ session_config.json ] - ERROR."
-                      " intra-op-threads must be >= 0.")
-                print("[ config_epd ] - Exiting.")
-                raise EPDConfigError("intra-op-threads must be >= 0")
             self.intra_op_num_threads = namespace.intra_op_threads
 
         if namespace.publish_segmentation is not None:
@@ -286,14 +284,18 @@ class EPDConfigurator:
         self.validate_usecase_inputs()
 
     def parse_session_config(self, session_config_filepath):
-        data = self._load_json_config(
-            session_config_filepath,
-            "session_config.json",
-            required_keys=[
-                "path_to_model",
-                "path_to_label_list",
-                "useCPU",
-                "visualizeFlag"])
+        try:
+            data = migrate_session_config(
+                self._load_json_config(
+                    session_config_filepath,
+                    "session_config.json",
+                    required_keys=[
+                        "path_to_model",
+                        "path_to_label_list",
+                        "useCPU",
+                        "visualizeFlag"]))
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
         self._path_to_model = data["path_to_model"]
         self._path_to_label_list = data["path_to_label_list"]
         self.intra_op_num_threads = data.get("intra_op_num_threads", 0)
@@ -310,43 +312,35 @@ class EPDConfigurator:
             self.visualizeFlag = False
 
     def parse_usecase_config(self, usecase_config_filepath):
-        data = self._load_json_config(
-            usecase_config_filepath,
-            "usecase_config.json",
-            required_keys=["usecase_mode"])
+        try:
+            data = migrate_usecase_config(
+                self._load_json_config(
+                    usecase_config_filepath,
+                    "usecase_config.json",
+                    required_keys=["usecase_mode"]))
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
         self.usecase_mode = data["usecase_mode"]
-        if self.usecase_mode == 0:
-            print("[ Use Case ] - CLASSIFICATION")
-        elif self.usecase_mode == 1:
-            print("[ Use Case ] - COUNTING")
-            self.count_class_list = self.normalize_class_list(
-                data.get("class_list"))
+        print(f"[ Use Case ] - {USECASE_MODE_LABELS[self.usecase_mode]}")
+        if self.usecase_mode == 1:
+            self.count_class_list = self.normalize_class_list(data.get("class_list"))
         elif self.usecase_mode == 2:
-            print("[ Use Case ] - COLOR-MATCHING")
             self.path_to_color_template = self.validate_existing_file_path(
-                data.get("path_to_color_template"),
-                "color template")
-            if "color_match_histogram_metric" in data:
-                self.color_match_histogram_metric = \
-                    self.normalize_color_histogram_metric(
-                        data["color_match_histogram_metric"])
-        elif self.usecase_mode == 3:
-            print("[ Use Case ] - LOCALIZATION")
+                data.get("path_to_color_template"), "path_to_color_template")
+            self.color_match_histogram_metric = self.normalize_color_histogram_metric(
+                data.get("color_match_histogram_metric", "Correlation"))
         elif self.usecase_mode == 4:
-            print("[ Use Case ] - TRACKING")
             self.track_type = self.normalize_track_type(data.get("track_type"))
-        else:
-            print("[ Use Case ] - INVALID. Please rectify" +
-                  " usecase_config.json. Exiting...")
-            raise EPDConfigError(
-                "Invalid usecase_mode in usecase_config.json: "
-                + str(self.usecase_mode))
 
     def parse_inputimagetopic_config(self, inputimagetopic_config_filepath):
-        data = self._load_json_config(
-            inputimagetopic_config_filepath,
-            "input_image_topic.json",
-            required_keys=["input_image_topic"])
+        try:
+            data = migrate_input_topic_config(
+                self._load_json_config(
+                    inputimagetopic_config_filepath,
+                    "input_image_topic.json",
+                    required_keys=["input_image_topic"]))
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
         self.input_image_topic = data["input_image_topic"]
 
     def _load_json_config(
@@ -389,109 +383,36 @@ class EPDConfigurator:
         return merged
 
     def normalize_color_histogram_metric(self, metric):
-        if isinstance(metric, int):
-            metric_value = metric
-        else:
-            metric_str = str(metric).strip()
-            if metric_str.isdigit():
-                metric_value = int(metric_str)
-            else:
-                metric_lower = metric_str.lower()
-                if metric_lower == "correlation":
-                    return "Correlation"
-                if metric_lower in ("chi-square", "chisquare", "chi_square"):
-                    return "Chi-square"
-                if metric_lower == "intersection":
-                    return "Intersection"
-                if metric_lower == "bhattacharyya":
-                    return "Bhattacharyya"
-                print("[ config_epd ] - ERROR."
-                      " Invalid color-hist-metric provided. "
-                      "Expected " +
-                      ", ".join(self.COLOR_HISTOGRAM_METRIC_CHOICES) + ".")
-                raise EPDConfigError(
-                    "Invalid color-hist-metric: " + metric_str)
-
-        if metric_value == 0:
-            return "Correlation"
-        if metric_value == 1:
-            return "Chi-square"
-        if metric_value == 2:
-            return "Intersection"
-        if metric_value == 3:
-            return "Bhattacharyya"
-        print("[ config_epd ] - ERROR."
-              " Invalid color-hist-metric provided. "
-              "Expected 0-3 or " +
-              ", ".join(self.COLOR_HISTOGRAM_METRIC_CHOICES) + ".")
-        raise EPDConfigError(
-            "Invalid color-hist-metric value: " + str(metric_value))
+        try:
+            return normalize_color_histogram_metric(metric)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
 
     def normalize_track_type(self, track_type):
-        normalized = str(track_type or "").strip().upper()
-        if normalized in self.TRACK_TYPE_CHOICES:
-            return normalized
-        print("[ config_epd ] - ERROR."
-              " Invalid track-type provided. "
-              "Expected one of: " +
-              ", ".join(self.TRACK_TYPE_CHOICES) + ".")
-        raise EPDConfigError("Invalid track-type: " + str(track_type))
+        try:
+            return normalize_track_type(track_type)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
 
     def normalize_class_list(self, class_list):
-        if not isinstance(class_list, list):
-            print("[ config_epd ] - ERROR."
-                  " class_list must be a list of non-empty class names.")
-            raise EPDConfigError("class_list must be a list")
-        normalized_class_list = []
-        for class_name in class_list:
-            class_name_str = str(class_name).strip()
-            if class_name_str:
-                normalized_class_list.append(class_name_str)
-        if not normalized_class_list:
-            print("[ config_epd ] - ERROR."
-                  " class_list must contain at least one class name.")
-            raise EPDConfigError(
-                "class_list must contain at least one class name")
-        return normalized_class_list
+        try:
+            return normalize_class_list(class_list)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
 
     def validate_existing_file_path(self, filepath, option_name):
-        candidate_path = str(filepath or "").strip()
-        if not candidate_path:
-            print("[ config_epd ] - ERROR."
-                  f" {option_name} path cannot be empty.")
-            raise EPDConfigError(f"{option_name} path cannot be empty")
-        resolved_path = os.path.abspath(os.path.expanduser(candidate_path))
-        if not os.path.isfile(resolved_path):
-            print("[ config_epd ] - ERROR."
-                  f" {option_name} file does not exist at {resolved_path}.")
-            print("[ config_epd ] - Exiting.")
-            raise EPDConfigError(
-                f"{option_name} file does not exist: {resolved_path}")
-        return candidate_path
+        try:
+            return validate_existing_file_path(filepath, option_name)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
 
     def set_use_case_from_cli(self, usecase_mode):
-        self.usecase_mode = usecase_mode
-
-        if usecase_mode == 0:
-            print("[ session_config.json ] - "
-                  "Setting Use Case Mode to CLASSIFICATION.")
-        elif usecase_mode == 1:
-            print("[ session_config.json ] - "
-                  "Setting Use Case Mode to COUNTING.")
-        elif usecase_mode == 2:
-            print("[ session_config.json ] - "
-                  "Setting Use Case Mode to COLOR-MATCHING.")
-        elif usecase_mode == 3:
-            print("[ session_config.json ] - "
-                  "Setting Use Case Mode to LOCALIZATION.")
-        elif usecase_mode == 4:
-            print("[ session_config.json ] - "
-                  "Setting Use Case Mode to TRACKING.")
-        else:
-            print("[ session_config.json ] - "
-                  "Invalid Use Case Mode provided. Exiting...")
-            raise EPDConfigError(
-                "Invalid use case mode: " + str(usecase_mode))
+        try:
+            self.usecase_mode = validate_usecase_mode(usecase_mode)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
+        print("[ session_config.json ] - "
+              f"Setting Use Case Mode to {USECASE_MODE_LABELS[self.usecase_mode]}.")
 
     def validate_usecase_inputs(self):
         is_interactive = sys.stdin.isatty()
@@ -524,7 +445,7 @@ class EPDConfigurator:
                     "Please enter Color Image File Path: ")
             self.path_to_color_template = self.validate_existing_file_path(
                 self.path_to_color_template,
-                "color template")
+                "path_to_color_template")
             self.color_match_histogram_metric = \
                 self.normalize_color_histogram_metric(
                     self.color_match_histogram_metric)
@@ -554,6 +475,7 @@ class EPDConfigurator:
             useCPU_string = "GPU"
 
         session_config = {
+            "schema_version": SCHEMA_VERSION,
             "path_to_model": self._path_to_model,
             "path_to_label_list": self._path_to_label_list,
             "visualizeFlag": visualizeFlag_string,
@@ -562,6 +484,10 @@ class EPDConfigurator:
             "publish_detection_segmentation":
                 self.publish_detection_segmentation
             }
+        try:
+            session_config = validate_session_config(session_config)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
         json_object_1 = json.dumps(session_config, indent=4)
 
         with open(session_config_filepath, 'w') as outfile_1:
@@ -569,15 +495,18 @@ class EPDConfigurator:
 
         if self.usecase_mode == 0:
             usecase_config = {
+                "schema_version": SCHEMA_VERSION,
                 "usecase_mode": self.usecase_mode
             }
         elif self.usecase_mode == 1:
             usecase_config = {
+                "schema_version": SCHEMA_VERSION,
                 "usecase_mode": self.usecase_mode,
                 "class_list": self.count_class_list
             }
         elif self.usecase_mode == 2:
             usecase_config = {
+                "schema_version": SCHEMA_VERSION,
                 "usecase_mode": self.usecase_mode,
                 "path_to_color_template": self.path_to_color_template,
                 "color_match_histogram_metric":
@@ -585,23 +514,37 @@ class EPDConfigurator:
             }
         elif self.usecase_mode == 3:
             usecase_config = {
+                "schema_version": SCHEMA_VERSION,
                 "usecase_mode": self.usecase_mode
             }
         elif self.usecase_mode == 4:
             usecase_config = {
+                "schema_version": SCHEMA_VERSION,
                 "usecase_mode": self.usecase_mode,
                 "track_type": self.track_type
             }
         else:
-            usecase_config = {"usecase_mode": self.usecase_mode}
+            usecase_config = {
+                "schema_version": SCHEMA_VERSION,
+                "usecase_mode": self.usecase_mode}
 
+        try:
+            usecase_config = validate_usecase_config(
+                usecase_config, require_mode_specific=True)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
         json_object_2 = json.dumps(usecase_config, indent=4)
         with open(usecase_config_filepath, 'w') as outfile_2:
             outfile_2.write(json_object_2)
 
         topic_config = {
+            "schema_version": SCHEMA_VERSION,
             "input_image_topic": self.input_image_topic
             }
+        try:
+            topic_config = validate_input_topic_config(topic_config)
+        except ConfigSchemaError as exc:
+            raise EPDConfigError(str(exc)) from exc
         json_object_3 = json.dumps(topic_config, indent=4)
 
         with open(self.inputimagetopic_config_filepath, 'w') as outfile_3:

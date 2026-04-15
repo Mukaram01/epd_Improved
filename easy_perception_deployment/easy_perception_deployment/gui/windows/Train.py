@@ -21,6 +21,7 @@ import logging
 from pathlib import Path
 import shutil
 from ast import literal_eval as make_tuple
+import json
 
 from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtGui import QIcon
@@ -31,6 +32,16 @@ from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
 from windows.job_controller import JobController, JobState
+
+_SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2])
+if _SCHEMA_IMPORT_ROOT not in sys.path:
+    sys.path.append(_SCHEMA_IMPORT_ROOT)
+from scripts.cli.config_schema import (  # noqa: E402
+    ConfigSchemaError,
+    migrate_input_topic_config,
+    migrate_session_config,
+    migrate_usecase_config,
+)
 
 
 class TrainWindow(QWidget):
@@ -98,6 +109,7 @@ class TrainWindow(QWidget):
         self.resize(self._DEFAULT_TRAIN_WIN_W, self._DEFAULT_TRAIN_WIN_H)
         self.setMinimumSize(self._MIN_TRAIN_WIN_W, self._MIN_TRAIN_WIN_H)
 
+        self._validate_existing_epd_configs()
         self.setButtons()
 
     def setButtons(self):
@@ -908,6 +920,30 @@ class TrainWindow(QWidget):
 
     def _data_dir(self):
         return self._PACKAGE_ROOT / 'data'
+
+    def _validate_existing_epd_configs(self):
+        """Validate/migrate deploy config files so Train and Deploy share schema behavior."""
+        config_dir = self._PACKAGE_ROOT / 'config'
+        validators = [
+            ('session_config.json', migrate_session_config),
+            ('usecase_config.json', migrate_usecase_config),
+            ('input_image_topic.json', migrate_input_topic_config),
+        ]
+        for filename, validator in validators:
+            path = config_dir / filename
+            if not path.exists():
+                continue
+            try:
+                with open(path, encoding='utf-8') as infile:
+                    data = json.load(infile)
+                migrated = validator(data)
+                with open(path, 'w', encoding='utf-8') as outfile:
+                    json.dump(migrated, outfile, indent=4)
+            except (json.JSONDecodeError, OSError, ConfigSchemaError) as exc:
+                self.train_logger.warning(
+                    'Skipping config validation for %s: %s',
+                    filename,
+                    exc)
 
     def _image_path(self, image_name):
         return str(self._GUI_DIR / 'img' / image_name)

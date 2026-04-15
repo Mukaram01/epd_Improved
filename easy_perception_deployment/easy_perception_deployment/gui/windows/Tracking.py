@@ -71,6 +71,10 @@ class TrackingWindow(QWidget):
         self.label_list_dropdown.setMinimumHeight(40)
         for label in self._tracker_description_list:
             self.label_list_dropdown.addItem(label)
+        self.label_list_dropdown.setToolTip(
+            'Track type selects the OpenCV tracker backend: '
+            'KCF (general), MedianFlow (predictable motion), '
+            'CSRT (better robustness for irregular motion).')
 
         # Finish button to save the stored counting
         # and write to usecase_config.json

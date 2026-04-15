@@ -198,6 +198,11 @@ class TrainWindow(QWidget):
         self.training_status_label.setMinimumHeight(control_min_height)
         self.training_status_label.setSizePolicy(
             QSizePolicy.Preferred, QSizePolicy.MinimumExpanding)
+        self.getting_started_label = QLabel(self)
+        self.getting_started_label.setWordWrap(True)
+        self.getting_started_label.setOpenExternalLinks(True)
+        self.getting_started_label.setTextFormat(Qt.RichText)
+        self.getting_started_label.setText(self._build_getting_started_markup())
 
         self.maxiter_button = QPushButton('MAX ITERATION', self)
         _set_row_button_sizing(self.maxiter_button, control_min_height)
@@ -251,6 +256,7 @@ class TrainWindow(QWidget):
         layout.addWidget(self.training_config_label,
                          alignment=Qt.AlignHCenter)
         layout.addLayout(training_params_layout)
+        layout.addWidget(self.getting_started_label)
         layout.addWidget(self.train_button)
         layout.addWidget(self.training_status_label)
         layout.setStretch(0, 0)
@@ -277,6 +283,21 @@ class TrainWindow(QWidget):
         self.steps_button.clicked.connect(self.setSteps)
         self.train_button.clicked.connect(self.updateBeforeStartingTraining)
         self.update_training_readiness()
+
+    def _build_getting_started_markup(self):
+        root_readme = (
+            'https://github.com/ros-industrial/'
+            'easy_perception_deployment/blob/master/README.md')
+        gui_readme = (
+            'https://github.com/ros-industrial/'
+            'easy_perception_deployment/blob/master/'
+            'easy_perception_deployment/gui/README.md')
+        return (
+            'Getting Started: '
+            f'<a href="{root_readme}#step-7--launch-the-gui">Step 7 — Launch the GUI</a> | '
+            f'<a href="{root_readme}#model-downloads">Model Downloads</a> | '
+            f'<a href="{gui_readme}#dependencies-ubuntu-2204--ros-2-humble">GUI Dependencies</a>'
+        )
 
     def setP2(self):
         '''A function that is triggered by the button labelled, P2.'''

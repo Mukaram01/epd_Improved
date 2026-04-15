@@ -30,7 +30,7 @@ try:
     _RCLPY_AVAILABLE = True
 except ImportError:
     _RCLPY_AVAILABLE = False
-from PySide6.QtCore import QObject, QSize, QThread, QTimer, Signal, Slot
+from PySide6.QtCore import QObject, QSize, Qt, QThread, QTimer, Signal, Slot
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget,
@@ -583,6 +583,12 @@ class DeployWindow(QWidget):
         self.max_detections_spinbox.setSingleStep(10)
         self.max_detections_spinbox.setValue(self._max_detections)
 
+        self.intra_op_threads_label = QLabel('Intra-op threads (0 = auto)', self)
+        self.intra_op_threads_spinbox = QSpinBox(self)
+        self.intra_op_threads_spinbox.setRange(0, 64)
+        self.intra_op_threads_spinbox.setSingleStep(1)
+        self.intra_op_threads_spinbox.setValue(self._intra_op_num_threads)
+
         # Validation label - shows validation messages
         self.validation_label = QLabel(self)
         self.validation_label.setWordWrap(True)
@@ -611,6 +617,12 @@ class DeployWindow(QWidget):
         self.run_button.setIconSize(QSize(100, 100))
         self.run_button.setMinimumHeight(100)
 
+        self.getting_started_label = QLabel(self)
+        self.getting_started_label.setWordWrap(True)
+        self.getting_started_label.setOpenExternalLinks(True)
+        self.getting_started_label.setTextFormat(Qt.RichText)
+        self.getting_started_label.setText(self._build_getting_started_markup())
+
         layout = QGridLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(6)
@@ -629,14 +641,17 @@ class DeployWindow(QWidget):
         layout.addWidget(self.confidence_spinbox, 7, 1)
         layout.addWidget(self.max_detections_label, 8, 0)
         layout.addWidget(self.max_detections_spinbox, 8, 1)
-        layout.addWidget(self.validation_label, 9, 0, 1, 2)
-        layout.addWidget(self.status_label, 10, 0, 1, 2)
-        layout.addWidget(self.fps_label, 11, 0, 1, 2)
-        layout.addWidget(self.readiness_header_label, 12, 0, 1, 2)
-        layout.addWidget(self.model_readiness_label, 13, 0, 1, 2)
-        layout.addWidget(self.label_list_readiness_label, 14, 0, 1, 2)
-        layout.addWidget(self.topic_readiness_label, 15, 0, 1, 2)
-        layout.addWidget(self.run_button, 16, 0, 1, 2)
+        layout.addWidget(self.intra_op_threads_label, 9, 0)
+        layout.addWidget(self.intra_op_threads_spinbox, 9, 1)
+        layout.addWidget(self.validation_label, 10, 0, 1, 2)
+        layout.addWidget(self.status_label, 11, 0, 1, 2)
+        layout.addWidget(self.fps_label, 12, 0, 1, 2)
+        layout.addWidget(self.readiness_header_label, 13, 0, 1, 2)
+        layout.addWidget(self.model_readiness_label, 14, 0, 1, 2)
+        layout.addWidget(self.label_list_readiness_label, 15, 0, 1, 2)
+        layout.addWidget(self.topic_readiness_label, 16, 0, 1, 2)
+        layout.addWidget(self.getting_started_label, 17, 0, 1, 2)
+        layout.addWidget(self.run_button, 18, 0, 1, 2)
         layout.setColumnStretch(0, 1)
         layout.setColumnStretch(1, 1)
 
@@ -655,9 +670,34 @@ class DeployWindow(QWidget):
         self.topic_button.currentTextChanged.connect(self.setImageInput)
         self.confidence_spinbox.valueChanged.connect(self._onConfidenceChanged)
         self.max_detections_spinbox.valueChanged.connect(self._onMaxDetectionsChanged)
+        self.intra_op_threads_spinbox.valueChanged.connect(self._onIntraOpThreadsChanged)
+        self._configure_quick_help_tooltips()
 
         # Populate topics after widgets are created (avoids run_button init order issues)
         self.refreshImageTopics(select_topic=self._input_image_topic)
+
+    def _build_getting_started_markup(self):
+        readme_url = (
+            'https://github.com/ros-industrial/'
+            'easy_perception_deployment/blob/master/README.md')
+        return (
+            'Getting Started: '
+            f'<a href="{readme_url}#step-7--launch-the-gui">Step 7 — Launch the GUI</a> | '
+            f'<a href="{readme_url}#model-downloads">Model Downloads</a> | '
+            f'<a href="{readme_url}#run-epd-node-with-realsense-topics">Run EPD node with RealSense topics</a> | '
+            f'<a href="{readme_url}#throughput-tuning">Throughput Tuning</a>'
+        )
+
+    def _configure_quick_help_tooltips(self):
+        self.usecase_config_button.setToolTip(
+            'Usecase selects the pipeline (classification/counting/color/'
+            'localization/tracking). Tracking opens the track type selector.')
+        self.segmentation_button.setToolTip(
+            'Segmentation output toggle. Disable to reduce bandwidth and '
+            'latency when masks are not required.')
+        self.intra_op_threads_spinbox.setToolTip(
+            'ONNX Runtime intra-op threads. 0 uses runtime defaults. '
+            'For CPU tuning, start with 2-4 and measure FPS/latency.')
 
     def refreshImageTopics(self, select_topic=None):
         current_topic = (
@@ -953,21 +993,29 @@ class DeployWindow(QWidget):
     def _epd_remediation_message(self, error_code):
         remediations = {
             'EPD_ERR_ROS_SETUP_MISSING':
-                'ROS 2 setup was not found. Install the configured ROS distro and verify setup.bash exists.',
+                'Missing component: ROS 2 setup.\n'
+                'Next command: source /opt/ros/humble/setup.bash',
             'EPD_ERR_DOCKER_NOT_FOUND':
-                'Docker command was not found. Install Docker or set EPD_DOCKER_CMD to a valid command.',
+                'Missing component: docker CLI.\n'
+                'Next command: sudo apt install -y docker.io',
             'EPD_ERR_DOCKER_UNAVAILABLE':
-                'Docker is not accessible. Add your user to docker group, run with --sudo-docker, or set EPD_DOCKER_CMD.',
+                'Missing component: docker daemon access.\n'
+                'Next command: sudo systemctl start docker && sudo usermod -aG docker $USER',
             'EPD_ERR_IMAGE_NOT_FOUND':
-                'Required EPD image is missing. Pull or build the image and retry deployment.',
+                'Missing component: EPD docker image.\n'
+                'Next command: cd "$HOME/epd_ros2_ws/src/easy_perception_deployment/easy_perception_deployment" && bash run.bash',
             'EPD_ERR_WORKSPACE_MISSING':
-                'Workspace path is missing. Ensure EPD_WORKSPACE_ROOT points to a valid workspace directory.',
+                'Missing component: workspace install/setup overlay.\n'
+                'Next command: source "$HOME/epd_ros2_ws/install/setup.bash"',
             'EPD_ERR_WORKSPACE_LAYOUT':
-                'deploy.sh is not inside the expected workspace layout. Verify checkout structure and EPD_WORKSPACE_ROOT.',
+                'Missing component: expected workspace layout.\n'
+                'Next command: export EPD_WORKSPACE_ROOT="$HOME/epd_ros2_ws/src/easy_perception_deployment"',
             'EPD_ERR_VENDOR_MISSING':
-                'Mounted workspace is missing epd_onnxruntime_vendor. Verify repository content and mount path.',
+                'Missing component: epd_onnxruntime_vendor package.\n'
+                'Next command: cd "$HOME/epd_ros2_ws/src/easy_perception_deployment" && git submodule update --init --recursive',
             'EPD_ERR_LAUNCH_SCRIPT_INVALID':
-                'Container launch script was not found/executable. Check launch.sh/build_launch.sh permissions and paths.'
+                'Missing component: executable launch scripts.\n'
+                'Next command: chmod +x gui/scripts/launch.sh gui/scripts/build_launch.sh'
         }
         return remediations.get(error_code)
 
@@ -1223,6 +1271,11 @@ class DeployWindow(QWidget):
     def _onMaxDetectionsChanged(self, value):
         '''Slot triggered when the max detections spinbox changes.'''
         self._max_detections = int(value)
+        self.updateSessionConfig()
+
+    def _onIntraOpThreadsChanged(self, value):
+        '''Slot triggered when the intra-op thread spinbox changes.'''
+        self._intra_op_num_threads = int(value)
         self.updateSessionConfig()
 
     def _write_json_atomic(self, path, json_str):

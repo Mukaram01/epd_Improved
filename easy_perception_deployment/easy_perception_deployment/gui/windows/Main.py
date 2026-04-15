@@ -14,10 +14,12 @@
 
 from PySide6.QtCore import QEvent, QSize
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QGridLayout, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (QGridLayout, QLabel, QMessageBox, QPushButton,
+                               QVBoxLayout, QWidget)
 
 import logging
 import os
+import subprocess
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -78,6 +80,7 @@ class MainWindow(QWidget):
 
         self._WINDOW_HEIGHT = 375
         self._WINDOW_WIDTH = 500
+        self._preflight_passed = False
 
         self.setWindowIcon(QIcon(self._image_path("epd_desktop.png")))
 
@@ -98,6 +101,9 @@ class MainWindow(QWidget):
         self.deploy_button.setIconSize(QSize(100, 100))
         self.deploy_button.setFixedHeight(250)
 
+        self.preflight_button = QPushButton('Preflight Check', self)
+        self.preflight_button.setFixedHeight(60)
+
         self.quit_button = QPushButton('Quit', self)
         self.quit_button.setIcon(QIcon(self._image_path('quit.png')))
         self.quit_button.setIconSize(QSize(250, 250))
@@ -114,14 +120,130 @@ class MainWindow(QWidget):
         top_layout.setColumnStretch(0, 1)
         top_layout.setColumnStretch(1, 1)
         layout.addLayout(top_layout)
+        layout.addWidget(self.preflight_button)
+        self.preflight_status_label = QLabel('Preflight required before Deploy/Train.')
+        self.preflight_status_label.setWordWrap(True)
+        layout.addWidget(self.preflight_status_label)
         layout.addWidget(self.quit_button)
 
         self.train_button.clicked.connect(self.openTrainWindow)
         self.deploy_button.clicked.connect(self.deployPackage)
+        self.preflight_button.clicked.connect(self.runPreflightChecks)
         self.quit_button.clicked.connect(self.closeWindow)
+        self._set_preflight_gate(False)
+
+    def _set_preflight_gate(self, passed):
+        self._preflight_passed = passed
+        self.train_button.setEnabled(passed)
+        self.deploy_button.setEnabled(passed)
+
+    def runPreflightChecks(self):
+        checks = []
+
+        ros_cli = self._run_cmd(['ros2', '--help'], timeout=4)
+        ros_setup_ok = ros_cli['ok']
+        checks.append({
+            'name': 'ROS setup availability',
+            'ok': ros_setup_ok,
+            'detail': ('ros2 CLI reachable.'
+                       if ros_setup_ok else
+                       'ros2 command unavailable. Run: source /opt/ros/humble/setup.bash')
+        })
+
+        workspace_ok, workspace_detail = self._validate_workspace_setup_path()
+        checks.append({
+            'name': 'Workspace install/setup path',
+            'ok': workspace_ok,
+            'detail': workspace_detail
+        })
+
+        model_dir = self._GUI_DIR.parent / 'data' / 'model'
+        model_files = list(model_dir.glob('*.onnx')) if model_dir.exists() else []
+        model_ok = len(model_files) > 0
+        checks.append({
+            'name': 'Model files under data/model',
+            'ok': model_ok,
+            'detail': (f'Found {len(model_files)} ONNX model(s) in {model_dir}.'
+                       if model_ok else
+                       f'No ONNX models found in {model_dir}. Run: bash scripts/download_models.sh')
+        })
+
+        docker_info = self._run_cmd(['docker', 'info'], timeout=6)
+        docker_ok = docker_info['ok']
+        checks.append({
+            'name': 'Docker accessibility',
+            'ok': docker_ok,
+            'detail': ('Docker daemon reachable.'
+                       if docker_ok else
+                       'Docker unavailable. Run: sudo systemctl start docker && sudo usermod -aG docker $USER')
+        })
+
+        topic_list = self._run_cmd(['ros2', 'topic', 'list', '-t'], timeout=6)
+        topic_ok = topic_list['ok']
+        checks.append({
+            'name': 'Image topic discovery health (ros2 topic list -t)',
+            'ok': topic_ok,
+            'detail': ('Topic discovery command succeeded.'
+                       if topic_ok else
+                       'Topic discovery failed. Run: source /opt/ros/humble/setup.bash && source <workspace>/install/setup.bash')
+        })
+
+        all_ok = all(check['ok'] for check in checks)
+        self._set_preflight_gate(all_ok)
+
+        result_lines = []
+        for check in checks:
+            marker = '✓' if check['ok'] else '✗'
+            result_lines.append(f"{marker} {check['name']}: {check['detail']}")
+        summary = 'Preflight passed. Deploy/Train enabled.' if all_ok else (
+            'Preflight failed. Resolve failed checks and re-run.')
+        result_lines.append('')
+        result_lines.append(summary)
+        combined = '\n'.join(result_lines)
+        self.preflight_status_label.setText(combined)
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle('Preflight Check')
+        msg_box.setText(combined)
+        msg_box.exec()
+
+    def _run_cmd(self, cmd, timeout=4):
+        try:
+            completed = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=timeout)
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            return {'ok': False}
+        return {'ok': completed.returncode == 0}
+
+    def _validate_workspace_setup_path(self):
+        workspace_env = os.environ.get('EPD_WS')
+        candidates = []
+        if workspace_env:
+            candidates.append(Path(workspace_env) / 'install' / 'setup.bash')
+        candidates.extend([
+            Path.home() / 'epd_ros2_ws' / 'install' / 'setup.bash',
+            self._PACKAGE_ROOT() / 'install' / 'setup.bash',
+        ])
+        for candidate in candidates:
+            if candidate.exists():
+                return True, f'Found setup.bash: {candidate}'
+        return False, (
+            'Could not find install/setup.bash. Run colcon build then '
+            'source <workspace>/install/setup.bash')
+
+    def _PACKAGE_ROOT(self):
+        return self._GUI_DIR.parents[2]
 
     def deployPackage(self):
         '''A function that is triggered by the button labelled, Deploy.'''
+        if not self._preflight_passed:
+            QMessageBox.warning(
+                self, 'Preflight Required',
+                'Run Preflight Check and resolve issues before deploying.')
+            return
         if self.deploy_window.isVisible():
             self.deploy_window.raise_()
             self.deploy_window.activateWindow()
@@ -133,6 +255,11 @@ class MainWindow(QWidget):
 
     def openTrainWindow(self):
         '''A function that is triggered by the button labelled, Train.'''
+        if not self._preflight_passed:
+            QMessageBox.warning(
+                self, 'Preflight Required',
+                'Run Preflight Check and resolve issues before training.')
+            return
         if self.train_window.isVisible():
             self.train_window.raise_()
             self.train_window.activateWindow()

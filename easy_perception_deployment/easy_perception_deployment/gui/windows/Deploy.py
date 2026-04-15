@@ -38,6 +38,7 @@ from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
+from windows.job_controller import JobController, JobState
 
 
 class _FPSMonitorSignals(QObject):
@@ -285,8 +286,6 @@ class DeployWindow(QWidget):
         self._input_image_topic = ''
         self._image_transport = 'raw'
 
-        self._is_running = False
-
         self._DEFAULT_DEPLOY_WIN_H = 540
         self._DEFAULT_DEPLOY_WIN_W = 500
         self._MIN_DEPLOY_WIN_H = 500
@@ -298,10 +297,14 @@ class DeployWindow(QWidget):
         self._kill_process = None
         self._deploy_timer = None
         self._kill_timer = None
+        self._deploy_start_timeout_timer = None
+        self._stop_timeout_timer = None
         self._deploy_log_file = None
         self._kill_log_file = None
         self._fps_monitor = None
         self._is_shutting_down = False
+        self._job_controller = JobController('Deployment', self)
+        self._job_controller.state_changed.connect(self._on_job_state_changed)
 
         self.visualizeFlag = True
 
@@ -572,7 +575,7 @@ class DeployWindow(QWidget):
         self.topic_readiness_label.setWordWrap(True)
 
         # Status label - shows run status (Stopped/Running)
-        self.status_label = QLabel('Stopped', self)
+        self.status_label = QLabel(self._job_controller.message, self)
         self.status_label.setIndent(10)
 
         # FPS/Latency label
@@ -731,16 +734,28 @@ class DeployWindow(QWidget):
         self._fps_monitor.wait(1000)
         self._fps_monitor = None
 
+    @Slot(object, str)
+    def _on_job_state_changed(self, state, message):
+        self.status_label.setText(message)
+        is_running = state in (JobState.STARTING, JobState.RUNNING, JobState.STOPPING)
+        self.run_button.setText('Stop' if is_running else 'Run')
+        self.run_button.setIcon(QIcon(
+            self._image_path('quit.png' if is_running else 'go.png')))
+        self.run_button.setIconSize(QSize(100, 100))
+        self.run_button.updateGeometry()
+        self.validateDeployInputs()
+
     def deployPackage(self):
         '''
         A Mutator function that runs a bash script that
-        checks if the _is_running boolean flag is True or not.\n
+        checks the deployment job state.\n
         If False, run bash script to run ROS2 package with
         session_config.json and usecase_config.json
         Otherwise, run bash script to kill ROS2 package
         processes remotely.
         '''
-        if not self._is_running:
+        if self._job_controller.state in (JobState.IDLE, JobState.FAILED):
+            self._job_controller.set_state(JobState.STARTING, 'Starting deployment...')
             self._deploy_process, self._deploy_timer = self._start_process(
                 [self._deploy_script_path(),
                  str(self.useCPU),
@@ -748,27 +763,28 @@ class DeployWindow(QWidget):
                  '--non-interactive'],
                 'deploy',
                 cwd=self._scripts_dir())
-            self.run_button.setText('Stop')
-            self.run_button.setIcon(QIcon(self._image_path('quit.png')))
-            self.run_button.setIconSize(QSize(100, 100))
-            self.run_button.updateGeometry()
-            self._is_running = True
-            self.status_label.setText('Running...')
-        else:
+            if self._deploy_start_timeout_timer is not None:
+                self._deploy_start_timeout_timer.stop()
+            self._deploy_start_timeout_timer = QTimer(self)
+            self._deploy_start_timeout_timer.setSingleShot(True)
+            self._deploy_start_timeout_timer.timeout.connect(self._handle_start_timeout)
+            self._deploy_start_timeout_timer.start(15000)
+        elif self._job_controller.state == JobState.RUNNING:
             self._stop_deployment()
 
     def _stop_deployment(self):
+        self._job_controller.set_state(JobState.STOPPING, 'Stopping deployment...')
         self.deploy_logger.info("Killing epd_test_container docker.")
         self._kill_process, self._kill_timer = self._start_process(
             [self._kill_script_path()],
             'kill',
             cwd=self._scripts_dir())
-        self.run_button.setText('Run')
-        self.run_button.setIcon(QIcon(self._image_path('go.png')))
-        self.run_button.setIconSize(QSize(100, 100))
-        self.run_button.updateGeometry()
-        self._is_running = False
-        self.status_label.setText('Stopped')
+        if self._stop_timeout_timer is not None:
+            self._stop_timeout_timer.stop()
+        self._stop_timeout_timer = QTimer(self)
+        self._stop_timeout_timer.setSingleShot(True)
+        self._stop_timeout_timer.timeout.connect(self._handle_stop_timeout)
+        self._stop_timeout_timer.start(5000)
 
     def _scripts_dir(self):
         return self._GUI_DIR / "scripts"
@@ -821,19 +837,24 @@ class DeployWindow(QWidget):
 
     def _check_process(self, process, timer, process_type):
         if process.poll() is None:
+            if process_type == 'deploy' and self._job_controller.state == JobState.STARTING:
+                self._job_controller.set_state(JobState.RUNNING, 'Deployment running.')
             return
 
         timer.stop()
         self._close_process_log_file(process_type)
         if process_type == 'kill':
+            if self._stop_timeout_timer is not None:
+                self._stop_timeout_timer.stop()
             kill_result = self._get_kill_status_from_log()
             if process.returncode == 0:
-                self.status_label.setText(
+                self._job_controller.set_state(
+                    JobState.IDLE,
                     'Stopped' if kill_result == 'STOPPED'
                     else 'Stopped (already stopped)')
                 return
             if process.returncode == 2 and kill_result == 'PARTIAL_CLEANUP':
-                self.status_label.setText('Stopped (partial cleanup)')
+                self._job_controller.set_state(JobState.IDLE, 'Stopped (partial cleanup)')
                 self._show_kill_partial_cleanup_warning()
                 return
 
@@ -842,9 +863,9 @@ class DeployWindow(QWidget):
             return
 
         if process_type == 'kill':
-            self.status_label.setText('Stopped')
+            self._job_controller.set_state(JobState.IDLE, 'Stopped')
         elif process_type == 'deploy':
-            self.status_label.setText('Running...')
+            self._job_controller.set_state(JobState.RUNNING, 'Deployment running.')
 
     def _get_kill_status_from_log(self):
         kill_log = self._tail_process_log('kill', max_chars=4000)
@@ -870,12 +891,9 @@ class DeployWindow(QWidget):
         msgBox.exec()
 
     def _handle_process_error(self, process_type):
-        self.run_button.setText('Run')
-        self.run_button.setIcon(QIcon(self._image_path('go.png')))
-        self.run_button.setIconSize(QSize(100, 100))
-        self.run_button.updateGeometry()
-        self._is_running = False
-        self.status_label.setText('Error')
+        if process_type == 'kill' and self._stop_timeout_timer is not None:
+            self._stop_timeout_timer.stop()
+        self._job_controller.set_state(JobState.FAILED, 'Error')
 
         log_tail = self._tail_process_log(process_type)
         error_code = self._extract_epd_error_code(log_tail)
@@ -950,16 +968,13 @@ class DeployWindow(QWidget):
 
         self._is_shutting_down = True
         try:
-            if self._is_running:
+            if self._job_controller.state in (JobState.STARTING, JobState.RUNNING):
                 self._stop_deployment()
 
-            if self._kill_process is not None and self._kill_process.poll() is None:
-                try:
-                    self._kill_process.wait(timeout=2)
-                except subprocess.TimeoutExpired:
-                    self._terminate_process(self._kill_process, self._kill_timer)
-            else:
-                self._terminate_process(self._kill_process, self._kill_timer)
+            stop_result = self._wait_for_graceful_stop(timeout_sec=4)
+            if not stop_result:
+                self._handle_stop_timeout()
+                self._wait_for_graceful_stop(timeout_sec=1)
 
             self._terminate_process(self._deploy_process, self._deploy_timer)
             self._close_process_log_file('deploy')
@@ -968,8 +983,46 @@ class DeployWindow(QWidget):
             self._kill_process = None
             self._deploy_timer = None
             self._kill_timer = None
+            if self._job_controller.state != JobState.FAILED:
+                self._job_controller.set_state(JobState.IDLE, 'Stopped')
         finally:
             self._is_shutting_down = False
+
+    def _wait_for_graceful_stop(self, timeout_sec):
+        deadline = time.time() + timeout_sec
+        while time.time() < deadline:
+            kill_done = (self._kill_process is None) or (self._kill_process.poll() is not None)
+            deploy_done = (self._deploy_process is None) or (self._deploy_process.poll() is not None)
+            if kill_done and deploy_done:
+                return True
+            time.sleep(0.1)
+        return False
+
+    def _handle_start_timeout(self):
+        if self._job_controller.state != JobState.STARTING:
+            return
+        if self._deploy_process is not None and self._deploy_process.poll() is None:
+            self._job_controller.set_state(
+                JobState.RUNNING,
+                'Deployment running (startup timeout reached; monitoring logs).')
+            return
+        self._job_controller.set_state(JobState.FAILED, 'Deployment failed to start in time.')
+        self._handle_process_error('deploy')
+
+    def _handle_stop_timeout(self):
+        if self._job_controller.state != JobState.STOPPING:
+            return
+        self.deploy_logger.warning('Stop timeout reached; escalating to terminate/kill.')
+        self._terminate_process(self._kill_process, self._kill_timer)
+        self._terminate_process(self._deploy_process, self._deploy_timer)
+        self._job_controller.set_state(
+            JobState.IDLE,
+            'Stopped (forced after timeout escalation).')
+        if not self.debug:
+            QMessageBox.warning(
+                self,
+                'Stop Escalated',
+                'Graceful stop timed out. Deployment was forcefully terminated.')
 
     def setImageInput(self):
         '''
@@ -1382,10 +1435,10 @@ class DeployWindow(QWidget):
 
     def validateDeployInputs(self):
         '''Validate inputs and update the Run button state.'''
-        if self._is_running:
+        if self._job_controller.state in (JobState.STARTING, JobState.RUNNING, JobState.STOPPING):
             self.run_button.setEnabled(True)
             self.run_button.setToolTip('')
-            self.validation_label.setText('Run enabled: deployment is currently running.')
+            self.validation_label.setText(self._job_controller.message)
             return
 
         model_path = self.resolveFilePath(self._path_to_model)
@@ -1427,4 +1480,11 @@ class DeployWindow(QWidget):
     def closeEvent(self, event):
         self._stop_fps_monitor()
         self.shutdown()
+        final_message = self._job_controller.message
+        if ('forced' in final_message.lower() or
+                self._job_controller.state == JobState.FAILED):
+            QMessageBox.information(
+                self,
+                'Deployment Shutdown',
+                f'Window closed with shutdown result: {final_message}')
         super().closeEvent(event)

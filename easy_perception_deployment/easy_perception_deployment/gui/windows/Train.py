@@ -22,7 +22,7 @@ from pathlib import Path
 import shutil
 from ast import literal_eval as make_tuple
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
                                QHBoxLayout, QInputDialog, QLabel, QLineEdit,
@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout,
                                QVBoxLayout, QWidget)
 from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
+from windows.job_controller import JobController, JobState
 
 
 class TrainWindow(QWidget):
@@ -70,9 +71,9 @@ class TrainWindow(QWidget):
         self._path_to_dataset = ''
         self._path_to_label_list = ''
         self._is_valid_dataset = False
-        self.buttonConnected = False
-
         self.label_process = None
+        self._training_thread = None
+        self._active_operation = None
 
         self._is_model_ready = False
         self._is_dataset_linked = False
@@ -81,6 +82,12 @@ class TrainWindow(QWidget):
 
         self.label_train_process = None
         self.label_val_process = None
+        self._readiness_message = 'Training is not ready.'
+        self._job_controller = JobController('Training job', self)
+        self._job_controller.state_changed.connect(self._on_job_state_changed)
+        self._labelme_watchdog = QTimer(self)
+        self._labelme_watchdog.setInterval(500)
+        self._labelme_watchdog.timeout.connect(self._poll_labelme_process)
 
         self.max_iteration = 3000
         self.checkpoint_period = 200
@@ -256,6 +263,7 @@ class TrainWindow(QWidget):
         self.checkpointp_button.clicked.connect(self.setCheckPointPeriod)
         self.testp_button.clicked.connect(self.setTestPeriod)
         self.steps_button.clicked.connect(self.setSteps)
+        self.train_button.clicked.connect(self.updateBeforeStartingTraining)
         self.update_training_readiness()
 
     def setP2(self):
@@ -268,7 +276,7 @@ class TrainWindow(QWidget):
         self.p2_button.setStyleSheet(
             'background-color: rgba(180,180,180,255);')
         self.p3_button.setStyleSheet('background-color: white;')
-        self.disconnectTrainingButton()
+        self.update_training_readiness()
 
     def setP3(self):
         '''A function that is triggered by the button labelled, P3.'''
@@ -280,7 +288,7 @@ class TrainWindow(QWidget):
         self.p3_button.setStyleSheet(
             'background-color: rgba(180,180,180,255);')
         self.p2_button.setStyleSheet('background-color: white;')
-        self.disconnectTrainingButton()
+        self.update_training_readiness()
 
     def setModel(self, index):
         '''A function that is triggered by
@@ -426,7 +434,27 @@ class TrainWindow(QWidget):
 
     def runLabelme(self):
         '''A function that is triggered by Label Dataset button.'''
-        self.label_process = subprocess.Popen(['labelme'])
+        if self._job_controller.state == JobState.RUNNING and self.label_process is not None:
+            self._active_operation = 'labelme'
+            self._job_controller.set_state(JobState.STOPPING, 'Stopping labelme...')
+            self._terminate_labelme()
+            self._active_operation = None
+            self._job_controller.set_state(JobState.IDLE, 'Labelme stopped.')
+            return
+
+        if self._job_controller.is_busy():
+            return
+
+        try:
+            self._job_controller.set_state(JobState.STARTING, 'Starting labelme...')
+            self._active_operation = 'labelme'
+            self.label_process = subprocess.Popen(['labelme'])
+            self._labelme_watchdog.start()
+            self._job_controller.set_state(JobState.RUNNING, 'Labelme running.')
+        except OSError as exc:
+            self._active_operation = None
+            self._job_controller.set_state(JobState.FAILED, f'Failed to launch labelme: {exc}')
+            QMessageBox.warning(self, 'Labelme Failed', str(exc))
 
     def validateTraining(self):
         '''
@@ -434,6 +462,8 @@ class TrainWindow(QWidget):
         that are all required to allow proper training given
         a certain requested precision level.
         '''
+        self._job_controller.set_state(JobState.STARTING, 'Validating training prerequisites...')
+        self._active_operation = 'validation'
         unmet = self.update_training_readiness()
         if unmet:
             self.validate_button.setStyleSheet(
@@ -441,12 +471,18 @@ class TrainWindow(QWidget):
             self.train_logger.warning(
                 'Training validation failed. Unmet prerequisites: ' +
                 ', '.join(unmet))
+            self._job_controller.set_state(
+                JobState.FAILED,
+                'Validation failed: missing ' + ', '.join(unmet) + '.')
+            self._active_operation = None
             return
 
         self.validate_button.setStyleSheet(
             'background-color: rgba(0,200,10,255);')
         self.train_logger.info(
             "[ SUCCESS ] - Training Validated. Train button unlocked.")
+        self._active_operation = None
+        self._job_controller.set_state(JobState.IDLE, 'Validation successful. Ready to train.')
 
     def update_training_readiness(self):
         unmet = []
@@ -460,21 +496,16 @@ class TrainWindow(QWidget):
             unmet.append('labelled dataset')
 
         if unmet:
-            self.disconnectTrainingButton()
-            self.train_button.setEnabled(False)
-            self.train_button.setStyleSheet(
-                'background-color: rgba(180,180,180,255);')
-            self.training_status_label.setText(
+            self._readiness_message = (
                 'Training is not ready. Missing: ' +
                 ', '.join(unmet) +
                 '.\nNext step: provide ' + unmet[0] + '.')
+            self._update_controls_for_state()
             return unmet
 
-        self.train_button.setEnabled(True)
-        self.train_button.setStyleSheet('background-color: rgba(255,255,255,255);')
-        self.connectTrainingButton()
-        self.training_status_label.setText(
+        self._readiness_message = (
             'Training is ready. Click Validate Training or Train to proceed.')
+        self._update_controls_for_state()
         return []
 
     def validateDataset(self, new_filepath_to_dataset):
@@ -534,14 +565,14 @@ class TrainWindow(QWidget):
         self.update_training_readiness()
 
     def startTraining(self):
-
         if self._precision_level == 1:
             self.train_logger.warning(
                 "[ Deprecation Notice ] - Precision Level 1 features " +
                 "has been deprecated in EPD v0.3.0.")
             self.train_logger.warning(
                 "Please use Precision Level 1 and 2 features instead.")
-        elif self._precision_level == 2:
+            return
+        if self._precision_level == 2:
             p2_trainer = P2Trainer(self._path_to_dataset,
                                    self.model_name,
                                    self._label_list,
@@ -551,32 +582,48 @@ class TrainWindow(QWidget):
                                    self.steps)
             p2_trainer.train(False)
             p2_trainer.export(False)
-        else:
-            p3_trainer = P3Trainer(self._path_to_dataset,
-                                   self.model_name,
-                                   self._label_list,
-                                   self.max_iteration,
-                                   self.checkpoint_period,
-                                   self.test_period,
-                                   self.steps)
-            p3_trainer.train(False)
-            p3_trainer.export(False)
+            return
 
-        self.train_button.setText('Train')
-        self.train_button.updateGeometry()
+        p3_trainer = P3Trainer(self._path_to_dataset,
+                               self.model_name,
+                               self._label_list,
+                               self.max_iteration,
+                               self.checkpoint_period,
+                               self.test_period,
+                               self.steps)
+        p3_trainer.train(False)
+        p3_trainer.export(False)
 
     def updateBeforeStartingTraining(self):
         '''A function that is triggered by the button labelled, Train.'''
+        if self._job_controller.is_busy():
+            return
+
+        unmet = self.update_training_readiness()
+        if unmet:
+            return
+
+        self._job_controller.set_state(JobState.STARTING, 'Preparing training job...')
+        self._active_operation = 'training'
         self.validate_button.setStyleSheet(
             'background-color: rgba(255,255,255,255);')
         self.validate_button.updateGeometry()
-        self.train_button.setText('Training In Progress. Observe Terminal.')
-        self.train_button.updateGeometry()
-        self.disconnectTrainingButton()
+        self._job_controller.set_state(JobState.RUNNING, 'Training in progress. Observe terminal output.')
 
-        d = threading.Thread(name='startTraining', target=self.startTraining)
+        d = threading.Thread(name='startTraining', target=self._run_training_job)
         d.setDaemon(True)
         d.start()
+        self._training_thread = d
+
+    def _run_training_job(self):
+        try:
+            self.startTraining()
+            self._active_operation = None
+            self._job_controller.set_state(JobState.IDLE, 'Training finished.')
+        except Exception as exc:
+            self._active_operation = None
+            self.train_logger.exception('Training failed: %s', exc)
+            self._job_controller.set_state(JobState.FAILED, f'Training failed: {exc}')
 
     def conformDatasetToCOCO(self):
         '''A function that is triggered by Generate Dataset button.'''
@@ -859,19 +906,6 @@ class TrainWindow(QWidget):
             self.model_selector.setStyleSheet('background-color: red;')
             self._is_model_ready = False
 
-    def connectTrainingButton(self):
-        '''
-        A Mutator function that allows the Train button,
-        to be used by the user.
-        '''
-        if not self.buttonConnected:
-            self.train_button.clicked.connect(
-                self.updateBeforeStartingTraining)
-            self.train_button.setStyleSheet(
-                'background-color: rgba(255,255,255,255);')
-            self.train_button.updateGeometry()
-            self.buttonConnected = True
-
     def _data_dir(self):
         return self._PACKAGE_ROOT / 'data'
 
@@ -884,18 +918,98 @@ class TrainWindow(QWidget):
     def _dataset_script_path(self):
         return (self._GUI_DIR / 'dataset' / 'labelme2coco.py').resolve()
 
-    def disconnectTrainingButton(self):
-        '''
-        A Mutator function that disallows the Train button,
-        to be used by the user.
-        '''
-        if self.buttonConnected:
-            try:
-                self.train_button.clicked.disconnect(
-                    self.updateBeforeStartingTraining)
-                self.train_button.setStyleSheet(
-                    'background-color: rgba(180,180,180,255);')
-                self.train_button.updateGeometry()
-            except Exception:
-                pass
-            self.buttonConnected = False
+    def _terminate_labelme(self):
+        if self.label_process is None:
+            self._labelme_watchdog.stop()
+            return True
+        if self.label_process.poll() is not None:
+            self.label_process = None
+            self._labelme_watchdog.stop()
+            return True
+        self.label_process.terminate()
+        try:
+            self.label_process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            self.label_process.kill()
+            self.label_process.wait(timeout=1)
+        self.label_process = None
+        self._labelme_watchdog.stop()
+        return True
+
+    def _poll_labelme_process(self):
+        if self.label_process is None:
+            self._labelme_watchdog.stop()
+            return
+        if self.label_process.poll() is None:
+            return
+        self.label_process = None
+        self._active_operation = None
+        self._job_controller.set_state(JobState.IDLE, 'Labelme exited.')
+        self._labelme_watchdog.stop()
+
+    def _update_controls_for_state(self):
+        state = self._job_controller.state
+        is_busy = state in (JobState.STARTING, JobState.RUNNING, JobState.STOPPING)
+        unmet = self._training_unmet_prerequisites()
+
+        can_train = (not is_busy) and (not unmet)
+        self.train_button.setEnabled(can_train)
+        self.train_button.setStyleSheet(
+            'background-color: rgba(255,255,255,255);'
+            if can_train else 'background-color: rgba(180,180,180,255);')
+        self.train_button.setText(
+            'Training In Progress. Observe Terminal.' if state == JobState.RUNNING
+            else 'Train')
+        self.label_button.setEnabled((not is_busy) or self._active_operation == 'labelme')
+        self.validate_button.setEnabled(not is_busy)
+
+        if state == JobState.RUNNING and self.label_process is not None:
+            self.label_button.setText('Stop Label Dataset')
+        else:
+            self.label_button.setText('Label Dataset')
+
+        if is_busy or state == JobState.FAILED:
+            self.training_status_label.setText(self._job_controller.message)
+        else:
+            self.training_status_label.setText(self._readiness_message)
+
+    def _training_unmet_prerequisites(self):
+        unmet = []
+        if not self._is_model_ready:
+            unmet.append('model')
+        if not self._is_dataset_linked:
+            unmet.append('dataset')
+        if not self._is_labellist_linked:
+            unmet.append('label list')
+        if not self._is_dataset_labelled:
+            unmet.append('labelled dataset')
+        return unmet
+
+    def _on_job_state_changed(self, _state, _message):
+        self._update_controls_for_state()
+
+    def closeEvent(self, event):
+        close_message = None
+        if self.label_process is not None and self.label_process.poll() is None:
+            self._job_controller.set_state(JobState.STOPPING, 'Closing window: stopping labelme...')
+            self._terminate_labelme()
+            close_message = 'Labelme stopped during shutdown.'
+
+        if self._training_thread is not None and self._training_thread.is_alive():
+            self._job_controller.set_state(
+                JobState.STOPPING,
+                'Closing window: waiting for training thread to finish...')
+            self._training_thread.join(timeout=5)
+            if self._training_thread.is_alive():
+                close_message = (
+                    'Training thread is still running in background. '
+                    'Close completed without forced trainer termination.')
+            else:
+                close_message = 'Training thread completed during shutdown.'
+
+        if self._job_controller.state != JobState.FAILED:
+            self._job_controller.set_state(JobState.IDLE, close_message or 'Window closed.')
+
+        if close_message and not self.debug:
+            QMessageBox.information(self, 'Train Window Shutdown', close_message)
+        super().closeEvent(event)

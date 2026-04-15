@@ -1039,12 +1039,18 @@ class DeployWindow(QWidget):
                 input_refimage_filepath = 'dummy_filepath_to_refimage'
                 ok = True
 
-            if ok:
-                filepath_index = input_refimage_filepath.find('/data')
-                path_to_color_template = (
-                    '.' +
-                    input_refimage_filepath[filepath_index:])
-            else:
+            if not ok:
+                self.deploy_logger.warning('No reference color template set.')
+                return
+
+            resolved_template_path = self.resolveFilePath(input_refimage_filepath)
+            if not resolved_template_path or not Path(resolved_template_path).exists():
+                self.deploy_logger.warning('No reference color template set.')
+                return
+
+            path_to_color_template = self._normalize_data_path(
+                input_refimage_filepath)
+            if not path_to_color_template:
                 self.deploy_logger.warning('No reference color template set.')
                 return
 

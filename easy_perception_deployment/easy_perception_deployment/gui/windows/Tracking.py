@@ -19,7 +19,7 @@ import logging
 from PySide6.QtCore import QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (QComboBox, QHBoxLayout, QPushButton,
-                               QVBoxLayout, QWidget)
+                               QMessageBox, QVBoxLayout, QWidget)
 
 
 class TrackingWindow(QWidget):
@@ -107,9 +107,18 @@ class TrackingWindow(QWidget):
             }
         json_object = json.dumps(dict, indent=4)
         tmp_path = self._path_to_usecase_config + '.tmp'
-        with open(tmp_path, 'w') as outfile:
-            outfile.write(json_object)
-        os.replace(tmp_path, self._path_to_usecase_config)
+        try:
+            with open(tmp_path, 'w') as outfile:
+                outfile.write(json_object)
+            os.replace(tmp_path, self._path_to_usecase_config)
+        except OSError as error:
+            QMessageBox.critical(
+                self,
+                'Save Failed',
+                f'Failed to save use case configuration.\n{error}'
+            )
+            return
+        self.close()
 
     def closeWindow(self):
         '''A function that is triggered by the button labelled, Cancel.'''

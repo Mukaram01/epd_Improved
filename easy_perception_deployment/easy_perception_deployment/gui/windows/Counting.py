@@ -68,9 +68,28 @@ class CountingWindow(QWidget):
                            'Please select a label list.')
             msgBox.exec()
         else:
-            self._label_list = [
-                line.rstrip('\n') for line in open(path_to_label_list)]
-            # If label-list file is empty
+            try:
+                with open(path_to_label_list, encoding='utf-8') as f:
+                    self._label_list = [
+                        line.strip() for line in f if line.strip()]
+            except UnicodeDecodeError:
+                self.counting_logger.exception(
+                    'Unable to decode label list file %s as UTF-8.',
+                    path_to_label_list)
+                msgBox = QMessageBox()
+                msgBox.setText('Failed to read label list. '
+                               'Please use a UTF-8 encoded file.')
+                msgBox.exec()
+            except OSError:
+                self.counting_logger.exception(
+                    'Unable to open label list file %s.',
+                    path_to_label_list)
+                msgBox = QMessageBox()
+                msgBox.setText('Failed to read label list. '
+                               'Please check the file and try again.')
+                msgBox.exec()
+
+            # If label-list file is empty after sanitization.
             if len(self._label_list) == 0:
                 msgBox = QMessageBox()
                 msgBox.setText('Label list selected is empty.')

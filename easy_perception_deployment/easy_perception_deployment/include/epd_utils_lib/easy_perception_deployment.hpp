@@ -265,6 +265,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<std::string>("depth_topic", "/camera/camera/aligned_depth_to_color/image_raw");
   this->declare_parameter<std::string>("camera_info_topic", "/camera/camera/color/camera_info");
   this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
+  this->declare_parameter<std::string>("image_output_qos_reliability", "best_effort");
+  this->declare_parameter<int>("image_output_qos_depth", 1);
   this->declare_parameter<bool>("use_depth", true);
   this->declare_parameter<double>("service_timeout_s", 5.0);
   this->declare_parameter<double>("rgb_input_watchdog_timeout_s", 5.0);
@@ -273,8 +275,30 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   depth_topic_ = this->get_parameter("depth_topic").as_string();
   camera_info_topic_ = this->get_parameter("camera_info_topic").as_string();
   image_transport_ = this->get_parameter("image_transport").as_string();
+  std::string image_output_qos_reliability =
+    this->get_parameter("image_output_qos_reliability").as_string();
+  int image_output_qos_depth = this->get_parameter("image_output_qos_depth").as_int();
   use_depth_ = this->get_parameter("use_depth").as_bool();
   rgb_input_watchdog_timeout_s_ = this->get_parameter("rgb_input_watchdog_timeout_s").as_double();
+  std::transform(
+    image_output_qos_reliability.begin(),
+    image_output_qos_reliability.end(),
+    image_output_qos_reliability.begin(),
+    [](unsigned char c) {return static_cast<char>(std::tolower(c));});
+  if (image_output_qos_reliability != "best_effort" && image_output_qos_reliability != "reliable") {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Invalid image_output_qos_reliability '%s'. Falling back to 'best_effort'.",
+      image_output_qos_reliability.c_str());
+    image_output_qos_reliability = "best_effort";
+  }
+  if (image_output_qos_depth < 1) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Invalid image_output_qos_depth '%d'. Falling back to 1.",
+      image_output_qos_depth);
+    image_output_qos_depth = 1;
+  }
   std::transform(
     image_transport_.begin(),
     image_transport_.end(),
@@ -313,15 +337,28 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   }
 
   // Creating Publisher to output Visualizable P2 and P3 Detection Results.
-  // Use BEST_EFFORT QoS with depth 1 so the latest annotated frame is always
-  // forwarded immediately; old frames are dropped rather than queued.  This
-  // prevents backpressure from stalling the inference worker when the display
-  // consumer is slower than the camera rate.
+  // By default use BEST_EFFORT QoS with depth 1 so the latest annotated frame
+  // is forwarded immediately; old frames are dropped rather than queued.
+  // This prevents backpressure from stalling inference when the display
+  // consumer is slower than the camera rate. Users can override reliability
+  // and depth through ROS parameters for visualization tools that require
+  // RELIABLE delivery.
+  auto image_output_qos = rclcpp::QoS(rclcpp::KeepLast(static_cast<size_t>(image_output_qos_depth)));
+  if (image_output_qos_reliability == "reliable") {
+    image_output_qos.reliable();
+  } else {
+    image_output_qos.best_effort();
+  }
+  image_output_qos.durability_volatile();
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Image output QoS selected: reliability='%s', depth=%d, durability='volatile'.",
+    image_output_qos_reliability.c_str(),
+    image_output_qos_depth);
   visual_pub = image_transport::create_publisher(
     this,
     "/easy_perception_deployment/image_output",
-    rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile()
-    .get_rmw_qos_profile());
+    image_output_qos.get_rmw_qos_profile());
 
   // Creating Publisher to output Action P1 Detection Results.
   p1_pub = this->create_publisher<epd_msgs::msg::EPDImageClassification>(

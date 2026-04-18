@@ -12,6 +12,7 @@ def generate_launch_description():
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     depth_topic = LaunchConfiguration("depth_topic")
     use_depth = LaunchConfiguration("use_depth")
+    image_output_qos_reliability = LaunchConfiguration("image_output_qos_reliability")
     log_level = LaunchConfiguration("log_level")
 
     # This is the key fix:
@@ -44,6 +45,14 @@ def generate_launch_description():
             )
         ),
         DeclareLaunchArgument(
+            "image_output_qos_reliability",
+            default_value="best_effort",
+            description=(
+                "QoS reliability for /easy_perception_deployment/image_output "
+                "('best_effort' for low latency, 'reliable' for debug viewers)."
+            )
+        ),
+        DeclareLaunchArgument(
             "log_level",
             default_value="info",
             description="debug/info/warn/error/fatal"
@@ -64,6 +73,7 @@ def generate_launch_description():
                 {"rgb_topic": rgb_topic},
                 {"depth_topic": depth_topic},
                 {"camera_info_topic": camera_info_topic},
+                {"image_output_qos_reliability": image_output_qos_reliability},
             ],
             remappings=[
                 # Route the camera RGB topic into the node's primary image input.

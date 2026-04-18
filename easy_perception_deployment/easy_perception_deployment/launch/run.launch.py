@@ -13,6 +13,8 @@ def generate_launch_description():
     depth_topic = LaunchConfiguration("depth_topic")
     use_depth = LaunchConfiguration("use_depth")
     image_output_qos_reliability = LaunchConfiguration("image_output_qos_reliability")
+    slow_frame_warn_ms = LaunchConfiguration("slow_frame_warn_ms")
+    max_processing_fps = LaunchConfiguration("max_processing_fps")
     log_level = LaunchConfiguration("log_level")
 
     # This is the key fix:
@@ -53,6 +55,22 @@ def generate_launch_description():
             )
         ),
         DeclareLaunchArgument(
+            "slow_frame_warn_ms",
+            default_value="1000",
+            description=(
+                "Warn (throttled) when single-frame inference latency exceeds this many ms. "
+                "Set <=0 to disable."
+            )
+        ),
+        DeclareLaunchArgument(
+            "max_processing_fps",
+            default_value="0.0",
+            description=(
+                "Optional cap on processed FPS. Frames arriving sooner than 1/fps "
+                "after the last processed frame are dropped. Set 0 to disable."
+            )
+        ),
+        DeclareLaunchArgument(
             "log_level",
             default_value="info",
             description="debug/info/warn/error/fatal"
@@ -74,6 +92,8 @@ def generate_launch_description():
                 {"depth_topic": depth_topic},
                 {"camera_info_topic": camera_info_topic},
                 {"image_output_qos_reliability": image_output_qos_reliability},
+                {"slow_frame_warn_ms": slow_frame_warn_ms},
+                {"max_processing_fps": max_processing_fps},
             ],
             remappings=[
                 # Route the camera RGB topic into the node's primary image input.

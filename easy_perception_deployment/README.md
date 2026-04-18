@@ -214,7 +214,8 @@ EPD supports two ways to connect these topics without creating new launch files.
 ### **Option 1 (preferred): pass launch arguments**
 
 `easy_perception_deployment/launch/run.launch.py` already provides `rgb_topic`,
-`camera_info_topic`, `depth_topic`, and `image_output_qos_reliability` arguments:
+`camera_info_topic`, `depth_topic`, `image_output_qos_reliability`,
+`slow_frame_warn_ms`, and `max_processing_fps` arguments:
 
 Low-latency mode (default, best effort):
 ```bash
@@ -225,7 +226,9 @@ ros2 launch easy_perception_deployment run.launch.py \
   rgb_topic:=/camera/camera/color/image_raw \
   camera_info_topic:=/camera/camera/color/camera_info \
   depth_topic:=/camera/camera/depth/image_rect_raw \
-  image_output_qos_reliability:=best_effort
+  image_output_qos_reliability:=best_effort \
+  slow_frame_warn_ms:=1000 \
+  max_processing_fps:=0.0
 ```
 
 Visualization/debug mode (`rqt_image_view` compatible, reliable):
@@ -238,7 +241,9 @@ ros2 launch easy_perception_deployment run.launch.py \
   rgb_topic:=/camera/camera/color/image_raw \
   camera_info_topic:=/camera/camera/color/camera_info \
   depth_topic:=/camera/camera/depth/image_rect_raw \
-  image_output_qos_reliability:=reliable
+  image_output_qos_reliability:=reliable \
+  slow_frame_warn_ms:=1500 \
+  max_processing_fps:=5.0
 ```
 
 If aligned depth is available, set:
@@ -246,6 +251,15 @@ If aligned depth is available, set:
 ```bash
 depth_topic:=/camera/camera/aligned_depth_to_color/image_raw
 ```
+
+Throughput diagnostics:
+
+* `slow_frame_warn_ms` (default `1000`) emits a throttled warning when one
+  inference call exceeds the threshold.
+* `max_processing_fps` (default `0.0`, disabled) rate-limits processing by
+  dropping frames that arrive too soon after the previous processed frame.
+* EPD logs dropped-frame counts every few seconds so you can distinguish
+  overload/backpressure from true hangs (e.g. missing camera input).
 
 ### **Option 2: ROS remaps at launch-time**
 
@@ -311,6 +325,14 @@ To switch models, open the Deploy window and click **ONNX Model** to pick the ap
 ## **Throughput Tuning**
 
 For CPU-bound deployments, start by selecting a lighter detector using the **ONNX Model** button in the Deploy window (`gui/windows/Deploy.py`). Pair that with the `useCPU` and threading settings in `config/session_config.json` to balance throughput and latency. If you need more accuracy, move up to Precision Level 2 or 3 models and reassess performance.
+
+Recommended CPU-only baseline values (then tune upward):
+
+* Camera FPS: start at `10-15 FPS` (`rgb_camera.color_profile:=640x480x15`).
+* Input resolution: prefer `640x480` before trying higher resolutions.
+* Model: start with a lighter Precision Level 1 detector (`ssd_mobilenet_v1_12.onnx`).
+* EPD frame pacing: set `max_processing_fps:=5.0` to `10.0` so inference stays responsive instead of building backlog.
+* Slow-frame diagnostics: keep `slow_frame_warn_ms:=1000` (or `1500` for heavier models) to surface latency spikes.
 
 > **⚠️ MaskRCNN / FasterRCNN on CPU warning** — Precision Level 3 models (`MaskRCNN-10.onnx`, `FasterRCNN-10.onnx`) are computationally expensive.  On a typical desktop CPU **expect ≤ 0.2 FPS** (5–8 seconds per frame).  If you observe FPS in the range 0.10–0.20 this is normal behaviour for these models without a GPU.  To achieve real-time or near-real-time throughput:
 > * Switch to a **Precision Level 1** model (`ssd_mobilenet_v1_12.onnx`) for 5–15 FPS on CPU.

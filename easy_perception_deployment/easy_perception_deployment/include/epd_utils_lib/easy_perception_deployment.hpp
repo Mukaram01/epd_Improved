@@ -192,6 +192,9 @@ private:
   std::string image_transport_;
   std::string depth_transport_;
   double rgb_input_watchdog_timeout_s_{5.0};
+  int slow_frame_warn_ms_{1000};
+  double max_processing_fps_{0.0};
+  double dropped_frame_log_period_s_{5.0};
   rmw_qos_profile_t sensor_qos_profile_;
   bool use_depth_{true};
   bool image_input_active_{false};
@@ -234,8 +237,15 @@ private:
   sensor_msgs::msg::Image::ConstSharedPtr latest_depth_image_;
   sensor_msgs::msg::CameraInfo::SharedPtr latest_camera_info_;
   rclcpp::Time last_rgb_frame_time_;
+  rclcpp::Time last_processed_frame_time_;
+  rclcpp::Time last_drop_stats_log_time_;
   bool has_received_rgb_frame_{false};
+  bool has_processed_frame_{false};
   bool rgb_stream_missing_{false};
+  uint64_t dropped_frames_overwritten_{0};
+  uint64_t dropped_frames_rate_limited_{0};
+  uint64_t logged_dropped_frames_overwritten_{0};
+  uint64_t logged_dropped_frames_rate_limited_{0};
   rclcpp::TimerBase::SharedPtr rgb_input_watchdog_timer_;
 
   std::mutex ort_mutex_;
@@ -270,6 +280,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<bool>("use_depth", true);
   this->declare_parameter<double>("service_timeout_s", 5.0);
   this->declare_parameter<double>("rgb_input_watchdog_timeout_s", 5.0);
+  this->declare_parameter<int>("slow_frame_warn_ms", 1000);
+  this->declare_parameter<double>("max_processing_fps", 0.0);
 
   rgb_topic_ = this->get_parameter("rgb_topic").as_string();
   depth_topic_ = this->get_parameter("depth_topic").as_string();
@@ -280,6 +292,22 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   int image_output_qos_depth = this->get_parameter("image_output_qos_depth").as_int();
   use_depth_ = this->get_parameter("use_depth").as_bool();
   rgb_input_watchdog_timeout_s_ = this->get_parameter("rgb_input_watchdog_timeout_s").as_double();
+  slow_frame_warn_ms_ = this->get_parameter("slow_frame_warn_ms").as_int();
+  max_processing_fps_ = this->get_parameter("max_processing_fps").as_double();
+  if (slow_frame_warn_ms_ < 0) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Invalid slow_frame_warn_ms '%d'. Falling back to 1000.",
+      slow_frame_warn_ms_);
+    slow_frame_warn_ms_ = 1000;
+  }
+  if (max_processing_fps_ < 0.0) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Invalid max_processing_fps '%.3f'. Falling back to 0.0 (disabled).",
+      max_processing_fps_);
+    max_processing_fps_ = 0.0;
+  }
   std::transform(
     image_output_qos_reliability.begin(),
     image_output_qos_reliability.end(),
@@ -316,6 +344,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   }
   depth_transport_ = resolveDepthTransport(image_transport_);
   last_rgb_frame_time_ = this->now();
+  last_processed_frame_time_ = this->now();
+  last_drop_stats_log_time_ = this->now();
 
   if (ortAgent_.publish_detection_segmentation &&
     ortAgent_.useCaseMode <= EPD::COLOR_MATCHING_MODE)
@@ -871,10 +901,56 @@ void EasyPerceptionDeployment::tracking_callback(
 void EasyPerceptionDeployment::process_image_callback(
   const sensor_msgs::msg::Image::ConstSharedPtr & msg)
 {
+  bool should_log_drop_stats = false;
+  uint64_t overwritten_delta = 0;
+  uint64_t rate_limited_delta = 0;
   {
     std::lock_guard<std::mutex> lock(data_mutex_);
+    const rclcpp::Time now = this->now();
+    if (max_processing_fps_ > 0.0 && has_processed_frame_) {
+      const double min_interval_s = 1.0 / max_processing_fps_;
+      const double elapsed_s = (now - last_processed_frame_time_).seconds();
+      if (elapsed_s < min_interval_s) {
+        ++dropped_frames_rate_limited_;
+        should_log_drop_stats =
+          (now - last_drop_stats_log_time_).seconds() >= dropped_frame_log_period_s_;
+        if (should_log_drop_stats) {
+          overwritten_delta = dropped_frames_overwritten_ - logged_dropped_frames_overwritten_;
+          rate_limited_delta =
+            dropped_frames_rate_limited_ - logged_dropped_frames_rate_limited_;
+          logged_dropped_frames_overwritten_ = dropped_frames_overwritten_;
+          logged_dropped_frames_rate_limited_ = dropped_frames_rate_limited_;
+          last_drop_stats_log_time_ = now;
+        }
+        return;
+      }
+    }
+    if (image_pending_ && latest_image_) {
+      ++dropped_frames_overwritten_;
+    }
     latest_image_ = msg;
     image_pending_ = true;
+    should_log_drop_stats =
+      (now - last_drop_stats_log_time_).seconds() >= dropped_frame_log_period_s_;
+    if (should_log_drop_stats) {
+      overwritten_delta = dropped_frames_overwritten_ - logged_dropped_frames_overwritten_;
+      rate_limited_delta = dropped_frames_rate_limited_ - logged_dropped_frames_rate_limited_;
+      logged_dropped_frames_overwritten_ = dropped_frames_overwritten_;
+      logged_dropped_frames_rate_limited_ = dropped_frames_rate_limited_;
+      last_drop_stats_log_time_ = now;
+    }
+  }
+
+  if (should_log_drop_stats && (overwritten_delta > 0 || rate_limited_delta > 0)) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Dropped frames in last %.1f s: overwritten_latest=%llu, rate_limited=%llu "
+      "(totals: overwritten=%llu, rate_limited=%llu)",
+      dropped_frame_log_period_s_,
+      static_cast<unsigned long long>(overwritten_delta),
+      static_cast<unsigned long long>(rate_limited_delta),
+      static_cast<unsigned long long>(logged_dropped_frames_overwritten_),
+      static_cast<unsigned long long>(logged_dropped_frames_rate_limited_));
   }
   data_cv_.notify_one();
 }
@@ -1754,6 +1830,15 @@ void EasyPerceptionDeployment::process_image_work(
     "[-FPS-]= %.2f (dt_ms=%lld)",
     fps,
     static_cast<long long>(ms));
+  if (slow_frame_warn_ms_ > 0 && ms > static_cast<long long>(slow_frame_warn_ms_)) {
+    RCLCPP_WARN_THROTTLE(
+      this->get_logger(),
+      *this->get_clock(),
+      5000,
+      "Slow inference frame detected: %lld ms (threshold: %d ms).",
+      static_cast<long long>(ms),
+      slow_frame_warn_ms_);
+  }
 }
 
 void EasyPerceptionDeployment::worker_loop()
@@ -1838,6 +1923,11 @@ void EasyPerceptionDeployment::worker_loop()
         RCLCPP_ERROR(this->get_logger(), "Exception in process_image_work: %s", e.what());
       } catch (...) {
         RCLCPP_ERROR(this->get_logger(), "Unknown exception in process_image_work");
+      }
+      {
+        std::lock_guard<std::mutex> lock(data_mutex_);
+        last_processed_frame_time_ = this->now();
+        has_processed_frame_ = true;
       }
     }
   }

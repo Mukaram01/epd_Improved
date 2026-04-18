@@ -213,7 +213,22 @@ EPD supports two ways to connect these topics without creating new launch files.
 
 ### **Option 1 (preferred): pass launch arguments**
 
-`easy_perception_deployment/launch/run.launch.py` already provides `rgb_topic`, `camera_info_topic`, and `depth_topic` arguments:
+`easy_perception_deployment/launch/run.launch.py` already provides `rgb_topic`,
+`camera_info_topic`, `depth_topic`, and `image_output_qos_reliability` arguments:
+
+Low-latency mode (default, best effort):
+```bash
+source /opt/ros/humble/setup.bash
+source "$HOME/epd_ros2_ws/install/setup.bash"
+
+ros2 launch easy_perception_deployment run.launch.py \
+  rgb_topic:=/camera/camera/color/image_raw \
+  camera_info_topic:=/camera/camera/color/camera_info \
+  depth_topic:=/camera/camera/depth/image_rect_raw \
+  image_output_qos_reliability:=best_effort
+```
+
+Visualization/debug mode (`rqt_image_view` compatible, reliable):
 
 ```bash
 source /opt/ros/humble/setup.bash
@@ -222,7 +237,8 @@ source "$HOME/epd_ros2_ws/install/setup.bash"
 ros2 launch easy_perception_deployment run.launch.py \
   rgb_topic:=/camera/camera/color/image_raw \
   camera_info_topic:=/camera/camera/color/camera_info \
-  depth_topic:=/camera/camera/depth/image_rect_raw
+  depth_topic:=/camera/camera/depth/image_rect_raw \
+  image_output_qos_reliability:=reliable
 ```
 
 If aligned depth is available, set:

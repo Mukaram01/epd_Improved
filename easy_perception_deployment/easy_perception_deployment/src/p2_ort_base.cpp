@@ -39,6 +39,7 @@ P2OrtBase::P2OrtBase(
   const boost::optional<int> & interOpNumThreads,
   const boost::optional<SessionExecutionMode> & executionMode,
   const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
+  InputTensorLayout inputTensorLayout,
   const boost::optional<bool> & logModelInfo)
 : OrtBase(
     modelPath,
@@ -54,7 +55,8 @@ P2OrtBase::P2OrtBase(
   m_newH(newH),
   m_paddedW(paddedW),
   m_paddedH(paddedH),
-  preprocess_buffer_(3 * paddedH * paddedW)
+  preprocess_buffer_(3 * paddedH * paddedW),
+  input_tensor_layout_(inputTensorLayout)
 {}
 
 // Destructor
@@ -88,9 +90,13 @@ void P2OrtBase::preprocess(
   for (int i = 0; i < targetImgHeight; ++i) {
     for (int j = 0; j < targetImgWidth; ++j) {
       for (int c = 0; c < numChannels; ++c) {
-        dst[c * targetImgHeight * targetImgWidth +
-          i * targetImgWidth + j] =
-          imgSrc.ptr<float>(i, j)[c];
+        if (input_tensor_layout_ == InputTensorLayout::NHWC) {
+          dst[i * targetImgWidth * numChannels + j * numChannels + c] =
+            imgSrc.ptr<float>(i, j)[c];
+        } else {
+          dst[c * targetImgHeight * targetImgWidth + i * targetImgWidth + j] =
+            imgSrc.ptr<float>(i, j)[c];
+        }
       }
     }
   }

@@ -18,9 +18,11 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include "onnxruntime/core/session/onnxruntime_cxx_api.h"
 #include "epd_utils_lib/epd_container.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 
@@ -197,6 +199,109 @@ bool parseBooleanField(
     "Invalid " + key + " value in config file: " + config_path +
     ". Expected boolean.");
 }
+
+struct ModelInputInfo
+{
+  std::string input_name;
+  std::vector<int64_t> expected_shape;
+  std::vector<int64_t> fed_shape;
+  Ort::InputTensorLayout layout;
+};
+
+std::string shapeToString(const std::vector<int64_t> & shape)
+{
+  std::ostringstream oss;
+  oss << "[";
+  for (size_t i = 0; i < shape.size(); ++i) {
+    oss << shape[i];
+    if (i + 1 < shape.size()) {
+      oss << ",";
+    }
+  }
+  oss << "]";
+  return oss.str();
+}
+
+const char * layoutToString(Ort::InputTensorLayout layout)
+{
+  switch (layout) {
+    case Ort::InputTensorLayout::CHW:
+      return "CHW";
+    case Ort::InputTensorLayout::NCHW:
+      return "NCHW";
+    case Ort::InputTensorLayout::NHWC:
+      return "NHWC";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+ModelInputInfo inspectModelInputInfo(
+  const std::string & model_path,
+  int padded_h,
+  int padded_w,
+  int img_channel)
+{
+  Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "EPDInputInspector");
+  Ort::SessionOptions options;
+  Ort::Session session(env, model_path.c_str(), options);
+  Ort::AllocatorWithDefaultOptions allocator;
+
+  if (session.GetInputCount() < 1) {
+    throw std::runtime_error("Model has no inputs: " + model_path);
+  }
+
+  char * input_name = session.GetInputName(0, allocator);
+  std::string resolved_input_name = input_name == nullptr ? std::string("<unknown>") : input_name;
+  if (input_name != nullptr) {
+    allocator.Free(input_name);
+  }
+
+  const auto input_info = session.GetInputTypeInfo(0).GetTensorTypeAndShapeInfo();
+  const std::vector<int64_t> model_shape = input_info.GetShape();
+
+  if (model_shape.size() == 3) {
+    return ModelInputInfo{
+      resolved_input_name,
+      model_shape,
+      {img_channel, padded_h, padded_w},
+      Ort::InputTensorLayout::CHW
+    };
+  }
+
+  if (model_shape.size() == 4) {
+    const int64_t c_at_dim1 = model_shape[1];
+    const int64_t c_at_dim3 = model_shape[3];
+    const bool is_nhwc = (c_at_dim3 == img_channel) && (c_at_dim1 != img_channel);
+    const bool is_nchw = (c_at_dim1 == img_channel) || !is_nhwc;
+
+    if (!is_nhwc && !is_nchw) {
+      throw std::runtime_error(
+              "Unsupported 4D model input layout for input '" + resolved_input_name +
+              "' with shape " + shapeToString(model_shape));
+    }
+
+    if (is_nhwc) {
+      return ModelInputInfo{
+        resolved_input_name,
+        model_shape,
+        {1, padded_h, padded_w, img_channel},
+        Ort::InputTensorLayout::NHWC
+      };
+    }
+
+    return ModelInputInfo{
+      resolved_input_name,
+      model_shape,
+      {1, img_channel, padded_h, padded_w},
+      Ort::InputTensorLayout::NCHW
+    };
+  }
+
+  throw std::runtime_error(
+          "Unsupported model input rank for input '" + resolved_input_name + "': " +
+          std::to_string(model_shape.size()) + ". Expected rank 3 (CHW) or 4 (NCHW/NHWC).");
+}
 }  // namespace
 
 
@@ -267,6 +372,17 @@ void EPDContainer::initORTSessionHandler()
     "(target_min_side=%d, allow_upscale=%s)\n",
     ratio, newW, newH, paddedW, paddedH, target_min_side, allow_upscale ? "true" : "false");
 
+  const ModelInputInfo model_input_info =
+    inspectModelInputInfo(onnx_model_path, paddedH, paddedW, IMG_CHANNEL);
+
+  fprintf(
+    stdout,
+    "[EPDContainer] Model input: name=%s expected_shape=%s selected_layout=%s fed_shape=%s\n",
+    model_input_info.input_name.c_str(),
+    shapeToString(model_input_info.expected_shape).c_str(),
+    layoutToString(model_input_info.layout),
+    shapeToString(model_input_info.fed_shape).c_str());
+
   switch (precision_level) {
     case 2:
       p2_ort_session = std::make_unique<Ort::P2OrtBase>(
@@ -277,7 +393,8 @@ void EPDContainer::initORTSessionHandler()
         intra_op_num_threads,
         inter_op_num_threads,
         execution_mode,
-        std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}},
+        std::vector<std::vector<int64_t>>{model_input_info.fed_shape},
+        model_input_info.layout,
         log_model_info
       );
       p2_ort_session->initClassNames(classNames);
@@ -291,7 +408,8 @@ void EPDContainer::initORTSessionHandler()
         intra_op_num_threads,
         inter_op_num_threads,
         execution_mode,
-        std::vector<std::vector<int64_t>>{{IMG_CHANNEL, paddedH, paddedW}},
+        std::vector<std::vector<int64_t>>{model_input_info.fed_shape},
+        model_input_info.layout,
         log_model_info
       );
       p3_ort_session->initClassNames(classNames);

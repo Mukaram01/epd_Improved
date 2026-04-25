@@ -56,17 +56,6 @@ from scripts.cli.config_schema import (  # noqa: E402
 )
 
 
-class _FPSMonitorSignals(QObject):
-    """QObject carrier for the fps_updated signal.
-
-    Kept separate from the worker thread so the signal lives on the main thread
-    and cross-thread emissions are automatically queued by Qt — regardless of
-    whether the emitting thread is a QThread or a plain Python thread.
-    """
-
-    fps_updated = Signal(str)
-
-
 class _ImageTopicsWorkerSignals(QObject):
     """Signal carrier for async ROS topic discovery results."""
 
@@ -125,18 +114,14 @@ class ImageTopicsWorker(QObject):
 
 
 class FPSMonitorThread:
-    """FPS monitor that runs in a daemon Python thread (not a QThread).
+    """FPS monitor running in a daemon Python thread.
 
-    Using threading.Thread avoids the QThread destructor calling abort() when
-    the C++ thread object is destroyed while the OS thread is still running —
-    a crash that occurs in PySide6 6.x when the thread is doing heavy ROS2
-    node initialisation and the owning widget is closed before init completes.
+    This class intentionally avoids Qt signal/QObject ownership so that no GUI
+    object is touched from the worker thread. The GUI polls latest text through
+    a QTimer on the main thread.
     """
 
     def __init__(self, usecase_mode):
-        self._signals = _FPSMonitorSignals()
-        self.fps_updated = self._signals.fps_updated
-
         self._usecase_mode = usecase_mode
         self._requested_mode = usecase_mode
         self._node = None
@@ -144,6 +129,9 @@ class FPSMonitorThread:
         self._stamps = deque(maxlen=30)
         self._running = True
         self._lock = threading.Lock()
+        self._latest_text = 'FPS: -- | Latency: --'
+        self._context = None
+        self._owns_context = False
 
         self._thread = threading.Thread(
             target=self._run, daemon=True, name='FPSMonitor')
@@ -164,23 +152,37 @@ class FPSMonitorThread:
         with self._lock:
             self._requested_mode = usecase_mode
 
+    def get_latest_text(self):
+        with self._lock:
+            return self._latest_text
+
+    def _set_latest_text(self, text):
+        with self._lock:
+            self._latest_text = text
+
     def _run(self):
         if not _RCLPY_AVAILABLE:
+            self._set_latest_text('FPS: N/A | Latency: N/A (ROS unavailable)')
             return
         try:
-            if not rclpy.ok():
-                rclpy.init(args=None)
-            self._node = Node('epd_fps_monitor')
+            if rclpy.ok():
+                self._context = rclpy.get_default_context()
+            else:
+                self._context = rclpy.context.Context()
+                self._context.init(args=None)
+                self._owns_context = True
+
+            self._node = Node('epd_fps_monitor', context=self._context)
             self._update_subscription(self._usecase_mode)
-            while rclpy.ok() and self._running:
+            while self._running and rclpy.ok(context=self._context):
                 self._maybe_update_subscription()
                 rclpy.spin_once(self._node, timeout_sec=0.1)
         except Exception as exc:
             logging.getLogger('deploy').warning(
                 'FPS monitor thread failed: %s', exc)
-            self.fps_updated.emit('FPS: N/A | Latency: N/A (ROS error)')
+            self._set_latest_text('FPS: N/A | Latency: N/A (ROS error)')
         finally:
-            if self._subscription is not None:
+            if self._subscription is not None and self._node is not None:
                 try:
                     self._node.destroy_subscription(self._subscription)
                 except Exception as e:
@@ -194,12 +196,13 @@ class FPSMonitorThread:
                     logging.getLogger('deploy').debug(
                         'FPS monitor: error destroying node: %s', e)
                 self._node = None
-            try:
-                if rclpy.ok():
-                    rclpy.shutdown()
-            except Exception as e:
-                logging.getLogger('deploy').debug(
-                    'FPS monitor: error during rclpy shutdown: %s', e)
+            if self._owns_context and self._context is not None:
+                try:
+                    self._context.shutdown()
+                except Exception as e:
+                    logging.getLogger('deploy').debug(
+                        'FPS monitor: error during context shutdown: %s', e)
+                self._context = None
 
     def _maybe_update_subscription(self):
         with self._lock:
@@ -217,7 +220,7 @@ class FPSMonitorThread:
         topic, msg_type = self._topic_for_usecase(usecase_mode)
         self._stamps.clear()
         if topic is None:
-            self.fps_updated.emit('FPS: -- | Latency: --')
+            self._set_latest_text('FPS: -- | Latency: --')
             return
         self._subscription = self._node.create_subscription(
             msg_type,
@@ -244,7 +247,7 @@ class FPSMonitorThread:
         latency_ms = self._process_time_ms(msg)
         fps_text = f'{fps:.1f}' if fps is not None else '--'
         latency_text = f'{latency_ms:.1f} ms' if latency_ms is not None else '--'
-        self.fps_updated.emit(f'FPS: {fps_text} | Latency: {latency_text}')
+        self._set_latest_text(f'FPS: {fps_text} | Latency: {latency_text}')
 
     def _timestamp_from_msg(self, msg):
         if not hasattr(msg, 'header'):
@@ -320,6 +323,7 @@ class DeployWindow(QWidget):
         self._deploy_log_file = None
         self._kill_log_file = None
         self._fps_monitor = None
+        self._fps_poll_timer = None
         self._is_shutting_down = False
         self._is_app_exiting = False
         self._job_controller = JobController('Deployment', self)
@@ -739,27 +743,44 @@ class DeployWindow(QWidget):
         self._topics_worker_thread = None
 
     def _start_fps_monitor(self):
+        if os.getenv('EPD_DISABLE_FPS_MONITOR') == '1':
+            self.fps_label.setText('FPS: disabled')
+            return
         if not _RCLPY_AVAILABLE:
             self.fps_label.setText('FPS: N/A | Latency: N/A (ROS unavailable)')
             return
+
         self._fps_monitor = FPSMonitorThread(self.usecase_mode)
-        self._fps_monitor.fps_updated.connect(self._update_fps_label)
         self._fps_monitor.start()
 
-    @Slot(str)
-    def _update_fps_label(self, text):
-        self.fps_label.setText(text)
+        self._fps_poll_timer = QTimer(self)
+        self._fps_poll_timer.setInterval(250)
+        self._fps_poll_timer.timeout.connect(self._poll_fps_monitor)
+        self._fps_poll_timer.start()
+        self._poll_fps_monitor()
+
+    @Slot()
+    def _poll_fps_monitor(self):
+        if self._fps_monitor is None:
+            return
+        self.fps_label.setText(self._fps_monitor.get_latest_text())
 
     def _update_fps_monitor_mode(self, usecase_mode):
         if self._fps_monitor is not None:
             self._fps_monitor.set_usecase_mode(usecase_mode)
 
     def _stop_fps_monitor(self):
+        if self._fps_poll_timer is not None:
+            self._fps_poll_timer.stop()
+            self._fps_poll_timer.deleteLater()
+            self._fps_poll_timer = None
+
         if self._fps_monitor is None:
             return
         self._fps_monitor.stop()
         self._fps_monitor.wait(1000)
         self._fps_monitor = None
+        self._fps_poll_timer = None
 
     @Slot(object, str)
     def _on_job_state_changed(self, state, message):
@@ -1032,6 +1053,8 @@ class DeployWindow(QWidget):
         self._is_shutting_down = False
 
     def shutdown(self):
+        self._stop_fps_monitor()
+
         if self._is_shutting_down:
             return
 
@@ -1606,6 +1629,5 @@ class DeployWindow(QWidget):
 
     def closeEvent(self, event):
         self._is_app_exiting = True
-        self._stop_fps_monitor()
         self.shutdown()
         super().closeEvent(event)

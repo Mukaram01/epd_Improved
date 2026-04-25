@@ -212,6 +212,8 @@ echo "  ROS setup path       : /opt/ros/${ROS_DISTRO}/setup.bash"
 echo "  Workspace setup path : ${EPD_WS_SETUP}"
 echo "  Conda env            : epd_gui_env"
 
+export PYTHONPATH="$START_DIR:$START_DIR/gui:${PYTHONPATH:-}"
+
 cd "$START_DIR/gui"
 python main.py
 

@@ -58,6 +58,7 @@ public:
     const boost::optional<SessionExecutionMode> & executionMode = boost::none,
     const boost::optional<std::vector<std::vector<int64_t>>> &
     inputShapes = boost::none,
+    InputTensorLayout inputTensorLayout = InputTensorLayout::CHW,
     const boost::optional<bool> & logModelInfo = boost::none);
   /*! \brief A Destructor function*/
   ~P3OrtBase();
@@ -116,6 +117,7 @@ private:
    * calls are concurrent. This mutex protects against future API changes that
    * might introduce concurrent callers. */
   mutable std::mutex preprocess_buffer_mutex_;
+  InputTensorLayout input_tensor_layout_{InputTensorLayout::CHW};
 
   /*! \brief A Mutator function that converts a 3-layered 2D RGB input image
   into a 1D input data tensor to be passed to the Ort Session for processing.\n

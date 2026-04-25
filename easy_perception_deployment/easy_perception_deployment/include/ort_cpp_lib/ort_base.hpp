@@ -26,6 +26,13 @@
 
 namespace Ort
 {
+enum class InputTensorLayout
+{
+  CHW,
+  NCHW,
+  NHWC
+};
+
 enum class SessionExecutionMode
 {
   SEQUENTIAL,

@@ -28,6 +28,7 @@
 
 namespace Ort
 {
+
 /*! \class P2OrtBase
     \brief An Precision-Level 2 (P2) ONNXRuntime (Ort) Base class object.
     This class object instantiates a Precision Level 2 Ort Session which takes a
@@ -54,6 +55,7 @@ public:
     const boost::optional<SessionExecutionMode> & executionMode = boost::none,
     const boost::optional<std::vector<std::vector<int64_t>>> &
     inputShapes = boost::none,
+    InputTensorLayout inputTensorLayout = InputTensorLayout::CHW,
     const boost::optional<bool> & logModelInfo = boost::none);
   /*! \brief A Destructor function*/
   ~P2OrtBase();
@@ -89,6 +91,7 @@ private:
    * Note: inference is driven by a single worker thread so this mutex
    * primarily prevents races on future concurrent-infer API extensions. */
   mutable std::mutex preprocess_buffer_mutex_;
+  InputTensorLayout input_tensor_layout_{InputTensorLayout::CHW};
 
   /*! \brief A Mutator function that converts a 3-layered 2D RGB input image
   into a 1D input data tensor to be passed to the Ort Session for processing.\n

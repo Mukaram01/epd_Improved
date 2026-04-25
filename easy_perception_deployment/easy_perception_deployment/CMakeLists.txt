@@ -261,6 +261,9 @@ if(BUILD_TESTING)
     ament_add_gtest(epd_test_P2_colormatch_action test/p2u2a.cpp ${EPD_UTILS})
     epd_configure_test(epd_test_P2_colormatch_action)
 
+    ament_add_gtest(epd_test_ssd_input_layout_smoke test/ssd_input_layout_smoke.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_ssd_input_layout_smoke)
+
     ament_add_gtest(epd_test_P3_counting_visualize test/p3u1v.cpp ${EPD_UTILS})
     epd_configure_test(epd_test_P3_counting_visualize)
 
@@ -341,4 +344,3 @@ install(DIRECTORY
 )
 
 ament_package()
-

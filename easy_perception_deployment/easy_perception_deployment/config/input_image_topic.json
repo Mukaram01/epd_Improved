@@ -1,4 +1,4 @@
 {
     "schema_version": 2,
-    "input_image_topic": "/virtual_camera/image_raw"
+    "input_image_topic": "/camera/camera/color/image_raw"
 }

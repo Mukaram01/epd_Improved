@@ -23,9 +23,11 @@ find_package(ament_cmake REQUIRED)
 find_package(epd_onnxruntime_vendor REQUIRED)
 
 find_package(rclcpp REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(diagnostic_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
@@ -221,6 +223,7 @@ set(EPD_COMMON_DEPS
   OpenCV
   cv_bridge
   image_transport
+  diagnostic_msgs
   tf2
 )
 
@@ -238,6 +241,28 @@ if(BUILD_TESTING)
 
   ament_lint_auto_find_test_dependencies()
   find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(epd_test_observation test/test_observation.cpp)
+  target_include_directories(epd_test_observation PRIVATE include)
+  ament_target_dependencies(epd_test_observation sensor_msgs epd_msgs)
+
+  ament_add_gtest(epd_test_inference_scheduler test/test_inference_scheduler.cpp)
+  target_include_directories(epd_test_inference_scheduler PRIVATE include)
+  ament_target_dependencies(epd_test_inference_scheduler sensor_msgs epd_msgs)
+
+  ament_add_gtest(epd_test_geometry_quality test/test_geometry_quality.cpp)
+  target_include_directories(epd_test_geometry_quality PRIVATE include ${PCL_INCLUDE_DIRS})
+  ament_target_dependencies(epd_test_geometry_quality geometry_msgs sensor_msgs)
+  target_link_libraries(epd_test_geometry_quality ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
+
+  ament_add_gtest(epd_test_time_utils test/test_time_utils.cpp)
+  target_include_directories(epd_test_time_utils PRIVATE include)
+  ament_target_dependencies(epd_test_time_utils rclcpp builtin_interfaces)
+
+  ament_add_gtest(epd_test_temporal_tracker test/test_temporal_tracker.cpp)
+  target_include_directories(epd_test_temporal_tracker PRIVATE include)
+  ament_target_dependencies(
+    epd_test_temporal_tracker builtin_interfaces geometry_msgs sensor_msgs)
 
   macro(epd_configure_test tgt)
     ament_target_dependencies(${tgt} ${EPD_COMMON_DEPS})
@@ -296,6 +321,7 @@ if(BUILD_TESTING)
       OpenCV
       cv_bridge
       message_filters
+      diagnostic_msgs
       pcl_conversions
       tf2
     )
@@ -310,6 +336,14 @@ endif()
 # Main node
 # -----------------------------
 add_executable(easy_perception_deployment src/main.cpp ${EPD_UTILS})
+add_executable(epd_sensor_ingress src/sensor_ingress.cpp)
+
+ament_target_dependencies(
+  epd_sensor_ingress
+  rclcpp
+  sensor_msgs
+  diagnostic_msgs
+)
 
 ament_target_dependencies(
   easy_perception_deployment
@@ -323,6 +357,7 @@ ament_target_dependencies(
   OpenCV
   cv_bridge
   message_filters
+  diagnostic_msgs
   pcl_conversions
   tf2
 )
@@ -332,6 +367,12 @@ target_link_libraries(easy_perception_deployment ${PCL_LIBRARIES} jsoncpp::jsonc
 
 install(TARGETS
   easy_perception_deployment
+  epd_sensor_ingress
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  scripts/epd_soak_probe.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -335,18 +335,30 @@ bool P3OrtBase::populateObjectGeometry(
   const std::string & pcl_frame_id,
   float maskThreshold)
 {
-  // ROI
-  obj.roi.x_offset = curBbox[0];
-  obj.roi.y_offset = curBbox[1];
-  obj.roi.height   = curBbox[3] - curBbox[1];
-  obj.roi.width    = curBbox[2] - curBbox[0];
+  if (depthImg.empty() || rawMask.empty() || !std::isfinite(fx) || !std::isfinite(fy) ||
+    !std::isfinite(ppx) || !std::isfinite(ppy) || fx <= 0.0F || fy <= 0.0F)
+  {
+    obj.failure_reasons |= static_cast<uint32_t>(EPD::GeometryFailure::INVALID_INTRINSICS);
+    return false;
+  }
 
-  // Store original (un-resized) mask
-  obj.mask = rawMask.clone();
+  const int x0 = static_cast<int>(std::floor(curBbox[0]));
+  const int y0 = static_cast<int>(std::floor(curBbox[1]));
+  const int x1 = static_cast<int>(std::ceil(curBbox[2]));
+  const int y1 = static_cast<int>(std::ceil(curBbox[3]));
+  if (x0 < 0 || y0 < 0 || x1 <= x0 || y1 <= y0 || x1 > depthImg.cols || y1 > depthImg.rows) {
+    obj.failure_reasons |= static_cast<uint32_t>(EPD::GeometryFailure::INVALID_ROI);
+    return false;
+  }
+
+  // ROI
+  obj.roi.x_offset = x0;
+  obj.roi.y_offset = y0;
+  obj.roi.height = y1 - y0;
+  obj.roi.width = x1 - x0;
 
   const cv::Rect curBoxRect(
-    cv::Point(static_cast<int>(curBbox[0]), static_cast<int>(curBbox[1])),
-    cv::Point(static_cast<int>(curBbox[2]), static_cast<int>(curBbox[3])));
+    cv::Point(x0, y0), cv::Point(x1, y1));
 
   // Resize raw mask to bbox dimensions and binarize
   cv::Mat resizedMask;
@@ -355,6 +367,8 @@ bool P3OrtBase::populateObjectGeometry(
 
   cv::Mat tempFinalMask;
   finalMask.convertTo(tempFinalMask, CV_8U);
+  obj.mask = tempFinalMask.clone();
+  obj.mask_pixel_count = static_cast<size_t>(cv::countNonZero(tempFinalMask));
 
   std::vector<cv::Mat> contours;
   cv::Mat hierarchy;
@@ -447,16 +461,19 @@ bool P3OrtBase::populateObjectGeometry(
           depthImg.at<uint16_t>(curBoxRect.y + j, curBoxRect.x + k)) * 0.001f;
       }
       if (std::abs(z) < MIN_DEPTH_THRESHOLD_M ||
-        std::abs(z) > camera_to_plane_distance_mm * 0.001)
+        std::abs(z) > camera_to_plane_distance_mm * 0.001 || !std::isfinite(z))
       {
         continue;
       }
       const float px = static_cast<float>((curBoxRect.x + k - ppx) / fx) * z;
       const float py = static_cast<float>((curBoxRect.y + j - ppy) / fy) * z;
       segmented_cloud->points.emplace_back(px, py, z);
+      ++obj.valid_depth_pixel_count;
     }
   }
   obj.segmented_pcl = *segmented_cloud;
+  obj.valid_depth_ratio = obj.mask_pixel_count == 0 ? 0.0 :
+    static_cast<double>(obj.valid_depth_pixel_count) / static_cast<double>(obj.mask_pixel_count);
 
   // Determine principal axis via PCA on the segmented cloud
   if (obj.segmented_pcl.empty()) {
@@ -470,6 +487,9 @@ bool P3OrtBase::populateObjectGeometry(
     Eigen::Matrix3f covariance_matrix;
 
     pcl::compute3DCentroid(obj.segmented_pcl, centerpoint);
+    obj.centroid.x = centerpoint.x();
+    obj.centroid.y = centerpoint.y();
+    obj.centroid.z = centerpoint.z();
     pcl::computeCovarianceMatrix(obj.segmented_pcl, centerpoint, covariance_matrix);
     pcl::eigen33(covariance_matrix, eigenvectors, eigenvalues);
 
@@ -477,7 +497,13 @@ bool P3OrtBase::populateObjectGeometry(
       eigenvectors.col(2)(0),
       eigenvectors.col(2)(1),
       eigenvectors.col(2)(2));
-    axis = axis.normalized();
+    if (!axis.allFinite() || axis.norm() < 1e-6F) {
+      obj.axis.x = 0.0F;
+      obj.axis.y = 0.0F;
+      obj.axis.z = 0.0F;
+      return true;
+    }
+    axis.normalize();
 
     obj.axis.x = axis(0);
     obj.axis.y = axis(1);
@@ -619,6 +645,7 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
     const uint64_t classIdx = classIndices[i];
     output_obj.objects[i].name = allClassNames.empty() ?
       std::to_string(classIdx) : allClassNames[classIdx];
+    output_obj.objects[i].confidence = scores[i];
 
     populateObjectGeometry(
       output_obj.objects[i],
@@ -776,6 +803,7 @@ EPD::EPDObjectTracking P3OrtBase::infer(
     const uint64_t classIdx = classIndices[i];
     output_obj.objects[i].name = allClassNames.empty() ?
       std::to_string(classIdx) : allClassNames[classIdx];
+    output_obj.objects[i].confidence = scores[i];
 
     // Map each detection to its matched tracker and preserve persistent object ids.
     if (i < detection_to_tracker.size() && detection_to_tracker[i].has_value()) {

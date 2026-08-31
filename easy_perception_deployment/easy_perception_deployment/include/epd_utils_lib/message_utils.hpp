@@ -18,6 +18,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
 #include "opencv2/opencv.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
@@ -29,6 +30,23 @@
 
 namespace EPD
 {
+enum class GeometryQuality : uint8_t {VALID, DEGRADED, INVALID};
+
+enum class GeometryFailure : uint32_t
+{
+  NONE = 0,
+  INVALID_INTRINSICS = 1U << 0,
+  INVALID_ROI = 1U << 1,
+  INVALID_MASK = 1U << 2,
+  INSUFFICIENT_DEPTH = 1U << 3,
+  EMPTY_CLOUD = 1U << 4,
+  NONFINITE_GEOMETRY = 1U << 5,
+  INVALID_DIMENSIONS = 1U << 6,
+  INVALID_ORIENTATION = 1U << 7,
+  FRAME_MISMATCH = 1U << 8,
+  GEOMETRY_EXCEPTION = 1U << 9
+};
+
 /*! \class EPDObjectDetection
     \brief An Easy Perception Deployment (EPD) ObjectDetection class object.
     This object functions as a transient container of inference results to
@@ -68,14 +86,23 @@ public:
 struct LocalizedObject
 {
   std::string name;
+  float confidence{0.0F};
   sensor_msgs::msg::RegionOfInterest roi;
   cv::Mat mask;
   geometry_msgs::msg::Point centroid;
-  float length;
-  float breadth;
-  float height;
+  float length{0.0F};
+  float breadth{0.0F};
+  float height{0.0F};
   pcl::PointCloud<pcl::PointXYZ> segmented_pcl;
   geometry_msgs::msg::Vector3 axis;
+  GeometryQuality quality{GeometryQuality::INVALID};
+  uint32_t failure_reasons{static_cast<uint32_t>(GeometryFailure::NONE)};
+  uint64_t source_observation_id{0};
+  builtin_interfaces::msg::Time source_sensor_stamp;
+  std::string source_frame;
+  size_t mask_pixel_count{0};
+  size_t valid_depth_pixel_count{0};
+  double valid_depth_ratio{0.0};
 };
 
 class EPDObjectLocalization

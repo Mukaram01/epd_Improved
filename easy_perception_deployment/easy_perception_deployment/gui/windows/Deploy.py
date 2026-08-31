@@ -476,7 +476,7 @@ class DeployWindow(QWidget):
         self.setMinimumSize(self._MIN_DEPLOY_WIN_W, self._MIN_DEPLOY_WIN_H)
 
         self.setButtons()
-        self._start_fps_monitor()
+        self.fps_label.setText('FPS: disabled for debug')
         self.validateDeployInputs()
         self.printDeployConfig()
 

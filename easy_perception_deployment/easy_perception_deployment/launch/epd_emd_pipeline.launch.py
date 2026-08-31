@@ -11,9 +11,13 @@ def generate_launch_description():
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     depth_topic = LaunchConfiguration("depth_topic")
     use_depth = LaunchConfiguration("use_depth")
+    service_timeout_s = LaunchConfiguration("service_timeout_s")
     log_level = LaunchConfiguration("log_level")
 
     pkg_share = get_package_share_directory("easy_perception_deployment")
+    ingress_rgb = "/easy_perception_deployment/ingress/color/image_raw"
+    ingress_depth = "/easy_perception_deployment/ingress/aligned_depth/image_raw"
+    ingress_info = "/easy_perception_deployment/ingress/color/camera_info"
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -40,6 +44,11 @@ def generate_launch_description():
             )
         ),
         DeclareLaunchArgument(
+            "service_timeout_s",
+            default_value="10.0",
+            description="Timeout covering fresh synchronized input plus one inference cycle"
+        ),
+        DeclareLaunchArgument(
             "log_level",
             default_value="info",
             description="debug/info/warn/error/fatal"
@@ -56,6 +65,21 @@ def generate_launch_description():
 
         Node(
             package="easy_perception_deployment",
+            executable="epd_sensor_ingress",
+            name="epd_sensor_ingress",
+            output="screen",
+            parameters=[{
+                "rgb_input_topic": rgb_topic,
+                "depth_input_topic": depth_topic,
+                "camera_info_input_topic": camera_info_topic,
+                "rgb_output_topic": ingress_rgb,
+                "depth_output_topic": ingress_depth,
+                "camera_info_output_topic": ingress_info,
+            }],
+        ),
+
+        Node(
+            package="easy_perception_deployment",
             executable="easy_perception_deployment",
             name="easy_perception_deployment",
             output="screen",
@@ -65,13 +89,14 @@ def generate_launch_description():
 
             parameters=[
                 {"use_depth": use_depth},
-                {"rgb_topic": rgb_topic},
-                {"depth_topic": depth_topic},
-                {"camera_info_topic": camera_info_topic},
+                {"rgb_topic": ingress_rgb},
+                {"depth_topic": ingress_depth},
+                {"camera_info_topic": ingress_info},
+                {"service_timeout_s": service_timeout_s},
             ],
             remappings=[
                 # Route the camera RGB topic into the node's primary image input.
-                ("/easy_perception_deployment/image_input", rgb_topic),
+                ("/easy_perception_deployment/image_input", ingress_rgb),
             ],
             arguments=["--ros-args", "--log-level", log_level],
         ),

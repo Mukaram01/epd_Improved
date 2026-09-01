@@ -10,19 +10,56 @@ cd "$START_DIR"
 EPD_SKIP_DOWNLOAD="${EPD_SKIP_DOWNLOAD:-0}"
 EPD_WS="${EPD_WS:-}"
 EPD_NO_INSTALL="${EPD_NO_INSTALL:-0}"
+EPD_PRINT_WORKSPACE_SETUP=0
 
 for arg in "$@"; do
     case "$arg" in
         --no-install)
             EPD_NO_INSTALL=1
             ;;
+        --print-workspace-setup)
+            EPD_PRINT_WORKSPACE_SETUP=1
+            ;;
         *)
             echo "Unknown argument: $arg"
-            echo "Usage: $0 [--no-install]"
+            echo "Usage: $0 [--no-install] [--print-workspace-setup]"
             exit 1
             ;;
     esac
 done
+
+resolve_epd_workspace_setup() {
+    local ws="${EPD_WS}"
+    local inferred_ws
+
+    if [ -n "$ws" ]; then
+        echo "${ws%/}/install/setup.bash"
+        return 0
+    fi
+
+    # This script lives at <workspace>/src/<repository>/easy_perception_deployment.
+    inferred_ws=$(realpath "$START_DIR/../../..")
+    if [ -f "$inferred_ws/install/setup.bash" ]; then
+        echo "$inferred_ws/install/setup.bash"
+        return 0
+    fi
+
+    if [ -n "${COLCON_PREFIX_PATH:-}" ]; then
+        local first_prefix
+        IFS=':' read -r first_prefix _ <<< "$COLCON_PREFIX_PATH"
+        if [ -n "$first_prefix" ] && [ -f "${first_prefix%/}/setup.bash" ]; then
+            echo "${first_prefix%/}/setup.bash"
+            return 0
+        fi
+    fi
+
+    echo "$inferred_ws/install/setup.bash"
+}
+
+if [ "$EPD_PRINT_WORKSPACE_SETUP" = "1" ]; then
+    resolve_epd_workspace_setup
+    exit 0
+fi
 
 # Check if Anaconda has been installed in general.
 # If true, get the first digit of the string which should reflect the major version of conda.
@@ -142,26 +179,6 @@ then
       echo "[epd_gui_env] env created."
 fi
 
-resolve_epd_workspace_setup() {
-    local ws="${EPD_WS}"
-
-    if [ -n "$ws" ]; then
-        echo "${ws%/}/install/setup.bash"
-        return 0
-    fi
-
-    if [ -n "${COLCON_PREFIX_PATH:-}" ]; then
-        local first_prefix
-        IFS=':' read -r first_prefix _ <<< "$COLCON_PREFIX_PATH"
-        if [ -n "$first_prefix" ]; then
-            echo "${first_prefix%/}/setup.bash"
-            return 0
-        fi
-    fi
-
-    echo "$HOME/epd_ros2_ws/install/setup.bash"
-}
-
 # Check for libxcb-cursor0, required by the Qt xcb platform plugin since Qt 6.5.0.
 if command -v dpkg >/dev/null 2>&1 && ! dpkg -l libxcb-cursor0 2>/dev/null | grep -q "^ii"; then
     echo "Missing dependency: libxcb-cursor0 (required by Qt xcb platform plugin since Qt 6.5.0)."
@@ -217,4 +234,4 @@ export PYTHONPATH="$START_DIR:$START_DIR/gui:${PYTHONPATH:-}"
 cd "$START_DIR/gui"
 python main.py
 
-unset START_DIR PATH_TO_THIS_SCRIPT env_exists EPD_WS_SETUP EPD_SKIP_DOWNLOAD EPD_WS
+unset START_DIR PATH_TO_THIS_SCRIPT env_exists EPD_WS_SETUP EPD_SKIP_DOWNLOAD EPD_WS EPD_PRINT_WORKSPACE_SETUP

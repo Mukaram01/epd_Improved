@@ -11,6 +11,7 @@ def _install_stub_modules(monkeypatch):
     qtcore.QThread = type("QThread", (), {})
     qtcore.QTimer = type("QTimer", (), {})
     qtcore.QElapsedTimer = type("QElapsedTimer", (), {})
+    qtcore.Qt = type("Qt", (), {})
     qtcore.Signal = lambda *args, **kwargs: object()
     qtcore.Slot = lambda *args, **kwargs: (lambda fn: fn)
 
@@ -28,6 +29,11 @@ def _install_stub_modules(monkeypatch):
         "QWidget",
         "QDoubleSpinBox",
         "QSpinBox",
+        "QHBoxLayout",
+        "QInputDialog",
+        "QLineEdit",
+        "QSizePolicy",
+        "QVBoxLayout",
     ):
         setattr(qtwidgets, class_name, type(class_name, (), {}))
 
@@ -49,9 +55,15 @@ def _install_stub_modules(monkeypatch):
     monkeypatch.setitem(sys.modules, "windows.Counting", counting)
     monkeypatch.setitem(sys.modules, "windows.Tracking", tracking)
     monkeypatch.setitem(sys.modules, "windows.job_controller", job_controller)
+    p2_trainer = types.ModuleType("trainer.P2Trainer")
+    p2_trainer.P2Trainer = type("P2Trainer", (), {})
+    p3_trainer = types.ModuleType("trainer.P3Trainer")
+    p3_trainer.P3Trainer = type("P3Trainer", (), {})
+    monkeypatch.setitem(sys.modules, "trainer.P2Trainer", p2_trainer)
+    monkeypatch.setitem(sys.modules, "trainer.P3Trainer", p3_trainer)
 
 
-def test_deploy_import_uses_package_level_scripts(monkeypatch):
+def test_deploy_import_uses_local_cli_despite_shadowing_scripts(monkeypatch):
     gui_dir = Path(__file__).resolve().parent
     package_root = gui_dir.parent
 
@@ -64,14 +76,38 @@ def test_deploy_import_uses_package_level_scripts(monkeypatch):
         [str(gui_dir)] + [p for p in sys.path if p not in {str(gui_dir), str(package_root)}],
     )
 
-    for name in ("windows.Deploy", "scripts", "scripts.cli", "scripts.cli.config_schema"):
+    shadow = types.ModuleType("scripts")
+    shadow.__path__ = [str(gui_dir / "scripts")]
+    monkeypatch.setitem(sys.modules, "scripts", shadow)
+    for name in ("windows.Deploy", "cli", "cli.config_schema"):
         sys.modules.pop(name, None)
 
     deploy_module = importlib.import_module("windows.Deploy")
-    schema_module = importlib.import_module("scripts.cli.config_schema")
+    schema_module = importlib.import_module("cli.config_schema")
 
-    assert deploy_module._SCHEMA_IMPORT_ROOT == str(package_root)
-    assert sys.path[0] == str(package_root)
+    assert deploy_module._SCHEMA_IMPORT_ROOT == str(package_root / "scripts")
+    assert sys.path[0] == str(package_root / "scripts")
     assert Path(schema_module.__file__).resolve().is_relative_to(
-        (package_root / "scripts").resolve()
+        (package_root / "scripts" / "cli").resolve()
     )
+
+
+def test_train_import_uses_local_cli_despite_shadowing_scripts(monkeypatch):
+    gui_dir = Path(__file__).resolve().parent
+    package_root = gui_dir.parent
+    monkeypatch.chdir(gui_dir)
+    _install_stub_modules(monkeypatch)
+    monkeypatch.setattr(sys, "path", [str(gui_dir)] + [
+        path for path in sys.path if path not in {str(gui_dir), str(package_root)}])
+    shadow = types.ModuleType("scripts")
+    shadow.__path__ = [str(gui_dir / "scripts")]
+    monkeypatch.setitem(sys.modules, "scripts", shadow)
+    for name in ("windows.Train", "cli", "cli.config_schema"):
+        sys.modules.pop(name, None)
+
+    train_module = importlib.import_module("windows.Train")
+    schema_module = importlib.import_module("cli.config_schema")
+
+    assert train_module._SCHEMA_IMPORT_ROOT == str(package_root / "scripts")
+    assert Path(schema_module.__file__).resolve().is_relative_to(
+        (package_root / "scripts" / "cli").resolve())

@@ -345,11 +345,21 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<int>("tracking_confirmation_hits", 2);
   this->declare_parameter<int>("tracking_maximum_missed_observations", 3);
   this->declare_parameter<int>("tracking_maximum_active_tracks", 64);
+  // Test/development ingress may select an existing production use case without
+  // rewriting the operator's persistent GUI configuration.
+  this->declare_parameter<int>("usecase_mode_override", -1);
 
   rgb_topic_ = this->get_parameter("rgb_topic").as_string();
   depth_topic_ = this->get_parameter("depth_topic").as_string();
   camera_info_topic_ = this->get_parameter("camera_info_topic").as_string();
   camera_id_ = this->get_parameter("camera_id").as_string();
+  const int usecase_mode_override =
+    static_cast<int>(this->get_parameter("usecase_mode_override").as_int());
+  if (usecase_mode_override >= static_cast<int>(EPD::CLASSIFICATION_MODE) &&
+    usecase_mode_override <= static_cast<int>(EPD::TRACKING_MODE))
+  {
+    ortAgent_.useCaseMode = static_cast<unsigned int>(usecase_mode_override);
+  }
   image_transport_ = this->get_parameter("image_transport").as_string();
   std::string image_output_qos_reliability =
     this->get_parameter("image_output_qos_reliability").as_string();

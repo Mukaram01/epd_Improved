@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "name": "p8-production-tracking",
+  "camera": {
+    "width": 320,
+    "height": 240,
+    "frame_id": "fixture_color_optical_frame",
+    "camera_id": "fixture_camera",
+    "k": [610.3740844726562, 0.0, 163.3077697753906, 0.0, 609.8685913085938, 115.43516540527344, 0.0, 0.0, 1.0]
+  },
+  "inference_timeout_s": 90.0,
+  "observations": [
+    {"stamp_ns": 1000000000, "rgb": "../test/colored_img.png", "depth": "../test/depth_img.png"},
+    {"stamp_ns": 2000000000, "rgb": "../test/colored_img.png", "depth": "../test/depth_img.png"},
+    {"stamp_ns": 3000000000, "rgb": "../test/colored_img.png", "depth_mm": 0},
+    {"stamp_ns": 3000000000, "depth_mm": 0},
+    {"stamp_ns": 2500000000, "depth_mm": 0},
+    {"stamp_ns": 4000000000, "depth_mm": 0},
+    {"stamp_ns": 5000000000, "depth_mm": 0},
+    {"stamp_ns": 6000000000, "depth_mm": 0}
+  ],
+  "acceptance": {
+    "minimum_completed_results": 6,
+    "minimum_stable_ids": 1,
+    "minimum_tracks_lost": 1
+  }
+}

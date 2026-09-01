@@ -30,7 +30,7 @@ Robot motion remains disabled by default.
 | P5 | Tracking and object lifecycle | P2-P4 | Stable IDs and explicit appeared/updated/lost lifecycle under replay | PASS |
 | P6 | Streaming plus fresh-service semantics | P2-P5 | Baseline N can only accept completed observation_id>N; timeout is safe; no stale replay | PASS |
 | P7 | EPD-EMD handshake | P6 | EMD consumes fresh snapshots without pausing EPD ingress; compatibility preserved | PASS |
-| P8 | Record/replay and fixtures | P2-P7 | Deterministic rosbag/fixture suite covers every production regression | Blocked |
+| P8 | Record/replay and fixtures | P2-P7 | Deterministic fixture replay covers production contracts without camera hardware | Blocked |
 | P9 | Health, metrics, recovery | P1-P8 | Explicit healthy/degraded/stalled/recovering states and tested lifecycle recovery | Blocked |
 | P10 | Model-engine modernization | P3, P8-P9 | Backend-neutral results and benchmarked optional acceleration | Deferred |
 | P11 | Calibration, TF, depth quality | P4, P8 | Calibration provenance and TF/depth fault coverage | Deferred |
@@ -418,4 +418,53 @@ restart carries no EPD generation state and EPD continues uninterrupted.
   completed to 11, and a new service succeeded at baseline/result 46/48 with
   no result regression or duplicate publish.
 
-P7 is complete. P8 has not started.
+P7 is complete. The following section records the current P8 increment.
+
+## P8 deterministic record/replay
+
+P8 adds a small, versioned JSON fixture and `epd_replay.py`, a sensor source
+that replaces only physical camera ingress. It publishes ordered RGB, aligned
+depth, and CameraInfo triplets with their recorded source stamp, frame, camera
+identity, intrinsics, and exact-synchronization truth. The existing exact
+matcher then creates Observations through `LatestObservationStore`; fixture
+files never encode `observation_id`. Production ONNX inference, latest-only
+backpressure, geometry quality, temporal tracking, completed-result storage,
+fresh services, output topics, and P7 diagnostics are unchanged and are not
+reimplemented by replay.
+
+No RealSense is required. From a built and sourced workspace, run:
+
+```bash
+ros2 launch easy_perception_deployment replay.launch.py \
+  mode:=fast summary_output:=/tmp/epd_replay_summary.json
+```
+
+`fast` preserves fixture order but does not pace against sensor time;
+`realtime` is available for operator inspection. Playback stops at EOF and the
+launch fails when acceptance fails. The JSON summary contains stable contract
+evidence only, so two `fast` runs can be compared directly after excluding no
+fields. The committed fixture plus focused production contract suites cover
+appeared/updated/stable/lost tracking, duplicate and regressed source stamps,
+invalid depth geometry, strict result-store counters, and the bounded
+latest-only scheduler. Existing focused P6
+tests remain the authoritative strict-baseline proof that a cached result at N
+cannot satisfy a request requiring a completed `observation_id > N`.
+
+Replay is development and CI infrastructure. It does not command robot motion,
+does not contain task or planning logic, and does not replace physical-camera
+acceptance. EMD/Workcell Studio remains a separate consumer of the same EPD
+topics and fresh-result service.
+
+P8.1 fixed the Mask R-CNN initialization failure. Model input inspection held
+a borrowed `TensorTypeAndShapeInfo` after its temporary owning `TypeInfo` had
+already been destroyed; the dangling view produced a bogus dimension count and
+`std::vector` raised `cannot create std::vector larger than max_size()`. The
+owner now remains alive through the shape query, and a fixture-to-Observation
+regression verifies message byte/step/type/contiguity truth plus real Mask
+R-CNN initialization and inference.
+
+P8 remains blocked at the next real gate. The exact replay now completes all
+eight production inference results with no inference failure, but the current
+320x240 resized fixture produces zero detections, so appeared/updated/stable-ID/
+lost acceptance correctly fails. The smoke exits non-zero and no two-run PASS
+comparison or physical-camera claim is recorded.

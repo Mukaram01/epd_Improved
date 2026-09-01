@@ -257,7 +257,11 @@ ModelInputInfo inspectModelInputInfo(
     allocator.Free(input_name);
   }
 
-  const auto input_info = session.GetInputTypeInfo(0).GetTensorTypeAndShapeInfo();
+  // TensorTypeAndShapeInfo is a borrowed view. Keep its owning TypeInfo alive
+  // until all shape queries have completed; a chained temporary leaves the
+  // view dangling and can turn the dimension count into a huge size_t.
+  Ort::TypeInfo input_type_info = session.GetInputTypeInfo(0);
+  const auto input_info = input_type_info.GetTensorTypeAndShapeInfo();
   const std::vector<int64_t> model_shape = input_info.GetShape();
 
   if (model_shape.size() == 3) {

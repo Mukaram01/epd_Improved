@@ -56,6 +56,7 @@ struct TrackerMetrics
 {
   uint64_t tracks_created{0};
   uint64_t tracks_confirmed{0};
+  std::vector<uint64_t> confirmed_track_ids;
   uint64_t tracks_lost{0};
   uint64_t tracks_expired{0};
   uint64_t associations_matched{0};
@@ -273,6 +274,7 @@ private:
       track.confirmed = true;
       track.lifecycle = TrackLifecycle::CONFIRMED;
       ++metrics_.tracks_confirmed;
+      metrics_.confirmed_track_ids.push_back(track.id);
     } else if (track.confirmed) {
       track.lifecycle = TrackLifecycle::CONFIRMED;
     }

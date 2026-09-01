@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "name": "p8-production-tracking",
+  "camera": {
+    "width": 320,
+    "height": 240,
+    "frame_id": "fixture_color_optical_frame",
+    "camera_id": "fixture_camera",
+    "k": [305.1870422363281, 0.0, 161.6538848876953, 0.0, 304.9342956542969, 117.71758270263672, 0.0, 0.0, 1.0]
+  },
+  "inference_timeout_s": 90.0,
+  "observations": [
+    {"stamp_ns": 1000000000, "rgb": "../test/nadezhda_diskant.jpg", "depth_mm": 999, "depth_regions": [{"x": 80, "y": 20, "width": 160, "height": 215, "depth_mm": 800}]},
+    {"stamp_ns": 2000000000, "rgb": "../test/nadezhda_diskant.jpg", "depth_mm": 999, "depth_regions": [{"x": 80, "y": 20, "width": 160, "height": 215, "depth_mm": 800}]},
+    {"stamp_ns": 3000000000, "rgb": "../test/nadezhda_diskant.jpg", "depth_mm": 0},
+    {"stamp_ns": 3000000000, "depth_mm": 0},
+    {"stamp_ns": 2500000000, "depth_mm": 0},
+    {"stamp_ns": 4000000000, "depth_mm": 0},
+    {"stamp_ns": 5000000000, "depth_mm": 0},
+    {"stamp_ns": 6000000000, "depth_mm": 0}
+  ],
+  "acceptance": {
+    "minimum_completed_results": 6,
+    "minimum_stable_ids": 1,
+    "minimum_tracks_lost": 1
+  }
+}

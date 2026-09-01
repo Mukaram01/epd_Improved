@@ -38,6 +38,14 @@ TEST(TemporalTracker, SameObjectKeepsId)
   ASSERT_EQ(first.size(), 1U); ASSERT_EQ(second.size(), 1U);
   EXPECT_EQ(first[0].track_id, second[0].track_id);
   EXPECT_EQ(second[0].lifecycle, EPD::TrackLifecycle::CONFIRMED);
+  ASSERT_EQ(tracker.metrics().confirmed_track_ids.size(), 1U);
+  EXPECT_EQ(tracker.metrics().confirmed_track_ids[0], first[0].track_id);
+  tracker.update(3, stamp(3), {});
+  tracker.update(4, stamp(4), {});
+  tracker.update(5, stamp(5), {});
+  tracker.update(6, stamp(6), {});
+  ASSERT_EQ(tracker.metrics().confirmed_track_ids.size(), 1U);
+  EXPECT_EQ(tracker.metrics().confirmed_track_ids[0], first[0].track_id);
 }
 
 TEST(TemporalTracker, SameClassObjectsStayDistinct)

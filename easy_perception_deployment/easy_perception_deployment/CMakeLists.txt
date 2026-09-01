@@ -271,6 +271,9 @@ if(BUILD_TESTING)
   endmacro()
 
   if(EPD_MODELS_AVAILABLE)
+    ament_add_gtest(epd_test_replay_inference test/test_replay_inference.cpp ${EPD_UTILS})
+    epd_configure_test(epd_test_replay_inference)
+
     ament_add_gtest(epd_test_init test/test_init.cpp ${EPD_UTILS})
     epd_configure_test(epd_test_init)
 
@@ -373,6 +376,7 @@ install(TARGETS
 
 install(PROGRAMS
   scripts/epd_soak_probe.py
+  scripts/epd_replay.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -381,7 +385,15 @@ install(DIRECTORY
   launch
   config
   data
+  fixtures
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(FILES
+  test/colored_img.png
+  test/depth_img.png
+  test/nadezhda_diskant.jpg
+  DESTINATION share/${PROJECT_NAME}/test
 )
 
 ament_package()

@@ -22,6 +22,7 @@
   "acceptance": {
     "minimum_completed_results": 6,
     "minimum_stable_ids": 1,
-    "minimum_tracks_lost": 1
+    "minimum_tracks_lost": 1,
+    "expected_lost_track_ids": ["1", "2"]
   }
 }

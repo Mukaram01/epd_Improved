@@ -52,6 +52,7 @@ class Replay(Node):
         self.metrics = {}
         self.seen_ids = set()
         self.id_updates = {}
+        self.lost_id_events = []
 
     def _diagnostics(self, message):
         for status in message.status:
@@ -62,6 +63,12 @@ class Replay(Node):
         for object_id in message.object_ids:
             self.id_updates[object_id] = self.id_updates.get(object_id, 0) + 1
             self.seen_ids.add(object_id)
+        if message.lost_track_ids:
+            self.lost_id_events.append({
+                "source_stamp_ns": message.header.stamp.sec * 1_000_000_000 +
+                message.header.stamp.nanosec,
+                "lost_track_ids": list(message.lost_track_ids),
+            })
 
     def _spin_until(self, predicate, timeout):
         deadline = time.monotonic() + timeout
@@ -207,6 +214,12 @@ class Replay(Node):
             reasons.append("too few completed results")
         if metric("tracks_lost") < int(acceptance.get("minimum_tracks_lost", 0)):
             reasons.append("expected lost lifecycle was not observed")
+        lost_ids = sorted(
+            {track_id for event in self.lost_id_events for track_id in event["lost_track_ids"]},
+            key=int)
+        expected_lost_ids = sorted(acceptance.get("expected_lost_track_ids", []), key=int)
+        if expected_lost_ids and lost_ids != expected_lost_ids:
+            reasons.append("lost track identities did not match expected stable IDs")
         if len(stable_ids) < int(acceptance.get("minimum_stable_ids", 0)):
             reasons.append("expected stable track ID was not observed")
         summary = {
@@ -221,7 +234,8 @@ class Replay(Node):
             "completed_result_count": completed,
             "object_lifecycle": {
                 "appeared": metric("tracks_created"), "updated": metric("associations_matched"),
-                "lost": metric("tracks_lost"), "stable_ids": stable_ids},
+                "lost": metric("tracks_lost"), "stable_ids": stable_ids,
+                "lost_track_ids": lost_ids, "lost_events": self.lost_id_events},
             "stale_result_count": metric("result_store_regressions") + metric("duplicate_result_publish"),
             "duplicate_or_regressed_source_timestamp_count": duplicate_or_regressed,
             "geometry_quality": {

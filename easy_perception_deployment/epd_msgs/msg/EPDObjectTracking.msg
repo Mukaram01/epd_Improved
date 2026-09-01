@@ -15,3 +15,5 @@ uint32 frame_height
 sensor_msgs/Image depth_image
 # Time taken to process image in milliseconds
 uint32 process_time
+# Stable track IDs that transitioned to LOST during this observation.
+string[] lost_track_ids

@@ -2,6 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, LogInfo
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -13,6 +14,8 @@ def generate_launch_description():
     use_depth = LaunchConfiguration("use_depth")
     service_timeout_s = LaunchConfiguration("service_timeout_s")
     log_level = LaunchConfiguration("log_level")
+    usecase_mode_override = LaunchConfiguration("usecase_mode_override")
+    tracker_type_override = LaunchConfiguration("tracker_type_override")
 
     pkg_share = get_package_share_directory("easy_perception_deployment")
     ingress_rgb = "/easy_perception_deployment/ingress/color/image_raw"
@@ -53,14 +56,32 @@ def generate_launch_description():
             default_value="info",
             description="debug/info/warn/error/fatal"
         ),
+        DeclareLaunchArgument(
+            "usecase_mode_override",
+            default_value="-1",
+            description=(
+                "Runtime use-case override; -1 preserves the persistent configuration"
+            )
+        ),
+        DeclareLaunchArgument(
+            "tracker_type_override",
+            default_value="",
+            description=(
+                "Runtime tracker override; empty preserves the persistent configuration"
+            )
+        ),
 
         LogInfo(
-            msg=(
-                "[epd_emd_pipeline] EPD is starting in LOCALISATION_MODE (usecase_mode=3). "
-                "Configure Easy Manipulator Improved (EMD) with the following topics: "
+            msg=[
+                "[epd_emd_pipeline] Runtime overrides: usecase_mode=",
+                usecase_mode_override,
+                ", tracker_type='",
+                tracker_type_override,
+                "'. Values -1/empty preserve persistent configuration. "
+                "Configure Easy Manipulator Improved (EMD) with: "
                 "epd_localization_topic: /easy_perception_deployment/epd_localize_output  "
-                "epd_tracking_topic: /easy_perception_deployment/epd_tracking_output"
-            )
+                "epd_tracking_topic: /easy_perception_deployment/epd_tracking_output",
+            ]
         ),
 
         Node(
@@ -93,6 +114,10 @@ def generate_launch_description():
                 {"depth_topic": ingress_depth},
                 {"camera_info_topic": ingress_info},
                 {"service_timeout_s": service_timeout_s},
+                {"usecase_mode_override": ParameterValue(
+                    usecase_mode_override, value_type=int)},
+                {"tracker_type_override": ParameterValue(
+                    tracker_type_override, value_type=str)},
             ],
             remappings=[
                 # Route the camera RGB topic into the node's primary image input.

@@ -30,7 +30,7 @@ Robot motion remains disabled by default.
 | P5 | Tracking and object lifecycle | P2-P4 | Stable IDs and explicit appeared/updated/lost lifecycle under replay | PASS |
 | P6 | Streaming plus fresh-service semantics | P2-P5 | Baseline N can only accept completed observation_id>N; timeout is safe; no stale replay | PASS |
 | P7 | EPD-EMD handshake | P6 | EMD consumes fresh snapshots without pausing EPD ingress; compatibility preserved | PASS |
-| P8 | Record/replay and fixtures | P2-P7 | Deterministic fixture replay covers production contracts without camera hardware | Blocked |
+| P8 | Record/replay and fixtures | P2-P7 | Deterministic fixture replay covers production contracts without camera hardware | PASS |
 | P9 | Health, metrics, recovery | P1-P8 | Explicit healthy/degraded/stalled/recovering states and tested lifecycle recovery | Blocked |
 | P10 | Model-engine modernization | P3, P8-P9 | Backend-neutral results and benchmarked optional acceleration | Deferred |
 | P11 | Calibration, TF, depth quality | P4, P8 | Calibration provenance and TF/depth fault coverage | Deferred |
@@ -463,8 +463,17 @@ owner now remains alive through the shape query, and a fixture-to-Observation
 regression verifies message byte/step/type/contiguity truth plus real Mask
 R-CNN initialization and inference.
 
-P8 remains blocked at the next real gate. The exact replay now completes all
-eight production inference results with no inference failure, but the current
-320x240 resized fixture produces zero detections, so appeared/updated/stable-ID/
-lost acceptance correctly fails. The smoke exits non-zero and no two-run PASS
-comparison or physical-camera claim is recorded.
+P8.2 replaces the non-detectable replay image with the repository's existing
+model-detectable portrait and supplies internally consistent 320x240 camera
+intrinsics and synthetic sensor-depth regions. It does not encode detections or
+change the 0.50 production confidence threshold. Tracking mode can now select
+the configured production tracker explicitly, and confirmed track IDs are
+retained in production diagnostics so acceptance does not depend on delivery of
+the large best-effort tracking message.
+
+Two exact `fast` replay runs produced identical PASS summaries: eight accepted
+and completed Observations, two appeared and lost tracks, four associations,
+stable IDs 1 and 2, four valid and two invalid geometry results, two duplicate
+or regressed source timestamps, zero stale results, and a backlog high-water
+mark of one. P8 is complete as deterministic offline production-contract
+coverage; this is not a physical-camera acceptance claim.

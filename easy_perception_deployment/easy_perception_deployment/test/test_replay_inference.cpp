@@ -1,6 +1,7 @@
 // Copyright 2026 Advanced Remanufacturing and Technology Centre
 // Licensed under the Apache License, Version 2.0
 
+#include <cmath>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -20,9 +21,9 @@ TEST(P8ReplayInference, ValidFixtureObservationReachesProductionMaskRcnn)
   const auto previous_cwd = std::filesystem::current_path();
   std::filesystem::current_path(package);
 
-  cv::Mat source_rgb = cv::imread((package / "test/colored_img.png").string(), cv::IMREAD_COLOR);
-  cv::Mat source_depth = cv::imread(
-    (package / "test/depth_img.png").string(), cv::IMREAD_UNCHANGED);
+  cv::Mat source_rgb = cv::imread(
+    (package / "test/nadezhda_diskant.jpg").string(), cv::IMREAD_COLOR);
+  cv::Mat source_depth(source_rgb.rows, source_rgb.cols, CV_16UC1, cv::Scalar(999));
   ASSERT_FALSE(source_rgb.empty());
   ASSERT_FALSE(source_depth.empty());
 
@@ -31,6 +32,7 @@ TEST(P8ReplayInference, ValidFixtureObservationReachesProductionMaskRcnn)
   cv::resize(source_rgb, rgb, cv::Size(320, 240));
   cv::resize(source_depth, depth, cv::Size(320, 240), 0.0, 0.0, cv::INTER_NEAREST);
   depth.convertTo(depth, CV_16UC1);
+  depth(cv::Rect(80, 20, 160, 215)).setTo(800);
   ASSERT_TRUE(rgb.isContinuous());
   ASSERT_TRUE(depth.isContinuous());
 
@@ -77,16 +79,28 @@ TEST(P8ReplayInference, ValidFixtureObservationReachesProductionMaskRcnn)
 
   EPD::EPDContainer agent;
   agent.useCaseMode = EPD::TRACKING_MODE;
+  agent.tracker_type = "MEDIANFLOW";
   agent.setFrameDimension(decoded_rgb.cols, decoded_rgb.rows);
   ASSERT_NO_THROW(agent.initORTSessionHandler());
   ASSERT_NE(agent.p3_ort_session, nullptr);
-  EXPECT_NO_THROW({
-    const auto result = agent.p3_ort_session->infer(
-      decoded_rgb, decoded_depth, *info, 1000.0, agent.tracker_type,
-      agent.trackers, agent.tracker_logs, agent.tracker_results,
-      agent.confidence_threshold);
-    (void)result;
-  });
+  const auto result = agent.p3_ort_session->infer(
+    decoded_rgb, decoded_depth, *info, 1000.0, agent.tracker_type,
+    agent.trackers, agent.tracker_logs, agent.tracker_results,
+    agent.confidence_threshold);
+  ASSERT_GT(result.size(), 0U);
+  for (const auto & object : result.objects) {
+    EXPECT_GT(object.roi.width, 0U);
+    EXPECT_GT(object.roi.height, 0U);
+    EXPECT_LE(object.roi.x_offset + object.roi.width, 320U);
+    EXPECT_LE(object.roi.y_offset + object.roi.height, 240U);
+    EXPECT_GT(object.length, 0.0F);
+    EXPECT_GT(object.breadth, 0.0F);
+    EXPECT_GT(object.height, 0.0F);
+    EXPECT_GT(object.segmented_pcl.size(), 0U);
+    const double axis_norm = std::sqrt(
+      object.axis.x * object.axis.x + object.axis.y * object.axis.y + object.axis.z * object.axis.z);
+    EXPECT_NEAR(axis_norm, 1.0, 0.001);
+  }
 
   std::filesystem::current_path(previous_cwd);
 }

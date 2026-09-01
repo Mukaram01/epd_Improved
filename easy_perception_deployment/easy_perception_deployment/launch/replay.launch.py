@@ -33,6 +33,7 @@ def generate_launch_description():
             "camera_info_topic": "/easy_perception_deployment/ingress/color/camera_info",
             "rgb_input_watchdog_timeout_s": 0.0,
             "usecase_mode_override": 4,
+            "tracker_type_override": "MEDIANFLOW",
         }],
         remappings=[
             ("/easy_perception_deployment/image_input",

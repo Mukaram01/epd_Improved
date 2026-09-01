@@ -39,10 +39,10 @@ class Replay(Node):
         self.rgb_pub = self.create_publisher(Image, "/easy_perception_deployment/ingress/color/image_raw", qos)
         self.depth_pub = self.create_publisher(Image, "/easy_perception_deployment/ingress/aligned_depth/image_raw", qos)
         self.info_pub = self.create_publisher(CameraInfo, "/easy_perception_deployment/ingress/color/camera_info", qos)
-        self.create_subscription(
+        self.diagnostics_sub = self.create_subscription(
             DiagnosticArray, "/easy_perception_deployment/inference_diagnostics",
             self._diagnostics, 10)
-        self.create_subscription(
+        self.tracking_sub = self.create_subscription(
             EPDObjectTracking, "/easy_perception_deployment/epd_tracking_output",
             self._tracking, QoSProfile(
                 history=HistoryPolicy.KEEP_LAST, depth=10,
@@ -103,7 +103,16 @@ class Replay(Node):
             elif depth.shape[:2] != (height, width):
                 depth = cv2.resize(depth, (width, height), interpolation=cv2.INTER_NEAREST)
             return depth.astype(np.uint16)
-        return np.full((height, width), int(spec.get("depth_mm", 0)), dtype=np.uint16)
+        depth = np.full((height, width), int(spec.get("depth_mm", 0)), dtype=np.uint16)
+        for region in spec.get("depth_regions", []):
+            x = int(region["x"])
+            y = int(region["y"])
+            region_width = int(region["width"])
+            region_height = int(region["height"])
+            if x < 0 or y < 0 or x + region_width > width or y + region_height > height:
+                raise ValueError("depth region lies outside the fixture image")
+            depth[y:y + region_height, x:x + region_width] = int(region["depth_mm"])
+        return depth
 
     def _messages(self, spec):
         width = int(self.fixture["camera"]["width"])
@@ -128,7 +137,9 @@ class Replay(Node):
         if not self._spin_until(
                 lambda: self.rgb_pub.get_subscription_count() > 0 and
                 self.depth_pub.get_subscription_count() > 0 and
-                self.info_pub.get_subscription_count() > 0, 20.0):
+                self.info_pub.get_subscription_count() > 0 and
+                self.count_publishers("/easy_perception_deployment/epd_tracking_output") > 0,
+                20.0):
             return self._finish(False, "production subscribers did not become ready")
         # Discovery can precede completion of DDS endpoint matching.
         self._spin_until(lambda: False, 1.0)
@@ -180,7 +191,10 @@ class Replay(Node):
         observations = self.fixture.get("observations", [])
         metric = lambda key: self._number(self.metrics, key)
         completed = metric("inference_completed")
-        stable_ids = sorted(key for key, count in self.id_updates.items() if count > 1)
+        stable_ids = {key for key, count in self.id_updates.items() if count > 1}
+        stable_ids.update(
+            value for value in self.metrics.get("confirmed_track_ids", "").split(",") if value)
+        stable_ids = sorted(stable_ids, key=int)
         acceptance = self.fixture.get("acceptance", {})
         reasons = [failure] if failure else []
         if metric("backlog_high_water_mark") > 1:
@@ -213,7 +227,12 @@ class Replay(Node):
             "geometry_quality": {
                 "valid": metric("geometry_valid_total"),
                 "degraded": metric("geometry_degraded_total"),
-                "invalid": metric("geometry_invalid_total")},
+                "invalid": metric("geometry_invalid_total"),
+                "invalid_intrinsics": metric("invalid_intrinsics_total"),
+                "invalid_mask": metric("empty_mask_total"),
+                "insufficient_depth": metric("insufficient_depth_total"),
+                "empty_cloud": metric("empty_cloud_total"),
+                "nonfinite": metric("nonfinite_geometry_total")},
             "backpressure": {
                 "backlog_high_water_mark": metric("backlog_high_water_mark"),
                 "observations_skipped_before_inference": metric("observations_skipped_before_inference")},

@@ -392,6 +392,7 @@ install(DIRECTORY
 install(FILES
   test/colored_img.png
   test/depth_img.png
+  test/nadezhda_diskant.jpg
   DESTINATION share/${PROJECT_NAME}/test
 )
 

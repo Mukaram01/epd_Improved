@@ -21,6 +21,7 @@
 #include <cctype>
 #include <cmath>
 #include <string>
+#include <sstream>
 #include <memory>
 #include <functional>
 #include <stdexcept>
@@ -348,6 +349,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   // Test/development ingress may select an existing production use case without
   // rewriting the operator's persistent GUI configuration.
   this->declare_parameter<int>("usecase_mode_override", -1);
+  this->declare_parameter<std::string>("tracker_type_override", "");
 
   rgb_topic_ = this->get_parameter("rgb_topic").as_string();
   depth_topic_ = this->get_parameter("depth_topic").as_string();
@@ -360,6 +362,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   {
     ortAgent_.useCaseMode = static_cast<unsigned int>(usecase_mode_override);
   }
+  const auto tracker_type_override = this->get_parameter("tracker_type_override").as_string();
+  if (!tracker_type_override.empty()) {ortAgent_.tracker_type = tracker_type_override;}
   image_transport_ = this->get_parameter("image_transport").as_string();
   std::string image_output_qos_reliability =
     this->get_parameter("image_output_qos_reliability").as_string();
@@ -1286,6 +1290,17 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
     }
     add("tracks_created", tracking.tracks_created);
     add("tracks_confirmed", tracking.tracks_confirmed);
+    std::ostringstream confirmed_ids;
+    for (size_t index = 0; index < tracking.confirmed_track_ids.size(); ++index) {
+      if (index != 0) {
+        confirmed_ids << ',';
+      }
+      confirmed_ids << tracking.confirmed_track_ids[index];
+    }
+    diagnostic_msgs::msg::KeyValue confirmed_ids_item;
+    confirmed_ids_item.key = "confirmed_track_ids";
+    confirmed_ids_item.value = confirmed_ids.str();
+    status.values.push_back(std::move(confirmed_ids_item));
     add("tracks_lost", tracking.tracks_lost);
     add("tracks_expired", tracking.tracks_expired);
     add("active_tracks", tracking.active_tracks);

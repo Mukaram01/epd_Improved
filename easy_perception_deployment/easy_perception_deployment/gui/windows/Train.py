@@ -33,10 +33,11 @@ from trainer.P2Trainer import P2Trainer
 from trainer.P3Trainer import P3Trainer
 from windows.job_controller import JobController, JobState
 
-_SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2])
-if _SCHEMA_IMPORT_ROOT not in sys.path:
-    sys.path.append(_SCHEMA_IMPORT_ROOT)
-from scripts.cli.config_schema import (  # noqa: E402
+_SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2] / 'scripts')
+if _SCHEMA_IMPORT_ROOT in sys.path:
+    sys.path.remove(_SCHEMA_IMPORT_ROOT)
+sys.path.insert(0, _SCHEMA_IMPORT_ROOT)
+from cli.config_schema import (  # noqa: E402
     ConfigSchemaError,
     migrate_input_topic_config,
     migrate_session_config,

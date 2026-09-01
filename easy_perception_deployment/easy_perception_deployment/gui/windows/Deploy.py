@@ -40,11 +40,11 @@ from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
 from windows.job_controller import JobController, JobState
 
-_SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2])
+_SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2] / 'scripts')
 if _SCHEMA_IMPORT_ROOT in sys.path:
     sys.path.remove(_SCHEMA_IMPORT_ROOT)
 sys.path.insert(0, _SCHEMA_IMPORT_ROOT)
-from scripts.cli.config_schema import (  # noqa: E402
+from cli.config_schema import (  # noqa: E402
     ConfigSchemaError,
     SCHEMA_VERSION,
     migrate_input_topic_config,

@@ -58,6 +58,7 @@ struct TrackerMetrics
   uint64_t tracks_confirmed{0};
   std::vector<uint64_t> confirmed_track_ids;
   uint64_t tracks_lost{0};
+  std::vector<uint64_t> lost_track_ids;
   uint64_t tracks_expired{0};
   uint64_t associations_matched{0};
   uint64_t associations_rejected{0};
@@ -84,6 +85,7 @@ public:
     const std::vector<TrackingDetection> & detections)
   {
     const auto started = std::chrono::steady_clock::now();
+    metrics_.lost_track_ids.clear();
     if (observation_id < last_observation_id_) {
       ++metrics_.out_of_order_observations;
       return {};
@@ -144,6 +146,7 @@ public:
       if (tracks_[t].lifecycle != TrackLifecycle::LOST) {
         tracks_[t].lifecycle = TrackLifecycle::LOST;
         ++metrics_.tracks_lost;
+        metrics_.lost_track_ids.push_back(tracks_[t].id);
       }
       if (tracks_[t].missed > thresholds_.maximum_missed_observations) {
         tracks_.erase(tracks_.begin() + t);
@@ -151,6 +154,7 @@ public:
         ++metrics_.tracks_expired;
       }
     }
+    std::sort(metrics_.lost_track_ids.begin(), metrics_.lost_track_ids.end());
     for (size_t d = 0; d < detections.size(); ++d) {
       if (detection_used[d] || !validDetection(detections[d]) ||
         tracks_.size() >= thresholds_.maximum_active_tracks) {continue;}

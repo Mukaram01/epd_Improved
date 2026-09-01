@@ -1790,10 +1790,12 @@ void EasyPerceptionDeployment::process_tracking_work(
     }
   }
   std::vector<EPD::TrackAssignment> track_assignments;
+  std::vector<uint64_t> lost_track_ids;
   {
     std::lock_guard<std::mutex> tracker_guard(temporal_tracker_mutex_);
     track_assignments = temporal_tracker_->update(
       observation->observation_id(), observation->sensor_stamp(), tracking_detections);
+    lost_track_ids = temporal_tracker_->metrics().lost_track_ids;
   }
   std::vector<EPD::LocalizedObject> valid_tracking_objects;
   std::vector<std::string> valid_tracking_ids;
@@ -1847,6 +1849,10 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   output_msg.object_ids.reserve(result.size());
   output_msg.objects.reserve(result.size());
+  output_msg.lost_track_ids.reserve(lost_track_ids.size());
+  for (const auto track_id : lost_track_ids) {
+    output_msg.lost_track_ids.push_back(std::to_string(track_id));
+  }
 
   geometry_msgs::msg::PoseArray pose_array;
   pose_array.header = msg->header;

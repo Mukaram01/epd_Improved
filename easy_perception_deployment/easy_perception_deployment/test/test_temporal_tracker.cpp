@@ -57,6 +57,75 @@ TEST(TemporalTracker, SameClassObjectsStayDistinct)
   EXPECT_NE(values[0].track_id, values[1].track_id);
 }
 
+TEST(TemporalTracker, LostEventContainsExactConfirmedIdOnce)
+{
+  EPD::TemporalTracker tracker;
+  const auto created = tracker.update(1, stamp(1), {detection()});
+  const auto confirmed = tracker.update(2, stamp(2), {detection("mouse", 12, 0.01)});
+  ASSERT_EQ(created[0].track_id, confirmed[0].track_id);
+  ASSERT_EQ(confirmed[0].lifecycle, EPD::TrackLifecycle::CONFIRMED);
+
+  tracker.update(3, stamp(3), {});
+  ASSERT_EQ(tracker.metrics().lost_track_ids.size(), 1U);
+  EXPECT_EQ(tracker.metrics().lost_track_ids[0], confirmed[0].track_id);
+  EXPECT_EQ(tracker.metrics().tracks_lost, 1U);
+
+  tracker.update(4, stamp(4), {});
+  EXPECT_TRUE(tracker.metrics().lost_track_ids.empty());
+  EXPECT_EQ(tracker.metrics().tracks_lost, 1U);
+
+  tracker.update(4, stamp(4), {});
+  EXPECT_TRUE(tracker.metrics().lost_track_ids.empty());
+  EXPECT_EQ(tracker.metrics().tracks_lost, 1U);
+}
+
+TEST(TemporalTracker, LostEventExcludesUnrelatedActiveId)
+{
+  EPD::TemporalTracker tracker;
+  const auto first = tracker.update(
+    1, stamp(1), {detection("mouse", 10), detection("bottle", 200)});
+  tracker.update(2, stamp(2), {detection("mouse", 12), detection("bottle", 202)});
+  const auto active = tracker.update(3, stamp(3), {detection("bottle", 204)});
+  ASSERT_EQ(tracker.metrics().lost_track_ids.size(), 1U);
+  EXPECT_EQ(tracker.metrics().lost_track_ids[0], first[0].track_id);
+  ASSERT_EQ(active.size(), 1U);
+  EXPECT_EQ(active[0].track_id, first[1].track_id);
+  EXPECT_NE(tracker.metrics().lost_track_ids[0], active[0].track_id);
+}
+
+TEST(TemporalTracker, ReacquisitionRetainsIdAndCanEmitANewLostTransition)
+{
+  EPD::TemporalTracker tracker;
+  const auto id = tracker.update(1, stamp(1), {detection()})[0].track_id;
+  tracker.update(2, stamp(2), {detection()});
+  tracker.update(3, stamp(3), {});
+  ASSERT_EQ(tracker.metrics().lost_track_ids, std::vector<uint64_t>({id}));
+
+  const auto reacquired = tracker.update(4, stamp(4), {detection()});
+  ASSERT_EQ(reacquired[0].track_id, id);
+  EXPECT_EQ(reacquired[0].lifecycle, EPD::TrackLifecycle::CONFIRMED);
+  EXPECT_TRUE(tracker.metrics().lost_track_ids.empty());
+
+  tracker.update(5, stamp(5), {});
+  EXPECT_EQ(tracker.metrics().lost_track_ids, std::vector<uint64_t>({id}));
+  EXPECT_EQ(tracker.metrics().tracks_lost, 2U);
+}
+
+TEST(TemporalTracker, SimultaneouslyLostTracksReportTheirActualIds)
+{
+  EPD::TemporalTracker tracker;
+  const auto created = tracker.update(
+    1, stamp(1), {detection("mouse", 10), detection("bottle", 200)});
+  tracker.update(2, stamp(2), {detection("mouse", 12), detection("bottle", 202)});
+  tracker.update(3, stamp(3), {});
+  auto lost = tracker.metrics().lost_track_ids;
+  std::sort(lost.begin(), lost.end());
+  auto expected = std::vector<uint64_t>({created[0].track_id, created[1].track_id});
+  std::sort(expected.begin(), expected.end());
+  EXPECT_EQ(lost, expected);
+  EXPECT_EQ(tracker.metrics().tracks_lost, 2U);
+}
+
 TEST(TemporalTracker, ShortMissRetainsId)
 {
   EPD::TemporalTracker tracker;

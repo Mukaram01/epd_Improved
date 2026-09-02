@@ -143,7 +143,11 @@ public:
       ++tracks_[t].missed;
       tracks_[t].tracking_confidence = std::max(
         0.0F, tracks_[t].tracking_confidence - 0.25F);
-      if (tracks_[t].lifecycle != TrackLifecycle::LOST) {
+      const bool miss_window_exhausted =
+        tracks_[t].missed >= thresholds_.maximum_missed_observations;
+      if (tracks_[t].lifecycle != TrackLifecycle::LOST &&
+        (!tracks_[t].confirmed || miss_window_exhausted))
+      {
         tracks_[t].lifecycle = TrackLifecycle::LOST;
         ++metrics_.tracks_lost;
         metrics_.lost_track_ids.push_back(tracks_[t].id);

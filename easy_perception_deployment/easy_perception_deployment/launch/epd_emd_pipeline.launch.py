@@ -16,6 +16,8 @@ def generate_launch_description():
     log_level = LaunchConfiguration("log_level")
     usecase_mode_override = LaunchConfiguration("usecase_mode_override")
     tracker_type_override = LaunchConfiguration("tracker_type_override")
+    tracking_maximum_missed_observations = LaunchConfiguration(
+        "tracking_maximum_missed_observations")
 
     pkg_share = get_package_share_directory("easy_perception_deployment")
     ingress_rgb = "/easy_perception_deployment/ingress/color/image_raw"
@@ -70,6 +72,13 @@ def generate_launch_description():
                 "Runtime tracker override; empty preserves the persistent configuration"
             )
         ),
+        DeclareLaunchArgument(
+            "tracking_maximum_missed_observations",
+            default_value="30",
+            description=(
+                "Number of missed live observations retained before a track expires"
+            )
+        ),
 
         LogInfo(
             msg=[
@@ -118,6 +127,8 @@ def generate_launch_description():
                     usecase_mode_override, value_type=int)},
                 {"tracker_type_override": ParameterValue(
                     tracker_type_override, value_type=str)},
+                {"tracking_maximum_missed_observations": ParameterValue(
+                    tracking_maximum_missed_observations, value_type=int)},
             ],
             remappings=[
                 # Route the camera RGB topic into the node's primary image input.

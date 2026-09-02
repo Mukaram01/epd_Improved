@@ -29,6 +29,7 @@ def test_mode_override_defaults_preserve_persistent_configuration():
     }
     assert _default_text(arguments["usecase_mode_override"]) == "-1"
     assert _default_text(arguments["tracker_type_override"]) == ""
+    assert _default_text(arguments["tracking_maximum_missed_observations"]) == "30"
     assert _default_text(arguments["rgb_topic"]) == "/camera/camera/color/image_raw"
     assert _default_text(arguments["depth_topic"]) == (
         "/camera/camera/aligned_depth_to_color/image_raw")
@@ -48,9 +49,15 @@ def test_mode_overrides_are_typed_epd_node_parameters():
     }
     mode = parameters["usecase_mode_override"]
     tracker = parameters["tracker_type_override"]
+    missed_observations = parameters["tracking_maximum_missed_observations"]
     assert isinstance(mode, ParameterValue) and mode.value_type is int
     assert isinstance(tracker, ParameterValue) and tracker.value_type is str
+    assert isinstance(missed_observations, ParameterValue)
+    assert missed_observations.value_type is int
     assert "".join(part.text for part in mode.value[0].variable_name) == (
         "usecase_mode_override")
     assert "".join(part.text for part in tracker.value[0].variable_name) == (
         "tracker_type_override")
+    assert "".join(
+        part.text for part in missed_observations.value[0].variable_name
+    ) == "tracking_maximum_missed_observations"

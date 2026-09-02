@@ -1607,11 +1607,13 @@ void EasyPerceptionDeployment::process_localize_work(
       std::lock_guard<std::mutex> ort_guard(ort_mutex_);
       resultImg = ortAgent_.visualize(converted_result, img);
     }
-
-    sensor_msgs::msg::Image::SharedPtr output_msg =
-      cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
-    visual_pub.publish(*output_msg);
+  } else {
+    resultImg = img;
   }
+
+  sensor_msgs::msg::Image::SharedPtr image_output_msg =
+    cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
+  visual_pub.publish(*image_output_msg);
 
   epd_msgs::msg::EPDObjectLocalization output_msg;
 
@@ -1826,11 +1828,13 @@ void EasyPerceptionDeployment::process_tracking_work(
       std::lock_guard<std::mutex> ort_guard(ort_mutex_);
       resultImg = ortAgent_.visualize(result, img);
     }
-
-    sensor_msgs::msg::Image::SharedPtr output_msg =
-      cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
-    visual_pub.publish(*output_msg);
+  } else {
+    resultImg = img;
   }
+
+  sensor_msgs::msg::Image::SharedPtr image_output_msg =
+    cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
+  visual_pub.publish(*image_output_msg);
 
   epd_msgs::msg::EPDObjectTracking output_msg;
 
@@ -2100,10 +2104,8 @@ void EasyPerceptionDeployment::process_image_work(
             std::lock_guard<std::mutex> ort_guard(ort_mutex_);
             resultImg = ortAgent_.visualize(output_obj, img);
           }
-          sensor_msgs::msg::Image::SharedPtr output_msg =
-            cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
-          visual_pub.publish(*output_msg);
         } else {
+          resultImg = img;
           epd_msgs::msg::EPDObjectDetection output_msg;
           output_msg.header = msg->header;
           for (size_t i = 0; i < output_obj.size(); i++) {
@@ -2120,6 +2122,9 @@ void EasyPerceptionDeployment::process_image_work(
           }
           p2_pub->publish(output_msg);
         }
+        sensor_msgs::msg::Image::SharedPtr image_output_msg =
+          cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
+        visual_pub.publish(*image_output_msg);
 
         break;
       }
@@ -2298,10 +2303,8 @@ void EasyPerceptionDeployment::process_image_work(
             std::lock_guard<std::mutex> ort_guard(ort_mutex_);
             resultImg = ortAgent_.visualize(output_obj, img);
           }
-          sensor_msgs::msg::Image::SharedPtr output_msg =
-            cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
-          visual_pub.publish(*output_msg);
         } else {
+          resultImg = img;
           epd_msgs::msg::EPDObjectDetection output_msg;
           output_msg.header = msg->header;
           for (size_t i = 0; i < output_obj.size(); i++) {
@@ -2332,6 +2335,9 @@ void EasyPerceptionDeployment::process_image_work(
           }
           p3_pub->publish(output_msg);
         }
+        sensor_msgs::msg::Image::SharedPtr image_output_msg =
+          cv_bridge::CvImage(msg->header, "bgr8", resultImg).toImageMsg();
+        visual_pub.publish(*image_output_msg);
 
         break;
       }

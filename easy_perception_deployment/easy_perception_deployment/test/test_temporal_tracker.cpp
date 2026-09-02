@@ -30,6 +30,13 @@ EPD::TrackingDetection detection(
   return value;
 }
 
+EPD::TemporalTracker trackerWithMissLimit(uint32_t maximum_missed_observations)
+{
+  EPD::TrackerThresholds thresholds;
+  thresholds.maximum_missed_observations = maximum_missed_observations;
+  return EPD::TemporalTracker(thresholds);
+}
+
 TEST(TemporalTracker, SameObjectKeepsId)
 {
   EPD::TemporalTracker tracker;
@@ -59,7 +66,7 @@ TEST(TemporalTracker, SameClassObjectsStayDistinct)
 
 TEST(TemporalTracker, LostEventContainsExactConfirmedIdOnce)
 {
-  EPD::TemporalTracker tracker;
+  auto tracker = trackerWithMissLimit(1);
   const auto created = tracker.update(1, stamp(1), {detection()});
   const auto confirmed = tracker.update(2, stamp(2), {detection("mouse", 12, 0.01)});
   ASSERT_EQ(created[0].track_id, confirmed[0].track_id);
@@ -81,7 +88,7 @@ TEST(TemporalTracker, LostEventContainsExactConfirmedIdOnce)
 
 TEST(TemporalTracker, LostEventExcludesUnrelatedActiveId)
 {
-  EPD::TemporalTracker tracker;
+  auto tracker = trackerWithMissLimit(1);
   const auto first = tracker.update(
     1, stamp(1), {detection("mouse", 10), detection("bottle", 200)});
   tracker.update(2, stamp(2), {detection("mouse", 12), detection("bottle", 202)});
@@ -95,7 +102,7 @@ TEST(TemporalTracker, LostEventExcludesUnrelatedActiveId)
 
 TEST(TemporalTracker, ReacquisitionRetainsIdAndCanEmitANewLostTransition)
 {
-  EPD::TemporalTracker tracker;
+  auto tracker = trackerWithMissLimit(1);
   const auto id = tracker.update(1, stamp(1), {detection()})[0].track_id;
   tracker.update(2, stamp(2), {detection()});
   tracker.update(3, stamp(3), {});
@@ -113,7 +120,7 @@ TEST(TemporalTracker, ReacquisitionRetainsIdAndCanEmitANewLostTransition)
 
 TEST(TemporalTracker, SimultaneouslyLostTracksReportTheirActualIds)
 {
-  EPD::TemporalTracker tracker;
+  auto tracker = trackerWithMissLimit(1);
   const auto created = tracker.update(
     1, stamp(1), {detection("mouse", 10), detection("bottle", 200)});
   tracker.update(2, stamp(2), {detection("mouse", 12), detection("bottle", 202)});
@@ -132,6 +139,24 @@ TEST(TemporalTracker, ShortMissRetainsId)
   const auto id = tracker.update(1, stamp(1), {detection()})[0].track_id;
   tracker.update(2, stamp(2), {});
   EXPECT_EQ(tracker.update(3, stamp(3), {detection()})[0].track_id, id);
+}
+
+TEST(TemporalTracker, ConfirmedTrackRemainsConfirmedDuringMissWindow)
+{
+  EPD::TemporalTracker tracker;
+  const auto id = tracker.update(1, stamp(1), {detection()})[0].track_id;
+  tracker.update(2, stamp(2), {detection()});
+
+  tracker.update(3, stamp(3), {});
+  tracker.update(4, stamp(4), {});
+
+  EXPECT_TRUE(tracker.metrics().lost_track_ids.empty());
+  EXPECT_EQ(tracker.metrics().tracks_lost, 0U);
+  EXPECT_EQ(tracker.activeTrackCount(), 1U);
+  const auto reacquired = tracker.update(5, stamp(5), {detection()});
+  ASSERT_EQ(reacquired.size(), 1U);
+  EXPECT_EQ(reacquired[0].track_id, id);
+  EXPECT_EQ(reacquired[0].lifecycle, EPD::TrackLifecycle::CONFIRMED);
 }
 
 TEST(TemporalTracker, LongMissExpiresAndReappearanceGetsNewId)

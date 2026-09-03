@@ -33,6 +33,7 @@ from windows.Deploy import DeployWindow
 from windows.Train import TrainWindow
 from windows.deploy_ui_refresh import apply_deploy_ui_refresh
 from windows.train_ui_refresh import apply_train_ui_refresh
+from windows.train_workflow_stepper import apply_train_workflow_stepper
 
 
 class _WorkflowCard(QPushButton):
@@ -159,6 +160,8 @@ class MainWindow(QWidget):
 
         self.train_window = TrainWindow(False)
         self._train_ui_controller = apply_train_ui_refresh(self.train_window)
+        self._train_workflow_stepper = apply_train_workflow_stepper(
+            self.train_window)
         self.deploy_window = DeployWindow(False)
         self._deploy_ui_controller = apply_deploy_ui_refresh(self.deploy_window)
         self._fix_deploy_root_layout()

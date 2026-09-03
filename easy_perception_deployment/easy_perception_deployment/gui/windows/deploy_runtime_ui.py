@@ -3,6 +3,8 @@ from types import MethodType
 from PySide6.QtCore import QSize
 from PySide6.QtWidgets import QMessageBox
 
+from windows.job_controller import JobState
+
 
 _EXTRA_REMEDIATIONS = {
     'EPD_ERR_BAD_BACKEND':
@@ -41,9 +43,7 @@ def _show_process_error(window, process_type):
         window._stop_timeout_timer.stop()
 
     label = 'Deployment' if process_type == 'deploy' else 'Stop'
-    window._job_controller.set_state(
-        window._job_controller.state.__class__.FAILED,
-        f'{label} failed.')
+    window._job_controller.set_state(JobState.FAILED, f'{label} failed.')
 
     log_tail = window._tail_process_log(process_type)
     error_code = window._extract_epd_error_code(log_tail)

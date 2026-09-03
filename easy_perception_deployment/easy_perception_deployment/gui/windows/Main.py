@@ -167,9 +167,6 @@ class MainWindow(QWidget):
         self._deploy_ui_controller = apply_deploy_ui_refresh(self.deploy_window)
         self._deploy_runtime_ui = install_deploy_runtime_ui(self.deploy_window)
         self._fix_deploy_root_layout()
-        self._keep_deploy_actions_neutral()
-        self._deploy_ui_controller._summary_timer.timeout.connect(
-            self._keep_deploy_actions_neutral)
 
         self.isTrainOpen = False
         self.isDeployOpen = False
@@ -202,15 +199,6 @@ class MainWindow(QWidget):
         for column in range(1, root.columnCount()):
             root.setColumnStretch(column, 0)
             root.setColumnMinimumWidth(column, 0)
-
-    def _keep_deploy_actions_neutral(self):
-        """Prevent legacy validity code from repainting whole controls green/red."""
-        for widget in (
-                self.deploy_window.model_button,
-                self.deploy_window.list_button,
-                self.deploy_window.usecase_config_button):
-            if widget.styleSheet():
-                widget.setStyleSheet('')
 
     def setButtons(self):
         self.train_button = self._configure_main_button(
@@ -476,7 +464,6 @@ class MainWindow(QWidget):
             self.deploy_window.activateWindow()
         else:
             self._fix_deploy_root_layout()
-            self._keep_deploy_actions_neutral()
             self.deploy_window.show()
             self.deploy_window.raise_()
             self.deploy_window.activateWindow()

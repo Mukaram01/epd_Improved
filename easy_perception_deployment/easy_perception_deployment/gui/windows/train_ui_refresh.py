@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from windows.legacy_style_guard import install_legacy_style_guard
+
 
 class _TrainUiController(QObject):
     """Presentation-only controller for the existing TrainWindow widgets."""
@@ -28,6 +30,7 @@ class _TrainUiController(QObject):
         self._summary_timer = QTimer(self)
         self._summary_timer.setInterval(300)
         self._summary_timer.timeout.connect(self.sync)
+        self._legacy_style_guard = None
 
         self.header_badge = None
         self.readiness_message = None
@@ -45,6 +48,7 @@ class _TrainUiController(QObject):
         self._configure_existing_widgets()
         self._build_layout()
         self._apply_style()
+        self._install_legacy_style_guard()
         self._connect_refresh_hooks()
         self.window.installEventFilter(self)
         self.sync()
@@ -89,9 +93,21 @@ class _TrainUiController(QObject):
     def _configure_existing_widgets(self):
         w = self.window
 
-        # The legacy UI encodes state by painting entire controls red/green.
-        # The refreshed UI moves state into compact readiness chips instead.
-        self._clear_legacy_inline_styles()
+        # Initial cleanup for the styles applied while the legacy widgets were
+        # constructed. Later legacy recolours are handled by an event filter.
+        for widget in (
+            w.p2_button,
+            w.p3_button,
+            w.model_selector,
+            w.list_button,
+            w.dataset_button,
+            w.label_button,
+            w.generate_button,
+            w.validate_button,
+            w.train_button,
+        ):
+            if widget.styleSheet():
+                widget.setStyleSheet("")
 
         w.training_config_label.hide()
 
@@ -134,6 +150,23 @@ class _TrainUiController(QObject):
         w.training_status_label.setObjectName("trainRuntimeStatus")
         w.training_status_label.setWordWrap(True)
         w.training_status_label.setMinimumHeight(0)
+
+    def _install_legacy_style_guard(self):
+        w = self.window
+        self._legacy_style_guard = install_legacy_style_guard(
+            self,
+            (
+                w.p2_button,
+                w.p3_button,
+                w.model_selector,
+                w.list_button,
+                w.dataset_button,
+                w.label_button,
+                w.generate_button,
+                w.validate_button,
+                w.train_button,
+            ),
+        )
 
     def _build_layout(self):
         w = self.window
@@ -378,25 +411,8 @@ class _TrainUiController(QObject):
         QTimer.singleShot(0, self.sync)
         QTimer.singleShot(400, self.sync)
 
-    def _clear_legacy_inline_styles(self):
-        w = self.window
-        for widget in (
-            w.p2_button,
-            w.p3_button,
-            w.model_selector,
-            w.list_button,
-            w.dataset_button,
-            w.label_button,
-            w.generate_button,
-            w.validate_button,
-            w.train_button,
-        ):
-            if widget.styleSheet():
-                widget.setStyleSheet("")
-
     def sync(self):
         w = self.window
-        self._clear_legacy_inline_styles()
 
         precision = int(getattr(w, "_precision_level", 2))
         self._set_selected(w.p2_button, precision == 2)

@@ -13,7 +13,8 @@ class _LegacyInlineStyleGuard(QObject):
     def __init__(self, parent, widgets):
         super().__init__(parent)
         self._widgets = tuple(widget for widget in widgets if widget is not None)
-        self._pending = set()
+        self._widget_ids = {id(widget) for widget in self._widgets}
+        self._pending_ids = set()
 
     def install(self):
         for widget in self._widgets:
@@ -23,17 +24,18 @@ class _LegacyInlineStyleGuard(QObject):
         return self
 
     def eventFilter(self, obj, event):
+        obj_id = id(obj)
         if (
-                obj in self._widgets
+                obj_id in self._widget_ids
                 and event.type() == QEvent.StyleChange
                 and obj.styleSheet()
-                and obj not in self._pending):
-            self._pending.add(obj)
+                and obj_id not in self._pending_ids):
+            self._pending_ids.add(obj_id)
             QTimer.singleShot(0, lambda widget=obj: self._clear(widget))
         return super().eventFilter(obj, event)
 
     def _clear(self, widget):
-        self._pending.discard(widget)
+        self._pending_ids.discard(id(widget))
         if widget.styleSheet():
             widget.setStyleSheet("")
 

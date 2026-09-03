@@ -13,6 +13,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from windows.legacy_style_guard import install_legacy_style_guard
+
 
 class _DeployUiController(QObject):
     """Presentation-only controller for the existing DeployWindow widgets."""
@@ -28,6 +30,7 @@ class _DeployUiController(QObject):
         self._summary_timer = QTimer(self)
         self._summary_timer.setInterval(300)
         self._summary_timer.timeout.connect(self.sync)
+        self._legacy_style_guard = None
 
         self.model_value = None
         self.labels_value = None
@@ -43,6 +46,7 @@ class _DeployUiController(QObject):
         self._configure_existing_widgets()
         self._build_layout()
         self._apply_style()
+        self._install_legacy_style_guard()
         self._connect_refresh_hooks()
         self.window.installEventFilter(self)
         self.sync()
@@ -87,8 +91,8 @@ class _DeployUiController(QObject):
     def _configure_existing_widgets(self):
         w = self.window
 
-        # Remove legacy red/green full-surface signalling. Readiness is shown
-        # separately as compact status chips in this refreshed layout.
+        # Clear construction-time state colours. Any later legacy recolours are
+        # caught by the event-driven guard installed after the refreshed style.
         w.model_button.setStyleSheet("")
         w.list_button.setStyleSheet("")
         w.usecase_config_button.setStyleSheet("")
@@ -130,6 +134,17 @@ class _DeployUiController(QObject):
         w.model_readiness_label.hide()
         w.label_list_readiness_label.hide()
         w.topic_readiness_label.hide()
+
+    def _install_legacy_style_guard(self):
+        w = self.window
+        self._legacy_style_guard = install_legacy_style_guard(
+            self,
+            (
+                w.model_button,
+                w.list_button,
+                w.usecase_config_button,
+            ),
+        )
 
     def _build_layout(self):
         w = self.window

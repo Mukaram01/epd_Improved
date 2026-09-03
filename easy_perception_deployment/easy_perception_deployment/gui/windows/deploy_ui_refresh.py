@@ -97,23 +97,23 @@ class _DeployUiController(QObject):
         w.list_button.setText("Change labels")
         w.model_button.setIconSize(QSize(26, 26))
         w.list_button.setIconSize(QSize(26, 26))
-        w.model_button.setMinimumHeight(38)
-        w.list_button.setMinimumHeight(38)
+        w.model_button.setMinimumHeight(40)
+        w.list_button.setMinimumHeight(40)
 
-        w.visualize_button.setMinimumHeight(38)
-        w.segmentation_button.setMinimumHeight(38)
-        w.refresh_topics_button.setMinimumHeight(36)
-        w.use_defaults_button.setMinimumHeight(34)
-        w.docker_button.setMinimumHeight(38)
+        w.visualize_button.setMinimumHeight(40)
+        w.segmentation_button.setMinimumHeight(40)
+        w.refresh_topics_button.setMinimumHeight(38)
+        w.use_defaults_button.setMinimumHeight(36)
+        w.docker_button.setMinimumHeight(40)
 
-        w.topic_button.setMinimumHeight(38)
-        w.topic_button.setFixedHeight(38)
-        w.transport_combo.setMinimumHeight(36)
-        w.usecase_config_button.setMinimumHeight(38)
-        w.confidence_spinbox.setMinimumHeight(36)
-        w.max_detections_spinbox.setMinimumHeight(36)
+        w.topic_button.setMinimumHeight(40)
+        w.topic_button.setFixedHeight(40)
+        w.transport_combo.setMinimumHeight(38)
+        w.usecase_config_button.setMinimumHeight(40)
+        w.confidence_spinbox.setMinimumHeight(38)
+        w.max_detections_spinbox.setMinimumHeight(38)
 
-        w.run_button.setMinimumHeight(48)
+        w.run_button.setMinimumHeight(50)
         w.run_button.setIconSize(QSize(24, 24))
         w.run_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
@@ -483,19 +483,19 @@ class _DeployUiController(QObject):
 
             QLabel#deployEyebrow {
                 color: #7e8ca3;
-                font-size: 9px;
+                font-size: 10px;
                 font-weight: 700;
             }
 
             QLabel#deployTitle {
                 color: #f7f9fc;
-                font-size: 22px;
+                font-size: 24px;
                 font-weight: 700;
             }
 
             QLabel#deploySubtitle {
                 color: #a9b4c4;
-                font-size: 11px;
+                font-size: 12px;
             }
 
             QLabel#headerBadge {
@@ -504,7 +504,7 @@ class _DeployUiController(QObject):
                 border: 1px solid #313b4a;
                 border-radius: 8px;
                 padding: 5px 10px;
-                font-size: 9px;
+                font-size: 10px;
                 font-weight: 700;
             }
 
@@ -543,23 +543,23 @@ class _DeployUiController(QObject):
 
             QLabel#sectionTitle {
                 color: #8c9ab0;
-                font-size: 9px;
+                font-size: 10px;
                 font-weight: 700;
             }
 
             QLabel#sectionSubtitle {
                 color: #758196;
-                font-size: 10px;
+                font-size: 11px;
             }
 
             QLabel#fieldLabel {
                 color: #9ba7b8;
-                font-size: 11px;
+                font-size: 12px;
             }
 
             QLabel#summaryValue {
                 color: #e8edf5;
-                font-size: 11px;
+                font-size: 12px;
             }
 
             QLabel#summaryState {
@@ -568,7 +568,7 @@ class _DeployUiController(QObject):
                 border: 1px solid #2d3644;
                 border-radius: 7px;
                 padding: 4px 7px;
-                font-size: 9px;
+                font-size: 10px;
                 font-weight: 600;
             }
 
@@ -590,7 +590,7 @@ class _DeployUiController(QObject):
                 border: 1px solid #293240;
                 border-radius: 8px;
                 padding: 8px 10px;
-                font-size: 10px;
+                font-size: 11px;
             }
 
             QPushButton,
@@ -602,7 +602,7 @@ class _DeployUiController(QObject):
                 border: 1px solid #303a49;
                 border-radius: 7px;
                 padding: 6px 9px;
-                font-size: 11px;
+                font-size: 12px;
             }
 
             QPushButton:hover,
@@ -640,13 +640,13 @@ class _DeployUiController(QObject):
 
             QLabel#runtimeStatus {
                 color: #d4dbe6;
-                font-size: 11px;
+                font-size: 12px;
                 font-weight: 600;
             }
 
             QLabel#runtimeMetrics {
                 color: #7f8b9e;
-                font-size: 10px;
+                font-size: 11px;
             }
 
             QPushButton#runButton {
@@ -655,7 +655,7 @@ class _DeployUiController(QObject):
                 border: 1px solid #6e80e6;
                 border-radius: 9px;
                 padding: 9px 18px;
-                font-size: 12px;
+                font-size: 13px;
                 font-weight: 700;
             }
 

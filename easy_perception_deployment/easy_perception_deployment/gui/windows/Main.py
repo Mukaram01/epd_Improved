@@ -128,11 +128,6 @@ class MainWindow(QWidget):
     _DEFAULT_SPACING = 16
 
     def __init__(self):
-        '''
-        The constructor.
-        Sets the size of the window.
-        Calls setButtons function to populate window with button.
-        '''
         super().__init__()
 
         timestamp = datetime.now()
@@ -163,7 +158,12 @@ class MainWindow(QWidget):
 
         self.train_window = TrainWindow(False)
         self.deploy_window = DeployWindow(False)
-        apply_deploy_ui_refresh(self.deploy_window)
+        self._deploy_ui_controller = apply_deploy_ui_refresh(self.deploy_window)
+        self._fix_deploy_root_layout()
+        self._keep_deploy_actions_neutral()
+        self._deploy_ui_controller._summary_timer.timeout.connect(
+            self._keep_deploy_actions_neutral)
+
         self.isTrainOpen = False
         self.isDeployOpen = False
 
@@ -182,8 +182,30 @@ class MainWindow(QWidget):
         self._apply_launcher_style()
         self.setButtons()
 
+    def _fix_deploy_root_layout(self):
+        """Remove stale column stretch left behind by the legacy 2-column UI."""
+        root = self.deploy_window.layout()
+        if not isinstance(root, QGridLayout):
+            return
+        root.setColumnStretch(0, 1)
+        # The legacy DeployWindow grid used two equal-stretch columns. The
+        # refreshed UI places its header/scroll/footer only in column 0, so
+        # keeping the old column-1 stretch makes the new UI occupy half the
+        # window and leaves a large blank area on the right.
+        for column in range(1, root.columnCount()):
+            root.setColumnStretch(column, 0)
+            root.setColumnMinimumWidth(column, 0)
+
+    def _keep_deploy_actions_neutral(self):
+        """Prevent legacy validity code from repainting whole controls green/red."""
+        for widget in (
+                self.deploy_window.model_button,
+                self.deploy_window.list_button,
+                self.deploy_window.usecase_config_button):
+            if widget.styleSheet():
+                widget.setStyleSheet('')
+
     def setButtons(self):
-        '''A Mutator function that defines all buttons in MainWindow.'''
         self.train_button = self._configure_main_button(
             title='Train',
             description='Prepare datasets and train a custom perception model.',
@@ -442,18 +464,18 @@ class MainWindow(QWidget):
         )
 
     def deployPackage(self):
-        '''A function that is triggered by the button labelled, Deploy.'''
         if self.deploy_window.isVisible():
             self.deploy_window.raise_()
             self.deploy_window.activateWindow()
         else:
+            self._fix_deploy_root_layout()
+            self._keep_deploy_actions_neutral()
             self.deploy_window.show()
             self.deploy_window.raise_()
             self.deploy_window.activateWindow()
         self.isDeployOpen = self.deploy_window.isVisible()
 
     def openTrainWindow(self):
-        '''A function that is triggered by the button labelled, Train.'''
         if self.train_window.isVisible():
             self.train_window.raise_()
             self.train_window.activateWindow()
@@ -472,7 +494,6 @@ class MainWindow(QWidget):
         return super().eventFilter(obj, event)
 
     def closeWindow(self):
-        '''A function that is triggered by the button labelled, Quit.'''
         self.close()
         self.train_window.close()
         self.deploy_window.close()

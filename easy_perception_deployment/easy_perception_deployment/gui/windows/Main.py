@@ -32,6 +32,7 @@ from datetime import datetime
 from windows.Deploy import DeployWindow
 from windows.Train import TrainWindow
 from windows.deploy_ui_refresh import apply_deploy_ui_refresh
+from windows.train_ui_refresh import apply_train_ui_refresh
 
 
 class _WorkflowCard(QPushButton):
@@ -157,6 +158,7 @@ class MainWindow(QWidget):
         root_logger.propagate = False
 
         self.train_window = TrainWindow(False)
+        self._train_ui_controller = apply_train_ui_refresh(self.train_window)
         self.deploy_window = DeployWindow(False)
         self._deploy_ui_controller = apply_deploy_ui_refresh(self.deploy_window)
         self._fix_deploy_root_layout()

@@ -15,7 +15,6 @@
 from PySide6.QtCore import QEvent, QSize, Qt
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
-    QCommandLinkButton,
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -34,6 +33,89 @@ from windows.Deploy import DeployWindow
 from windows.Train import TrainWindow
 
 
+class _WorkflowCard(QPushButton):
+    """Clickable launcher card with predictable cross-platform typography."""
+
+    def __init__(
+            self,
+            title,
+            description,
+            meta,
+            icon_path,
+            shortcut,
+            object_name,
+            parent=None):
+        super().__init__(parent)
+        self._icon_path = icon_path
+        self.setObjectName(object_name)
+        self.setToolTip(f'{title} ({shortcut})')
+        self.setShortcut(shortcut)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setMinimumHeight(168)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
+
+        self.icon_label = QLabel(self)
+        self.icon_label.setObjectName('workflowIcon')
+        self.icon_label.setFixedSize(66, 66)
+        self.icon_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(self.icon_label, 0, Qt.AlignTop)
+
+        content = QVBoxLayout()
+        content.setContentsMargins(0, 1, 0, 0)
+        content.setSpacing(7)
+
+        title_row = QHBoxLayout()
+        title_row.setContentsMargins(0, 0, 0, 0)
+        title_row.setSpacing(8)
+
+        title_label = QLabel(title, self)
+        title_label.setObjectName('workflowTitle')
+        title_row.addWidget(title_label)
+        title_row.addStretch(1)
+
+        open_label = QLabel('Open  →', self)
+        open_label.setObjectName('workflowOpen')
+        title_row.addWidget(open_label, 0, Qt.AlignRight)
+
+        description_label = QLabel(description, self)
+        description_label.setObjectName('workflowDescription')
+        description_label.setWordWrap(True)
+        description_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+
+        content.addLayout(title_row)
+        content.addWidget(description_label)
+        content.addStretch(1)
+
+        meta_label = QLabel(meta, self)
+        meta_label.setObjectName('workflowMeta')
+        content.addWidget(meta_label)
+
+        layout.addLayout(content, 1)
+
+        for child in self.findChildren(QWidget):
+            child.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+        self.set_icon_size(58)
+
+    def set_icon_size(self, edge):
+        pixmap = QPixmap(self._icon_path)
+        if pixmap.isNull():
+            self.icon_label.clear()
+            return
+        self.icon_label.setPixmap(
+            pixmap.scaled(
+                edge,
+                edge,
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation,
+            )
+        )
+
+
 class MainWindow(QWidget):
     '''
     The MainWindow class is a PySide6 Graphical User Interface (GUI) window
@@ -42,7 +124,7 @@ class MainWindow(QWidget):
     _MODULE_DIR = Path(__file__).resolve().parent
     _GUI_DIR = _MODULE_DIR.parent
     _DEFAULT_MARGIN = 28
-    _DEFAULT_SPACING = 18
+    _DEFAULT_SPACING = 16
 
     def __init__(self):
         '''
@@ -86,14 +168,14 @@ class MainWindow(QWidget):
         self.train_window.installEventFilter(self)
         self.deploy_window.installEventFilter(self)
 
-        self._WINDOW_HEIGHT = 500
+        self._WINDOW_HEIGHT = 438
         self._WINDOW_WIDTH = 760
 
         self.setObjectName('epdLauncher')
         self.setWindowIcon(QIcon(self._image_path("epd_desktop.png")))
         self.setWindowTitle('Easy Perception Deployment')
         self.resize(self._WINDOW_WIDTH, self._WINDOW_HEIGHT)
-        self.setMinimumSize(660, 440)
+        self.setMinimumSize(680, 410)
 
         self._apply_launcher_style()
         self.setButtons()
@@ -101,42 +183,44 @@ class MainWindow(QWidget):
     def setButtons(self):
         '''A Mutator function that defines all buttons in MainWindow.'''
         self.train_button = self._configure_main_button(
-            text='&Train',
+            title='Train',
             description='Prepare datasets and train a custom perception model.',
+            meta='DATASETS  •  LABELS  •  MODEL TRAINING',
             icon_name='train.png',
-            tooltip='Train a model (Alt+T)',
+            shortcut='Alt+T',
             object_name='trainAction',
         )
 
         self.deploy_button = self._configure_main_button(
-            text='&Deploy',
-            description='Configure and launch a ROS 2 perception pipeline.',
+            title='Deploy',
+            description='Configure and launch a live ROS 2 perception pipeline.',
+            meta='MODEL  •  CAMERA  •  DETECTION / TRACKING',
             icon_name='deploy.png',
-            tooltip='Deploy a model (Alt+D)',
+            shortcut='Alt+D',
             object_name='deployAction',
         )
 
         self.quit_button = QPushButton('Quit', self)
         self.quit_button.setObjectName('quitButton')
         self.quit_button.setIcon(QIcon(self._image_path('quit.png')))
-        self.quit_button.setIconSize(QSize(20, 20))
+        self.quit_button.setIconSize(QSize(18, 18))
         self.quit_button.setToolTip('Quit the application (Alt+Q)')
         self.quit_button.setShortcut('Alt+Q')
         self.quit_button.setCursor(Qt.PointingHandCursor)
-        self.quit_button.setMinimumHeight(38)
+        self.quit_button.setMinimumHeight(36)
 
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(
             self._DEFAULT_MARGIN,
+            24,
             self._DEFAULT_MARGIN,
-            self._DEFAULT_MARGIN,
-            self._DEFAULT_MARGIN,
+            20,
         )
         root_layout.setSpacing(self._DEFAULT_SPACING)
 
         header_layout = QHBoxLayout()
         header_layout.setContentsMargins(0, 0, 0, 0)
-        header_layout.setSpacing(16)
+        header_layout.setSpacing(14)
 
         logo_label = QLabel(self)
         logo_label.setObjectName('brandLogo')
@@ -144,18 +228,18 @@ class MainWindow(QWidget):
         if not logo_pixmap.isNull():
             logo_label.setPixmap(
                 logo_pixmap.scaled(
-                    56,
-                    56,
+                    50,
+                    50,
                     Qt.KeepAspectRatio,
                     Qt.SmoothTransformation,
                 )
             )
-        logo_label.setFixedSize(60, 60)
+        logo_label.setFixedSize(54, 54)
         logo_label.setAlignment(Qt.AlignCenter)
 
         title_stack = QVBoxLayout()
-        title_stack.setContentsMargins(0, 2, 0, 0)
-        title_stack.setSpacing(2)
+        title_stack.setContentsMargins(0, 0, 0, 0)
+        title_stack.setSpacing(1)
 
         eyebrow = QLabel('EPD  •  ROS 2 PERCEPTION', self)
         eyebrow.setObjectName('eyebrow')
@@ -164,7 +248,6 @@ class MainWindow(QWidget):
         subtitle = QLabel(
             'Train vision models or launch a live perception pipeline.', self)
         subtitle.setObjectName('launcherSubtitle')
-        subtitle.setWordWrap(True)
 
         title_stack.addWidget(eyebrow)
         title_stack.addWidget(title)
@@ -180,21 +263,21 @@ class MainWindow(QWidget):
 
         action_layout = QGridLayout()
         action_layout.setContentsMargins(0, 0, 0, 0)
-        action_layout.setHorizontalSpacing(16)
-        action_layout.setVerticalSpacing(16)
+        action_layout.setHorizontalSpacing(14)
         action_layout.addWidget(self.train_button, 0, 0)
         action_layout.addWidget(self.deploy_button, 0, 1)
         action_layout.setColumnStretch(0, 1)
         action_layout.setColumnStretch(1, 1)
-        action_layout.setRowStretch(0, 1)
-        root_layout.addLayout(action_layout, 1)
+        root_layout.addLayout(action_layout)
+
+        root_layout.addStretch(1)
 
         footer_layout = QHBoxLayout()
-        footer_layout.setContentsMargins(0, 2, 0, 0)
+        footer_layout.setContentsMargins(0, 0, 0, 0)
         footer_layout.setSpacing(12)
 
         footer_label = QLabel(
-            'Local GUI  •  configuration changes remain on this workstation', self)
+            'LOCAL GUI  •  CONFIGURATION STAYS ON THIS WORKSTATION', self)
         footer_label.setObjectName('footerLabel')
         footer_layout.addWidget(footer_label, 1)
         footer_layout.addWidget(self.quit_button, 0, Qt.AlignRight)
@@ -207,132 +290,151 @@ class MainWindow(QWidget):
 
     def _configure_main_button(
             self,
-            text,
+            title,
             description,
+            meta,
             icon_name,
-            tooltip,
+            shortcut,
             object_name):
-        button = QCommandLinkButton(text, description, self)
-        button.setObjectName(object_name)
-        button.setIcon(QIcon(self._image_path(icon_name)))
-        button.setToolTip(tooltip)
-        button.setMinimumHeight(205)
-        button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        button.setCursor(Qt.PointingHandCursor)
-        return button
+        return _WorkflowCard(
+            title=title,
+            description=description,
+            meta=meta,
+            icon_path=self._image_path(icon_name),
+            shortcut=shortcut,
+            object_name=object_name,
+            parent=self,
+        )
 
     def _update_button_icon_sizes(self):
-        if self.width() < 700:
-            top_icon = 58
-        elif self.width() < 900:
-            top_icon = 72
-        else:
-            top_icon = 86
-
-        self.train_button.setIconSize(
-            self._adaptive_icon_size(self.train_button, top_icon)
-        )
-        self.deploy_button.setIconSize(
-            self._adaptive_icon_size(self.deploy_button, top_icon)
-        )
-
-    def _adaptive_icon_size(self, button, preferred):
-        button_width = max(button.width() - 48, 32)
-        button_height = max(button.height() - 92, 32)
-        icon_edge = max(32, min(preferred, button_width, button_height))
-        return QSize(icon_edge, icon_edge)
+        icon_edge = 52 if self.width() < 720 else 58
+        self.train_button.set_icon_size(icon_edge)
+        self.deploy_button.set_icon_size(icon_edge)
 
     def _apply_launcher_style(self):
         self.setStyleSheet(
             '''
             QWidget#epdLauncher {
-                background-color: #11141a;
+                background-color: #101319;
                 color: #f4f7fb;
             }
 
             QLabel#brandLogo {
                 background-color: #171c24;
-                border: 1px solid #2a3240;
-                border-radius: 14px;
+                border: 1px solid #29313e;
+                border-radius: 13px;
             }
 
             QLabel#eyebrow {
-                color: #8e9bb0;
+                color: #8490a4;
                 font-size: 10px;
                 font-weight: 700;
             }
 
             QLabel#launcherTitle {
                 color: #f7f9fc;
-                font-size: 24px;
+                font-size: 23px;
                 font-weight: 700;
             }
 
             QLabel#launcherSubtitle {
-                color: #aeb8c8;
-                font-size: 13px;
+                color: #a9b3c3;
+                font-size: 12px;
             }
 
             QLabel#sectionLabel {
                 color: #dbe2ec;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 600;
-                padding-top: 4px;
+                padding-top: 2px;
             }
 
-            QCommandLinkButton {
-                color: #f7f9fc;
-                background-color: #191e27;
-                border: 1px solid #2b3443;
-                border-radius: 16px;
-                padding: 22px;
-                font-size: 16px;
-                font-weight: 600;
+            QPushButton#trainAction,
+            QPushButton#deployAction {
+                background-color: #181d26;
+                border: 1px solid #2b3441;
+                border-radius: 15px;
                 text-align: left;
             }
 
-            QCommandLinkButton:hover {
-                background-color: #202735;
-                border-color: #596b87;
+            QPushButton#trainAction:hover,
+            QPushButton#deployAction:hover {
+                background-color: #1d2430;
+                border-color: #526176;
             }
 
-            QCommandLinkButton:pressed {
-                background-color: #161b23;
-                border-color: #7f91ad;
+            QPushButton#trainAction:pressed,
+            QPushButton#deployAction:pressed {
+                background-color: #151a22;
+                border-color: #6b7b94;
             }
 
-            QCommandLinkButton#deployAction {
-                background-color: #1a2030;
-                border-color: #5367d8;
+            QPushButton#deployAction {
+                border-color: #394862;
             }
 
-            QCommandLinkButton#deployAction:hover {
-                background-color: #222b43;
-                border-color: #7d8cf0;
+            QPushButton#deployAction:hover {
+                border-color: #667ba0;
+            }
+
+            QLabel#workflowIcon {
+                background-color: #11151c;
+                border: 1px solid #27303c;
+                border-radius: 13px;
+            }
+
+            QLabel#workflowTitle {
+                color: #f6f8fb;
+                font-size: 18px;
+                font-weight: 700;
+            }
+
+            QLabel#workflowDescription {
+                color: #b5bfce;
+                font-size: 12px;
+                font-weight: 400;
+            }
+
+            QLabel#workflowMeta {
+                color: #778399;
+                font-size: 9px;
+                font-weight: 700;
+            }
+
+            QLabel#workflowOpen {
+                color: #8390a5;
+                font-size: 11px;
+                font-weight: 600;
+            }
+
+            QPushButton#trainAction:hover QLabel#workflowOpen,
+            QPushButton#deployAction:hover QLabel#workflowOpen {
+                color: #c6d2e4;
             }
 
             QLabel#footerLabel {
-                color: #7f8a9c;
-                font-size: 11px;
+                color: #667286;
+                font-size: 9px;
+                font-weight: 600;
             }
 
             QPushButton#quitButton {
-                color: #b9c2d0;
+                color: #aeb8c7;
                 background-color: transparent;
-                border: 1px solid #303948;
+                border: 1px solid #2c3543;
                 border-radius: 9px;
-                padding: 6px 14px;
-                font-size: 12px;
+                padding: 5px 13px;
+                font-size: 11px;
             }
 
             QPushButton#quitButton:hover {
                 color: #ffffff;
-                background-color: #242b36;
-                border-color: #4c596d;
+                background-color: #202731;
+                border-color: #4a5769;
             }
 
             QPushButton#quitButton:pressed {
-                background-color: #1b212a;
+                background-color: #181e27;
             }
             '''
         )

@@ -8,6 +8,8 @@ shift $(( $# >= 2 ? 2 : $# ))
 rebuild="false"
 non_interactive="false"
 force_sudo_docker="false"
+requested_backend="${EPD_DEPLOY_BACKEND:-auto}"
+active_backend=""
 
 log_info() {
   if [[ "${non_interactive}" != "true" ]]; then
@@ -23,6 +25,7 @@ epd_error() {
 
 usage() {
   echo "Usage: $0 <useCPU> <showImage> [--rebuild|--no-rebuild] [--non-interactive] [--sudo-docker]" >&2
+  echo "EPD_DEPLOY_BACKEND may be auto, docker, or local (default: auto)." >&2
 }
 
 while [[ $# -gt 0 ]]; do
@@ -48,15 +51,22 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+case "${requested_backend}" in
+  auto|docker|local)
+    ;;
+  *)
+    epd_error "EPD_ERR_BAD_BACKEND" "Unsupported EPD_DEPLOY_BACKEND: ${requested_backend}"
+    epd_error "EPD_ERR_BAD_BACKEND_REMEDIATION" "Use EPD_DEPLOY_BACKEND=auto, docker, or local."
+    exit 2
+    ;;
+esac
+
 DOCKER_CMD=()
 resolve_docker_cmd() {
   if [[ -n "${EPD_DOCKER_CMD:-}" ]]; then
     # shellcheck disable=SC2206
     DOCKER_CMD=(${EPD_DOCKER_CMD})
-    if [[ ${#DOCKER_CMD[@]} -eq 0 ]]; then
-      epd_error "EPD_ERR_DOCKER_CMD_INVALID" "EPD_DOCKER_CMD is set but empty."
-      exit 4
-    fi
+    [[ ${#DOCKER_CMD[@]} -gt 0 ]]
     return
   fi
 
@@ -86,25 +96,7 @@ check_ros() {
   set -u
 }
 
-check_docker() {
-  resolve_docker_cmd
-
-  if ! command -v "${DOCKER_CMD[-1]}" >/dev/null 2>&1; then
-    epd_error "EPD_ERR_DOCKER_NOT_FOUND" "Docker command not found: ${DOCKER_CMD[*]}"
-    epd_error "EPD_ERR_DOCKER_NOT_FOUND_REMEDIATION" "Install Docker or set EPD_DOCKER_CMD to a valid command."
-    exit 4
-  fi
-
-  if ! "${DOCKER_CMD[@]}" --version >/dev/null 2>&1; then
-    epd_error "EPD_ERR_DOCKER_UNAVAILABLE" "Docker is not installed or not accessible via: ${DOCKER_CMD[*]}"
-    epd_error "EPD_ERR_DOCKER_UNAVAILABLE_REMEDIATION" "Install Docker, grant user access to docker group, or set EPD_DOCKER_CMD/--sudo-docker explicitly."
-    exit 4
-  fi
-
-  log_info "Docker command [ ${DOCKER_CMD[*]} ]"
-}
-
-check_workspace_mount() {
+resolve_workspace() {
   START_DIR="$(pwd)"
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   DEFAULT_WORKSPACE_ROOT="$(cd "${SCRIPT_DIR}/../../../../.." && pwd)"
@@ -121,12 +113,71 @@ check_workspace_mount() {
     exit 6
   fi
 
+  if [[ "${rebuild}" == "true" ]]; then
+    local_launch_script="${SCRIPT_DIR}/build_launch.sh"
+  else
+    local_launch_script="${SCRIPT_DIR}/launch.sh"
+  fi
+
   container_workspace="/root/epd_ros2_ws"
   container_script_dir="${container_workspace}/${SCRIPT_RELATIVE_PATH}"
   if [[ "${rebuild}" == "true" ]]; then
-    launch_script="${container_script_dir}/build_launch.sh"
+    container_launch_script="${container_script_dir}/build_launch.sh"
   else
-    launch_script="${container_script_dir}/launch.sh"
+    container_launch_script="${container_script_dir}/launch.sh"
+  fi
+}
+
+docker_is_available() {
+  resolve_docker_cmd || return 1
+  if [[ ${#DOCKER_CMD[@]} -eq 0 ]]; then
+    return 1
+  fi
+  if ! command -v "${DOCKER_CMD[-1]}" >/dev/null 2>&1; then
+    return 1
+  fi
+  "${DOCKER_CMD[@]}" --version >/dev/null 2>&1
+}
+
+local_runtime_is_available() {
+  [[ -x "${local_launch_script}" ]] || return 1
+  if [[ "${rebuild}" != "true" && ! -f "${WORKSPACE_ROOT}/install/setup.bash" ]]; then
+    return 1
+  fi
+  return 0
+}
+
+resolve_backend() {
+  if [[ "${requested_backend}" == "docker" ]]; then
+    if ! docker_is_available; then
+      epd_error "EPD_ERR_DOCKER_NOT_FOUND" "Docker deployment was requested, but the Docker command is unavailable: ${DOCKER_CMD[*]:-docker}"
+      epd_error "EPD_ERR_DOCKER_NOT_FOUND_REMEDIATION" "Install Docker, set EPD_DOCKER_CMD, or use EPD_DEPLOY_BACKEND=local."
+      exit 4
+    fi
+    active_backend="docker"
+    return
+  fi
+
+  if [[ "${requested_backend}" == "local" ]]; then
+    if ! local_runtime_is_available; then
+      epd_error "EPD_ERR_LOCAL_RUNTIME_UNAVAILABLE" "Local EPD launch is unavailable. launch=${local_launch_script} workspace=${WORKSPACE_ROOT}"
+      epd_error "EPD_ERR_LOCAL_RUNTIME_UNAVAILABLE_REMEDIATION" "Build ${WORKSPACE_ROOT} and ensure the GUI launch script is executable."
+      exit 6
+    fi
+    active_backend="local"
+    return
+  fi
+
+  # auto: preserve Docker behaviour when it is installed, but do not make
+  # Docker a hard requirement for a workspace that is already built locally.
+  if docker_is_available; then
+    active_backend="docker"
+  elif local_runtime_is_available; then
+    active_backend="local"
+  else
+    epd_error "EPD_ERR_DEPLOY_BACKEND_UNAVAILABLE" "Neither Docker nor a built local EPD workspace is available."
+    epd_error "EPD_ERR_DEPLOY_BACKEND_UNAVAILABLE_REMEDIATION" "Build ${WORKSPACE_ROOT} or install/configure Docker."
+    exit 4
   fi
 }
 
@@ -148,6 +199,12 @@ check_image() {
   log_info "${image_name} Docker Image [ FOUND ]"
 }
 
+start_optional_image_viewer() {
+  if [[ "${showImage}" == "True" ]]; then
+    ros2 run image_tools showimage --ros-args --remap /image:=/easy_perception_deployment/output >/dev/null 2>&1 &
+  fi
+}
+
 run_container() {
   local docker_tty=()
   if [[ "${non_interactive}" != "true" && -t 0 ]]; then
@@ -156,7 +213,7 @@ run_container() {
 
   local vendor_path="${container_workspace}/src/epd_onnxruntime_vendor"
   local container_cmd
-  container_cmd="if [ ! -d \"${vendor_path}\" ]; then echo \"EPD_ERR_VENDOR_MISSING: missing ${vendor_path}\" >&2; echo \"EPD_ERR_VENDOR_MISSING_REMEDIATION: mount workspace at ${container_workspace} and include epd_onnxruntime_vendor\" >&2; exit 7; fi; if [ ! -x \"${launch_script}\" ]; then echo \"EPD_ERR_LAUNCH_SCRIPT_INVALID: launch script missing or not executable: ${launch_script}\" >&2; exit 8; fi; exec \"${launch_script}\""
+  container_cmd="if [ ! -d \"${vendor_path}\" ]; then echo \"EPD_ERR_VENDOR_MISSING: missing ${vendor_path}\" >&2; echo \"EPD_ERR_VENDOR_MISSING_REMEDIATION: mount workspace at ${container_workspace} and include epd_onnxruntime_vendor\" >&2; exit 7; fi; if [ ! -x \"${container_launch_script}\" ]; then echo \"EPD_ERR_LAUNCH_SCRIPT_INVALID: launch script missing or not executable: ${container_launch_script}\" >&2; exit 8; fi; exec \"${container_launch_script}\""
 
   local docker_args=(run -i "${docker_tty[@]}" --rm --name epd_test_container -v "${WORKSPACE_ROOT}:${container_workspace}")
   if [[ "${useCPU}" != "True" ]]; then
@@ -167,15 +224,26 @@ run_container() {
   "${DOCKER_CMD[@]}" "${docker_args[@]}"
 }
 
+run_local() {
+  if [[ ! -x "${local_launch_script}" ]]; then
+    epd_error "EPD_ERR_LAUNCH_SCRIPT_INVALID" "Local launch script missing or not executable: ${local_launch_script}"
+    exit 8
+  fi
+  log_info "Deployment backend [ local workspace ]"
+  exec "${local_launch_script}"
+}
+
 check_ros
-check_docker
-check_workspace_mount
-check_image
+resolve_workspace
+resolve_backend
+start_optional_image_viewer
 
-if [[ "${showImage}" == "True" ]]; then
-  ros2 run image_tools showimage --ros-args --remap /image:=/easy_perception_deployment/output >/dev/null 2>&1 &
+if [[ "${active_backend}" == "docker" ]]; then
+  log_info "Deployment backend [ Docker ]"
+  check_image
+  run_container
+else
+  run_local
 fi
-
-run_container
 
 cd "${START_DIR}"

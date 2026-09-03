@@ -31,6 +31,7 @@ from datetime import datetime
 
 from windows.Deploy import DeployWindow
 from windows.Train import TrainWindow
+from windows.deploy_runtime_ui import install_deploy_runtime_ui
 from windows.deploy_ui_refresh import apply_deploy_ui_refresh
 from windows.train_ui_refresh import apply_train_ui_refresh
 from windows.train_workflow_stepper import apply_train_workflow_stepper
@@ -164,6 +165,7 @@ class MainWindow(QWidget):
             self.train_window)
         self.deploy_window = DeployWindow(False)
         self._deploy_ui_controller = apply_deploy_ui_refresh(self.deploy_window)
+        self._deploy_runtime_ui = install_deploy_runtime_ui(self.deploy_window)
         self._fix_deploy_root_layout()
         self._keep_deploy_actions_neutral()
         self._deploy_ui_controller._summary_timer.timeout.connect(

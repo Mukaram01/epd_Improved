@@ -156,6 +156,7 @@ class TrainWindow(QWidget):
             self.label_button.hide()
 
         self.generate_button = QPushButton('Generate Dataset', self)
+        self.generate_button.setToolTip("Convert labelled data into the format required for training.")
         self.generate_button.setIcon(QIcon(self._image_path('label_generate.png')))
         self.generate_button.setIconSize(standard_icon_size)
         _set_row_button_sizing(self.generate_button, action_pref_height)
@@ -164,12 +165,14 @@ class TrainWindow(QWidget):
 
         # Labeller button to initiate labelme
         self.validate_button = QPushButton('Validate Training', self)
+        self.validate_button.setToolTip("Check that model, labels and dataset are ready for training.")
         self.validate_button.setIcon(QIcon(self._image_path('validate.png')))
         self.validate_button.setIconSize(standard_icon_size)
         _set_row_button_sizing(self.validate_button, action_pref_height)
 
         # Dataset button to prompt input via FileDialogue
         self.dataset_button = QPushButton('Choose Dataset', self)
+        self.dataset_button.setToolTip("Select the labelled dataset directory used for training.")
         self.dataset_button.setIcon(QIcon(self._image_path('dataset.png')))
         self.dataset_button.setIconSize(standard_icon_size)
         _set_row_button_sizing(self.dataset_button, action_pref_height)
@@ -177,6 +180,7 @@ class TrainWindow(QWidget):
 
         # Start Training button to start and display training process
         self.train_button = QPushButton('Train', self)
+        self.train_button.setToolTip("Start training after all requirements are validated.")
         self.train_button.setIcon(QIcon(self._image_path('train.png')))
         self.train_button.setIconSize(emphasis_icon_size)
         _set_row_button_sizing(self.train_button, action_pref_height)
@@ -186,6 +190,7 @@ class TrainWindow(QWidget):
 
         # Set Label List
         self.list_button = QPushButton('Choose Label List', self)
+        self.list_button.setToolTip("Select the label list matching the training dataset classes.")
         self.list_button.setIcon(QIcon(self._image_path('label_list.png')))
         self.list_button.setIconSize(emphasis_icon_size)
         _set_row_button_sizing(self.list_button, action_pref_height)

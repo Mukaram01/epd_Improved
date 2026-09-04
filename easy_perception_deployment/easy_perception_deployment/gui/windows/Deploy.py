@@ -501,6 +501,7 @@ class DeployWindow(QWidget):
         # ONNX Model to set the path to ONNX model and
         # store in session_config.json
         self.model_button = QPushButton('ONNX Model', self)
+        self.model_button.setToolTip("Select the ONNX model used for inference.")
         self.model_button.setIcon(QIcon(self._image_path('model.png')))
         self.model_button.setIconSize(QSize(75, 75))
         self.model_button.setMinimumHeight(80)
@@ -516,6 +517,7 @@ class DeployWindow(QWidget):
         # Label List to set the path to ONNX model
         # and store in session_config.json
         self.list_button = QPushButton('Label List', self)
+        self.list_button.setToolTip("Select the label list matching the trained model classes.")
         self.list_button.setIcon(QIcon(self._image_path('label_list.png')))
         self.list_button.setIconSize(QSize(75, 75))
         self.list_button.setMinimumHeight(80)
@@ -555,6 +557,7 @@ class DeployWindow(QWidget):
             self.segmentation_button.setText('Segmentation Off')
 
         self.refresh_topics_button = QPushButton(self)
+        self.refresh_topics_button.setToolTip("Scan available ROS 2 image topics again.")
         self.refresh_topics_button.setText('Refresh topics')
 
         self.use_defaults_button = QPushButton(self)

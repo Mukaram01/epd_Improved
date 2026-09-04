@@ -202,6 +202,13 @@ class _TrainUiController(QObject):
         precision_row.addStretch(1)
         w.p2_button.setObjectName("precisionButton")
         w.p3_button.setObjectName("precisionButton")
+
+        w.p2_button.setToolTip(
+            "FP32 precision: higher numerical precision with increased memory usage."
+        )
+        w.p3_button.setToolTip(
+            "FP16 precision: reduced memory usage and faster training on supported hardware."
+        )
         precision_row.addWidget(w.p2_button)
         precision_row.addWidget(w.p3_button)
         model_layout.addLayout(precision_row)
@@ -238,6 +245,13 @@ class _TrainUiController(QObject):
         choose_row.setSpacing(8)
         w.dataset_button.setText("Choose dataset")
         w.list_button.setText("Choose label list")
+
+        w.dataset_button.setToolTip(
+            "Select the labelled dataset containing training images and annotations."
+        )
+        w.list_button.setToolTip(
+            "Select the label list matching the dataset classes used during training."
+        )
         choose_row.addWidget(w.dataset_button)
         choose_row.addWidget(w.list_button)
         dataset_layout.addLayout(choose_row)
@@ -245,6 +259,12 @@ class _TrainUiController(QObject):
         prep_row = QHBoxLayout()
         prep_row.setSpacing(8)
         w.generate_button.setText("Generate COCO dataset")
+        w.label_button.setToolTip(
+            "Select or prepare label information used by the training pipeline."
+        )
+        w.generate_button.setToolTip(
+            "Convert labelled data into the COCO format required by training."
+        )
         prep_row.addWidget(w.label_button)
         prep_row.addWidget(w.generate_button)
         dataset_layout.addLayout(prep_row)
@@ -288,6 +308,17 @@ class _TrainUiController(QObject):
         readiness_grid.addWidget(self.ready_labels, 1, 0)
         readiness_grid.addWidget(self.ready_annotations, 1, 1)
         readiness_layout.addLayout(readiness_grid)
+        w.validate_button.setToolTip(
+            "Check model, dataset, labels and annotations are ready before training."
+        )
+        w.train_button.setToolTip(
+            "Start training using the current configuration."
+        )
+
+        self.readiness_message.setToolTip(
+            "Shows which requirements are complete before training can start."
+        )
+
         readiness_layout.addWidget(w.validate_button, 0, Qt.AlignLeft)
 
         content_grid.addWidget(model_card, 0, 0)

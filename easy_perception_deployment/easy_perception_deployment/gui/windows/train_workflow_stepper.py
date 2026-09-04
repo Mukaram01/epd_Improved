@@ -54,6 +54,15 @@ class _TrainWorkflowStepper(QObject):
 
         for index, (name, _flag) in enumerate(self._STAGES, start=1):
             label = QLabel(f"{index}  {name}", stepper)
+
+            descriptions = {
+                "Dataset": "Prepare dataset and annotations.",
+                "Training": "Run neural network training with selected parameters.",
+                "Validation": "Evaluate the trained model.",
+                "Complete": "Training workflow completed successfully.",
+            }
+
+            label.setToolTip(descriptions.get(name, "Training workflow stage."))
             label.setObjectName("trainWorkflowStep")
             label.setAlignment(Qt.AlignCenter)
             label.setMinimumHeight(34)

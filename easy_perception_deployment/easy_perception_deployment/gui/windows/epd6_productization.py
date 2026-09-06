@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication
 
+from windows.p3_inspector_worker import ProductionP3InspectorWorker
 from windows.three_d_diagnostics import ThreeDInspectorController
 
 
@@ -41,6 +42,7 @@ def apply_epd6_productization(main_window):
 
     main_window._epd6_productization_applied = True
     controller = ThreeDInspectorController(main_window)
+    controller.worker = ProductionP3InspectorWorker(controller.events)
     main_window._epd6_3d_inspector = controller
     _install_help_topic(main_window)
 

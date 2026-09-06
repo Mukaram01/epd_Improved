@@ -158,11 +158,36 @@ See `docs/EPD_TRAINING_STUDIO.md` for the operator workflow and limitations.
 
 ## EPD-5 — Profiles + Replay
 
+Status: implemented by the `feature/epd5-profiles-replay` increment.
+
 Add reproducible perception sessions:
-- named profiles containing model, labels, camera topic, mode and runtime settings;
-- import/export profile;
-- replay from recorded images/rosbag where supported;
-- one-click restore of known-good workcell perception configuration.
+- named, versioned profiles containing model, label list, RGB camera topic, perception mode and runtime settings;
+- SHA256 fingerprints for model and label assets so a different file is never substituted silently;
+- portable asset relocation to the local `data/model` and `data/label_list` folders when basename + hash match;
+- user-level profile storage outside the source checkout;
+- import/export profile JSON;
+- explicit **known-good** marker and one-click restore;
+- profile apply blocked while perception is running so runtime configuration cannot change underneath an active node;
+- deterministic fixture replay using the existing `replay.launch.py` acceptance path;
+- fast/realtime fixture replay and PASS/FAIL summary display;
+- rosbag2 inspection with recorded-topic listing and current RGB-topic compatibility check;
+- rosbag2 playback against an already-running Deploy session without silently remapping topics;
+- replay subprocess stop/status handling;
+- no EMD scene/task ownership changes.
+
+Acceptance:
+1. `Profiles & Replay` opens from Deploy without replacing the normal Deploy workflow.
+2. Saving a profile captures model, labels, RGB topic, use case and runtime settings in one versioned JSON file.
+3. Model and label SHA256 values are captured when the assets exist.
+4. Applying a profile updates all three deploy config files and the visible Deploy controls.
+5. Applying a profile refuses a model/label asset whose captured hash no longer matches.
+6. A profile exported on one workstation can relocate to a same-named local asset only when the captured hash matches.
+7. One profile can be marked known-good and restored in one action.
+8. Deterministic fixture replay reports the existing replay acceptance summary inside the GUI.
+9. Rosbag inspection tells the operator whether the active profile RGB topic is recorded in the bag.
+10. Rosbag playback does not invent topic remaps; the operator must apply the profile that matches the recording.
+
+See `docs/EPD_PROFILES_REPLAY.md` for the profile format, workflow and replay limitations.
 
 ## EPD-6 — 3D Perception Tools
 

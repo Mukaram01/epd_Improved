@@ -47,6 +47,7 @@ jobs:
             easy_perception_deployment/easy_perception_deployment/gui/test_camera_assistant.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_model_manager.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_training_studio.py \
+            easy_perception_deployment/easy_perception_deployment/gui/test_profiles_replay.py \
             easy_perception_deployment/easy_perception_deployment/gui/windows/*.py \
             easy_perception_deployment/easy_perception_deployment/gui/trainer/*.py \
             --count
@@ -66,4 +67,5 @@ jobs:
             test_camera_assistant.py \
             test_live_perception_view.py \
             test_model_manager.py \
-            test_training_studio.py
+            test_training_studio.py \
+            test_profiles_replay.py

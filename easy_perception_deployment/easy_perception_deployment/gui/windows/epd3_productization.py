@@ -8,6 +8,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, QThread, QTimer, Qt, QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QFrame,
     QGridLayout,
@@ -24,7 +25,6 @@ from PySide6.QtWidgets import (
 
 from windows.job_controller import JobState
 from windows.model_manager import (
-    MODE_NAMES,
     inspect_deployment_model,
     library_install_state,
     load_model_library,
@@ -56,12 +56,25 @@ class _InspectionWorker(QObject):
 
     @Slot()
     def run(self):
-        result = inspect_deployment_model(
-            self.model_path,
-            self.label_path,
-            self.usecase_mode,
-            self.package_root,
-        )
+        try:
+            result = inspect_deployment_model(
+                self.model_path,
+                self.label_path,
+                self.usecase_mode,
+                self.package_root,
+            )
+        except Exception as exc:
+            result = {
+                "status": "blocked",
+                "summary": f"Model inspection failed unexpectedly: {exc}",
+                "model_path": self.model_path,
+                "label_path": self.label_path,
+                "mode": self.usecase_mode,
+                "mode_name": "Unknown",
+                "blockers": [f"Model inspection failed unexpectedly: {exc}"],
+                "warnings": [],
+                "inspection_source": "none",
+            }
         self.signals.finished.emit(self.generation, result)
 
 
@@ -181,9 +194,15 @@ class ModelManagerDialog(QDialog):
         self.library_table.setHorizontalHeaderLabels(
             ["Model", "Installed", "EPD", "Task", "Recommended modes"]
         )
-        self.library_table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.library_table.setSelectionMode(QTableWidget.SingleSelection)
-        self.library_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.library_table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )
+        self.library_table.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
+        self.library_table.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )
         self.library_table.verticalHeader().setVisible(False)
         self.library_table.horizontalHeader().setStretchLastSection(True)
         self.library_table.itemSelectionChanged.connect(self._library_selection_changed)
@@ -471,6 +490,8 @@ class _EPD3Controller(QObject):
         self._generation = 0
         self._worker_thread = None
         self._worker = None
+        self._inspection_active = False
+        self._inspection_pending = False
 
         self.status_badge = None
         self.summary_label = None
@@ -537,16 +558,22 @@ class _EPD3Controller(QObject):
 
     @Slot()
     def schedule_inspection(self, *args):
-        QTimer.singleShot(0, self._start_inspection)
-
-    def _start_inspection(self):
-        self._generation += 1
-        generation = self._generation
+        self._inspection_pending = True
         self.state = "checking"
         self.result = None
         self._set_compact_state("CHECKING", "checking", "Inspecting ONNX model…")
         self.dialog.set_checking()
         self._enforce_run_gate()
+        QTimer.singleShot(0, self._start_inspection)
+
+    def _start_inspection(self):
+        if self._inspection_active or not self._inspection_pending:
+            return
+
+        self._inspection_pending = False
+        self._inspection_active = True
+        self._generation += 1
+        generation = self._generation
 
         model_path = self.deploy.resolveFilePath(self.deploy._path_to_model)
         label_path = self.deploy.resolveFilePath(self.deploy._path_to_label_list)
@@ -574,8 +601,9 @@ class _EPD3Controller(QObject):
 
     @Slot(int, dict)
     def _inspection_finished(self, generation, result):
-        if generation != self._generation:
+        if generation != self._generation or self._inspection_pending:
             return
+
         self.result = result
         self.state = result.get("status", "blocked")
         if self.state == "ready":
@@ -599,6 +627,9 @@ class _EPD3Controller(QObject):
     def _clear_worker_refs(self):
         self._worker = None
         self._worker_thread = None
+        self._inspection_active = False
+        if self._inspection_pending:
+            QTimer.singleShot(0, self._start_inspection)
 
     def _set_compact_state(self, text, state, summary):
         if self.status_badge is not None:

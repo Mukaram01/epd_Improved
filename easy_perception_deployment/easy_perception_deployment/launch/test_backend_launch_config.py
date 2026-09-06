@@ -1,9 +1,15 @@
 import json
 from pathlib import Path
+import sys
 
 import pytest
 
-from backend_launch_config import resolve_backend_launch_defaults
+
+_LAUNCH_DIR = Path(__file__).resolve().parent
+if str(_LAUNCH_DIR) not in sys.path:
+    sys.path.insert(0, str(_LAUNCH_DIR))
+
+from backend_launch_config import resolve_backend_launch_defaults  # noqa: E402
 
 
 def _write_config(tmp_path, **overrides):

@@ -329,10 +329,10 @@ def _stable_deploy_sync(self):
         if getattr(w, 'publish_detection_segmentation', False)
         else 'Segmentation  •  Off',
     )
-    _set_text(
-        w.docker_button,
-        'Device  •  CPU' if getattr(w, 'useCPU', True) else 'Device  •  GPU',
-    )
+
+    # EPD-8 is the single owner of docker_button text. Its compact backend
+    # label carries richer truth (AUTO/CPU/CUDA/TensorRT + READY/CHECK/BLOCKED).
+    # Do not overwrite that with the legacy useCPU-derived Device label.
 
     is_running = bool(getattr(w, '_is_running', False))
     if is_running:

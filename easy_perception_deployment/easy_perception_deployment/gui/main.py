@@ -20,6 +20,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from windows.Main import MainWindow
+from windows.acceptance_stability import (
+    apply_deploy_ui_stability,
+    install_ros_executor_stability,
+)
 from windows.epd0_productization import apply_epd0_productization
 from windows.epd1_productization import apply_epd1_productization
 from windows.epd2_productization import apply_epd2_productization
@@ -37,6 +41,10 @@ myapp = QApplication(sys.argv)
 
 def main():
 
+    # Install the ROS worker patch before MainWindow constructs the Deploy FPS
+    # monitor. This keeps all GUI ROS subscribers off rclpy's global executor.
+    install_ros_executor_stability()
+
     window1 = MainWindow()
     apply_epd0_productization(window1)
     apply_epd1_productization(window1)
@@ -48,6 +56,7 @@ def main():
     apply_epd6_productization(window1)
     apply_epd8_productization(window1)
     apply_epd9_productization(window1)
+    apply_deploy_ui_stability(window1)
     window1.help_window.setWindowFlag(Qt.Window, True)
     window1.show()
 

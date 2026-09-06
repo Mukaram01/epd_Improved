@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import stat
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent
@@ -130,3 +131,9 @@ def test_reference_profile_is_importable_shape():
     assert payload["profile_schema_version"] == 1
     assert payload["epd"]["usecase_config"]["usecase_mode"] == 4
     assert payload["epd"]["session_config"]["execution_backend"] == "cpu"
+
+
+def test_release_helpers_are_executable_for_ros2_run():
+    for name in ("epd_release_acceptance.py", "epd_diagnostics_bundle.py"):
+        mode = (SCRIPTS / name).stat().st_mode
+        assert mode & stat.S_IXUSR

@@ -24,6 +24,7 @@ from windows.acceptance_stability import (
     apply_deploy_ui_stability,
     install_ros_executor_stability,
 )
+from windows.deploy_runtime_truth import apply_deploy_runtime_truth
 from windows.epd0_productization import apply_epd0_productization
 from windows.epd1_productization import apply_epd1_productization
 from windows.epd2_productization import apply_epd2_productization
@@ -46,7 +47,13 @@ def main():
     install_ros_executor_stability()
 
     window1 = MainWindow()
+
+    # Acceptance stability replaces the Deploy presentation controller's sync
+    # function. Install it before EPD-0 so EPD-0 can wrap the stable sync and
+    # remain the final owner of detected/configured camera truth.
+    apply_deploy_ui_stability(window1)
     apply_epd0_productization(window1)
+    apply_deploy_runtime_truth(window1)
     apply_epd1_productization(window1)
     apply_epd2_productization(window1)
     apply_epd3_productization(window1)
@@ -56,7 +63,6 @@ def main():
     apply_epd6_productization(window1)
     apply_epd8_productization(window1)
     apply_epd9_productization(window1)
-    apply_deploy_ui_stability(window1)
     window1.help_window.setWindowFlag(Qt.Window, True)
     window1.show()
 

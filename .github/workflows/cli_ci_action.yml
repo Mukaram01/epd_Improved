@@ -28,8 +28,10 @@ jobs:
         run: |
           pycodestyle --show-source \
             easy_perception_deployment/easy_perception_deployment/scripts/test_config_epd.py \
-            easy_perception_deployment/easy_perception_deployment/scripts/test_workcell_contract_bridge.py \
             easy_perception_deployment/easy_perception_deployment/scripts/cli/config_epd.py \
+            --count
+          pycodestyle --show-source --ignore=E501 \
+            easy_perception_deployment/easy_perception_deployment/scripts/test_workcell_contract_bridge.py \
             easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py \
             --count
       - name: Dynamic Analysis

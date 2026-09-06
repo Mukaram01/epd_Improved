@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "models": [
+    {
+      "id": "fasterrcnn-10",
+      "name": "Faster R-CNN (ONNX Model Zoo)",
+      "filename": "FasterRCNN-10.onnx",
+      "sha256": "dfb81423efbea52e45df242ade64cfca0ba05fae78e00cf0c68a0979987f87eb",
+      "source_url": "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/faster-rcnn/model/FasterRCNN-10.onnx",
+      "task": "Object detection",
+      "precision_level": 2,
+      "output_count": 3,
+      "input_rank": 3,
+      "input_layout": "CHW",
+      "canonical_labels": "coco_classes.txt",
+      "label_count": 81,
+      "recommended_modes": ["Classification", "Counting", "Color-Matching"],
+      "notes": "Bounding-box detector. Use when masks and 3D localization/tracking are not required."
+    },
+    {
+      "id": "maskrcnn-10",
+      "name": "Mask R-CNN (ONNX Model Zoo)",
+      "filename": "MaskRCNN-10.onnx",
+      "sha256": "a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757",
+      "source_url": "https://github.com/onnx/models/raw/main/validated/vision/object_detection_segmentation/mask-rcnn/model/MaskRCNN-10.onnx",
+      "task": "Instance segmentation",
+      "precision_level": 3,
+      "output_count": 4,
+      "input_rank": 3,
+      "input_layout": "CHW",
+      "canonical_labels": "coco_classes.txt",
+      "label_count": 81,
+      "recommended_modes": ["Classification", "Counting", "Color-Matching", "Localization", "Tracking"],
+      "notes": "Recommended for manipulation workflows that need masks, localization or tracking."
+    },
+    {
+      "id": "ssd-mobilenet-v1-12",
+      "name": "SSD MobileNet V1 12 (ONNX Model Zoo)",
+      "filename": "ssd_mobilenet_v1_12.onnx",
+      "sha256": "b8fba5e404077d4048d27fcd1667e85e27e192eb9bf51e696c46a3acd7d21058",
+      "source_url": "https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_12/resolve/main/ssd_mobilenet_v1_12.onnx?download=true",
+      "task": "Object detection",
+      "precision_level": 2,
+      "output_count": 3,
+      "input_rank": 4,
+      "input_layout": "NCHW/NHWC inspected at runtime",
+      "canonical_labels": "coco_classes.txt",
+      "label_count": 81,
+      "recommended_modes": ["Classification", "Counting", "Color-Matching"],
+      "notes": "Lighter P2 detector. Runtime input layout is inspected before deployment."
+    },
+    {
+      "id": "squeezenet-1.1-7",
+      "name": "SqueezeNet 1.1 (legacy P1 reference)",
+      "filename": "squeezenet1.1-7.onnx",
+      "sha256": "1eeff551a67ae8d565ca33b572fc4b66e3ef357b0eb2863bb9ff47a918cc4088",
+      "source_url": "https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx",
+      "task": "Image classification",
+      "precision_level": 1,
+      "output_count": 1,
+      "input_rank": 4,
+      "input_layout": "NCHW",
+      "canonical_labels": null,
+      "label_count": 1000,
+      "recommended_modes": [],
+      "notes": "Precision Level 1 deployment is deprecated in the current EPD runtime and is blocked by Model Manager."
+    }
+  ]
+}

@@ -191,12 +191,35 @@ See `docs/EPD_PROFILES_REPLAY.md` for the profile format, workflow and replay li
 
 ## EPD-6 — 3D Perception Tools
 
-Strengthen manipulation-facing diagnostics:
-- RGB/depth alignment checks;
-- point/depth validity inspection;
-- localization geometry inspector;
-- tracked ID inspector;
-- optional plane/background filtering tools where justified by real workcell failures.
+Status: implemented by the `feature/epd6-3d-perception-tools` increment.
+
+Strengthen manipulation-facing diagnostics without changing perception behavior:
+- read-only **3D Inspector** available from Deploy and `Ctrl+Shift+3`;
+- embedded depth/result frame-dimension checks;
+- finite/positive camera-intrinsics checks;
+- exact P3 result-header ↔ embedded-depth timestamp check;
+- supported depth-encoding check;
+- sampled valid-depth ratio without requiring numpy;
+- per-object centroid, dimensions, segmented point-cloud size, major-axis and pose sanity inspection;
+- current Tracking IDs and backend-reported LOST transitions;
+- production geometry counters from `/easy_perception_deployment/inference_diagnostics`;
+- stale-data detection so old 3D output does not remain labelled live;
+- Help topic and dedicated operator documentation;
+- no plane/background filtering enabled without a measured workcell failure that justifies it.
+
+Acceptance:
+1. 3D Inspector opens without changing Deploy configuration or starting/stopping perception.
+2. Localization/Tracking results show frame, depth, intrinsics, processing time and sampled depth validity.
+3. Healthy P3 output is labelled aligned only when result/depth dimensions, encoding, intrinsics and source timestamp agree.
+4. Localized objects show camera-frame centroid, dimensions and point-cloud size using the existing `LocalizedObject` message fields.
+5. Tracking mode shows current stable `object_ids` and `lost_track_ids` exactly as published by EPD.
+6. Production valid/degraded/invalid geometry counters and failure-reason counters are displayed without being replaced by GUI heuristics.
+7. The GUI-side object check is explicitly labelled as an inspector sanity check, not production geometry truth.
+8. If no fresh P3 output arrives for roughly three seconds, the inspector leaves LIVE state.
+9. Missing ROS Python/EPD messages produces UNAVAILABLE rather than a false healthy state.
+10. EPD-6 makes no inference, filter, PlanningScene, EMD task or robot-motion changes.
+
+See `docs/EPD_3D_PERCEPTION_TOOLS.md` for the operator workflow and limits.
 
 ## EPD-7 — Workcell Studio / EMD Contract
 

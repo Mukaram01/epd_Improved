@@ -82,13 +82,33 @@ Acceptance:
 
 ## EPD-2 — Live Perception View
 
+Status: implemented by the `feature/epd2-live-perception-view` increment.
+
 Embed a preview inside Deploy:
-- RGB image;
-- optional detection boxes/masks;
-- object count;
-- FPS and latency;
-- clear start/stop state;
-- no need to open `rqt_image_view` for the normal operator workflow.
+- live RGB camera preview while perception is stopped;
+- `/easy_perception_deployment/image_output` while perception is running with Detection overlay enabled;
+- fallback to the selected camera RGB stream while Detection overlay is disabled;
+- support for raw and compressed image transport;
+- optional detection boxes/masks as produced by the existing EPD visualization output;
+- mode-aware object count from EPD output messages;
+- pipeline FPS where mode output messages are available;
+- latency from `process_time` or comparable ROS message timestamps;
+- frame-age/staleness indication;
+- explicit `STOPPED`, `STARTING`, `LIVE`, `WAITING`, `STOPPING`, `FAILED`, and `UNAVAILABLE` states;
+- no need to open `rqt_image_view` for the normal operator workflow;
+- no inference, message-schema, or camera-configuration ownership changes.
+
+Acceptance:
+1. Opening Deploy starts a non-blocking camera preview when ROS Python image support is available.
+2. The stopped state shows the configured RGB stream without claiming perception is running.
+3. Running with Detection overlay enabled switches the preview source to EPD `image_output`.
+4. Running with Detection overlay disabled keeps the camera preview while ROS perception results continue.
+5. Raw `rgb8`, `bgr8`, `rgba8`, `bgra8`, and `mono8` images render without `cv_bridge`.
+6. Compressed image transport renders through Qt image decoding.
+7. Object count is derived from `class_indices` for detection modes and `objects` for 3D modes.
+8. FPS, latency and frame age degrade to `—` when the underlying data is unavailable rather than inventing values.
+9. A stale or missing preview never remains labelled `LIVE`.
+10. Closing/hiding Deploy stops the preview subscriber without stopping the deployment itself.
 
 ## EPD-3 — Smart Model Manager
 

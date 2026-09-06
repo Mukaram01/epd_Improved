@@ -17,7 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses:
+          actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
@@ -45,6 +46,7 @@ jobs:
             easy_perception_deployment/easy_perception_deployment/gui/test_gui.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_gui_gpu_local_only.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_camera_assistant.py \
+            easy_perception_deployment/easy_perception_deployment/gui/test_model_manager.py \
             easy_perception_deployment/easy_perception_deployment/gui/windows/*.py \
             easy_perception_deployment/easy_perception_deployment/gui/trainer/*.py \
             --count
@@ -62,4 +64,5 @@ jobs:
           pytest --capture=no -vv \
             test_gui.py \
             test_camera_assistant.py \
-            test_live_perception_view.py
+            test_live_perception_view.py \
+            test_model_manager.py

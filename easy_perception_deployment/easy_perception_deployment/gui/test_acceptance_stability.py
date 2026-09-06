@@ -76,6 +76,7 @@ def test_state_repolishes_only_when_style_state_changes():
 
 
 def test_deploy_sync_does_not_repaint_unchanged_state():
+    backend_label = "Backend  •  AUTO • CHECK"
     window = SimpleNamespace(
         _path_to_model="./data/model/MaskRCNN-10.onnx",
         _path_to_label_list="./data/label_list/coco_classes.txt",
@@ -88,7 +89,7 @@ def test_deploy_sync_does_not_repaint_unchanged_state():
         useCPU=True,
         visualize_button=FakeWidget(),
         segmentation_button=FakeWidget(),
-        docker_button=FakeWidget(),
+        docker_button=FakeWidget(backend_label),
         run_button=FakeWidget(enabled=True),
         _is_running=False,
     )
@@ -120,3 +121,5 @@ def test_deploy_sync_does_not_repaint_unchanged_state():
     assert controller.header_badge.style().polish_calls == first_header_polish
     assert controller.model_state.style().polish_calls == first_model_polish
     assert window.run_button.set_text_calls == first_run_text_calls
+    assert window.docker_button.text() == backend_label
+    assert window.docker_button.set_text_calls == 0

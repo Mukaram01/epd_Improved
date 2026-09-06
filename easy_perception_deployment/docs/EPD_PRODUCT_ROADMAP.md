@@ -255,11 +255,38 @@ See `docs/EPD_WORKCELL_CONTRACT.md` and the schemas under `docs/schemas/` for th
 
 ## EPD-8 — Performance Backends
 
-After operator correctness and runtime observability are solid:
-- GPU/TensorRT/Jetson paths;
-- benchmark CPU vs accelerated inference;
-- optional provider/backend selection;
-- keep the current CPU path as a reliable fallback.
+Status: implemented by the `feature/epd8-performance-backends` increment.
+
+Make acceleration explicit, measurable and reversible:
+- versioned session backend selection for `auto`, `cpu`, `cuda`, and `tensorrt`, plus GPU index;
+- retain legacy `useCPU` compatibility for existing profiles and scripts while `execution_backend` becomes the explicit EPD-8 source of truth;
+- explicit ONNX Runtime provider selection rather than a blind CPU/GPU presentation;
+- `auto` attempts CUDA only in a GPU-capable build and falls back to CPU when CUDA provider initialization fails;
+- explicit CUDA fails clearly when the CUDA provider cannot initialize rather than silently claiming acceleration;
+- conditional TensorRT provider support with CUDA behind it for unsupported graph partitions;
+- TensorRT Docker deployment requires an explicit `EPD_TENSORRT_IMAGE` and never pretends the ordinary GPU image is TensorRT-capable;
+- Performance Backends UI probes host architecture, Jetson markers, Docker, NVIDIA runtime, image presence and compiled provider capability where available;
+- compiled `epd_backend_probe` reports CPU/CUDA/TensorRT build capability without pretending that hardware is healthy;
+- guarded native CUDA and Jetson build helper plus documented TensorRT-vendor extension path;
+- deterministic P8 CPU/CUDA/TensorRT benchmark using the existing production replay acceptance path;
+- replay summaries expose production inference latency/rate counters for backend comparison;
+- accelerated semantic summaries are compared with CPU for stable IDs, LOST lifecycle, geometry quality and stale-result truth;
+- EPD-5 profiles preserve backend and GPU-index configuration;
+- CPU remains the portable baseline and recovery path.
+
+Acceptance:
+1. Legacy `useCPU` CPU/GPU configurations migrate to explicit CPU/CUDA backend truth without breaking old profiles.
+2. `auto` may fall back to CPU, but explicit CUDA or TensorRT never silently claims acceleration when the requested provider is unavailable.
+3. CUDA uses the ONNX Runtime CUDA execution provider on a GPU-capable build and reports initialization failure clearly.
+4. TensorRT remains unavailable unless the ONNX Runtime vendor, EPD build, NVIDIA runtime and explicit TensorRT image are actually provisioned.
+5. Jetson is recognized as an NVIDIA `aarch64` target and does not silently assume an x86 GPU image is compatible.
+6. Performance Backends distinguishes host/runtime/image/build evidence instead of presenting a single misleading GPU toggle.
+7. Deterministic benchmark runs the existing replay acceptance for every requested backend before treating speed measurements as meaningful.
+8. A CUDA/TensorRT semantic mismatch from the CPU replay baseline is surfaced for review rather than hidden by a faster timing result.
+9. Backend choice and GPU index survive EPD-5 profile save/restore and remain blocked from changing underneath an active deployment.
+10. EPD-8 makes no scene, PlanningScene, grasp, MoveIt, robot-motion, model, or ROS message-schema ownership changes.
+
+See `docs/EPD_PERFORMANCE_BACKENDS.md` for build, Jetson, TensorRT, Docker, benchmark and adoption guidance.
 
 ## EPD-9 — Release / Demo Quality
 

@@ -71,6 +71,10 @@ set(EPD_UTILS
 # -----------------------------
 option(EPD_DOWNLOAD_MODELS "Download pretrained ONNX models at configure time" OFF)
 option(EPD_REQUIRE_MODELS "Fail configuration when pretrained ONNX models are missing" OFF)
+option(
+  EPD_ENABLE_TENSORRT
+  "Enable TensorRT execution provider; requires a TensorRT-enabled ONNX Runtime vendor"
+  OFF)
 
 if(NOT EPD_DOWNLOAD_MODELS)
   message(WARNING
@@ -196,7 +200,7 @@ else()
 endif()
 
 # -----------------------------
-# CUDA check for local onnxruntime build (optional)
+# Accelerated backend capability
 # -----------------------------
 find_package(CUDA)
 if(CUDA_FOUND)
@@ -205,6 +209,18 @@ if(CUDA_FOUND)
 else()
   message(AUTHOR_WARNING "Your local onnxruntime does not support CUDA. Using [-CPU-] instead.")
   add_definitions(-DUSE_GPU=false)
+endif()
+
+if(EPD_ENABLE_TENSORRT)
+  if(NOT CUDA_FOUND)
+    message(FATAL_ERROR
+      "EPD_ENABLE_TENSORRT=ON requires CUDA and a TensorRT-enabled epd_onnxruntime_vendor.")
+  endif()
+  message(STATUS
+    "EPD TensorRT provider enabled. The ONNX Runtime vendor must have been built with TensorRT.")
+  add_definitions(-DEPD_ENABLE_TENSORRT=1)
+else()
+  add_definitions(-DEPD_ENABLE_TENSORRT=0)
 endif()
 
 if(DEBUG)
@@ -336,11 +352,12 @@ if(BUILD_TESTING)
 endif()
 
 # -----------------------------
-# Main node and model-inspection helper
+# Main node and helper executables
 # -----------------------------
 add_executable(easy_perception_deployment src/main.cpp ${EPD_UTILS})
 add_executable(epd_sensor_ingress src/sensor_ingress.cpp)
 add_executable(epd_model_inspector src/model_inspector.cpp)
+add_executable(epd_backend_probe src/backend_probe.cpp)
 
 target_link_libraries(epd_model_inspector epd_onnxruntime_vendor::onnxruntime)
 
@@ -375,12 +392,15 @@ install(TARGETS
   easy_perception_deployment
   epd_sensor_ingress
   epd_model_inspector
+  epd_backend_probe
   DESTINATION lib/${PROJECT_NAME}
 )
 
 install(PROGRAMS
   scripts/epd_soak_probe.py
   scripts/epd_replay.py
+  scripts/epd_backend_benchmark.py
+  scripts/build_accelerated_backend.sh
   DESTINATION lib/${PROJECT_NAME}
 )
 

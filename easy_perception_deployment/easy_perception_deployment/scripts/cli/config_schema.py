@@ -17,6 +17,7 @@ COLOR_HISTOGRAM_METRIC_CHOICES = (
 )
 TRACK_TYPE_CHOICES = ("KCF", "MEDIANFLOW", "CSRT")
 IMAGE_TRANSPORT_CHOICES = ("raw", "compressed")
+EXECUTION_BACKEND_CHOICES = ("auto", "cpu", "cuda", "tensorrt")
 
 USECASE_MODE_CHOICES = (0, 1, 2, 3, 4)
 USECASE_MODE_LABELS = {
@@ -33,6 +34,8 @@ DEFAULT_SESSION_CONFIG = {
     "path_to_label_list": "./data/label_list/imagenet_classes.txt",
     "visualizeFlag": "visualize",
     "useCPU": "CPU",
+    "execution_backend": "auto",
+    "execution_backend_gpu_index": 0,
     "intra_op_num_threads": 0,
     "image_transport": "raw",
     "publish_detection_segmentation": True,
@@ -57,6 +60,25 @@ class ConfigSchemaError(ValueError):
 
 def _error(field: str, message: str) -> ConfigSchemaError:
     return ConfigSchemaError(f"{field}: {message}")
+
+
+def normalize_execution_backend(value):
+    normalized = str(value or "auto").strip().lower()
+    aliases = {
+        "gpu": "cuda",
+        "nvidia": "cuda",
+        "trt": "tensorrt",
+        "default": "auto",
+    }
+    normalized = aliases.get(normalized, normalized)
+    if normalized not in EXECUTION_BACKEND_CHOICES:
+        raise _error(
+            "execution_backend",
+            "invalid value (expected one of "
+            + ", ".join(EXECUTION_BACKEND_CHOICES)
+            + ")",
+        )
+    return normalized
 
 
 def normalize_color_histogram_metric(metric):
@@ -141,6 +163,22 @@ def validate_session_config(config, require_model_file=False, require_label_file
         raise _error("visualizeFlag", "invalid value (expected visualize or robot)")
     if normalized["useCPU"] not in ("CPU", "GPU"):
         raise _error("useCPU", "invalid value (expected CPU or GPU)")
+
+    # EPD-8 keeps useCPU for backwards compatibility while execution_backend
+    # becomes the explicit provider selection used by new deployments.
+    if "execution_backend" not in config:
+        normalized["execution_backend"] = (
+            "cpu" if normalized["useCPU"] == "CPU" else "cuda"
+        )
+    else:
+        normalized["execution_backend"] = normalize_execution_backend(
+            normalized.get("execution_backend")
+        )
+    normalized["execution_backend_gpu_index"] = int(
+        normalized.get("execution_backend_gpu_index", 0)
+    )
+    if normalized["execution_backend_gpu_index"] < 0:
+        raise _error("execution_backend_gpu_index", "must be >= 0")
 
     normalized["intra_op_num_threads"] = int(normalized.get("intra_op_num_threads", 0))
     if normalized["intra_op_num_threads"] < 0:

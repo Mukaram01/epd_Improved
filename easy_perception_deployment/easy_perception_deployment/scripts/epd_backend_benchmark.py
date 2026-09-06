@@ -211,12 +211,14 @@ def main():
         gpu_index=max(0, args.gpu_index),
         timeout=args.timeout,
     )
-    text = json.dumps(report, indent=2, sort_keys=True)
+    pretty = json.dumps(report, indent=2, sort_keys=True)
     if args.output:
         destination = Path(args.output).expanduser()
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(text + "\n", encoding="utf-8")
-    print(text)
+        destination.write_text(pretty + "\n", encoding="utf-8")
+    # Keep stdout as one complete JSON line so the GUI can parse the result
+    # without depending on log formatting from nested ros2 launch processes.
+    print(json.dumps(report, sort_keys=True))
     return 0 if report["all_requested_passed"] else 1
 
 

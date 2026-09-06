@@ -22,14 +22,23 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 #include "ort_cpp_lib/ort_base.hpp"
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
 
+#ifndef EPD_ENABLE_TENSORRT
+#define EPD_ENABLE_TENSORRT 0
+#endif
+
 #if USE_GPU
 #include "onnxruntime/core/providers/cuda/cuda_provider_factory.h"
+#endif
+
+#if USE_GPU && EPD_ENABLE_TENSORRT
+#include "onnxruntime/core/providers/tensorrt/tensorrt_provider_factory.h"
 #endif
 
 template<typename T, template<typename, typename = std::allocator<T>> class Container>
@@ -45,6 +54,76 @@ std::ostream & operator<<(std::ostream & os, const Container<T> & container)
   return os;
 }
 
+namespace
+{
+
+std::string normalizedBackend(const char * raw, bool legacy_gpu_requested)
+{
+  std::string value = raw == nullptr ? "" : std::string(raw);
+  std::transform(
+    value.begin(), value.end(), value.begin(),
+    [](unsigned char c) {return static_cast<char>(std::tolower(c));});
+  if (value.empty()) {
+    return legacy_gpu_requested ? "cuda" : "cpu";
+  }
+  if (value == "gpu" || value == "nvidia") {
+    return "cuda";
+  }
+  if (value == "trt") {
+    return "tensorrt";
+  }
+  if (value == "default") {
+    return "auto";
+  }
+  if (value != "auto" && value != "cpu" && value != "cuda" && value != "tensorrt") {
+    throw std::runtime_error(
+            "Unsupported EPD_EXECUTION_BACKEND='" + value +
+            "'. Expected auto, cpu, cuda, or tensorrt.");
+  }
+  return value;
+}
+
+size_t resolvedGpuIndex(const boost::optional<size_t> & legacy_index)
+{
+  const char * env_index = std::getenv("EPD_GPU_INDEX");
+  if (env_index != nullptr && env_index[0] != '\0') {
+    try {
+      const long long parsed = std::stoll(env_index);
+      if (parsed < 0) {
+        throw std::runtime_error("negative GPU index");
+      }
+      return static_cast<size_t>(parsed);
+    } catch (const std::exception &) {
+      throw std::runtime_error(
+              "EPD_GPU_INDEX must be a non-negative integer, got '" +
+              std::string(env_index) + "'.");
+    }
+  }
+  return legacy_index.is_initialized() ? legacy_index.value() : 0U;
+}
+
+std::string ortStatusMessage(OrtStatus * status)
+{
+  if (status == nullptr) {
+    return "";
+  }
+  const char * text = Ort::GetApi().GetErrorMessage(status);
+  const std::string message = text == nullptr ? "unknown ONNX Runtime error" : text;
+  Ort::GetApi().ReleaseStatus(status);
+  return message;
+}
+
+void publishResolvedBackend(const std::string & backend)
+{
+#if defined(_WIN32)
+  _putenv_s("EPD_RESOLVED_EXECUTION_BACKEND", backend.c_str());
+#else
+  setenv("EPD_RESOLVED_EXECUTION_BACKEND", backend.c_str(), 1);
+#endif
+}
+
+}  // namespace
+
 namespace Ort
 {
 
@@ -52,8 +131,8 @@ class OrtBase::OrtBaseImpl
 {
 public:
   OrtBaseImpl(
-    const std::string & modelPath,         //
-    const boost::optional<size_t> & gpuIdx,  //
+    const std::string & modelPath,
+    const boost::optional<size_t> & gpuIdx,
     const boost::optional<int> & intraOpNumThreads,
     const boost::optional<int> & interOpNumThreads,
     const boost::optional<SessionExecutionMode> & executionMode,
@@ -95,7 +174,6 @@ private:
   bool m_logModelInfo = false;
 };
 
-// Constructor
 OrtBase::OrtBase(
   const std::string & modelPath,
   const boost::optional<size_t> & gpuIdx,
@@ -115,7 +193,6 @@ OrtBase::OrtBase(
       logModelInfo))
 {}
 
-// Destructor
 OrtBase::~OrtBase() = default;
 
 std::vector<OrtBase::DataOutputType> OrtBase::operator()(const std::vector<float *> & inputImgData)
@@ -151,10 +228,9 @@ bool OrtBase::resolveModelInfoLoggingEnabled(const boost::optional<bool> & logMo
   return envValue == "1" || envValue == "true" || envValue == "yes" || envValue == "on";
 }
 
-// Constructor
 OrtBase::OrtBaseImpl::OrtBaseImpl(
-  const std::string & modelPath,         //
-  const boost::optional<size_t> & gpuIdx,  //
+  const std::string & modelPath,
+  const boost::optional<size_t> & gpuIdx,
   const boost::optional<int> & intraOpNumThreads,
   const boost::optional<int> & interOpNumThreads,
   const boost::optional<SessionExecutionMode> & executionMode,
@@ -236,16 +312,74 @@ void OrtBase::OrtBaseImpl::initSession()
   sessionOptions.SetExecutionMode(
     is_parallel_execution ? ExecutionMode::ORT_PARALLEL : ExecutionMode::ORT_SEQUENTIAL);
 
-  #if USE_GPU
-  if (m_gpuIdx.is_initialized()) {
-    Ort::ThrowOnError(
-      OrtSessionOptionsAppendExecutionProvider_CUDA(
-        sessionOptions,
-        m_gpuIdx.value()));
-  }
-  #endif
+  const bool legacy_gpu_requested = m_gpuIdx.is_initialized();
+  const std::string requested_backend = normalizedBackend(
+    std::getenv("EPD_EXECUTION_BACKEND"), legacy_gpu_requested);
+  const size_t gpu_index = resolvedGpuIndex(m_gpuIdx);
+  std::string resolved_backend = requested_backend;
 
-  std::cout << "[ORT] Session config: execution_mode="
+  if (requested_backend == "auto") {
+#if USE_GPU
+    const std::string cuda_error = ortStatusMessage(
+      OrtSessionOptionsAppendExecutionProvider_CUDA(sessionOptions, gpu_index));
+    if (cuda_error.empty()) {
+      resolved_backend = "cuda";
+    } else {
+      std::cerr << "[ORT] AUTO CUDA unavailable: " << cuda_error
+                << "; falling back to CPU." << std::endl;
+      resolved_backend = "cpu";
+    }
+#else
+    resolved_backend = "cpu";
+#endif
+  } else if (requested_backend == "cuda") {
+#if USE_GPU
+    const std::string cuda_error = ortStatusMessage(
+      OrtSessionOptionsAppendExecutionProvider_CUDA(sessionOptions, gpu_index));
+    if (!cuda_error.empty()) {
+      throw std::runtime_error(
+              "CUDA backend requested but ONNX Runtime could not initialize it: " +
+              cuda_error);
+    }
+#else
+    throw std::runtime_error(
+            "CUDA backend requested, but this EPD build has USE_GPU=false. "
+            "Build epd_onnxruntime_vendor with CUDA support or choose CPU/auto.");
+#endif
+  } else if (requested_backend == "tensorrt") {
+#if USE_GPU && EPD_ENABLE_TENSORRT
+    const std::string tensorrt_error = ortStatusMessage(
+      OrtSessionOptionsAppendExecutionProvider_Tensorrt(sessionOptions, gpu_index));
+    if (!tensorrt_error.empty()) {
+      throw std::runtime_error(
+              "TensorRT backend requested but provider initialization failed: " +
+              tensorrt_error);
+    }
+    // TensorRT may delegate unsupported graph partitions to CUDA. CPU remains
+    // the final implicit ONNX Runtime fallback for unsupported operators.
+    const std::string cuda_error = ortStatusMessage(
+      OrtSessionOptionsAppendExecutionProvider_CUDA(sessionOptions, gpu_index));
+    if (!cuda_error.empty()) {
+      throw std::runtime_error(
+              "TensorRT initialized, but its CUDA fallback provider failed: " +
+              cuda_error);
+    }
+#else
+    throw std::runtime_error(
+            "TensorRT backend requested, but this EPD build does not include the "
+            "TensorRT execution provider. Build the ONNX Runtime vendor with "
+            "TensorRT and configure EPD with -DEPD_ENABLE_TENSORRT=ON.");
+#endif
+  } else {
+    resolved_backend = "cpu";
+  }
+
+  publishResolvedBackend(resolved_backend);
+
+  std::cout << "[ORT] Session config: backend=" << resolved_backend
+            << ", requested_backend=" << requested_backend
+            << ", gpu_index=" << gpu_index
+            << ", execution_mode="
             << (is_parallel_execution ? "parallel" : "sequential")
             << ", intra_op_num_threads=" << intra_op_threads
             << ", inter_op_num_threads=" << inter_op_threads
@@ -267,10 +401,6 @@ void OrtBase::OrtBaseImpl::initSession()
 void OrtBase::OrtBaseImpl::initModelInfo()
 {
   for (int i = 0; i < m_numInputs; i++) {
-    // If m_inputShapes not initialized,
-    // then look at m_session and derive.
-    // Ensures that m_inputShapes is filled properly before use.
-    // Always query TypeInfo to capture the element type declared by the model.
     Ort::TypeInfo typeInfo = m_session.GetInputTypeInfo(i);
     auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
     m_inputElementTypes.emplace_back(tensorInfo.GetElementType());
@@ -288,8 +418,6 @@ void OrtBase::OrtBaseImpl::initModelInfo()
         1,
         std::multiplies<int64_t>()));
 
-    // DEBUG
-    // Identified potential failure point for loading point.
     char * inputName = m_session.GetInputName(i, m_ortAllocator);
     m_inputNodeNames.emplace_back(strdup(inputName));
     m_ortAllocator.Free(inputName);
@@ -328,26 +456,20 @@ void OrtBase::OrtBaseImpl::logModelInfo() const
   std::cout << ss.str();
 }
 
-// Run ORT session on processed input image.
 std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
   const std::vector<float *> & inputData)
 {
   if (m_numInputs != inputData.size()) {
     throw std::runtime_error("Mismatch size of input data\n");
   }
-  // Investigate if this statement means it is using CPU instead of GPU when GPU is intended.
+  // ORT accepts CPU tensors as input even when CUDA/TensorRT providers execute
+  // the graph; the provider copies/binds data as required by the session.
   Ort::MemoryInfo memoryInfo = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-  // Create inputTensors
   std::vector<Ort::Value> inputTensors;
   inputTensors.reserve(m_numInputs);
-  // uint8 conversion buffers; must outlive inputTensors until Run() completes.
   std::vector<std::vector<uint8_t>> uint8Buffers;
-  // Populate inputTensors with device-specific memoryInfo, the input image and the inputShapes.
   for (int i = 0; i < m_numInputs; ++i) {
     if (m_inputElementTypes[i] == ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8) {
-      // The model expects raw uint8 pixel values (0-255).
-      // The preprocessing path has already skipped mean subtraction and stored
-      // float values in the 0-255 range; clamp and cast them here.
       const int64_t tensorSize = m_inputTensorSizes[i];
       uint8Buffers.emplace_back(static_cast<size_t>(tensorSize));
       std::vector<uint8_t> & buf = uint8Buffers.back();
@@ -375,7 +497,6 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
             m_inputShapes[i].size())));
     }
   }
-  // INFERENCE DONE HERE.
   auto outputTensors = m_session.Run(
     Ort::RunOptions{nullptr},
     m_inputNodeNames.data(),
@@ -384,7 +505,6 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
     m_outputNodeNames.data(),
     m_numOutputs);
 
-  // Check if outputTensors is empty. It should not be, even if it is garbage.
   if (outputTensors.size() != m_numOutputs) {
     throw std::runtime_error(
       "Output tensor count mismatch: expected " +

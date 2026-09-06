@@ -8,7 +8,7 @@ From **Deploy**, select **3D Inspector** or press `Ctrl+Shift+3`.
 
 The inspector listens to the production EPD topics:
 
-- `/easy_perception_deployment/epd_localization_output`
+- `/easy_perception_deployment/epd_localize_output`
 - `/easy_perception_deployment/epd_tracking_output`
 - `/easy_perception_deployment/inference_diagnostics`
 

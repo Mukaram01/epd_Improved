@@ -27,6 +27,14 @@ def apply_epd1_productization(main_window):
         lambda result: _apply_health_to_deploy(main_window, result)
     )
 
+    deploy = main_window.deploy_window
+    deploy.topic_button.currentTextChanged.connect(
+        lambda _text: _invalidate_health_summary(deploy, "camera topic changed")
+    )
+    deploy.usecase_config_button.currentTextChanged.connect(
+        lambda _text: _invalidate_health_summary(deploy, "perception mode changed")
+    )
+
 
 def _add_camera_assistant_control(main_window):
     deploy = main_window.deploy_window
@@ -116,6 +124,16 @@ def _show_camera_assistant(main_window):
     assistant.refresh_health()
 
 
+def _invalidate_health_summary(deploy, reason):
+    label = getattr(deploy, "_epd1_camera_health_label", None)
+    if label is None:
+        return
+    label.setText(f"Camera health: recheck required ({reason})")
+    label.setProperty("healthState", "partial")
+    label.style().unpolish(label)
+    label.style().polish(label)
+
+
 def _apply_health_to_deploy(main_window, result):
     deploy = main_window.deploy_window
     streams = result.get("streams", {})
@@ -137,8 +155,10 @@ def _apply_health_to_deploy(main_window, result):
     rgb_live = rgb.get("state") == "live"
     depth_live = depth.get("state") == "live"
     info_live = info.get("state") == "live"
+    depth_aligned = bool(depth.get("aligned"))
+    three_d_ready = depth_live and info_live and depth_aligned
 
-    if connected and rgb_live and (not requires_3d or (depth_live and info_live)):
+    if connected and rgb_live and (not requires_3d or three_d_ready):
         state = "ready"
     elif connected and rgb_live:
         state = "partial"
@@ -147,7 +167,15 @@ def _apply_health_to_deploy(main_window, result):
 
     label = getattr(deploy, "_epd1_camera_health_label", None)
     if label is not None:
-        label.setText(_summary_text(connected, rgb_live, depth_live, info_live, requires_3d))
+        summary = _summary_text(
+            connected,
+            rgb_live,
+            depth_live,
+            info_live,
+            depth_aligned,
+            requires_3d,
+        )
+        label.setText(summary)
         label.setProperty("healthState", state)
         label.style().unpolish(label)
         label.style().polish(label)
@@ -157,7 +185,14 @@ def _apply_health_to_deploy(main_window, result):
         controller.sync()
 
 
-def _summary_text(connected, rgb_live, depth_live, info_live, requires_3d):
+def _summary_text(
+    connected,
+    rgb_live,
+    depth_live,
+    info_live,
+    depth_aligned,
+    requires_3d,
+):
     if not connected:
         return "Camera health: ROS 2 unavailable"
 
@@ -165,6 +200,11 @@ def _summary_text(connected, rgb_live, depth_live, info_live, requires_3d):
     if not requires_3d:
         return f"Camera health: {rgb_text}  •  depth/info optional for this mode"
 
-    depth_text = "Depth ✓" if depth_live else "Depth ✕"
+    if depth_live and depth_aligned:
+        depth_text = "Depth ✓ aligned"
+    elif depth_live:
+        depth_text = "Depth ⚠ alignment"
+    else:
+        depth_text = "Depth ✕"
     info_text = "CameraInfo ✓" if info_live else "CameraInfo ✕"
     return f"Camera health: {rgb_text}  •  {depth_text}  •  {info_text}"

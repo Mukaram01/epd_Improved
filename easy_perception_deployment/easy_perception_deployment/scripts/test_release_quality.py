@@ -119,8 +119,13 @@ def test_diagnostics_collect_records_unavailable_commands(tmp_path, monkeypatch)
 
 
 def test_reference_profile_is_importable_shape():
-    root = Path(__file__).resolve().parents[2]
-    profile = root.parent / "examples" / "profiles" / "realsense_tracking_cpu.epd-profile.json"
+    outer_package = Path(__file__).resolve().parents[2]
+    profile = (
+        outer_package
+        / "examples"
+        / "profiles"
+        / "realsense_tracking_cpu.epd-profile.json"
+    )
     payload = json.loads(profile.read_text(encoding="utf-8"))
     assert payload["profile_schema_version"] == 1
     assert payload["epd"]["usecase_config"]["usecase_mode"] == 4

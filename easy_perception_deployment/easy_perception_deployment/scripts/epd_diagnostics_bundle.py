@@ -13,7 +13,6 @@ import json
 import os
 import platform
 import re
-import shutil
 import subprocess
 import tempfile
 import time
@@ -115,7 +114,25 @@ def copy_text_file(source, destination, redact):
 
 
 def package_root_from_script():
-    return Path(__file__).resolve().parents[1]
+    configured = os.environ.get("EPD_PACKAGE_ROOT", "").strip()
+    if configured:
+        return Path(configured).expanduser().resolve()
+
+    source_candidate = Path(__file__).resolve().parents[1]
+    if (source_candidate / "config" / "session_config.json").is_file():
+        return source_candidate
+
+    cwd = Path.cwd().resolve()
+    if (cwd / "config" / "session_config.json").is_file():
+        return cwd
+
+    try:
+        from ament_index_python.packages import get_package_share_directory
+        return Path(
+            get_package_share_directory("easy_perception_deployment")
+        ).resolve()
+    except Exception:
+        return source_candidate
 
 
 def collect(package_root, bundle_dir, profile_path=None, include_paths=False):
@@ -125,6 +142,7 @@ def collect(package_root, bundle_dir, profile_path=None, include_paths=False):
         "created_utc": utc_now(),
         "read_only_collection": True,
         "paths_redacted": not include_paths,
+        "package_root": redact(str(package_root)),
         "platform": {
             "system": platform.system(),
             "release": platform.release(),
@@ -140,6 +158,7 @@ def collect(package_root, bundle_dir, profile_path=None, include_paths=False):
                 "RMW_IMPLEMENTATION",
                 "EPD_EXECUTION_BACKEND",
                 "EPD_GPU_INDEX",
+                "EPD_PACKAGE_ROOT",
             )
         },
         "files": [],
@@ -161,6 +180,12 @@ def collect(package_root, bundle_dir, profile_path=None, include_paths=False):
             )
             record["source"] = redact(record["source"])
             manifest["files"].append(record)
+        else:
+            manifest["files"].append({
+                "source": redact(str(source)),
+                "copied": False,
+                "error": "config file not found",
+            })
 
     if profile_path:
         profile = Path(profile_path).expanduser().resolve()

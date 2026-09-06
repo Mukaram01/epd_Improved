@@ -223,15 +223,35 @@ See `docs/EPD_3D_PERCEPTION_TOOLS.md` for the operator workflow and limits.
 
 ## EPD-7 — Workcell Studio / EMD Contract
 
-Keep repository ownership separate while formalizing the integration:
-- normalized perceived-object contract;
-- stable IDs and timestamps;
-- pose/geometry/frame metadata;
-- perception health/status;
-- profile reference from a Workcell Studio scene;
-- live and replay support.
+Status: implemented by the `feature/epd7-workcell-contract` increment.
 
-EPD must not own Workcell Studio scene definitions, tasks or planning logic.
+Formalize the perception boundary while keeping repository ownership separate:
+- publish the existing Workcell Studio `workcell_perception_snapshot/v1` normalized contract directly from native EPD Localization/Tracking output;
+- publish `workcell_perception_status/v1` health with `WAITING`, `READY`, `STALE` and `FAILED` truth;
+- preserve exact EPD Tracking IDs as stable `object_id` / `track_id` values and preserve backend `lost_track_ids` as `lost_object_ids`;
+- mark Localization-only identities explicitly observation-scoped rather than pretending they are stable;
+- preserve exact ROS source timestamps in nanoseconds plus an ISO representation and reject backward timestamp regression;
+- preserve native frame ID, pose/centroid, positive observed dimensions, box shape, point-cloud availability, axis and ROI metadata where available;
+- never invent per-object confidence because current Localization/Tracking messages do not contain a trustworthy confidence association;
+- accept `scene_id`, `camera_id` and optional EPD-5 `profile_ref` from Workcell Studio launch metadata without reading or owning scene definitions;
+- expose a standalone `workcell_contract.launch.py` plus optional integration in `epd_emd_pipeline.launch.py`;
+- support the same normalized contract during deterministic `replay.launch.py` with `runtime_mode: replay`;
+- provide machine-readable JSON schemas and lightweight runtime validation before publishing;
+- keep native EPD topics unchanged for existing consumers.
+
+Acceptance:
+1. Workcell contract publishing is opt-in and does not change the existing EPD/EMD launch when disabled.
+2. A valid Tracking result produces `workcell_perception_snapshot/v1` with explicit scene/camera identity and exact EPD stable IDs.
+3. Snapshot timestamp/frame/pose/centroid/dimensions are derived from native EPD message truth rather than wall-clock or authored substitutes.
+4. Missing/invalid observed dimensions are omitted with a warning; EPD-7 never invents collision geometry.
+5. Invalid/non-normalized pose orientation falls back to a finite centroid when available instead of fabricating a quaternion.
+6. Workcell status moves to `STALE` when no fresh normalized result arrives within the configured timeout.
+7. Backend diagnostic ERROR or contract-validation failure produces `FAILED`; cumulative historical inference-failure counters alone are not reinterpreted as current failure.
+8. `profile_ref` is provenance supplied by the Workcell scene and is never used by the bridge to mutate EPD configuration.
+9. Deterministic replay can publish the same contract with `runtime_mode: replay` and stable Tracking IDs.
+10. The bridge contains no scene authoring, task binding, PlanningScene writes, grasp selection, MoveIt calls or robot-motion commands.
+
+See `docs/EPD_WORKCELL_CONTRACT.md` and the schemas under `docs/schemas/` for the interface and migration guidance.
 
 ## EPD-8 — Performance Backends
 

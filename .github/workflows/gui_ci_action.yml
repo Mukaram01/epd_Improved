@@ -49,6 +49,7 @@ jobs:
             easy_perception_deployment/easy_perception_deployment/gui/test_training_studio.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_profiles_replay.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_3d_diagnostics.py \
+            easy_perception_deployment/easy_perception_deployment/gui/test_performance_backends.py \
             easy_perception_deployment/easy_perception_deployment/gui/windows/*.py \
             easy_perception_deployment/easy_perception_deployment/gui/trainer/*.py \
             --count
@@ -70,4 +71,5 @@ jobs:
             test_model_manager.py \
             test_training_studio.py \
             test_profiles_replay.py \
-            test_3d_diagnostics.py
+            test_3d_diagnostics.py \
+            test_performance_backends.py

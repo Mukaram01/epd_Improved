@@ -16,6 +16,7 @@
 import signal
 import sys
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from windows.Main import MainWindow
@@ -29,6 +30,7 @@ def main():
 
     window1 = MainWindow()
     apply_epd0_productization(window1)
+    window1.help_window.setWindowFlag(Qt.Window, True)
     window1.show()
 
     myapp.exec()

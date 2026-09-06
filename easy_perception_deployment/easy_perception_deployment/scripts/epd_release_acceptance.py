@@ -51,6 +51,28 @@ def run(command, timeout=15.0, env=None):
         return {"returncode": None, "error": f"timeout after {exc.timeout}s"}
 
 
+def default_package_root():
+    configured = os.environ.get("EPD_PACKAGE_ROOT", "").strip()
+    if configured:
+        return Path(configured).expanduser().resolve()
+
+    source_candidate = Path(__file__).resolve().parents[1]
+    if (source_candidate / "config" / "session_config.json").is_file():
+        return source_candidate
+
+    cwd = Path.cwd().resolve()
+    if (cwd / "config" / "session_config.json").is_file():
+        return cwd
+
+    try:
+        from ament_index_python.packages import get_package_share_directory
+        return Path(
+            get_package_share_directory("easy_perception_deployment")
+        ).resolve()
+    except Exception:
+        return source_candidate
+
+
 def load_json(path):
     try:
         value = json.loads(path.read_text(encoding="utf-8"))
@@ -127,11 +149,10 @@ def static_checks(package_root):
         package_root / "launch" / "run.launch.py",
         package_root / "launch" / "replay.launch.py",
         package_root / "launch" / "workcell_contract.launch.py",
-        package_root / "scripts" / "epd_diagnostics_bundle.py",
     )
     missing = [str(path) for path in expected if not path.is_file()]
     results.append(check(
-        "Release helper files",
+        "Release launch files",
         "PASS" if not missing else "FAIL",
         "all present" if not missing else "; ".join(missing),
     ))
@@ -156,16 +177,16 @@ def ros_checks():
 
     topics = run(["ros2", "topic", "list", "-t"], timeout=8.0)
     topic_text = topics.get("stdout", "")
-    for name, topic, required in (
-        ("RGB topic", "/camera/camera/color/image_raw", False),
-        ("Aligned depth topic", "/camera/camera/aligned_depth_to_color/image_raw", False),
-        ("CameraInfo topic", "/camera/camera/color/camera_info", False),
-        ("Inference diagnostics", "/easy_perception_deployment/inference_diagnostics", False),
+    for name, topic in (
+        ("RGB topic", "/camera/camera/color/image_raw"),
+        ("Aligned depth topic", "/camera/camera/aligned_depth_to_color/image_raw"),
+        ("CameraInfo topic", "/camera/camera/color/camera_info"),
+        ("Inference diagnostics", "/easy_perception_deployment/inference_diagnostics"),
     ):
         present = topic in topic_text
         results.append(check(
             name,
-            "PASS" if present else ("FAIL" if required else "WARN"),
+            "PASS" if present else "WARN",
             topic + (" detected" if present else " not currently detected"),
         ))
     return results
@@ -243,7 +264,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--package-root",
-        default=str(Path(__file__).resolve().parents[1]),
+        default=str(default_package_root()),
+        help="EPD share/source directory containing config, data, launch and fixtures",
     )
     parser.add_argument("--with-ros", action="store_true")
     parser.add_argument("--with-replay", action="store_true")

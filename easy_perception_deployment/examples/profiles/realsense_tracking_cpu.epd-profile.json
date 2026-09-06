@@ -1,0 +1,46 @@
+{
+  "profile_schema_version": 1,
+  "name": "Reference RealSense Tracking CPU",
+  "description": "Portable EPD-9 demo template for a RealSense D435i-style Tracking workflow. This template is not marked known-good; validate it on the target workstation before promoting it.",
+  "created_utc": "2026-09-06T00:00:00+00:00",
+  "updated_utc": "2026-09-06T00:00:00+00:00",
+  "epd": {
+    "session_config": {
+      "schema_version": 2,
+      "path_to_model": "./data/model/MaskRCNN-10.onnx",
+      "path_to_label_list": "./data/label_list/coco_classes.txt",
+      "visualizeFlag": "visualize",
+      "useCPU": "CPU",
+      "execution_backend": "cpu",
+      "execution_backend_gpu_index": 0,
+      "intra_op_num_threads": 2,
+      "image_transport": "raw",
+      "publish_detection_segmentation": true,
+      "confidence_threshold": 0.5,
+      "max_detections": 100
+    },
+    "usecase_config": {
+      "schema_version": 2,
+      "usecase_mode": 4,
+      "track_type": "MEDIANFLOW"
+    },
+    "input_image_topic_config": {
+      "schema_version": 2,
+      "input_image_topic": "/camera/camera/color/image_raw"
+    }
+  },
+  "assets": {
+    "model": {
+      "path": "./data/model/MaskRCNN-10.onnx",
+      "sha256": "",
+      "size": 0,
+      "missing_at_capture": true
+    },
+    "labels": {
+      "path": "./data/label_list/coco_classes.txt",
+      "sha256": "",
+      "size": 0,
+      "missing_at_capture": true
+    }
+  }
+}

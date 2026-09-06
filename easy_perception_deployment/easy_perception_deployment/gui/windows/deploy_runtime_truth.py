@@ -71,18 +71,34 @@ def augment_local_cpu_readiness(probe):
 
 
 def _install_backend_probe_truth():
-    current = backend_manager.probe_environment
-    if getattr(current, "_epd_local_cpu_truth", False):
+    current_probe = backend_manager.probe_environment
+    if getattr(current_probe, "_epd_local_cpu_truth", False):
         return
 
-    original = current
+    original_probe = current_probe
+    original_status = backend_manager.backend_status
 
     def local_aware_probe():
-        return augment_local_cpu_readiness(original())
+        return augment_local_cpu_readiness(original_probe())
+
+    def local_aware_status(probe, backend):
+        if (
+            backend == "cpu"
+            and (probe.get("local_provider_ready") or {}).get("cpu", False)
+        ):
+            return (
+                "READY",
+                "CPU local ROS 2 provider is compiled and available. "
+                "A Docker CPU image is only required for container deployment.",
+            )
+        return original_status(probe, backend)
 
     local_aware_probe._epd_local_cpu_truth = True
-    local_aware_probe._epd_original_probe = original
+    local_aware_probe._epd_original_probe = original_probe
+    local_aware_status._epd_local_cpu_truth = True
+    local_aware_status._epd_original_status = original_status
     backend_manager.probe_environment = local_aware_probe
+    backend_manager.backend_status = local_aware_status
 
 
 def _default_camera_topic(window):

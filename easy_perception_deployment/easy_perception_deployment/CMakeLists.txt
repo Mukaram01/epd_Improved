@@ -336,10 +336,13 @@ if(BUILD_TESTING)
 endif()
 
 # -----------------------------
-# Main node
+# Main node and model-inspection helper
 # -----------------------------
 add_executable(easy_perception_deployment src/main.cpp ${EPD_UTILS})
 add_executable(epd_sensor_ingress src/sensor_ingress.cpp)
+add_executable(epd_model_inspector src/model_inspector.cpp)
+
+target_link_libraries(epd_model_inspector epd_onnxruntime_vendor::onnxruntime)
 
 ament_target_dependencies(
   epd_sensor_ingress
@@ -371,6 +374,7 @@ target_link_libraries(easy_perception_deployment ${PCL_LIBRARIES} jsoncpp::jsonc
 install(TARGETS
   easy_perception_deployment
   epd_sensor_ingress
+  epd_model_inspector
   DESTINATION lib/${PROJECT_NAME}
 )
 

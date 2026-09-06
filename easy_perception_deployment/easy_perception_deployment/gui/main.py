@@ -35,6 +35,7 @@ from windows.epd5_productization import apply_epd5_productization
 from windows.epd6_productization import apply_epd6_productization
 from windows.epd8_productization import apply_epd8_productization
 from windows.epd9_productization import apply_epd9_productization
+from windows.model_output_contract import apply_model_output_contract
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 myapp = QApplication(sys.argv)
@@ -45,6 +46,10 @@ def main():
     # Install the ROS worker patch before MainWindow constructs the Deploy FPS
     # monitor. This keeps all GUI ROS subscribers off rclpy's global executor.
     install_ros_executor_stability()
+
+    # Match Smart Model Manager preflight with the tensor types that the P2/P3
+    # runtime actually consumes: float boxes/scores/masks plus INT64 labels.
+    apply_model_output_contract()
 
     window1 = MainWindow()
 

@@ -35,6 +35,9 @@ jobs:
             easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py \
             easy_perception_deployment/easy_perception_deployment/scripts/test_backend_config.py \
             easy_perception_deployment/easy_perception_deployment/scripts/epd_backend_benchmark.py \
+            easy_perception_deployment/easy_perception_deployment/scripts/epd_diagnostics_bundle.py \
+            easy_perception_deployment/easy_perception_deployment/scripts/epd_release_acceptance.py \
+            easy_perception_deployment/easy_perception_deployment/scripts/test_release_quality.py \
             --count
       - name: Dynamic Analysis
         run: |
@@ -42,4 +45,5 @@ jobs:
           pytest --capture=no -vv \
             test_config_epd.py \
             test_workcell_contract_bridge.py \
-            test_backend_config.py
+            test_backend_config.py \
+            test_release_quality.py

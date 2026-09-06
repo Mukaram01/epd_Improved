@@ -29,6 +29,7 @@ from windows.epd5_integration import finalize_epd5_integration
 from windows.epd5_productization import apply_epd5_productization
 from windows.epd6_productization import apply_epd6_productization
 from windows.epd8_productization import apply_epd8_productization
+from windows.epd9_productization import apply_epd9_productization
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 myapp = QApplication(sys.argv)
@@ -46,6 +47,7 @@ def main():
     finalize_epd5_integration(window1, epd5)
     apply_epd6_productization(window1)
     apply_epd8_productization(window1)
+    apply_epd9_productization(window1)
     window1.help_window.setWindowFlag(Qt.Window, True)
     window1.show()
 

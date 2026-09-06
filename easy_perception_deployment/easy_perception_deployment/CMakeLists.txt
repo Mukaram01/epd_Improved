@@ -401,16 +401,28 @@ install(PROGRAMS
   scripts/epd_replay.py
   scripts/epd_backend_benchmark.py
   scripts/build_accelerated_backend.sh
+  scripts/epd_diagnostics_bundle.py
+  scripts/epd_release_acceptance.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Install launch/config/data so runtime relative paths work from install/share
+# Install runtime assets so source and installed workspaces expose the same handoff material.
 install(DIRECTORY
   launch
   config
   data
   fixtures
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  ../docs/
+  DESTINATION share/${PROJECT_NAME}/docs
+)
+
+install(DIRECTORY
+  ../examples/
+  DESTINATION share/${PROJECT_NAME}/examples
 )
 
 install(FILES

@@ -112,6 +112,8 @@ Acceptance:
 
 ## EPD-3 — Smart Model Manager
 
+Status: implemented by the `feature/epd3-smart-model-manager` increment.
+
 Before Run, inspect and explain models:
 - ONNX validity;
 - model/task type where it can be determined reliably;
@@ -123,15 +125,36 @@ Before Run, inspect and explain models:
 
 ## EPD-4 — Training Studio
 
+Status: implemented by the `feature/epd4-training-studio` increment.
+
 Make Train observable and recoverable:
-- dataset statistics and validation summary;
-- training progress;
-- training/validation metrics;
-- checkpoint list;
-- resume training;
-- best-checkpoint selection;
-- ONNX export and validation;
-- beginner guidance on overfitting/underfitting.
+- dataset statistics for train/validation images, COCO annotations and class counts;
+- structural warnings for missing folders, annotation mismatches and severe class imbalance;
+- live training progress from the existing dockerized maskrcnn-benchmark trainers;
+- parsed iteration, training loss, learning rate, ETA and validation AP when emitted;
+- checkpoint inventory across the current run and archived runs;
+- resume/continue from the latest or a selected checkpoint without archiving the active weights first;
+- explicit fresh-run action that restores the existing archive-before-training behaviour;
+- manual best-checkpoint selection for export rather than assuming the final checkpoint is best;
+- selected-checkpoint ONNX export using the existing P2/P3 exporter;
+- post-export inspection through the EPD-3 Smart Model Manager validator;
+- beginner guidance that distinguishes training-loss trends from actual validation evidence;
+- stop control for the dedicated trainer process;
+- no change to perception runtime or robot-motion ownership.
+
+Acceptance:
+1. Training Studio opens from the Train header and does not replace the existing Train workflow.
+2. Dataset summary reports train/validation image and annotation counts before training.
+3. A running trainer updates iteration/progress, loss, learning rate and ETA when those values are emitted.
+4. Validation AP is shown only when the training/evaluation output actually contains it.
+5. Current and archived `.pth` checkpoints are listed with iteration and latest-checkpoint truth.
+6. `Resume selected` preserves active weights and loads the chosen checkpoint on the next Train action.
+7. `Fresh run` retains the previous behaviour of archiving the current weights directory before starting.
+8. The operator can mark a checkpoint for export independently from the resume checkpoint.
+9. Exported ONNX is placed in `data/model/` and validated using EPD-3 model inspection.
+10. Guidance never claims overfitting from training loss alone when validation evidence is unavailable.
+
+See `docs/EPD_TRAINING_STUDIO.md` for the operator workflow and limitations.
 
 ## EPD-5 — Profiles + Replay
 

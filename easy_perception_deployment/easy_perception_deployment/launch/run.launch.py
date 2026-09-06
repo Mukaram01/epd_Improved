@@ -1,10 +1,19 @@
+from pathlib import Path
+import sys
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 from ament_index_python.packages import get_package_share_directory
-import os
+
+
+_LAUNCH_DIR = Path(__file__).resolve().parent
+if str(_LAUNCH_DIR) not in sys.path:
+    sys.path.insert(0, str(_LAUNCH_DIR))
+
+from backend_launch_config import resolve_backend_launch_defaults  # noqa: E402
 
 
 def generate_launch_description():
@@ -12,16 +21,26 @@ def generate_launch_description():
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     depth_topic = LaunchConfiguration("depth_topic")
     use_depth = LaunchConfiguration("use_depth")
-    image_output_qos_reliability = LaunchConfiguration("image_output_qos_reliability")
+    image_output_qos_reliability = LaunchConfiguration(
+        "image_output_qos_reliability"
+    )
     slow_frame_warn_ms = LaunchConfiguration("slow_frame_warn_ms")
     max_processing_fps = LaunchConfiguration("max_processing_fps")
     service_timeout_s = LaunchConfiguration("service_timeout_s")
     log_level = LaunchConfiguration("log_level")
+    execution_backend = LaunchConfiguration("execution_backend")
+    execution_backend_gpu_index = LaunchConfiguration(
+        "execution_backend_gpu_index"
+    )
 
-    # This is the key fix:
-    # Make the node run with its working directory set to the package share directory.
-    # Then relative paths like ./data/model/... work reliably.
+    # Make the node run with its working directory set to the package share
+    # directory. Then relative paths like ./data/model/... work reliably.
     pkg_share = get_package_share_directory("easy_perception_deployment")
+    session_config = Path(pkg_share) / "config" / "session_config.json"
+    backend_default, gpu_index_default = resolve_backend_launch_defaults(
+        session_config
+    )
+
     ingress_rgb = "/easy_perception_deployment/ingress/color/image_raw"
     ingress_depth = "/easy_perception_deployment/ingress/aligned_depth/image_raw"
     ingress_info = "/easy_perception_deployment/ingress/color/camera_info"
@@ -39,7 +58,9 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "depth_topic",
-            default_value="/camera/camera/aligned_depth_to_color/image_raw",
+            default_value=(
+                "/camera/camera/aligned_depth_to_color/image_raw"
+            ),
             description="Aligned depth topic"
         ),
         DeclareLaunchArgument(
@@ -62,8 +83,8 @@ def generate_launch_description():
             "slow_frame_warn_ms",
             default_value="1000",
             description=(
-                "Warn (throttled) when single-frame inference latency exceeds this many ms. "
-                "Set <=0 to disable."
+                "Warn (throttled) when single-frame inference latency exceeds "
+                "this many ms. Set <=0 to disable."
             )
         ),
         DeclareLaunchArgument(
@@ -77,12 +98,41 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "service_timeout_s",
             default_value="10.0",
-            description="Timeout covering fresh synchronized input plus one inference cycle"
+            description=(
+                "Timeout covering fresh synchronized input plus one inference cycle"
+            )
         ),
         DeclareLaunchArgument(
             "log_level",
             default_value="info",
             description="debug/info/warn/error/fatal"
+        ),
+        DeclareLaunchArgument(
+            "execution_backend",
+            default_value=backend_default,
+            description=(
+                "ONNX Runtime backend: auto, cpu, cuda, or tensorrt. Defaults "
+                "to the Deploy selection saved in session_config.json."
+            )
+        ),
+        DeclareLaunchArgument(
+            "execution_backend_gpu_index",
+            default_value=gpu_index_default,
+            description=(
+                "GPU index for CUDA/TensorRT. Defaults to the Deploy selection."
+            )
+        ),
+
+        # OrtBase reads these variables. Setting them here closes the gap where
+        # a plain `ros2 launch` ignored the backend selected in the Deploy GUI
+        # and fell back to the legacy gpuIdx path.
+        SetEnvironmentVariable(
+            name="EPD_EXECUTION_BACKEND",
+            value=execution_backend,
+        ),
+        SetEnvironmentVariable(
+            name="EPD_GPU_INDEX",
+            value=execution_backend_gpu_index,
         ),
 
         Node(
@@ -107,7 +157,7 @@ def generate_launch_description():
             output="screen",
             emulate_tty=True,
 
-            # ✅ Critical fix: set working directory
+            # Critical: the runtime config/model paths are package-relative.
             cwd=pkg_share,
 
             parameters=[

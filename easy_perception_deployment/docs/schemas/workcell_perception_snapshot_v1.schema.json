@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://workcell-studio.local/schemas/workcell_perception_snapshot_v1.schema.json",
+  "title": "Workcell Studio normalized perception snapshot v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "scene_id",
+    "camera_id",
+    "timestamp",
+    "frame_id",
+    "objects"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "workcell_perception_snapshot/v1"
+    },
+    "source": {
+      "type": "string"
+    },
+    "runtime_mode": {
+      "enum": ["live", "replay"]
+    },
+    "scene_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "camera_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_ref": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": ["string", "number"]
+    },
+    "timestamp_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "frame_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "lost_object_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "objects": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/perceived_object"
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "properties": {
+        "source_topic": {"type": "string"},
+        "source_message_type": {"type": "string"},
+        "source_stamp_ns": {"type": ["integer", "null"]},
+        "process_time_ms": {"type": "integer", "minimum": 0},
+        "confidence_available": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    },
+    "warnings": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "$defs": {
+    "finite_number": {
+      "type": "number"
+    },
+    "xyz": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {"$ref": "#/$defs/finite_number"}
+    },
+    "quaternion_xyzw": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {"$ref": "#/$defs/finite_number"}
+    },
+    "pose": {
+      "type": "object",
+      "required": ["position", "orientation_xyzw"],
+      "properties": {
+        "frame_id": {"type": "string"},
+        "position": {"$ref": "#/$defs/xyz"},
+        "orientation_xyzw": {"$ref": "#/$defs/quaternion_xyzw"}
+      },
+      "additionalProperties": false
+    },
+    "perceived_object": {
+      "type": "object",
+      "required": ["object_id", "label"],
+      "properties": {
+        "object_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "track_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "pose": {
+          "$ref": "#/$defs/pose"
+        },
+        "centroid": {
+          "$ref": "#/$defs/xyz"
+        },
+        "dimensions_xyz": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0.0
+          }
+        },
+        "shape": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attributes": {
+          "type": "object"
+        }
+      },
+      "anyOf": [
+        {"required": ["pose"]},
+        {"required": ["centroid"]}
+      ],
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

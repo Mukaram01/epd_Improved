@@ -37,6 +37,7 @@ jobs:
           pycodestyle --show-source easy_perception_deployment/easy_perception_deployment/gui/main.py \
           easy_perception_deployment/easy_perception_deployment/gui/test_gui.py \
           easy_perception_deployment/easy_perception_deployment/gui/test_gui_gpu_local_only.py \
+          easy_perception_deployment/easy_perception_deployment/gui/test_camera_assistant.py \
           easy_perception_deployment/easy_perception_deployment/gui/windows/*.py \
           easy_perception_deployment/easy_perception_deployment/gui/trainer/*.py --count
       - name: Static Analysis (ruff)
@@ -50,4 +51,4 @@ jobs:
       - name: Dynamic Analysis
         run: |
           cd easy_perception_deployment/easy_perception_deployment/gui
-          pytest --capture=no -vv test_gui.py
+          pytest --capture=no -vv test_gui.py test_camera_assistant.py

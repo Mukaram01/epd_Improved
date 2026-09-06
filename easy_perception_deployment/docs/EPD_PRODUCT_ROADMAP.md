@@ -41,24 +41,44 @@ Acceptance:
 
 ## EPD-1 — Camera Assistant
 
-Add a dedicated camera-health surface:
-- ROS 2 environment status;
-- detected camera/image topics;
-- RealSense RGB, aligned depth and CameraInfo health;
-- rates/resolution where available;
-- last-frame age;
-- actionable remediation when a stream is missing.
+Status: implemented by the `feature/epd1-camera-assistant` increment.
+
+Adds a dedicated camera-health surface:
+- ROS 2 environment/graph status and ROS distribution;
+- detected `sensor_msgs/msg/Image` and `sensor_msgs/msg/CameraInfo` topics;
+- selected RGB stream health;
+- inferred RealSense/custom aligned-depth stream health;
+- inferred CameraInfo stream health;
+- live sample verification rather than graph presence alone;
+- resolution and encoding where available;
+- measured topic rate where available;
+- latest message header age where the ROS clock is comparable to wall time;
+- explicit 3D requirements for Localization and Tracking;
+- actionable remediation when RGB, aligned depth or CameraInfo is missing;
+- a compact camera-health summary embedded back into Deploy;
+- one-click `Camera Assistant` access from the Camera Input card;
+- `Ctrl+Shift+C` shortcut from Deploy.
 
 Target operator view:
 
 ```text
-ROS 2             Connected
+ROS 2             Connected (humble)
 RGB               640×480 @ 30 Hz
 Depth             aligned / live
 CameraInfo        available
 Selected RGB      /camera/camera/color/image_raw
-Last frame        < 100 ms
+Last frame age    < 100 ms
 ```
+
+Acceptance:
+1. Camera Assistant opens without blocking the Deploy UI.
+2. With no ROS 2 CLI available, the assistant reports ROS unavailable and gives remediation.
+3. With a saved RGB topic but stopped camera, RGB is shown as missing/unresponsive rather than live.
+4. With RealSense publishing, RGB, aligned depth and CameraInfo are identified and sampled.
+5. Resolution, encoding, rate and message age are shown when the underlying ROS tools provide them.
+6. Localization/Tracking treats depth and CameraInfo as required; 2D modes label them optional.
+7. A successful assistant scan updates the existing EPD-0 camera truth/cache without changing the selected topic.
+8. The assistant never silently rewrites camera configuration.
 
 ## EPD-2 — Live Perception View
 

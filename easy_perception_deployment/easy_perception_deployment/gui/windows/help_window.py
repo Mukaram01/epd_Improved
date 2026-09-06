@@ -25,6 +25,7 @@ class HelpWindow(QWidget):
             "<li>Open <b>Deploy</b>.</li>"
             "<li>Select an ONNX model and matching labels.</li>"
             "<li>Select or type the RGB image topic.</li>"
+            "<li>Open <b>Camera Assistant</b> and verify camera health.</li>"
             "<li>Choose the perception mode.</li>"
             "<li>Check readiness, then run perception.</li>"
             "</ol>"
@@ -46,6 +47,25 @@ class HelpWindow(QWidget):
             "<p><b>Configured</b> means a saved topic exists but live discovery "
             "has not verified it yet.</p>"
         ),
+        "Camera Assistant": (
+            "<h2>Camera Assistant</h2>"
+            "<p>EPD-1 adds a dedicated camera-health view. Open it from the "
+            "Camera Input card or press <b>Ctrl+Shift+C</b> in Deploy.</p>"
+            "<p>The assistant checks:</p>"
+            "<ul>"
+            "<li>ROS 2 graph availability and ROS distribution.</li>"
+            "<li>Detected Image and CameraInfo topics.</li>"
+            "<li>Whether RGB, depth and CameraInfo actually deliver a sample.</li>"
+            "<li>Resolution, encoding, rate and message age where available.</li>"
+            "</ul>"
+            "<p><b>Live</b> means a message was sampled successfully.</p>"
+            "<p><b>No sample</b> means the topic exists but did not deliver before "
+            "the health-check timeout.</p>"
+            "<p><b>Missing</b> means the expected topic is absent from the graph.</p>"
+            "<p>Localization and Tracking require RGB, aligned depth and CameraInfo. "
+            "For 2D modes, depth and CameraInfo are shown as optional.</p>"
+            "<p>The assistant does not silently rewrite Deploy camera settings.</p>"
+        ),
         "RealSense Setup": (
             "<h2>RealSense Setup</h2>"
             "<p>Localization and tracking need colour, aligned depth and CameraInfo.</p>"
@@ -63,6 +83,7 @@ class HelpWindow(QWidget):
             "<li><b>Labels:</b> choose the matching class list.</li>"
             "<li><b>Mode:</b> choose the required perception behaviour.</li>"
             "<li><b>Camera:</b> select a detected topic or type one manually.</li>"
+            "<li><b>Camera Assistant:</b> verify the streams required by the mode.</li>"
             "<li><b>Detection overlay:</b> enable it for human visual checking.</li>"
             "<li><b>Object masks:</b> enable segmentation output when useful.</li>"
             "<li><b>Device:</b> start with CPU unless GPU is configured.</li>"
@@ -167,9 +188,13 @@ class HelpWindow(QWidget):
             "<h3>No camera topics</h3>"
             "<p>Check ROS 2 sourcing, camera node state, and "
             "<code>ros2 topic list -t</code>.</p>"
+            "<p>Open <b>Camera Assistant</b> for graph and live-sample checks.</p>"
             "<p>You can type the expected RGB topic manually.</p>"
             "<h3>Configured but not detected</h3>"
             "<p>The topic is saved but the latest ROS graph scan did not verify it.</p>"
+            "<h3>Detected but no sample</h3>"
+            "<p>The topic exists, but Camera Assistant could not receive a message "
+            "before timeout. Check the camera publisher and topic rate.</p>"
             "<h3>No detections</h3>"
             "<p>Check camera, model, labels, object classes and confidence threshold.</p>"
         ),
@@ -184,7 +209,8 @@ class HelpWindow(QWidget):
         "What Comes Next": (
             "<h2>Product Roadmap</h2>"
             "<p><b>EPD-0:</b> camera truth, clearer controls and practical Help.</p>"
-            "<p><b>Next:</b> Camera Assistant, live perception preview, smart model "
+            "<p><b>EPD-1:</b> Camera Assistant with RGB/depth/CameraInfo health.</p>"
+            "<p><b>Next:</b> embedded live perception preview, smart model "
             "validation, better training visibility, profiles/replay and 3D tools.</p>"
         ),
         "Original EPD Documentation": (

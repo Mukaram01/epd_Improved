@@ -34,8 +34,9 @@ The current fork has evolved beyond the upstream documentation, so the local GUI
 4. Select the matching label list.
 5. Select or type the RGB camera topic.
 6. Choose a perception mode.
-7. Review camera/readiness state.
-8. Run perception.
+7. Open **Camera Assistant** and verify the camera health needed by the selected mode.
+8. Review the readiness state.
+9. Run perception.
 
 For a RealSense D435i the common topics in this fork are:
 
@@ -68,6 +69,74 @@ ros2 topic hz /camera/camera/color/image_raw
 ros2 topic hz /camera/camera/aligned_depth_to_color/image_raw
 ros2 topic echo /camera/camera/color/camera_info --once
 ```
+
+---
+
+# Camera Assistant — EPD-1
+
+The Camera Assistant is the dedicated camera-health view. Open it from the **Camera Input** card in Deploy or press:
+
+```text
+Ctrl+Shift+C
+```
+
+The assistant checks:
+
+- whether the ROS 2 CLI and graph can be queried;
+- the current ROS distribution;
+- detected `sensor_msgs/msg/Image` topics;
+- detected `sensor_msgs/msg/CameraInfo` topics;
+- the selected RGB topic;
+- an aligned-depth topic inferred from the camera namespace or RealSense defaults;
+- a CameraInfo topic inferred from the camera namespace or RealSense defaults;
+- whether each required topic actually delivers a sample;
+- resolution and encoding when available;
+- approximate topic rate when available;
+- message-header age when ROS timestamps are comparable to wall time.
+
+The assistant does **not** silently rewrite your Deploy camera configuration.
+
+## Stream states
+
+- **Live** — topic exists and a message was sampled successfully.
+- **No sample** — topic exists on the ROS graph but no message arrived before the health-check timeout.
+- **Missing** — the expected topic is not present on the ROS graph.
+
+## 2D versus 3D requirements
+
+For these modes, RGB is required while depth and CameraInfo are treated as optional diagnostics:
+
+- Classification;
+- Counting;
+- Color-Matching.
+
+For these modes, all three camera inputs are treated as required:
+
+- Localization;
+- Tracking.
+
+For 3D operation, use aligned depth whenever possible. The normal RealSense topic is:
+
+```text
+/camera/camera/aligned_depth_to_color/image_raw
+```
+
+CameraInfo provides the camera intrinsics used by geometry calculations.
+
+## What the assistant should look like
+
+Typical healthy RealSense result:
+
+```text
+ROS 2             Connected (humble)
+RGB               640×480 @ ~30 Hz
+Depth             640×480 @ ~30 Hz / aligned
+CameraInfo        live
+Selected RGB      /camera/camera/color/image_raw
+Last frame age    low / current
+```
+
+If a stream is missing, the **What to do next** card gives mode-specific remediation rather than only reporting a failure.
 
 ---
 
@@ -332,13 +401,24 @@ Always verify:
 2. Confirm the camera node is running.
 3. Run `ros2 topic list -t`.
 4. Click **Refresh topics**.
-5. If discovery is unavailable, type the expected RGB topic manually.
+5. Open **Camera Assistant** for a full graph/sample health check.
+6. If discovery is unavailable, type the expected RGB topic manually.
 
 EPD preserves a saved topic instead of clearing it when discovery fails.
 
 ## Topic is Configured but not Detected
 
 The topic is saved but was not verified in the latest ROS graph scan. This can be normal if the camera starts later. Start the camera and refresh again.
+
+## Topic is Detected but Camera Assistant says No sample
+
+The topic name exists on the ROS graph, but the health probe did not receive a message before timeout. Check:
+
+- whether the camera publisher is actually streaming;
+- camera driver state;
+- publisher/subscriber QoS compatibility;
+- `ros2 topic hz <topic>`;
+- whether the topic name is stale from another node.
 
 ## No detections
 
@@ -352,8 +432,9 @@ Check:
 ## Tracking/localization problems
 
 Also check:
+- Camera Assistant reports RGB live;
 - aligned depth is live;
-- CameraInfo is available;
+- CameraInfo is live;
 - depth is aligned with colour;
 - object is inside valid depth range.
 
@@ -398,7 +479,7 @@ Tracking is especially useful because stable object IDs help downstream systems 
 # Recommended Beginner Workflow
 
 1. Start with a trusted pretrained model.
-2. Confirm the camera stream first.
+2. Confirm the camera stream first with **Camera Assistant**.
 3. Test deployment with the correct labels.
 4. Use detection overlay while validating the pipeline.
 5. Prepare a small representative labelled dataset.
@@ -407,7 +488,8 @@ Tracking is especially useful because stable object IDs help downstream systems 
 8. Export/select the ONNX model.
 9. Deploy with the same labels and camera topic.
 10. Move to Localization/Tracking when 3D manipulation needs it.
-11. Disable optional visualization/mask overhead only after the workflow is understood and verified.
+11. Confirm RGB, aligned depth and CameraInfo before 3D operation.
+12. Disable optional visualization/mask overhead only after the workflow is understood and verified.
 
 ---
 
@@ -419,4 +501,4 @@ See:
 docs/EPD_PRODUCT_ROADMAP.md
 ```
 
-The next planned phase after EPD-0 is a dedicated Camera Assistant covering RGB, aligned depth, CameraInfo, rates and camera health.
+EPD-0 and EPD-1 establish truthful camera configuration and camera-health diagnostics. The next phase is EPD-2: an embedded live perception preview so normal operation no longer requires `rqt_image_view`.

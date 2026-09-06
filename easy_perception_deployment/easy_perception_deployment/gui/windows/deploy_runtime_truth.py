@@ -121,6 +121,38 @@ def _repair_invalid_saved_topic(window):
     return fallback
 
 
+def _purge_internal_camera_topics(window):
+    """Keep late/asynchronous topic scans from re-inserting EPD-owned outputs."""
+    window._image_topics_cache = filter_camera_source_topics(
+        getattr(window, "_image_topics_cache", [])
+    )
+
+    combo = window.topic_button
+    current = str(combo.currentText() or "").strip()
+    remove_indexes = [
+        index
+        for index in range(combo.count())
+        if not is_camera_source_topic(combo.itemText(index))
+    ]
+    if not remove_indexes:
+        return
+
+    combo.blockSignals(True)
+    for index in reversed(remove_indexes):
+        combo.removeItem(index)
+    if current:
+        if is_camera_source_topic(current):
+            if combo.findText(current) < 0:
+                combo.addItem(current)
+            combo.setCurrentText(current)
+        else:
+            # Preserve manual invalid text long enough for the readiness layer
+            # to explain why it is blocked; it is never kept as a selectable
+            # discovery result.
+            combo.setEditText(current)
+    combo.blockSignals(False)
+
+
 def _set_property(widget, name, value):
     if widget.property(name) == value:
         return
@@ -164,9 +196,7 @@ def _install_camera_topic_truth(main_window):
     controller = main_window._deploy_ui_controller
 
     _repair_invalid_saved_topic(window)
-    window._image_topics_cache = filter_camera_source_topics(
-        getattr(window, "_image_topics_cache", [])
-    )
+    _purge_internal_camera_topics(window)
 
     # EPD-0's worker callback is looked up dynamically by its signal lambda, so
     # replacing the bound method here also filters future Refresh topics scans.
@@ -185,12 +215,14 @@ def _install_camera_topic_truth(main_window):
         window._epd0_topic_success = MethodType(safe_topic_success, window)
 
     # Acceptance stability is installed before EPD-0 (see main.py), so EPD-0
-    # remains the owner of detected/configured camera chips. Add only a final
-    # defensive check for manually typed internal EPD topics.
+    # remains the owner of detected/configured camera chips. Add a final
+    # defensive check for manually typed internal EPD topics and purge any late
+    # initial topic scan that completed before EPD-0 owned discovery.
     if not getattr(controller, "_deploy_runtime_truth_wrapped", False):
         original_sync = controller.sync
 
         def runtime_truth_sync(self):
+            _purge_internal_camera_topics(window)
             original_sync()
             _show_invalid_input_truth(main_window, self)
 

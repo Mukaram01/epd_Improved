@@ -1,2 +1,0 @@
-EPD_ERR_DOCKER_NOT_FOUND: Docker command not found: docker
-EPD_ERR_DOCKER_NOT_FOUND_REMEDIATION: Install Docker or set EPD_DOCKER_CMD to a valid command.

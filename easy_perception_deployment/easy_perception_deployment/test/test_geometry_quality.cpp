@@ -50,6 +50,57 @@ TEST(GeometryQuality, ValidGeometryPasses)
   EXPECT_GT(object.height, 0.0F);
 }
 
+TEST(GeometryQuality, DiagnosticMeasuresOnlyMaskedRoiDepthInMeters)
+{
+  auto object = validObject();
+  object.mask = cv::Mat::ones(4, 4, CV_8UC1);
+  cv::Mat depth(10, 10, CV_16UC1, cv::Scalar(9000));
+  depth(cv::Rect(1, 1, 4, 4)).setTo(500);
+  depth.at<uint16_t>(1, 1) = 0;
+  EPD::validateLocalizedObject(object, 10, 10, 600, 600, 5, 5);
+  const auto text = EPD::geometryDiagnostic(object, depth);
+  EXPECT_NE(text.find("geometry_status=PASS"), std::string::npos);
+  EXPECT_NE(text.find("reject_reason=none"), std::string::npos);
+  EXPECT_NE(text.find("zero_depth_pixels=1"), std::string::npos);
+  EXPECT_NE(text.find("min/median/max_depth_m=<0.5,0.5,0.5>"), std::string::npos);
+}
+
+TEST(GeometryQuality, DiagnosticNamesEveryRejectionIncludingDimensionsAndAxis)
+{
+  auto object = validObject();
+  object.height = -0.01;
+  object.axis.x = 0;
+  EPD::validateLocalizedObject(object, 10, 10, 600, 600, 5, 5);
+  const auto text = EPD::geometryDiagnostic(object, cv::Mat());
+  EXPECT_NE(text.find("geometry_status=FAIL"), std::string::npos);
+  EXPECT_NE(text.find("invalid_dimensions,degenerate_axis"), std::string::npos);
+}
+
+TEST(GeometryQuality, DiagnosticDistinguishesZeroNanAndNegativeFloatDepth)
+{
+  auto object = validObject();
+  object.mask = cv::Mat::ones(4, 4, CV_8UC1);
+  cv::Mat depth(10, 10, CV_32FC1, cv::Scalar(0.5));
+  depth.at<float>(1, 1) = 0;
+  depth.at<float>(1, 2) = std::numeric_limits<float>::quiet_NaN();
+  depth.at<float>(1, 3) = -0.5;
+  const auto text = EPD::geometryDiagnostic(object, depth);
+  EXPECT_NE(text.find("zero_depth_pixels=1"), std::string::npos);
+  EXPECT_NE(text.find("nonfinite_depth_pixels=1"), std::string::npos);
+  EXPECT_NE(text.find("negative_depth_pixels=1"), std::string::npos);
+  EXPECT_NE(text.find("min/median/max_depth_m=<0.5,0.5,0.5>"), std::string::npos);
+}
+
+TEST(GeometryQuality, DiagnosticSafelyReportsInvalidRoiWithoutIndexing)
+{
+  auto object = validObject();
+  object.roi.x_offset = 100;
+  EPD::validateLocalizedObject(object, 10, 10, 600, 600, 5, 5);
+  const auto text = EPD::geometryDiagnostic(object, cv::Mat(10, 10, CV_16UC1));
+  EXPECT_NE(text.find("roi_out_of_bounds"), std::string::npos);
+  EXPECT_NE(text.find("depth_statistics=unavailable"), std::string::npos);
+}
+
 TEST(GeometryQuality, NonfiniteInputRejected)
 {
   auto object = validObject();

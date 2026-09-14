@@ -274,6 +274,7 @@ private:
   rclcpp::TimerBase::SharedPtr inference_diagnostics_timer_;
   rclcpp::Time metrics_start_time_;
   EPD::GeometryThresholds geometry_thresholds_;
+  void report_geometry(const EPD::LocalizedObject & object, const cv::Mat & depth);
   std::atomic<uint64_t> detections_total_{0};
   std::atomic<uint64_t> geometry_valid_total_{0};
   std::atomic<uint64_t> geometry_degraded_total_{0};
@@ -283,6 +284,9 @@ private:
   std::atomic<uint64_t> insufficient_depth_total_{0};
   std::atomic<uint64_t> empty_cloud_total_{0};
   std::atomic<uint64_t> nonfinite_geometry_total_{0};
+  std::atomic<uint64_t> invalid_roi_total_{0};
+  std::atomic<uint64_t> invalid_dimensions_total_{0};
+  std::atomic<uint64_t> invalid_orientation_total_{0};
   std::atomic<int64_t> latest_valid_geometry_stamp_ns_{0};
   std::unique_ptr<EPD::TemporalTracker> temporal_tracker_;
   std::mutex temporal_tracker_mutex_;
@@ -511,16 +515,19 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     publisher_options);
 
   // Creating Publisher to output Action P3 and Localization Detection Results.
+  auto object_publisher_options = publisher_options;
+  object_publisher_options.qos_overriding_options =
+    rclcpp::QosOverridingOptions::with_default_policies();
   localize_pub = this->create_publisher<epd_msgs::msg::EPDObjectLocalization>(
     "/easy_perception_deployment/epd_localize_output",
     rclcpp::SensorDataQoS(),
-    publisher_options);
+    object_publisher_options);
 
   // Creating Publisher to output Action P3 and Tracking Detection Results.
   tracking_pub = this->create_publisher<epd_msgs::msg::EPDObjectTracking>(
     "/easy_perception_deployment/epd_tracking_output",
     rclcpp::SensorDataQoS(),
-    publisher_options);
+    object_publisher_options);
 
   // Creating Publisher to output 3D poses of localized/tracked objects.
   pose_pub = this->create_publisher<geometry_msgs::msg::PoseArray>(
@@ -1278,6 +1285,9 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
   add("insufficient_depth_total", insufficient_depth_total_.load());
   add("empty_cloud_total", empty_cloud_total_.load());
   add("nonfinite_geometry_total", nonfinite_geometry_total_.load());
+  add("invalid_roi_total", invalid_roi_total_.load());
+  add("invalid_dimensions_total", invalid_dimensions_total_.load());
+  add("invalid_orientation_total", invalid_orientation_total_.load());
   const int64_t valid_geometry_stamp_ns = latest_valid_geometry_stamp_ns_.load();
   add("latest_valid_geometry_age_ms", valid_geometry_stamp_ns == 0 ? -1.0 :
     EPD::safeAgeMilliseconds(
@@ -1479,6 +1489,26 @@ void EasyPerceptionDeployment::camera_info_callback(
   }
 }
 
+void EasyPerceptionDeployment::report_geometry(
+  const EPD::LocalizedObject & object, const cv::Mat & depth)
+{
+  const auto message = EPD::geometryDiagnostic(object, depth);
+  if (object.quality == EPD::GeometryQuality::VALID) {
+    RCLCPP_INFO(this->get_logger(), "EPD geometry %s", message.c_str());
+    return;
+  }
+  RCLCPP_WARN(this->get_logger(), "EPD geometry %s", message.c_str());
+  const auto reasons = object.failure_reasons;
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_INTRINSICS)) ++invalid_intrinsics_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_MASK)) ++invalid_mask_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::INSUFFICIENT_DEPTH)) ++insufficient_depth_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::EMPTY_CLOUD)) ++empty_cloud_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::NONFINITE_GEOMETRY)) ++nonfinite_geometry_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_ROI)) ++invalid_roi_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_DIMENSIONS)) ++invalid_dimensions_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_ORIENTATION)) ++invalid_orientation_total_;
+}
+
 void EasyPerceptionDeployment::process_localize_work(
   const EPD::Observation::ConstSharedPtr & observation)
 {
@@ -1558,6 +1588,7 @@ void EasyPerceptionDeployment::process_localize_work(
       object, static_cast<uint32_t>(img.cols), static_cast<uint32_t>(img.rows),
       camera_info->k.at(0), camera_info->k.at(4), camera_info->k.at(2), camera_info->k.at(5),
       geometry_thresholds_);
+    report_geometry(object, depth_img);
     if (quality == EPD::GeometryQuality::VALID) {
       geometry_valid_total_.fetch_add(1);
       latest_valid_geometry_stamp_ns_.store(rclcpp::Time(observation->sensor_stamp()).nanoseconds());
@@ -1568,22 +1599,6 @@ void EasyPerceptionDeployment::process_localize_work(
       geometry_degraded_total_.fetch_add(1);
     } else {
       geometry_invalid_total_.fetch_add(1);
-    }
-    const uint32_t reasons = object.failure_reasons;
-    if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_INTRINSICS)) {
-      invalid_intrinsics_total_.fetch_add(1);
-    }
-    if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_MASK)) {
-      invalid_mask_total_.fetch_add(1);
-    }
-    if (reasons & EPD::reason(EPD::GeometryFailure::INSUFFICIENT_DEPTH)) {
-      insufficient_depth_total_.fetch_add(1);
-    }
-    if (reasons & EPD::reason(EPD::GeometryFailure::EMPTY_CLOUD)) {
-      empty_cloud_total_.fetch_add(1);
-    }
-    if (reasons & EPD::reason(EPD::GeometryFailure::NONFINITE_GEOMETRY)) {
-      nonfinite_geometry_total_.fetch_add(1);
     }
   }
   result.objects = std::move(valid_objects);
@@ -1790,6 +1805,7 @@ void EasyPerceptionDeployment::process_tracking_work(
     } else {
       geometry_invalid_total_.fetch_add(1);
     }
+    report_geometry(object, depth_img);
   }
   std::vector<EPD::TrackAssignment> track_assignments;
   std::vector<uint64_t> lost_track_ids;

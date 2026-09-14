@@ -230,7 +230,6 @@ else()
   add_definitions(-DPRINT_MODEL_INFO=false)
 endif()
 
-add_definitions(-DPATH_TO_PACKAGE="${CMAKE_CURRENT_LIST_DIR}")
 add_definitions(${PCL_DEFINITIONS})
 
 # Convenience list of deps shared by most targets in this package
@@ -280,7 +279,19 @@ if(BUILD_TESTING)
   ament_target_dependencies(
     epd_test_temporal_tracker builtin_interfaces geometry_msgs sensor_msgs)
 
+  function(epd_isolate_test tgt)
+    # Each executable owns its writable configs; model/image assets stay read-only.
+    set(test_package "${CMAKE_CURRENT_BINARY_DIR}/test_packages/${tgt}")
+    file(MAKE_DIRECTORY "${test_package}/config")
+    file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/config/" DESTINATION "${test_package}/config")
+    file(CREATE_LINK "${CMAKE_CURRENT_SOURCE_DIR}/data" "${test_package}/data" SYMBOLIC)
+    file(CREATE_LINK "${CMAKE_CURRENT_SOURCE_DIR}/test" "${test_package}/test" SYMBOLIC)
+    target_compile_definitions(${tgt} PRIVATE PATH_TO_PACKAGE="${test_package}")
+    set_tests_properties(${tgt} PROPERTIES WORKING_DIRECTORY "${test_package}")
+  endfunction()
+
   macro(epd_configure_test tgt)
+    epd_isolate_test(${tgt})
     ament_target_dependencies(${tgt} ${EPD_COMMON_DEPS})
     target_include_directories(${tgt} PRIVATE ${PCL_INCLUDE_DIRS})
     target_link_libraries(${tgt} jsoncpp::jsoncpp ${PCL_LIBRARIES})
@@ -330,6 +341,7 @@ if(BUILD_TESTING)
     epd_configure_test(epd_test_P3_tracking_action)
 
     ament_add_gtest(epd_test_easy_perception_deployment test/test_easy_perception_deployment.cpp ${EPD_UTILS})
+    epd_isolate_test(epd_test_easy_perception_deployment)
     ament_target_dependencies(epd_test_easy_perception_deployment
       epd_onnxruntime_vendor
       rclcpp
@@ -355,6 +367,7 @@ endif()
 # Main node and helper executables
 # -----------------------------
 add_executable(easy_perception_deployment src/main.cpp ${EPD_UTILS})
+target_compile_definitions(easy_perception_deployment PRIVATE PATH_TO_PACKAGE="${CMAKE_CURRENT_LIST_DIR}")
 add_executable(epd_sensor_ingress src/sensor_ingress.cpp)
 add_executable(epd_model_inspector src/model_inspector.cpp)
 add_executable(epd_backend_probe src/backend_probe.cpp)

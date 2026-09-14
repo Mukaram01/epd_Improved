@@ -113,7 +113,7 @@ public:
   std::vector<int> tracker_logs;
   std::vector<EPD::LabelledRect2d> tracker_results;
 
-  bool requestAddressed;
+  bool requestAddressed{false};
   /*! \brief A list of human-understandable object text labels from input
   * label list.
   */

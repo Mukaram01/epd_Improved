@@ -64,6 +64,29 @@ No IDs are invented or reconstructed by the GUI.
 
 ## Production geometry diagnostics
 
+Localization and tracking now share per-object geometry reporting. Each result
+logs its class, ROI and mask sizes, mask/depth counts, measured masked depth
+minimum/median/maximum in metres, point count, centroid, dimensions, axis, source
+frame, observation ID, status and named rejection reasons. Zero, nonfinite and
+negative depth pixels are counted separately; unavailable statistics are explicit.
+No full masks or clouds are printed. A valid result is logged as PASS, not as a
+warning with an empty rejection reason.
+
+The per-reason counters are updated in both modes. In addition to the existing
+intrinsics/mask/depth/cloud/nonfinite counters, the diagnostic stream exposes
+`invalid_roi_total`, `invalid_dimensions_total`, and `invalid_orientation_total`.
+Previously tracking incremented only its aggregate invalid counter, so zero
+per-reason counters did not establish that those failure types were absent.
+
+For the D435i commissioning input profile, explicitly launch and verify
+`rgb_camera.color_profile:=640x480x15`,
+`depth_module.depth_profile:=640x480x15`, `align_depth.enable:=true`,
+`enable_sync:=true`, and `pointcloud.enable:=false`. Inspect actual Image and
+CameraInfo dimensions, encodings, frames and stamps as well as driver parameters.
+Selecting a localization topic in a subscriber does not switch EPD out of
+tracking mode. Use the existing `usecase_mode_override` runtime parameter (3 for
+localization, 4 for tracking), or explicitly select the corresponding EPD mode.
+
 The inspector reads the existing `easy_perception_deployment/inference_worker` diagnostic status and exposes the counters already produced by EPD, including:
 
 - `detections_total`

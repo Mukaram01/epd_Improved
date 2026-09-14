@@ -8,6 +8,8 @@
 #include <cmath>
 #include <cstdint>
 #include <string>
+#include <sstream>
+#include <vector>
 
 #include "epd_utils_lib/message_utils.hpp"
 
@@ -24,6 +26,89 @@ struct GeometryThresholds
 inline uint32_t reason(GeometryFailure value)
 {
   return static_cast<uint32_t>(value);
+}
+
+inline std::string failureNames(uint32_t failures)
+{
+  struct Entry { GeometryFailure flag; const char * name; };
+  static constexpr Entry entries[] = {
+    {GeometryFailure::INVALID_INTRINSICS, "invalid_intrinsics"},
+    {GeometryFailure::INVALID_ROI, "roi_out_of_bounds"},
+    {GeometryFailure::INVALID_MASK, "empty_or_mismatched_mask"},
+    {GeometryFailure::INSUFFICIENT_DEPTH, "insufficient_depth"},
+    {GeometryFailure::EMPTY_CLOUD, "too_few_segmented_points"},
+    {GeometryFailure::NONFINITE_GEOMETRY, "nonfinite_geometry"},
+    {GeometryFailure::INVALID_DIMENSIONS, "invalid_dimensions"},
+    {GeometryFailure::INVALID_ORIENTATION, "degenerate_axis"},
+    {GeometryFailure::FRAME_MISMATCH, "frame_mismatch"},
+    {GeometryFailure::GEOMETRY_EXCEPTION, "geometry_exception"},
+  };
+  std::ostringstream out;
+  bool first = true;
+  for (const auto & entry : entries) {
+    if ((failures & reason(entry.flag)) == 0) continue;
+    if (!first) out << ',';
+    out << entry.name;
+    first = false;
+  }
+  return first ? "none" : out.str();
+}
+
+// Shared by localization and tracking. Depth statistics are measured in the
+// detection mask, not inferred from a box centre or a configured plane.
+inline std::string geometryDiagnostic(const LocalizedObject & object, const cv::Mat & depth)
+{
+  std::ostringstream out;
+  out << "class=" << object.name << " roi=<" << object.roi.x_offset << ','
+      << object.roi.y_offset << ',' << object.roi.width << ',' << object.roi.height
+      << "> mask_size=<" << object.mask.cols << ',' << object.mask.rows
+      << "> mask_pixels=" << object.mask_pixel_count
+      << " valid_depth_pixels=" << object.valid_depth_pixel_count
+      << " valid_depth_ratio=" << object.valid_depth_ratio;
+  const bool inside = object.roi.width > 0 && object.roi.height > 0 &&
+    static_cast<uint64_t>(object.roi.x_offset) + object.roi.width <= static_cast<uint64_t>(depth.cols) &&
+    static_cast<uint64_t>(object.roi.y_offset) + object.roi.height <= static_cast<uint64_t>(depth.rows);
+  if (!depth.empty() && inside && object.mask.type() == CV_8UC1 &&
+    object.mask.cols == static_cast<int>(object.roi.width) &&
+    object.mask.rows == static_cast<int>(object.roi.height) &&
+    (depth.type() == CV_16UC1 || depth.type() == CV_32FC1))
+  {
+    std::vector<float> values;
+    size_t zero = 0, nonfinite = 0, negative = 0;
+    for (int y = 0; y < object.mask.rows; ++y) {
+      for (int x = 0; x < object.mask.cols; ++x) {
+        if (!object.mask.at<uint8_t>(y, x)) continue;
+        const int u = static_cast<int>(object.roi.x_offset) + x;
+        const int v = static_cast<int>(object.roi.y_offset) + y;
+        const float z = depth.type() == CV_16UC1 ? depth.at<uint16_t>(v,u)*0.001F : depth.at<float>(v,u);
+        if (!std::isfinite(z)) ++nonfinite;
+        else if (z == 0) ++zero;
+        else if (z < 0) ++negative;
+        else values.push_back(z);
+      }
+    }
+    out << " depth_encoding=" << (depth.type() == CV_16UC1 ? "16UC1_mm" : "32FC1_m")
+        << " zero_depth_pixels=" << zero << " nonfinite_depth_pixels=" << nonfinite
+        << " negative_depth_pixels=" << negative;
+    if (!values.empty()) {
+      const auto bounds = std::minmax_element(values.begin(), values.end());
+      const float low = *bounds.first, high = *bounds.second;
+      std::nth_element(values.begin(), values.begin()+values.size()/2, values.end());
+      out << " min/median/max_depth_m=<" << low << ',' << values[values.size()/2] << ',' << high << '>';
+    } else {
+      out << " depth_statistics=unavailable_no_positive_depth";
+    }
+  } else {
+    out << " depth_statistics=unavailable_mask_roi_or_encoding_mismatch";
+  }
+  out << " generated_points=" << object.segmented_pcl.size()
+      << " centroid=<" << object.centroid.x << ',' << object.centroid.y << ',' << object.centroid.z
+      << "> dimensions=<" << object.length << ',' << object.breadth << ',' << object.height
+      << "> axis=<" << object.axis.x << ',' << object.axis.y << ',' << object.axis.z
+      << "> geometry_status=" << (object.quality == GeometryQuality::VALID ? "PASS" : "FAIL")
+      << " reject_reason=" << failureNames(object.failure_reasons)
+      << " source_frame=" << object.source_frame << " observation_id=" << object.source_observation_id;
+  return out.str();
 }
 
 inline bool finitePoint(const geometry_msgs::msg::Point & point)

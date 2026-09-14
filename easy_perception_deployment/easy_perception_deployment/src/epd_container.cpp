@@ -711,7 +711,7 @@ void EPDContainer::setPrecisionLevel()
       precision_level = 2;
       break;
     case 4:
-      precision_level = 3;
+      precision_level = ort_session.hasSsdDetectionOutputs() ? 2 : 3;
       break;
     default:
       throw std::runtime_error("Invalid Precision Level. Report as GitHub issue.");

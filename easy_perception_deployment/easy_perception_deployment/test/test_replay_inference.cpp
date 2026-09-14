@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0
 
 #include <cmath>
+#include <cstring>
+#include <new>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -14,6 +16,19 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 #include "sensor_msgs/image_encodings.hpp"
+
+TEST(P8ReplayInference, FreshContainerDoesNotSkipContinuousInference)
+{
+  const auto previous_cwd = std::filesystem::current_path();
+  std::filesystem::current_path(PATH_TO_PACKAGE);
+  alignas(EPD::EPDContainer) unsigned char storage[sizeof(EPD::EPDContainer)];
+  // Model a reused allocation whose request flag was previously true.
+  std::memset(storage, 1, sizeof(storage));
+  auto * agent = new (storage) EPD::EPDContainer;
+  EXPECT_FALSE(agent->requestAddressed);
+  agent->~EPDContainer();
+  std::filesystem::current_path(previous_cwd);
+}
 
 TEST(P8ReplayInference, ValidFixtureObservationReachesProductionMaskRcnn)
 {

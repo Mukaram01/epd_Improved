@@ -50,6 +50,9 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Action)
   session_config_json["path_to_label_list"] = PATH_TO_LABEL_LIST;
   session_config_json["visualizeFlag"] = "robot";
   session_config_json["useCPU"] = "CPU";
+  // This fixture uses Mask R-CNN's reference 800-pixel minimum-side preprocessing.
+  session_config_json["target_min_side"] = 800;
+  session_config_json["allow_upscale"] = true;
 
   Json::Value usecase_config_json;
   usecase_config_json["usecase_mode"] = 4;
@@ -72,7 +75,11 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Action)
 
   // Download and load test image
   cv::Mat colored_img = cv::imread(PATH_TO_TEST_COLORED_IMAGE, cv::IMREAD_COLOR);
-  cv::Mat depth_img = cv::imread(PATH_TO_TEST_DEPTH_IMAGE, cv::IMREAD_GRAYSCALE);
+  cv::Mat depth_img = cv::imread(PATH_TO_TEST_DEPTH_IMAGE, cv::IMREAD_UNCHANGED);
+
+  ASSERT_FALSE(colored_img.empty());
+  ASSERT_EQ(depth_img.type(), CV_16UC1);
+  ASSERT_EQ(depth_img.size(), colored_img.size());
 
   sensor_msgs::msg::CameraInfo camera_info;
   camera_info.k.at(2) = 323.3077697753906;
@@ -89,7 +96,7 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Action)
     colored_img,
     depth_img,
     camera_info,
-    0.1,
+    2000.0,
     ortAgent_->tracker_type,
     ortAgent_->trackers,
     ortAgent_->tracker_logs,
@@ -104,7 +111,7 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Action)
     colored_img,
     depth_img,
     camera_info,
-    0.1,
+    2000.0,
     ortAgent_->tracker_type,
     ortAgent_->trackers,
     ortAgent_->tracker_logs,

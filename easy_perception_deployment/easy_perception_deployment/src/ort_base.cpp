@@ -141,6 +141,7 @@ public:
   ~OrtBaseImpl();
 
   int getNumOutputs(void);
+  bool hasSsdDetectionOutputs() const;
   bool isInputUint8(int inputIdx) const;
   std::vector<DataOutputType> operator()(const std::vector<float *> & inputData);
 
@@ -152,6 +153,8 @@ private:
   Ort::Session m_session;
   Ort::Env m_env;
   Ort::AllocatorWithDefaultOptions m_ortAllocator;
+  // Keep returned data pointers alive until the next inference.
+  std::vector<Ort::Value> m_outputTensors;
 
   boost::optional<size_t> m_gpuIdx;
   boost::optional<int> m_intraOpNumThreads;
@@ -280,6 +283,20 @@ OrtBase::OrtBaseImpl::~OrtBaseImpl()
 int OrtBase::OrtBaseImpl::getNumOutputs()
 {
   return unsigned(m_numOutputs);
+}
+
+bool OrtBase::hasSsdDetectionOutputs() const
+{
+  return base_impl_->hasSsdDetectionOutputs();
+}
+
+bool OrtBase::OrtBaseImpl::hasSsdDetectionOutputs() const
+{
+  return m_outputNodeNames.size() == 4 &&
+    std::string(m_outputNodeNames[0]) == "detection_boxes" &&
+    std::string(m_outputNodeNames[1]) == "detection_classes" &&
+    std::string(m_outputNodeNames[2]) == "detection_scores" &&
+    std::string(m_outputNodeNames[3]) == "num_detections";
 }
 
 bool OrtBase::OrtBaseImpl::isInputUint8(int inputIdx) const
@@ -497,7 +514,7 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
             m_inputShapes[i].size())));
     }
   }
-  auto outputTensors = m_session.Run(
+  m_outputTensors = m_session.Run(
     Ort::RunOptions{nullptr},
     m_inputNodeNames.data(),
     inputTensors.data(),
@@ -505,17 +522,17 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
     m_outputNodeNames.data(),
     m_numOutputs);
 
-  if (outputTensors.size() != m_numOutputs) {
+  if (m_outputTensors.size() != m_numOutputs) {
     throw std::runtime_error(
       "Output tensor count mismatch: expected " +
       std::to_string(m_numOutputs) + ", got " +
-      std::to_string(outputTensors.size()));
+      std::to_string(m_outputTensors.size()));
   }
 
   std::vector<DataOutputType> outputData;
   outputData.reserve(m_numOutputs);
 
-  for (auto & elem : outputTensors) {
+  for (auto & elem : m_outputTensors) {
     outputData.emplace_back(
       std::make_pair(
         std::move(elem.GetTensorMutableData<float>()),

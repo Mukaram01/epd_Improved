@@ -73,7 +73,15 @@ TEST(EPD_TestSuite, Test_SSDMobileNet_Rank4Input_Smoke)
   ASSERT_EQ(!ortAgent.p2_ort_session, false);
   EXPECT_NO_THROW({
     EPD::EPDObjectDetection result = ortAgent.p2_ort_session->infer(frame);
-    (void)result;
+    ASSERT_FALSE(result.bboxes.empty());
+    EXPECT_EQ(result.bboxes.size(), result.classIndices.size());
+    EXPECT_EQ(result.bboxes.size(), result.scores.size());
+    for (const auto & box : result.bboxes) {
+      EXPECT_GE(box[0], 0);
+      EXPECT_GE(box[1], 0);
+      EXPECT_LE(box[2], frame.cols);
+      EXPECT_LE(box[3], frame.rows);
+    }
   });
 }
 

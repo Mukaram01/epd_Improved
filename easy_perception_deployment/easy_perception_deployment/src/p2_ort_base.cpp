@@ -114,9 +114,13 @@ EPD::EPDObjectDetection P2OrtBase::infer(
   float confThresh,
   const cv::Scalar & meanVal)
 {
+  const bool ssd = hasSsdDetectionOutputs();
   cv::Mat tmpImg;
   cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
 
+  if (ssd) {
+    cv::cvtColor(tmpImg, tmpImg, cv::COLOR_BGR2RGB);
+  }
   tmpImg.convertTo(tmpImg, CV_32FC3);
   if (!isInputUint8()) {
     tmpImg -= meanVal;
@@ -130,12 +134,23 @@ EPD::EPDObjectDetection P2OrtBase::infer(
   // boxes, labels, scores
   auto inferenceOutput = (*this)({dst});
 
-  if (inferenceOutput[1].second.size() != 1) {
+  if (ssd) {
+    if (inferenceOutput[0].second.size() != 3 ||
+      inferenceOutput[0].second[0] != 1 || inferenceOutput[0].second[2] != 4 ||
+      inferenceOutput[1].second.size() != 2 || inferenceOutput[2].second.size() != 2)
+    {
+      throw std::runtime_error("Unexpected SSD detection output shape");
+    }
+  }
+  if (!ssd && inferenceOutput[1].second.size() != 1) {
     throw std::runtime_error(
       "Unexpected inference output shape: expected 1 dimension for box count, got " +
       std::to_string(inferenceOutput[1].second.size()));
   }
-  size_t nBoxes = inferenceOutput[1].second[0];
+  size_t nBoxes = ssd ? static_cast<size_t>(std::clamp(
+    inferenceOutput[3].first[0], 0.0f,
+    static_cast<float>(inferenceOutput[0].second[1]))) :
+    static_cast<size_t>(inferenceOutput[1].second[0]);
 
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
   const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
@@ -150,10 +165,13 @@ EPD::EPDObjectDetection P2OrtBase::infer(
 
   for (size_t i = 0; i < nBoxes; ++i) {
     if (inferenceOutput[2].first[i] > confThresh) {
-      int xmin = static_cast<int>(inferenceOutput[0].first[i * 4 + 0] / scale_x);
-      int ymin = static_cast<int>(inferenceOutput[0].first[i * 4 + 1] / scale_y);
-      int xmax = static_cast<int>(inferenceOutput[0].first[i * 4 + 2] / scale_x);
-      int ymax = static_cast<int>(inferenceOutput[0].first[i * 4 + 3] / scale_y);
+      // SSD boxes are normalized [ymin, xmin, ymax, xmax].
+      const float box_scale_x = ssd ? paddedW / scale_x : 1.0f / scale_x;
+      const float box_scale_y = ssd ? paddedH / scale_y : 1.0f / scale_y;
+      int xmin = static_cast<int>(inferenceOutput[0].first[i * 4 + (ssd ? 1 : 0)] * box_scale_x);
+      int ymin = static_cast<int>(inferenceOutput[0].first[i * 4 + (ssd ? 0 : 1)] * box_scale_y);
+      int xmax = static_cast<int>(inferenceOutput[0].first[i * 4 + (ssd ? 3 : 2)] * box_scale_x);
+      int ymax = static_cast<int>(inferenceOutput[0].first[i * 4 + (ssd ? 2 : 3)] * box_scale_y);
 
       xmin = std::max<int>(xmin, 0);
       ymin = std::max<int>(ymin, 0);
@@ -161,7 +179,8 @@ EPD::EPDObjectDetection P2OrtBase::infer(
       ymax = std::min<int>(ymax, inputImg.rows);
 
       bboxes.emplace_back(std::array<int, 4>{xmin, ymin, xmax, ymax});
-      classIndices.emplace_back(reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
+      classIndices.emplace_back(ssd ? static_cast<uint64_t>(inferenceOutput[1].first[i]) :
+        reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
       scores.emplace_back(inferenceOutput[2].first[i]);
     }
   }

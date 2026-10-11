@@ -92,6 +92,7 @@ public:
   /*! \brief Enable verbose ONNX model input/output info logs at runtime. */
   bool log_model_info{false};
   /*! \brief Target size for model pre-processing shortest side before padding. */
+  Ort::ModelProfile model_profile;
   int target_min_side{800};
   /*! \brief Allow upscaling frames smaller than target_min_side. */
   bool allow_upscale{false};

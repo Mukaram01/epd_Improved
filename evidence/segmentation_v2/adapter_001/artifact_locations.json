@@ -1,0 +1,71 @@
+{
+  "classification": "ADAPTER_READY_FOR_V2_EXPORT",
+  "held_out_accessed": false,
+  "training_executed": false,
+  "exported_smoke": false,
+  "historical_executions": 1,
+  "historical_probe": {
+    "path": "/home/user/epd-v2-artifacts/adapter-historical-001/executed-probe",
+    "sha256": "66896187f8e568fa516a12ea2736fd818e3abc9db9be10eaadf110fe4744f41c"
+  },
+  "final_probe": {
+    "path": "/home/user/epd-v2-artifacts/adapter-build/epd_p3_contract_probe",
+    "sha256": "8b942ecc6d96d13a15e538e41b5014b2cd9dc808358df17a64f144f473f1b1e6"
+  },
+  "external_checks": {
+    "/home/user/epd-v2-artifacts/adapter-release-check": "4eef69d89cc8351cccbd23b1b3d1b7b7f20c6f4ab1efded32eaac36935ada758",
+    "/home/user/epd-v2-artifacts/adapter-historical-001": "2c78008a51f57b2d374d03cc4786b51745872658efb1f729ebe39e29ef1cc608"
+  },
+  "tests": [
+    {
+      "file": "epd_test_inference_scheduler.gtest.xml",
+      "tests": "23",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.118",
+      "timestamp": "2026-10-11T16:42:11",
+      "name": "AllTests"
+    },
+    {
+      "file": "epd_test_observation.gtest.xml",
+      "tests": "9",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.049",
+      "timestamp": "2026-10-11T16:42:11",
+      "name": "AllTests"
+    },
+    {
+      "file": "epd_test_p3_adapter.gtest.xml",
+      "tests": "10",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.001",
+      "timestamp": "2026-10-11T16:42:11",
+      "name": "AllTests"
+    },
+    {
+      "file": "epd_test_geometry_quality.gtest.xml",
+      "tests": "19",
+      "failures": "0",
+      "disabled": "0",
+      "errors": "0",
+      "time": "0.001",
+      "timestamp": "2026-10-11T16:42:12",
+      "name": "AllTests"
+    }
+  ],
+  "source_sha256": {
+    "easy_perception_deployment/easy_perception_deployment/include/ort_cpp_lib/p2_ort_base.hpp": "3110d2ff9a3d7c39d3b0a7aa5cf9a12f123bc693ab1304123df72b614d10c383",
+    "easy_perception_deployment/easy_perception_deployment/include/ort_cpp_lib/p3_model_adapter.hpp": "024fea5c2dc1a0bfd61618c178d9a2b5f343ed9046c4589ba1680f37c100cd58",
+    "easy_perception_deployment/easy_perception_deployment/include/ort_cpp_lib/p3_ort_base.hpp": "cc4ddb64387ac7b71f36abab224e08f23087b8329895b3d2d6ab1365cf06c666",
+    "easy_perception_deployment/easy_perception_deployment/include/ort_cpp_lib/ort_base.hpp": "bf289dc64643e7bf873a5770cd365c5dae1a5027717287442b36d4e42e9fc700",
+    "easy_perception_deployment/easy_perception_deployment/src/ort_base.cpp": "b277b0140f4587b2a3a6af21b5fc0f0201414ec7efeddfedf9ff34be54583b42",
+    "easy_perception_deployment/easy_perception_deployment/src/p3_ort_base.cpp": "3ab392d3f81e329c919b5dc3c74a23773673b6c50401a18aea4ce3ccfdfe4f2c",
+    "tools/segmentation_v2/verify_adapter.py": "562ab9da1a5fa543e06e141eedb4a4805056815bd97c7ba6c88d04e9368bf697"
+  },
+  "remaining_action": "Accepted trained v2 checkpoint/export for raw PyTorch-versus-ONNX/C++ comparison; no adapter contract blocker"
+}

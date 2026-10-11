@@ -56,7 +56,8 @@ P3OrtBase::P3OrtBase(
   const boost::optional<SessionExecutionMode> & executionMode,
   const boost::optional<std::vector<std::vector<int64_t>>> & inputShapes,
   InputTensorLayout inputTensorLayout,
-  const boost::optional<bool> & logModelInfo)
+  const boost::optional<bool> & logModelInfo,
+  ModelProfile profile)
 : OrtBase(
     modelPath,
     gpuIdx,
@@ -65,15 +66,25 @@ P3OrtBase::P3OrtBase(
     executionMode,
     inputShapes,
     logModelInfo),
+  model_profile_(profile),
   m_numClasses(numClasses),
   m_ratio(ratio),
   m_newW(newW),
   m_newH(newH),
   m_paddedW(paddedW),
   m_paddedH(paddedH),
-  preprocess_buffer_(m_paddedH * m_paddedW * 3),
+  preprocess_buffer_(checkedTensorSize({3,m_paddedH,m_paddedW}, false)),
   input_tensor_layout_(inputTensorLayout)
-{}
+{
+  if (newW<=0 || newH<=0 || newW>paddedW || newH>paddedH)
+    throw std::invalid_argument("Invalid P3 resize dimensions");
+  validateP3OutputTypes();
+  if (profile.fullImage()) {
+    if (inputTensorLayout!=InputTensorLayout::NCHW || newW!=paddedW || newH!=paddedH)
+      throw std::invalid_argument("RGB01 requires NCHW without padding");
+    validateRgb01Model(newW,newH);
+  }
+}
 
 // Destructor
 P3OrtBase::~P3OrtBase()
@@ -141,26 +152,18 @@ void P3OrtBase::initClassNames(const std::vector<std::string> & classNames)
   m_classNames = classNames;
 }
 
-void P3OrtBase::preprocess(
-  float * dst,
-  const cv::Mat & imgSrc,
-  const int64_t targetImgWidth,
-  const int64_t targetImgHeight,
-  const int numChannels) const
+P3Decoded P3OrtBase::runAdapter(const cv::Mat & image, float * dst,
+  float confidence, bool integer_boxes, int newW, int newH, int paddedW, int paddedH,
+  const cv::Scalar & mean)
 {
-  for (int i = 0; i < targetImgHeight; ++i) {
-    for (int j = 0; j < targetImgWidth; ++j) {
-      for (int c = 0; c < numChannels; ++c) {
-        if (input_tensor_layout_ == InputTensorLayout::NHWC) {
-          dst[i * targetImgWidth * numChannels + j * numChannels + c] =
-            imgSrc.ptr<float>(i, j)[c];
-        } else {
-          dst[c * targetImgHeight * targetImgWidth + i * targetImgWidth + j] =
-            imgSrc.ptr<float>(i, j)[c];
-        }
-      }
-    }
+  if (model_profile_.fullImage()) {
+    const auto tensor=rgb01Tensor(image,newW,newH);
+    std::copy(tensor.begin(),tensor.end(),dst);
+  } else {
+    legacyP3Tensor(dst,image,newW,newH,paddedW,paddedH,input_tensor_layout_,isInputUint8(),mean);
   }
+  return decodeP3((*this)({dst}),model_profile_,image.cols,image.rows,
+    newW,newH,m_numClasses,confidence,integer_boxes);
 }
 
 // Mutator 4
@@ -170,86 +173,18 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   int newH,
   int paddedW,
   int paddedH,
-  float ratio,
+  float /*ratio*/,
   float * dst,
   float confThresh,
   const cv::Scalar & meanVal)
 {
-  cv::Mat tmpImg;
-  cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
-
-  tmpImg.convertTo(tmpImg, CV_32FC3);
-  if (!isInputUint8()) {
-    tmpImg -= meanVal;
-  }
-
-  cv::Mat paddedImg(paddedH, paddedW, CV_32FC3, cv::Scalar(0, 0, 0));
-  tmpImg.copyTo(paddedImg(cv::Rect(0, 0, newW, newH)));
-
-  this->preprocess(dst, paddedImg, paddedW, paddedH, 3);
-
-  // boxes, labels, scores, masks
-  auto inferenceOutput = (*this)({dst});
-
-  if (inferenceOutput[1].second.size() != 1) {
-    throw std::runtime_error(
-      "Unexpected inference output shape: expected 1 dimension for box count, got " +
-      std::to_string(inferenceOutput[1].second.size()));
-  }
-  size_t nBoxes = inferenceOutput[1].second[0];
-
-  // Determine mask dimensions from the inference output shape.
-  // MaskRCNN outputs masks with shape [N, 1, H, W]; fall back to 28x28 if unreadable.
-  int64_t mask_H = 28;
-  int64_t mask_W = 28;
-  {
-    const auto & mask_shape = inferenceOutput[3].second;
-    if (mask_shape.size() >= 4 && mask_shape[2] > 0 && mask_shape[3] > 0) {
-      mask_H = mask_shape[2];
-      mask_W = mask_shape[3];
-    } else if (mask_shape.size() >= 3 && mask_shape[1] > 0 && mask_shape[2] > 0) {
-      mask_H = mask_shape[1];
-      mask_W = mask_shape[2];
-    }
-  }
-
-  const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
-  const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
-
-  std::vector<std::array<int, 4>> bboxes;
-  std::vector<uint64_t> classIndices;
-  std::vector<float> scores;
-  std::vector<cv::Mat> masks;
-
-  bboxes.reserve(nBoxes);
-  classIndices.reserve(nBoxes);
-  scores.reserve(nBoxes);
-  masks.reserve(nBoxes);
-
-  for (size_t i = 0; i < nBoxes; ++i) {
-    if (inferenceOutput[2].first[i] > confThresh) {
-      int xmin = static_cast<int>(inferenceOutput[0].first[i * 4 + 0] / scale_x);
-      int ymin = static_cast<int>(inferenceOutput[0].first[i * 4 + 1] / scale_y);
-      int xmax = static_cast<int>(inferenceOutput[0].first[i * 4 + 2] / scale_x);
-      int ymax = static_cast<int>(inferenceOutput[0].first[i * 4 + 3] / scale_y);
-
-      xmin = std::max<int>(xmin, 0);
-      ymin = std::max<int>(ymin, 0);
-      xmax = std::min<int>(xmax, inputImg.cols);
-      ymax = std::min<int>(ymax, inputImg.rows);
-
-      bboxes.emplace_back(std::array<int, 4>{xmin, ymin, xmax, ymax});
-      classIndices.emplace_back(reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
-      scores.emplace_back(inferenceOutput[2].first[i]);
-
-      cv::Mat curMask(mask_H, mask_W, CV_32FC1);
-      memcpy(
-        curMask.data,
-        inferenceOutput[3].first + i * mask_H * mask_W,
-        mask_H * mask_W * sizeof(float));
-      masks.emplace_back(curMask);
-    }
-  }
+  auto decoded = runAdapter(inputImg, dst, confThresh, true,newW,newH,paddedW,paddedH,meanVal);
+  std::vector<std::array<int,4>> bboxes;
+  for (const auto & box:decoded.boxes)
+    bboxes.push_back({int(box[0]),int(box[1]),int(box[2]),int(box[3])});
+  auto & classIndices = decoded.labels;
+  auto & scores = decoded.scores;
+  auto & masks = decoded.masks;
 
   if (bboxes.size() == 0) {
     EPD::EPDObjectDetection output_msg(0);
@@ -362,7 +297,12 @@ bool P3OrtBase::populateObjectGeometry(
 
   // Resize raw mask to bbox dimensions and binarize
   cv::Mat resizedMask;
-  cv::resize(rawMask, resizedMask, curBoxRect.size());
+  if (model_profile_.fullImage()) {
+    if (rawMask.size()!=curBoxRect.size() || rawMask.type()!=CV_32FC1) return false;
+    resizedMask=rawMask;
+  } else {
+    cv::resize(rawMask, resizedMask, curBoxRect.size());
+  }
   cv::Mat finalMask = (resizedMask > maskThreshold);
 
   cv::Mat tempFinalMask;
@@ -522,87 +462,17 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   int newH,
   int paddedW,
   int paddedH,
-  float ratio,
+  float /*ratio*/,
   float * dst,
   float confThresh,
   const cv::Scalar & meanVal,
   int max_depth_mm)
 {
-  cv::Mat tmpImg;
-  cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
-
-  tmpImg.convertTo(tmpImg, CV_32FC3);
-  if (!isInputUint8()) {
-    tmpImg -= meanVal;
-  }
-
-  cv::Mat paddedImg(paddedH, paddedW, CV_32FC3, cv::Scalar(0, 0, 0));
-  tmpImg.copyTo(paddedImg(cv::Rect(0, 0, newW, newH)));
-
-  this->preprocess(dst, paddedImg, paddedW, paddedH, 3);
-
-  // boxes, labels, scores, masks
-  auto inferenceOutput = (*this)({dst});
-
-  if (inferenceOutput[1].second.size() != 1) {
-    throw std::runtime_error(
-      "Unexpected inference output shape: expected 1 dimension for box count, got " +
-      std::to_string(inferenceOutput[1].second.size()));
-  }
-  size_t nBoxes = inferenceOutput[1].second[0];
-
-  // Determine mask dimensions from the inference output shape.
-  // MaskRCNN outputs masks with shape [N, 1, H, W]; fall back to 28x28 if unreadable.
-  int64_t mask_H = 28;
-  int64_t mask_W = 28;
-  {
-    const auto & mask_shape = inferenceOutput[3].second;
-    if (mask_shape.size() >= 4 && mask_shape[2] > 0 && mask_shape[3] > 0) {
-      mask_H = mask_shape[2];
-      mask_W = mask_shape[3];
-    } else if (mask_shape.size() >= 3 && mask_shape[1] > 0 && mask_shape[2] > 0) {
-      mask_H = mask_shape[1];
-      mask_W = mask_shape[2];
-    }
-  }
-
-  const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
-  const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
-
-  std::vector<std::array<float, 4>> bboxes;
-  std::vector<uint64_t> classIndices;
-  std::vector<float> scores;
-  std::vector<cv::Mat> masks;
-
-  bboxes.reserve(nBoxes);
-  classIndices.reserve(nBoxes);
-  scores.reserve(nBoxes);
-  masks.reserve(nBoxes);
-
-  for (size_t i = 0; i < nBoxes; ++i) {
-    if (inferenceOutput[2].first[i] > confThresh) {
-      float xmin = inferenceOutput[0].first[i * 4 + 0] / scale_x;
-      float ymin = inferenceOutput[0].first[i * 4 + 1] / scale_y;
-      float xmax = inferenceOutput[0].first[i * 4 + 2] / scale_x;
-      float ymax = inferenceOutput[0].first[i * 4 + 3] / scale_y;
-
-      xmin = std::max<float>(xmin, 0);
-      ymin = std::max<float>(ymin, 0);
-      xmax = std::min<float>(xmax, inputImg.cols);
-      ymax = std::min<float>(ymax, inputImg.rows);
-
-      bboxes.emplace_back(std::array<float, 4>{xmin, ymin, xmax, ymax});
-      classIndices.emplace_back(reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
-      scores.emplace_back(inferenceOutput[2].first[i]);
-
-      cv::Mat curMask(mask_H, mask_W, CV_32FC1);
-      memcpy(
-        curMask.data,
-        inferenceOutput[3].first + i * mask_H * mask_W,
-        mask_H * mask_W * sizeof(float));
-      masks.emplace_back(curMask);
-    }
-  }
+  auto decoded = runAdapter(inputImg, dst, confThresh, false,newW,newH,paddedW,paddedH,meanVal);
+  auto & bboxes = decoded.boxes;
+  auto & classIndices = decoded.labels;
+  auto & scores = decoded.scores;
+  auto & masks = decoded.masks;
 
   std::vector<std::string> allClassNames = this->getClassNames();
   float maskThreshold = 0.5;
@@ -679,87 +549,17 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   int newH,
   int paddedW,
   int paddedH,
-  float ratio,
+  float /*ratio*/,
   float * dst,
   float confThresh,
   const cv::Scalar & meanVal,
   int max_depth_mm)
 {
-  cv::Mat tmpImg;
-  cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
-
-  tmpImg.convertTo(tmpImg, CV_32FC3);
-  if (!isInputUint8()) {
-    tmpImg -= meanVal;
-  }
-
-  cv::Mat paddedImg(paddedH, paddedW, CV_32FC3, cv::Scalar(0, 0, 0));
-  tmpImg.copyTo(paddedImg(cv::Rect(0, 0, newW, newH)));
-
-  this->preprocess(dst, paddedImg, paddedW, paddedH, 3);
-
-  // boxes, labels, scores, masks
-  auto inferenceOutput = (*this)({dst});
-
-  if (inferenceOutput[1].second.size() != 1) {
-    throw std::runtime_error(
-      "Unexpected inference output shape: expected 1 dimension for box count, got " +
-      std::to_string(inferenceOutput[1].second.size()));
-  }
-  size_t nBoxes = inferenceOutput[1].second[0];
-
-  // Determine mask dimensions from the inference output shape.
-  // MaskRCNN outputs masks with shape [N, 1, H, W]; fall back to 28x28 if unreadable.
-  int64_t mask_H = 28;
-  int64_t mask_W = 28;
-  {
-    const auto & mask_shape = inferenceOutput[3].second;
-    if (mask_shape.size() >= 4 && mask_shape[2] > 0 && mask_shape[3] > 0) {
-      mask_H = mask_shape[2];
-      mask_W = mask_shape[3];
-    } else if (mask_shape.size() >= 3 && mask_shape[1] > 0 && mask_shape[2] > 0) {
-      mask_H = mask_shape[1];
-      mask_W = mask_shape[2];
-    }
-  }
-
-  const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
-  const float scale_y = inputImg.rows > 0 ? static_cast<float>(newH) / inputImg.rows : ratio;
-
-  std::vector<std::array<float, 4>> bboxes;
-  std::vector<uint64_t> classIndices;
-  std::vector<float> scores;
-  std::vector<cv::Mat> masks;
-
-  bboxes.reserve(nBoxes);
-  classIndices.reserve(nBoxes);
-  scores.reserve(nBoxes);
-  masks.reserve(nBoxes);
-
-  for (size_t i = 0; i < nBoxes; ++i) {
-    if (inferenceOutput[2].first[i] > confThresh) {
-      float xmin = inferenceOutput[0].first[i * 4 + 0] / scale_x;
-      float ymin = inferenceOutput[0].first[i * 4 + 1] / scale_y;
-      float xmax = inferenceOutput[0].first[i * 4 + 2] / scale_x;
-      float ymax = inferenceOutput[0].first[i * 4 + 3] / scale_y;
-
-      xmin = std::max<float>(xmin, 0);
-      ymin = std::max<float>(ymin, 0);
-      xmax = std::min<float>(xmax, inputImg.cols);
-      ymax = std::min<float>(ymax, inputImg.rows);
-
-      bboxes.emplace_back(std::array<float, 4>{xmin, ymin, xmax, ymax});
-      classIndices.emplace_back(reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
-      scores.emplace_back(inferenceOutput[2].first[i]);
-
-      cv::Mat curMask(mask_H, mask_W, CV_32FC1);
-      memcpy(
-        curMask.data,
-        inferenceOutput[3].first + i * mask_H * mask_W,
-        mask_H * mask_W * sizeof(float));
-      masks.emplace_back(curMask);
-    }
-  }
+  auto decoded = runAdapter(inputImg, dst, confThresh, false,newW,newH,paddedW,paddedH,meanVal);
+  auto & bboxes = decoded.boxes;
+  auto & classIndices = decoded.labels;
+  auto & scores = decoded.scores;
+  auto & masks = decoded.masks;
 
   std::vector<std::optional<size_t>> detection_to_tracker;
   tracking_evaluate(

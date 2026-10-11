@@ -127,3 +127,10 @@ frozen and unevaluated until selection and actual EPD-path compatibility pass.
 No geometry, fail-closed association or 0.1 mm physical-contact requirement is
 changed. No MoveIt, robot controllers, physical motion or Workcell Studio
 deployment occurs. Reaching 48 scenes or two steps does not qualify production.
+
+## Production adapter follow-up
+
+The explicit C++ RGB01/full-image adapter and reusable export verification are
+specified in [the adapter contract](../../docs/segmentation_v2_adapter.md).
+The smoke model remains rejected. Adapter evidence is separate from pilot model
+quality and does not qualify a v2 checkpoint or alter the frozen dataset.

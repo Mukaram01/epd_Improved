@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="23" failures="0" disabled="0" errors="0" time="0.118" timestamp="2026-10-11T16:42:11" name="AllTests">
+  <testsuite name="InferenceScheduler" tests="9" failures="0" disabled="0" errors="0" time="0.077" timestamp="2026-10-11T16:42:11">
+    <testcase name="FastProducerSlowConsumerStaysBounded" status="run" result="completed" time="0.002" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="BusyWorkerTakesNewestInsteadOfBacklog" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="ConsumedIdNeverRegresses" status="run" result="completed" time="0.01" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="SameObservationIsNotProcessedTwice" status="run" result="completed" time="0.01" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="SkippedAccountingIncludesInitialOverwrite" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="WorkerSleepsAndWakesForSubmission" status="run" result="completed" time="0.02" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="ShutdownUnblocksWorker" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="FailureDoesNotKillSubsequentWork" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.InferenceScheduler" />
+    <testcase name="LongProducerRunRetainsOneObservationAndResult" status="run" result="completed" time="0.033" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.InferenceScheduler" />
+  </testsuite>
+  <testsuite name="PerceptionResultStore" tests="10" failures="0" disabled="0" errors="0" time="0.041" timestamp="2026-10-11T16:42:12">
+    <testcase name="BaselineCannotAcceptOldResult" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="NewlyCompletedContinuousResultSatisfiesBaseline" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="ConsecutiveRequestsRequireNewerResults" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="OriginalSensorStampAndFrameSurviveResult" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="LatestOnlyRejectsRegressionAndDuplicate" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="TimeoutDoesNotPreventLaterSuccess" status="run" result="completed" time="0.011" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="ShutdownWakesWaiter" status="run" result="completed" time="0.02" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="FreshZeroDetectionResultIsSuccessful" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="LocalizationAndTrackingPayloadShareSourceTruth" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+    <testcase name="ConsecutiveWaitsNeedSuccessivelyFreshResults" status="run" result="completed" time="0.01" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.PerceptionResultStore" />
+  </testsuite>
+  <testsuite name="P7Handshake" tests="4" failures="0" disabled="0" errors="0" time="0" timestamp="2026-10-11T16:42:12">
+    <testcase name="ConsumerBusyOrAbsentDoesNotStopObservationAndInferenceProgress" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.P7Handshake" />
+    <testcase name="FreshRequestAfterBusyCannotReuseItsBaseline" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.P7Handshake" />
+    <testcase name="EpdRestartHasAnEmptyResultTimeline" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.P7Handshake" />
+    <testcase name="EmdRestartDoesNotAlterEpdOwnedTimeline" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:12" classname="easy_perception_deployment.P7Handshake" />
+  </testsuite>
+</testsuites>

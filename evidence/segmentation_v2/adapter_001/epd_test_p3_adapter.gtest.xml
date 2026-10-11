@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="10" failures="0" disabled="0" errors="0" time="0.001" timestamp="2026-10-11T16:42:11" name="AllTests">
+  <testsuite name="P3Adapter" tests="10" failures="0" disabled="0" errors="0" time="0.001" timestamp="2026-10-11T16:42:11">
+    <testcase name="RgbBytesAndExactRoi" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="DefaultsAndInvalidProfiles" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="LegacyThresholdAndRoiSemantics" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="EmptyAndInvalidRuntimeShapes" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="MalformedDataFailsClosed" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="HugeCoordinatesClipBeforeConversion" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="MetadataIsNotJustNames" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="LegacyBgrMeanTensorBytesAndPadding" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="RgbExactBytesFromNoncontiguousBgr" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+    <testcase name="LegacyFloatScalingBoundaryUnchanged" status="run" result="completed" time="0.001" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.P3Adapter" />
+  </testsuite>
+</testsuites>

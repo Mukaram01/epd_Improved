@@ -1,0 +1,17 @@
+Internal ctest changing into directory: /home/user/epd-v2-artifacts/adapter-build
+Test project /home/user/epd-v2-artifacts/adapter-build
+    Start 1: epd_test_p3_adapter
+1/4 Test #1: epd_test_p3_adapter ..............   Passed    0.08 sec
+    Start 2: epd_test_observation
+2/4 Test #2: epd_test_observation .............   Passed    0.13 sec
+    Start 3: epd_test_inference_scheduler
+3/4 Test #3: epd_test_inference_scheduler .....   Passed    0.20 sec
+    Start 4: epd_test_geometry_quality
+4/4 Test #4: epd_test_geometry_quality ........   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Label Time Summary:
+gtest    =   0.50 sec*proc (4 tests)
+
+Total Test time (real) =   0.50 sec

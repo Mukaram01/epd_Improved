@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="9" failures="0" disabled="0" errors="0" time="0.049" timestamp="2026-10-11T16:42:11" name="AllTests">
+  <testsuite name="Observation" tests="2" failures="0" disabled="0" errors="0" time="0" timestamp="2026-10-11T16:42:11">
+    <testcase name="OwnsImmutableSynchronizedInputAndTruthfulIdentity" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.Observation" />
+    <testcase name="OutputHeaderPreservesSourceStampAndFrame" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.Observation" />
+  </testsuite>
+  <testsuite name="LatestObservationStore" tests="7" failures="0" disabled="0" errors="0" time="0.049" timestamp="2026-10-11T16:42:11">
+    <testcase name="IdsAreStrictlyMonotonicAndProcessLocal" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.LatestObservationStore" />
+    <testcase name="SlowConsumerRetainsOnlyNewestObservation" status="run" result="completed" time="0.002" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.LatestObservationStore" />
+    <testcase name="WaitCannotAcceptCachedObservationAtBaseline" status="run" result="completed" time="0.02" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.LatestObservationStore" />
+    <testcase name="WaitWakesOnlyForStrictlyNewerObservation" status="run" result="completed" time="0.021" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.LatestObservationStore" />
+    <testcase name="ConsecutiveRequestsRequireDifferentNewObservations" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.LatestObservationStore" />
+    <testcase name="ShutdownUnblocksWaitWithoutStaleReplay" status="run" result="completed" time="0" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.LatestObservationStore" />
+    <testcase name="ConcurrentProducerAndConsumerAreRaceSafe" status="run" result="completed" time="0.006" timestamp="2026-10-11T16:42:11" classname="easy_perception_deployment.LatestObservationStore" />
+  </testsuite>
+</testsuites>

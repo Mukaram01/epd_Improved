@@ -1,0 +1,18 @@
+{
+  "kind": "one_historical_validation_inference_not_v2_qualification",
+  "model_sha256": "21362d62d816bd684f2b5c7769d0bcd1cd568af86419788fca9d095c46f2bad2",
+  "reference_sha256": "31294906f437b944cc013ee6ccdb5757ca4c6dff947fd3d72af965a3dc5e694b",
+  "rgb_sha256": "0d3710cf11eb6427424ea1abc5fae7d66a822e0bf76f8150e84384f80f18b54d",
+  "prepared_bgr_png_sha256": "32ec128ba594ec93ac32757538c05780ffd94c5d8974e85a5cf3503864138995",
+  "differences": {
+    "box_max_abs": 0.0,
+    "score_max_abs": 0.0,
+    "mask_max_abs": 0.0,
+    "labels_exact": true,
+    "count": 1,
+    "roi_masks_bitwise_exact": true
+  },
+  "probe_sha256": "66896187f8e568fa516a12ea2736fd818e3abc9db9be10eaadf110fe4744f41c",
+  "held_out_accessed": false,
+  "training_executed": false
+}

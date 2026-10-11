@@ -1,0 +1,25 @@
+Consolidate compiler generated dependencies of target easy_perception_deployment
+[ 16%] Building CXX object CMakeFiles/easy_perception_deployment.dir/src/main.cpp.o
+[ 33%] Building CXX object CMakeFiles/easy_perception_deployment.dir/src/epd_container.cpp.o
+[ 50%] Building CXX object CMakeFiles/easy_perception_deployment.dir/src/ort_base.cpp.o
+/home/user/epd-v2-supervised-pilot/easy_perception_deployment/easy_perception_deployment/src/ort_base.cpp:106:13: warning: ‘std::string {anonymous}::ortStatusMessage(OrtStatus*)’ defined but not used [-Wunused-function]
+  106 | std::string ortStatusMessage(OrtStatus * status)
+      |             ^~~~~~~~~~~~~~~~
+[ 66%] Building CXX object CMakeFiles/easy_perception_deployment.dir/src/p3_ort_base.cpp.o
+[ 83%] Linking CXX executable easy_perception_deployment
+[100%] Built target easy_perception_deployment
+[ 66%] Built target gtest
+[ 66%] Built target gtest_main
+Consolidate compiler generated dependencies of target epd_test_p3_adapter
+[ 83%] Building CXX object CMakeFiles/epd_test_p3_adapter.dir/test/test_p3_model_adapter.cpp.o
+[100%] Linking CXX executable epd_test_p3_adapter
+[100%] Built target epd_test_p3_adapter
+Consolidate compiler generated dependencies of target epd_p3_contract_probe
+[ 50%] Building CXX object CMakeFiles/epd_p3_contract_probe.dir/test/p3_contract_probe.cpp.o
+[ 50%] Building CXX object CMakeFiles/epd_p3_contract_probe.dir/src/ort_base.cpp.o
+/home/user/epd-v2-supervised-pilot/easy_perception_deployment/easy_perception_deployment/src/ort_base.cpp:106:13: warning: ‘std::string {anonymous}::ortStatusMessage(OrtStatus*)’ defined but not used [-Wunused-function]
+  106 | std::string ortStatusMessage(OrtStatus * status)
+      |             ^~~~~~~~~~~~~~~~
+[ 75%] Building CXX object CMakeFiles/epd_p3_contract_probe.dir/src/p3_ort_base.cpp.o
+[100%] Linking CXX executable epd_p3_contract_probe
+[100%] Built target epd_p3_contract_probe

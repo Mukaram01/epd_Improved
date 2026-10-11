@@ -257,6 +257,15 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
   find_package(ament_cmake_gtest REQUIRED)
 
+  add_executable(epd_p3_contract_probe test/p3_contract_probe.cpp src/ort_base.cpp src/p3_ort_base.cpp)
+  ament_target_dependencies(epd_p3_contract_probe ${EPD_COMMON_DEPS})
+  target_include_directories(epd_p3_contract_probe PRIVATE include ${PCL_INCLUDE_DIRS})
+  target_link_libraries(epd_p3_contract_probe ${PCL_LIBRARIES} jsoncpp::jsoncpp)
+
+  ament_add_gtest(epd_test_p3_adapter test/test_p3_model_adapter.cpp)
+  target_include_directories(epd_test_p3_adapter PRIVATE include ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(epd_test_p3_adapter ${OpenCV_LIBRARIES} jsoncpp::jsoncpp)
+
   ament_add_gtest(epd_test_observation test/test_observation.cpp)
   target_include_directories(epd_test_observation PRIVATE include)
   ament_target_dependencies(epd_test_observation sensor_msgs epd_msgs)

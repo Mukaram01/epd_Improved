@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.16)
+project(epd_v2_capture LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(ignition-gazebo6 6.18.0 EXACT REQUIRED)
+find_package(ignition-gazebo6-rendering REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(RENDER REQUIRED IMPORTED_TARGET ignition-rendering6 ignition-utils1)
+pkg_check_modules(JSON REQUIRED IMPORTED_TARGET jsoncpp)
+pkg_check_modules(OGRE REQUIRED IMPORTED_TARGET ignition-rendering6-ogre2 OGRE-Next)
+pkg_check_modules(GL REQUIRED IMPORTED_TARGET gl)
+if(NOT EXISTS "${EMD_HEADERS}/paired_native/native_pass.hh")
+  message(FATAL_ERROR "Provide hash-verified EMD_HEADERS using pilot.py prepare")
+endif()
+add_executable(epd_v2_capture capture.cpp)
+target_include_directories(epd_v2_capture PRIVATE "${EMD_HEADERS}")
+target_link_libraries(epd_v2_capture ignition-gazebo6::ignition-gazebo6
+  ignition-gazebo6::ignition-gazebo6-rendering PkgConfig::RENDER PkgConfig::JSON
+  PkgConfig::OGRE PkgConfig::GL)

@@ -1,0 +1,11 @@
+{
+  "child_peak_rss_kib": 894608,
+  "command": [
+    "cmake",
+    "--build",
+    "/home/user/epd-v2-artifacts/pilot-001/build",
+    "-j2"
+  ],
+  "exit_code": 0,
+  "wall_seconds": 14.467062787000032
+}

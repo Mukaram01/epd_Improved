@@ -1,0 +1,10 @@
+........
+----------------------------------------------------------------------
+Ran 8 tests in 1.044s
+
+OK
+
+Native EPD capture build: exit 0 (compile.json).
+Offline validation replay: model metrics match retained outputs exactly.
+Python syntax compilation: exit 0.
+Large datasets and model weights: external only.

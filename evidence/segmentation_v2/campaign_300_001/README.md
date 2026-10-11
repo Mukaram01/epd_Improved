@@ -98,4 +98,5 @@ Local retention only; no remote artifact durability claim.
 **Next milestone:** provision CUDA-capable hardware and pass a fresh measured
 feasibility check, then run the single300-scene campaign under the same gate.
 Current CPU needs at least1.43x measured throughput for the same conservative
-10800s projection. No model qualification, EMD modification, deployment or motion.
+10800s projection. If validation timing stays constant, the measured worst-case
+forward/backward must be <= 2.744375s (currently4.033226s). No model qualification, EMD modification, deployment or motion.

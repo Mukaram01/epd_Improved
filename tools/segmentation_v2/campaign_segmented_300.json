@@ -1,0 +1,51 @@
+{
+  "schema": "epd_v2_segmented_campaign/1",
+  "base_commit": "b6dbacc61baf066b1a20652176eec3f0b4dcd278",
+  "recipe": "train.json",
+  "epochs": 8,
+  "batch_size": 1,
+  "seed": 260110,
+  "cpu_timeout_seconds": 10800,
+  "cuda_timeout_seconds": 10800,
+  "memory_mib": 6144,
+  "disk_reserve_gib": 5,
+  "cpu_feasibility_timeout_seconds": 180,
+  "feasibility_safety_factor": 1.5,
+  "feasibility_overhead_seconds": 120,
+  "gate": {
+    "positives": 22,
+    "minimum_recovered": 18,
+    "mean_iou_strict_gt": 0.68589,
+    "maximum_false_positives": 1,
+    "background_spill_strict_lt": 1915,
+    "maximum_contract_violations": 0,
+    "confidence_threshold": 0.8,
+    "mask_threshold_strict_gt": 0.5
+  },
+  "eligible_order": [
+    "recovered_desc",
+    "mean_iou_desc",
+    "background_spill_asc",
+    "epoch_asc"
+  ],
+  "no_smoke_initialization": true,
+  "held_out_access": false,
+  "historical_regression_access": false,
+  "training_samples": 300,
+  "dataset_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+  "stages": [
+    [
+      1,
+      4
+    ],
+    [
+      5,
+      8
+    ]
+  ],
+  "stage_timeout_seconds": 10800,
+  "aggregate_timeout_seconds": 18000,
+  "checkpoint_boundary": "after validation; before next epoch",
+  "device": "cpu",
+  "optimizer_steps": 2400
+}

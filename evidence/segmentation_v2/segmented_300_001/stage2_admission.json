@@ -1,0 +1,19 @@
+{
+  "checkpoint_saved": false,
+  "device": "cpu",
+  "estimated_aggregate_seconds": 10390.490495295016,
+  "estimated_stage_seconds": 7693.0578691490155,
+  "feasible": true,
+  "held_out_files_opened": 0,
+  "historical_regression_evaluated": false,
+  "model_restore_verified": true,
+  "optimizer_full_state_restore_verified": true,
+  "optimizer_updates": 0,
+  "peak_rss_kib": 1490700,
+  "projected_rss_kib": 4702602.0,
+  "remaining_aggregate_seconds": 15302.567373853999,
+  "resumed_checkpoint_sha256": "98bb7afde01d0c013df0c4e40ba8cee17449973edc9a991f517d90fcfd45d3e8",
+  "rng_restore_verified": true,
+  "source_stage_seal_sha256": "50fbac86d7a0078dd952148d80a25355458d78ea70526790d0561466e32ff3c7",
+  "stage": 2
+}

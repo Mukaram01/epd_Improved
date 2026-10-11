@@ -55,6 +55,9 @@ def require_feasibility(preflight, device, policy):
             raise ValueError('full-run feasibility not approved')
         if policy.get('training_samples',24)==300 and measurement.get('device')!=device:
             raise ValueError('feasibility device mismatch')
+        if policy.get('schema')=='epd_v2_segmented_campaign/1':
+            if measurement.get('stage') not in (1,2) or measurement['estimated_stage_seconds']>policy['stage_timeout_seconds'] or measurement['estimated_aggregate_seconds']>policy['aggregate_timeout_seconds']:
+                raise ValueError('segmented resource budget')
 
 
 def campaign_rows(source, policy):
@@ -207,7 +210,10 @@ def worker(args):
     for name in ('torch','torchvision'):
         if importlib.metadata.version(name).split('+')[0]!=cfg[name]:raise ValueError('dependency version mismatch')
     device='cuda' if torch.cuda.is_available() else 'cpu'
+    segmented=policy.get('schema')=='epd_v2_segmented_campaign/1'
     require_feasibility(args.preflight,device,policy)
+    if segmented and (device!='cpu' or json.loads((args.preflight/'feasibility.json').read_text())['stage']!=args.stage):
+        raise ValueError('segmented CPU stage mismatch')
     if cfg['seed']!=policy['seed'] or cfg['batch_size']!=1 or cfg['epochs']!=8:raise ValueError('recipe drift')
     seed=cfg['seed'];random.seed(seed);np.random.seed(seed);torch.manual_seed(seed)
     torch.set_num_threads(cfg['cpu_threads']);torch.use_deterministic_algorithms(True)
@@ -217,23 +223,42 @@ def worker(args):
     train,val=campaign_rows(args.artifacts,policy)
     if dataset_identity(args.artifacts)!=identity['acquisition_sha256']:raise ValueError('acquisition identity drift')
     write_json(args.output/'identity_audit.json',audit_identities(args.artifacts))
+    resume=None;prior_wall=0;prior_result=None
+    if segmented:
+        from continuation import binding,verify_stage,restore_state,capture_state,atomic_checkpoint,SOURCE_NAMES
+        bindings=binding(args.artifacts,HERE/'train.json',args.policy)
+        if args.stage==2:
+            if args.resume_stage is None or args.resume_sha256 is None:raise ValueError('verified stage1 checkpoint required')
+            resume,prior_result,seal=verify_stage(args.resume_stage,args.resume_sha256,bindings,
+                [r['scene_id'] for r,_,_,_ in train],seed,torch)
+            prior_wall=seal['aggregate_wall_seconds']
+            if not prior_result['stage2_admission']['admitted']:raise ValueError('Stage2 resource admission rejected')
+        elif args.stage!=1 or args.resume_stage is not None or args.resume_sha256 is not None:
+            raise ValueError('stage1 starts fresh; invalid continuation')
     model=build_model(cfg,args.weights,torch).to(device)
     optimizer=torch.optim.SGD([p for p in model.parameters() if p.requires_grad],lr=cfg['learning_rate'],
         momentum=cfg['momentum'],weight_decay=cfg['weight_decay'])
+    if resume is not None:restore_state(resume,model,optimizer,torch)
     snapshots=args.output/'executed_sources';snapshots.mkdir()
-    for name in ('campaign.py',args.policy.name,'train.py','train.json','pilot.py','dataset.py','dataset_bindings.py','expansion.py'):
+    for name in (('campaign.py',args.policy.name,'train.py','train.json','pilot.py','dataset.py','dataset_bindings.py','expansion.py') if not segmented else (*SOURCE_NAMES,args.policy.name,'train.json')):
         shutil.copy2(HERE/name,snapshots/name)
     write_json(args.output/'run_config.json',dict(device=device,recipe=cfg,policy=policy,
         sources={p.name:sha(p) for p in snapshots.iterdir()},weights_sha256=sha(args.weights),
         acquisition_sha256=dataset_identity(args.artifacts),seed=seed,batch_size=1,
         initialized_from_rejected_smoke=False,smoke_only=False))
-    start=time.monotonic();step=0;history=[];epochs=[];best=None;checkpoints=[]
-    for epoch in range(1,policy['epochs']+1):
+    start=time.monotonic();step=resume['step'] if resume else 0;history=[];epochs=[];best=None;checkpoints=[]
+    first,last=policy['stages'][args.stage-1] if segmented else (1,policy['epochs'])
+    if prior_result is not None:
+        checkpoints=list(prior_result['checkpoints'])
+        epochs=[json.loads((args.resume_stage/f'validation_{e:02d}/metrics.json').read_text()) for e in range(1,5)]
+        candidates=[score for score in epochs if score['eligible']]
+        best=max(candidates,key=checkpoint_key) if candidates else None
+    for epoch in range(first,last+1):
         if shutil.disk_usage(args.output).free<policy['disk_reserve_gib']*1024**3:raise RuntimeError('disk reserve')
         model.train();order=epoch_order(len(train),seed,epoch)
         for index in order:
-            row,scene,report,ids=train[index];image,target=tensors(scene,report,ids,torch)
-            iteration=time.monotonic();optimizer.zero_grad(set_to_none=True)
+            row,scene,report,ids=train[index];iteration=time.monotonic()
+            image,target=tensors(scene,report,ids,torch);optimizer.zero_grad(set_to_none=True)
             parts=model([image.to(device)],[{k:v.to(device) for k,v in target.items()}])
             loss=sum(parts.values())
             if not torch.isfinite(loss) or 'loss_mask' not in parts:raise ValueError('invalid segmentation loss')
@@ -246,15 +271,22 @@ def worker(args):
             history.append(record)
             with (args.output/'history.jsonl').open('a') as f:f.write(json.dumps(record)+'\n');f.flush()
         checkpoint=args.output/f'epoch_{epoch:02d}.pt'
-        torch.save(dict(model=model.state_dict(),optimizer=optimizer.state_dict(),seed=seed,epoch=epoch,step=step,
-            smoke_only=False,config=cfg,campaign=policy,torch_rng_state=torch.get_rng_state(),
-            numpy_rng_state=np.random.get_state(),python_rng_state=random.getstate(),
-            cuda_rng_state=torch.cuda.get_rng_state_all() if device=='cuda' else None),checkpoint)
-        checkpoints.append(dict(epoch=epoch,path=str(checkpoint),sha256=sha(checkpoint),bytes=checkpoint.stat().st_size))
+        if not segmented:
+            torch.save(dict(model=model.state_dict(),optimizer=optimizer.state_dict(),seed=seed,epoch=epoch,step=step,
+                smoke_only=False,config=cfg,campaign=policy,torch_rng_state=torch.get_rng_state(),
+                numpy_rng_state=np.random.get_state(),python_rng_state=random.getstate(),
+                cuda_rng_state=torch.cuda.get_rng_state_all() if device=='cuda' else None),checkpoint)
+            checkpoints.append(dict(epoch=epoch,path=str(checkpoint),sha256=sha(checkpoint),bytes=checkpoint.stat().st_size))
+        validation_start=time.monotonic()
         score=validate_epoch(model,val,device,torch,args.output/f'validation_{epoch:02d}',epoch,policy)
+        validation_wall=time.monotonic()-validation_start
+        if segmented:
+            # Commit the next-epoch boundary, including any RNG consumed by validation.
+            state=capture_state(model,optimizer,torch,seed,epoch,step,bindings,config=cfg,campaign=policy)
+            checkpoints.append(atomic_checkpoint(checkpoint,state,torch))
         epochs.append(score)
         if score['eligible'] and (best is None or checkpoint_key(score)>checkpoint_key(best)):best=score
-        write_json(args.output/f'epoch_{epoch:02d}_summary.json',dict(checkpoint=checkpoints[-1],metrics=score,
+        write_json(args.output/f'epoch_{epoch:02d}_summary.json',dict(checkpoint=checkpoints[-1],metrics=score,validation_wall_seconds=validation_wall,
             mean_losses={k:float(np.mean([r[k] for r in history if r['epoch']==epoch]))
                          for k in ('total_loss','loss_classifier','loss_box_reg','loss_mask','loss_objectness','loss_rpn_box_reg')}))
         print(json.dumps(dict(epoch=epoch,steps=step,recovered=score['recovered'],mean_iou=score['mean_iou'],
@@ -268,7 +300,14 @@ def worker(args):
         '<rect width="600" height="220" fill="white"/><polyline points="'+points+'" fill="none" stroke="blue"/>'
         '<text x="20" y="210">Optimizer steps vs loss: full eight-epoch campaign</text></svg>')
     selected=next(c for c in checkpoints if c['epoch']==best['epoch']) if best else None
-    write_json(args.output/'result.json',dict(status='VALIDATION_ELIGIBLE' if best else 'V2_TRAINED_BUT_REJECTED',
+    if segmented:
+        from segmented_policy import remaining_admission
+        validation_seconds=[json.loads((args.output/f'epoch_{e:02d}_summary.json').read_text())['validation_wall_seconds'] for e in range(first,last+1)]
+        admission=remaining_admission(policy,history,validation_seconds,time.monotonic()-start+prior_wall)
+    write_json(args.output/'result.json',dict(status='STAGE_COMPLETE' if segmented else ('VALIDATION_ELIGIBLE' if best else 'V2_TRAINED_BUT_REJECTED'),
+        **(dict(stage=args.stage,binding=bindings,prior_wall_seconds=prior_wall,stage2_admission=admission,
+                stage_steps=len(history),first_epoch=first,last_epoch=last,resumed_from=args.resume_sha256,
+                resume_stage=str(args.resume_stage) if args.resume_stage else None) if segmented else {}),
         device=device,steps=step,epochs=len(epochs),wall_seconds=time.monotonic()-start,
         peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
         cuda_peak_bytes=torch.cuda.max_memory_allocated() if device=='cuda' else None,
@@ -283,15 +322,36 @@ if __name__=='__main__':
     parser.add_argument('action',choices=['train','worker']);parser.add_argument('--artifacts',type=Path,required=True)
     parser.add_argument('--weights',type=Path,required=True);parser.add_argument('--preflight',type=Path,required=True)
     parser.add_argument('--policy',type=Path,default=HERE/'campaign.json')
+    parser.add_argument('--stage',type=int,choices=[1,2],default=1)
+    parser.add_argument('--resume-stage',type=Path);parser.add_argument('--resume-sha256')
     parser.add_argument('--output',type=Path,required=True);args=parser.parse_args()
     if args.action=='worker':worker(args)
     else:
         policy=json.loads(args.policy.read_text());args.output.mkdir()
+        segmented=policy.get('schema')=='epd_v2_segmented_campaign/1'
         identity=json.loads((args.preflight/'identity.json').read_text())
         timeout=policy['cuda_timeout_seconds'] if identity['cuda_available'] else policy['cpu_timeout_seconds']
+        if segmented and args.stage==2:
+            if args.resume_stage is None or args.resume_sha256 is None:raise ValueError('stage2 requires resume evidence')
+            seal=json.loads((args.resume_stage/'stage_complete.json').read_text())
+            timeout=min(timeout,policy['aggregate_timeout_seconds']-seal['aggregate_wall_seconds'])
+            if timeout<=0:raise ValueError('aggregate wall budget exhausted')
         result=bounded([sys.executable,str(Path(__file__).resolve()),'worker','--artifacts',str(args.artifacts),
-            '--policy',str(args.policy),'--weights',str(args.weights),'--preflight',str(args.preflight),'--output',str(args.output)],
+            '--policy',str(args.policy),'--stage',str(args.stage),
+            *(['--resume-stage',str(args.resume_stage),'--resume-sha256',args.resume_sha256] if args.resume_stage else []),'--weights',str(args.weights),'--preflight',str(args.preflight),'--output',str(args.output)],
             args.output,timeout,dict(os.environ,CUBLAS_WORKSPACE_CONFIG=':4096:8',OMP_NUM_THREADS='2'),
             memory_mib=policy['memory_mib'])
-        write_json(args.output/'process.json',result);print(json.dumps(result),flush=True)
+        write_json(args.output/'process.json',result)
+        if segmented and result['exit_code']==0:
+            from continuation import publish_stage
+            # Final resource accounting includes startup/hash verification/checkpoint IO.
+            summary=json.loads((args.output/'result.json').read_text())
+            from segmented_policy import remaining_admission
+            history=[json.loads(line) for line in (args.output/'history.jsonl').read_text().splitlines()]
+            validation_seconds=[json.loads((args.output/f'epoch_{e:02d}_summary.json').read_text())['validation_wall_seconds']
+                                for e in range(summary['first_epoch'],summary['last_epoch']+1)]
+            summary['stage2_admission']=remaining_admission(policy,history,validation_seconds,result['wall_seconds']+summary['prior_wall_seconds'])
+            (args.output/'result.json').write_text(json.dumps(summary,indent=2,sort_keys=True)+'\n')
+            publish_stage(args.output,policy)
+        print(json.dumps(result),flush=True)
         raise SystemExit(result['exit_code'])

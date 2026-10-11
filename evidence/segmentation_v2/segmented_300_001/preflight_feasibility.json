@@ -1,0 +1,82 @@
+{
+  "checkpoint_saved": false,
+  "declared_aggregate_budget_seconds": 18000,
+  "declared_memory_mib": 6144,
+  "declared_stage_budget_seconds": 10800,
+  "device": "cpu",
+  "estimated_aggregate_seconds": 15703.33613323525,
+  "estimated_stage_seconds": 7851.668066617625,
+  "feasible": true,
+  "held_out_files_opened": 0,
+  "measurements": [
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.0,
+        "loss_classifier": 0.7764982581138611,
+        "loss_mask": 0.0,
+        "loss_objectness": 0.3731188178062439,
+        "loss_rpn_box_reg": 0.0
+      },
+      "objects": 0,
+      "scene_id": "scene_000",
+      "seconds": 2.344151649002015
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.1848759651184082,
+        "loss_classifier": 0.7739879488945007,
+        "loss_mask": 3.106975555419922,
+        "loss_objectness": 0.21489766240119934,
+        "loss_rpn_box_reg": 0.00874303374439478
+      },
+      "objects": 3,
+      "scene_id": "expansion_122",
+      "seconds": 4.126561123001011
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.11087233573198318,
+        "loss_classifier": 0.7941709160804749,
+        "loss_mask": 1.446704387664795,
+        "loss_objectness": 0.46677011251449585,
+        "loss_rpn_box_reg": 0.007244199980050325
+      },
+      "objects": 3,
+      "scene_id": "expansion_093",
+      "seconds": 2.4275595740000426
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.0037303047720342875,
+        "loss_classifier": 0.79732745885849,
+        "loss_mask": 3.743577003479004,
+        "loss_objectness": 0.4622075855731964,
+        "loss_rpn_box_reg": 0.011676992289721966
+      },
+      "objects": 1,
+      "scene_id": "expansion_123",
+      "seconds": 1.4846387889992911
+    },
+    {
+      "detections": 100,
+      "kind": "validation_forward_only",
+      "scene_id": "scene_024",
+      "seconds": 4.220250627997302
+    },
+    {
+      "detections": 100,
+      "kind": "validation_forward_only",
+      "scene_id": "scene_026",
+      "seconds": 2.984851103003166
+    }
+  ],
+  "optimizer_updates": 0,
+  "peak_rss_kib": 1687128,
+  "projected_rss_kib": 2530692.0,
+  "required_disk_bytes": 8724152320,
+  "stage": 1
+}

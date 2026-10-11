@@ -1,0 +1,216 @@
+{
+  "binding": {
+    "dataset": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+    "policy": "65576f8a1a9bf25a0e3f7ca3b07e40b1430e89ec552ee9e25b7c1479b77a914e",
+    "recipe": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+    "sources": {
+      "campaign.py": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae",
+      "continuation.py": "074a6725b3ec01fd3cc2caffa48ff7b9a1c6eccc8973475868bc87242d7fcce0",
+      "dataset.py": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac",
+      "dataset_bindings.py": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3",
+      "expansion.py": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443",
+      "measure_segmented.py": "487f8503c2df5656f333dacc73c4a8d50bef0086c9ad429d48a9807ad3cf40fc",
+      "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+      "prepare_stage2.py": "8d72bfa726f40d274f75dab50fa37298540ebe74d20047c35ea379c9acedfb85",
+      "segmented_policy.py": "31ca04bf2128527e73b9d5798deeefadcef979bf6239cad3704f9bb2a1fa0dad",
+      "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    "versions": {
+      "numpy": "1.26.4",
+      "torch": "2.7.0",
+      "torchvision": "0.22.0"
+    }
+  },
+  "checkpoints": [
+    {
+      "bytes": 244754233,
+      "epoch": 1,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage1/epoch_01.pt",
+      "sha256": "703f7e7b3db43244bd3fee3da9954e60eb37b61c20955aa2aed01458b8eb51b2"
+    },
+    {
+      "bytes": 244754233,
+      "epoch": 2,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage1/epoch_02.pt",
+      "sha256": "3d30ffb972621e3bc0083a9330848964f6170e7ff44569bcd8e9693a2768d349"
+    },
+    {
+      "bytes": 244754233,
+      "epoch": 3,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage1/epoch_03.pt",
+      "sha256": "8afddfdb40121342a692e53e277eed16a3d1209645c18ccf1a5501d2959eb9e9"
+    },
+    {
+      "bytes": 244754233,
+      "epoch": 4,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage1/epoch_04.pt",
+      "sha256": "98bb7afde01d0c013df0c4e40ba8cee17449973edc9a991f517d90fcfd45d3e8"
+    },
+    {
+      "bytes": 244754233,
+      "epoch": 5,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage2/epoch_05.pt",
+      "sha256": "78490b0f0d959160a4484498cd50699b1b88d30f36dce69111284c8bf8192e95"
+    },
+    {
+      "bytes": 244754233,
+      "epoch": 6,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage2/epoch_06.pt",
+      "sha256": "8a306b88a3eed069ccae425fee4604d4cefc8fa0810bd89b7dd663e6052ad51f"
+    },
+    {
+      "bytes": 244754233,
+      "epoch": 7,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage2/epoch_07.pt",
+      "sha256": "59cd358a9c36e35992fcea04ff03dea96b024be447053f058c186985a2f02e95"
+    },
+    {
+      "bytes": 244754233,
+      "epoch": 8,
+      "path": "/home/user/epd-v2-artifacts/segmented-300-001/stage2/epoch_08.pt",
+      "sha256": "29c7b503cd0884a410d159685af53709b1caa7a0148da57714fb53cb18079aeb"
+    }
+  ],
+  "cuda_peak_bytes": null,
+  "device": "cpu",
+  "epoch_metrics": [
+    {
+      "background_spill": 51125,
+      "contract_violations": 0,
+      "cross_object": 1372,
+      "eligible": false,
+      "epoch": 1,
+      "false_positives": 8,
+      "mean_boundary_px": 258.0210656496611,
+      "mean_iou": 0.3768743440682661,
+      "missing_visible": 24806,
+      "positives": 22,
+      "recall": 0.4090909090909091,
+      "recovered": 9
+    },
+    {
+      "background_spill": 607,
+      "contract_violations": 0,
+      "cross_object": 1186,
+      "eligible": false,
+      "epoch": 2,
+      "false_positives": 4,
+      "mean_boundary_px": 257.7966009107503,
+      "mean_iou": 0.3637385073104679,
+      "missing_visible": 26716,
+      "positives": 22,
+      "recall": 0.4090909090909091,
+      "recovered": 9
+    },
+    {
+      "background_spill": 634,
+      "contract_violations": 0,
+      "cross_object": 226,
+      "eligible": false,
+      "epoch": 3,
+      "false_positives": 1,
+      "mean_boundary_px": 256.91942986981434,
+      "mean_iou": 0.43441251795078206,
+      "missing_visible": 23465,
+      "positives": 22,
+      "recall": 0.45454545454545453,
+      "recovered": 10
+    },
+    {
+      "background_spill": 574,
+      "contract_violations": 0,
+      "cross_object": 2687,
+      "eligible": false,
+      "epoch": 4,
+      "false_positives": 1,
+      "mean_boundary_px": 256.9554286924276,
+      "mean_iou": 0.43582743746421815,
+      "missing_visible": 27909,
+      "positives": 22,
+      "recall": 0.5,
+      "recovered": 11
+    },
+    {
+      "background_spill": 1097,
+      "contract_violations": 0,
+      "cross_object": 1354,
+      "eligible": false,
+      "epoch": 5,
+      "false_positives": 1,
+      "mean_boundary_px": 233.7560698254542,
+      "mean_iou": 0.4725803863791908,
+      "missing_visible": 19063,
+      "positives": 22,
+      "recall": 0.5454545454545454,
+      "recovered": 12
+    },
+    {
+      "background_spill": 935,
+      "contract_violations": 0,
+      "cross_object": 425,
+      "eligible": false,
+      "epoch": 6,
+      "false_positives": 2,
+      "mean_boundary_px": 279.99762043356895,
+      "mean_iou": 0.3982343607590252,
+      "missing_visible": 25797,
+      "positives": 22,
+      "recall": 0.4090909090909091,
+      "recovered": 9
+    },
+    {
+      "background_spill": 823,
+      "contract_violations": 0,
+      "cross_object": 1543,
+      "eligible": false,
+      "epoch": 7,
+      "false_positives": 5,
+      "mean_boundary_px": 210.72446095537055,
+      "mean_iou": 0.5049044735818402,
+      "missing_visible": 19590,
+      "positives": 22,
+      "recall": 0.5454545454545454,
+      "recovered": 12
+    },
+    {
+      "background_spill": 1081,
+      "contract_violations": 0,
+      "cross_object": 2692,
+      "eligible": false,
+      "epoch": 8,
+      "false_positives": 3,
+      "mean_boundary_px": 164.43694005500186,
+      "mean_iou": 0.5612330413002703,
+      "missing_visible": 14825,
+      "positives": 22,
+      "recall": 0.6818181818181818,
+      "recovered": 15
+    }
+  ],
+  "epochs": 8,
+  "exported": false,
+  "first_epoch": 5,
+  "held_out_evaluated": false,
+  "historical_regression_evaluated": false,
+  "last_epoch": 8,
+  "peak_rss_kib": 3531208,
+  "prior_wall_seconds": 2697.432626146001,
+  "production_qualified": false,
+  "resume_stage": "/home/user/epd-v2-artifacts/segmented-300-001/stage1",
+  "resumed_from": "98bb7afde01d0c013df0c4e40ba8cee17449973edc9a991f517d90fcfd45d3e8",
+  "selected": null,
+  "selected_validation": null,
+  "stage": 2,
+  "stage2_admission": {
+    "admitted": true,
+    "charged_stage_seconds": 5493.999535291005,
+    "estimated_remaining_seconds": 7565.535624320997,
+    "method": "1200 * observed maximum step wall +4 * observed maximum full validation epoch wall; unchanged1.5 factor +120s",
+    "projected_aggregate_seconds": 13059.535159612002,
+    "remaining_aggregate_budget_seconds": 12506.000464708995
+  },
+  "stage_steps": 1200,
+  "status": "STAGE_COMPLETE",
+  "steps": 2400,
+  "wall_seconds": 2779.357417260999
+}

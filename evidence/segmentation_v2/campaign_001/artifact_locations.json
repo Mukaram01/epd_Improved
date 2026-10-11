@@ -1,0 +1,738 @@
+{
+  "accepted_checkpoint": null,
+  "artifact_root": "/home/user/epd-v2-artifacts/campaign-001",
+  "checkpoints": [
+    {
+      "bytes": 244753346,
+      "epoch": 1,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_01.pt",
+      "sha256": "3adad2cff8d1c2fbb86e7ce53250d24ee7bff2d3f40b18c640339d22f854dfa4"
+    },
+    {
+      "bytes": 244753346,
+      "epoch": 2,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_02.pt",
+      "sha256": "b5e94a62b8461ce25c624805751cd8f3bb24ba13a49f423d1fa4c8aa9ac09fe6"
+    },
+    {
+      "bytes": 244753346,
+      "epoch": 3,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_03.pt",
+      "sha256": "4f64635a9109ca3d9ba72d2b0ad98b7ae6878bbe77b8b943182c16dd0d2747dd"
+    },
+    {
+      "bytes": 244753346,
+      "epoch": 4,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_04.pt",
+      "sha256": "46b9007fa04ecdb86c21a46d00b2f273675718c6a51f73775d75cbf8dfafbe13"
+    },
+    {
+      "bytes": 244753346,
+      "epoch": 5,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_05.pt",
+      "sha256": "77fdf774ab6b2628630679564aab23f804913a944b9be43d23873d0d505c1aa9"
+    },
+    {
+      "bytes": 244753346,
+      "epoch": 6,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_06.pt",
+      "sha256": "44e3444186c7e031fb77845666d37f988d1d4345d927e50792c65eed0b93442c"
+    },
+    {
+      "bytes": 244753346,
+      "epoch": 7,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_07.pt",
+      "sha256": "dab4dc7e81da575e4bdbf33a5baacecc05a3edfce4fba632ead1b8743c8d2f60"
+    },
+    {
+      "bytes": 244753346,
+      "epoch": 8,
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_08.pt",
+      "sha256": "b284ee6e64b3f75a4cc9a2bac0ec997916827cb4a982d5ad0c840e80ac9bda8a"
+    }
+  ],
+  "executed_sources": {
+    "campaign.json": "1820832149bfc4931c0ee36e800b9f9d2273bdc6c49355408c718b44a7756360",
+    "campaign.py": "d577052c63b424b9b2b5e0ef12b8473e498303c209c8de27876838b6cd9725bb",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "train.json": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+    "train.py": "63d4ccf13ace18a28bc509a277f9f8b047356307173a532591d5d7c95e596977"
+  },
+  "onnx": null,
+  "raw_validation_predictions": [
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_024.npz",
+      "predictions": 26,
+      "scene_id": "scene_024",
+      "seconds": 1.5309285589992214,
+      "sha256": "7891cd0f9caa19bca3433dc63834b2fa8e8bef55ddeb820f14dfd43de1f33502"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_025.npz",
+      "predictions": 7,
+      "scene_id": "scene_025",
+      "seconds": 1.3025469789990893,
+      "sha256": "d9959691ce1955d9cf36699deb0812ed402f65b39897fe28d82d749d7212c420"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_026.npz",
+      "predictions": 9,
+      "scene_id": "scene_026",
+      "seconds": 1.6866528340015066,
+      "sha256": "816cc69d956e7dc262bbafa43a981b6b5b0281dc347a2210ed059ea9b456ff76"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_027.npz",
+      "predictions": 30,
+      "scene_id": "scene_027",
+      "seconds": 1.6732980260003387,
+      "sha256": "d383b93c6e1be8ceb360034d073bc89b0581d49f591df37212c052a5c2d3ea91"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_028.npz",
+      "predictions": 26,
+      "scene_id": "scene_028",
+      "seconds": 1.633373845999813,
+      "sha256": "5175aada735d06c87d4be0e43941ba715b09d246418af7b42272d229f84d9136"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_029.npz",
+      "predictions": 24,
+      "scene_id": "scene_029",
+      "seconds": 1.5555750709991116,
+      "sha256": "5313344319d4acc2abfc665abc0b51b54479a59ef36a1a4fb034daa2bcc7c627"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_030.npz",
+      "predictions": 10,
+      "scene_id": "scene_030",
+      "seconds": 1.2633793179993518,
+      "sha256": "ad42dd21571776be11a8ffab90cac786e2fee4b411ba084f0765147a41c8d723"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_031.npz",
+      "predictions": 24,
+      "scene_id": "scene_031",
+      "seconds": 1.505437437999717,
+      "sha256": "13bbd22beef37e15f1fd2e73fa8623b35021615dea30bce408ed6c89bcc91fbf"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_032.npz",
+      "predictions": 17,
+      "scene_id": "scene_032",
+      "seconds": 1.3688566679993528,
+      "sha256": "477fd1009526683d7e027f06658fb71a1fa632e428d3a3f0b8ad1c156c17fb2e"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_033.npz",
+      "predictions": 19,
+      "scene_id": "scene_033",
+      "seconds": 1.4106743089996598,
+      "sha256": "6347f997c00c495aa9368f268a3b4d16d11d06dd0c97f7dc2702b32c0d027cdb"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_034.npz",
+      "predictions": 27,
+      "scene_id": "scene_034",
+      "seconds": 1.4986026360002143,
+      "sha256": "4a38df7cf4b3e73da248a8ff5998d5299763442e8898cb2b28b2ee48653ac6f1"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_01/scene_035.npz",
+      "predictions": 2,
+      "scene_id": "scene_035",
+      "seconds": 1.1680358150006214,
+      "sha256": "e3413965dd80133fc3ef8bb033c99497bb36d35242a9d9521cbaf9165da98535"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_024.npz",
+      "predictions": 60,
+      "scene_id": "scene_024",
+      "seconds": 2.407179460000407,
+      "sha256": "5e8641608f657ba29397f2e4d02e3fbc722a42f388217bdd1a5cee30406db67b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_025.npz",
+      "predictions": 30,
+      "scene_id": "scene_025",
+      "seconds": 1.5587801319998107,
+      "sha256": "403dd05e11fce0b7920d1a259d3c0137124eabecd2f2df7cf0ad4e8a52ce38de"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_026.npz",
+      "predictions": 5,
+      "scene_id": "scene_026",
+      "seconds": 1.1898497689999203,
+      "sha256": "499d19c01b048438ca2b5a2e50ddb8cf96c22e91c55edebf23628a222360f8b7"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_027.npz",
+      "predictions": 52,
+      "scene_id": "scene_027",
+      "seconds": 1.905147596000461,
+      "sha256": "f4906389f8b8b3a0cb8381695b76ebf10462e0428e1030f003c8f27986a99cb8"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_028.npz",
+      "predictions": 29,
+      "scene_id": "scene_028",
+      "seconds": 1.561051425000187,
+      "sha256": "19643c411a803b7b8e1f75ca814bdb7bccec643764078a3cba692d04d90797b7"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_029.npz",
+      "predictions": 10,
+      "scene_id": "scene_029",
+      "seconds": 1.2935397889996239,
+      "sha256": "4ab2a25df95b0d51d935fa559305e5dbeb1350de7babb8f9631e0e215a2e2784"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_030.npz",
+      "predictions": 10,
+      "scene_id": "scene_030",
+      "seconds": 1.253512966000926,
+      "sha256": "bf94e4d7a76a37d2070cefbfd9faf45388e2b01d19a477e93e42bef8c3c41f23"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_031.npz",
+      "predictions": 94,
+      "scene_id": "scene_031",
+      "seconds": 5.754321351998442,
+      "sha256": "f19e30aee2e367617992942621b84946ec8173fb557106857fca3c6a15dd3fec"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_032.npz",
+      "predictions": 7,
+      "scene_id": "scene_032",
+      "seconds": 1.2742602200014517,
+      "sha256": "9cd70e56a0bc5f17fdb3e5493cd6d0b0e42d66370f9fd632f23d8fa03f50a434"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_033.npz",
+      "predictions": 27,
+      "scene_id": "scene_033",
+      "seconds": 1.5526112280003872,
+      "sha256": "70044001e123aad4be27aa5485f735930a558cc8cdf4c57cca762c21221a09f6"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_034.npz",
+      "predictions": 91,
+      "scene_id": "scene_034",
+      "seconds": 2.577534079999168,
+      "sha256": "0fe2c65977d5f96ddeb1d4fdaf3ef30b82e5ff47aa168d7c442e13e9b6be9420"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_02/scene_035.npz",
+      "predictions": 36,
+      "scene_id": "scene_035",
+      "seconds": 1.7290110000012646,
+      "sha256": "83e2465a7f32451a51541ea4e92bce79f7f7ce0b80006f9724cc0daf92cec54d"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_024.npz",
+      "predictions": 11,
+      "scene_id": "scene_024",
+      "seconds": 3.431935127999168,
+      "sha256": "3d14c352ab7e845cf233c4c702efc1654ca6f92699c35bfac621ebd508e47a5e"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_025.npz",
+      "predictions": 12,
+      "scene_id": "scene_025",
+      "seconds": 1.9945197710003413,
+      "sha256": "e7e6a669a844527ad904e4bd831f02b68dd7154efe4838e75835b2d07d711993"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_026.npz",
+      "predictions": 8,
+      "scene_id": "scene_026",
+      "seconds": 1.4418901560002269,
+      "sha256": "002ec421913f59d1697c0bfd3c91623aae9c3571dada22fee25afb5bed248113"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_027.npz",
+      "predictions": 21,
+      "scene_id": "scene_027",
+      "seconds": 1.46030540799984,
+      "sha256": "9c6e150e7023610acc82aa64df87e722319fe419a7f51b963140a39bcd6b44bd"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_028.npz",
+      "predictions": 33,
+      "scene_id": "scene_028",
+      "seconds": 1.6572780719998264,
+      "sha256": "fc6f9a8fcf8b7d616af3a14b9b70e2a767c9f5ad6b450851d84f0268631290ad"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_029.npz",
+      "predictions": 4,
+      "scene_id": "scene_029",
+      "seconds": 1.837500445999467,
+      "sha256": "fd883e9a16789fe583170473e14a41db08edda815219c98cf9a8117e909c6bc0"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_030.npz",
+      "predictions": 1,
+      "scene_id": "scene_030",
+      "seconds": 1.6352165659991442,
+      "sha256": "4a4a95a035cd28f3541d10f2593548f6f3e5bb9088ce601cfe78698018e63479"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_031.npz",
+      "predictions": 28,
+      "scene_id": "scene_031",
+      "seconds": 1.5807229350011767,
+      "sha256": "1b6cf72077541ca07608e2fba5ef9ddc754b05aedd83e539aeeed1669a33a609"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_032.npz",
+      "predictions": 11,
+      "scene_id": "scene_032",
+      "seconds": 1.3302653689988801,
+      "sha256": "152cff8b13234d27e7c4afed2f7439e589a3d25ebefd8d00e25b83b70e4d1fc4"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_033.npz",
+      "predictions": 12,
+      "scene_id": "scene_033",
+      "seconds": 1.3552453420015809,
+      "sha256": "e965354a97256cb8ea87b5a97d43766e710de38adec26d9fd0203d5cc1ae51f0"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_034.npz",
+      "predictions": 31,
+      "scene_id": "scene_034",
+      "seconds": 1.6691470099995058,
+      "sha256": "474559b1de8bd928afd4ff28a403da8b1a9cd88d30ae429a2dee3aad46b324d8"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_035.npz",
+      "predictions": 12,
+      "scene_id": "scene_035",
+      "seconds": 1.4336245300000883,
+      "sha256": "48660946637fc82c766d9a9f53c226e923777e680aac724ec93a27f8e549725f"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_024.npz",
+      "predictions": 7,
+      "scene_id": "scene_024",
+      "seconds": 1.8535940459987614,
+      "sha256": "552c98d235ae7ef303ba37cea914c28e7ecf99044ae5601399c8db521c2eabb3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_025.npz",
+      "predictions": 18,
+      "scene_id": "scene_025",
+      "seconds": 2.1016502309994394,
+      "sha256": "fa4eacc2f5b91bfb55b04f7d1f6940a01eeac5f915e9fef4d80ad1482065d5b1"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_026.npz",
+      "predictions": 5,
+      "scene_id": "scene_026",
+      "seconds": 2.6658346690001054,
+      "sha256": "9f8b9b6eb1eef98f3aba42133dfa7544cd5d850754527e4b874726d991e4ec11"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_027.npz",
+      "predictions": 17,
+      "scene_id": "scene_027",
+      "seconds": 1.7246056760013744,
+      "sha256": "8da95170d4ccc1f594504fe39e159aa520d38d30122d53030165acae617548d5"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_028.npz",
+      "predictions": 8,
+      "scene_id": "scene_028",
+      "seconds": 1.3211860739993426,
+      "sha256": "f550212053ccabf3eb944daae7e82d5b09760ae23b9552e64069b94cfa80ddcf"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_029.npz",
+      "predictions": 0,
+      "scene_id": "scene_029",
+      "seconds": 1.1696361340000294,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_030.npz",
+      "predictions": 1,
+      "scene_id": "scene_030",
+      "seconds": 1.1331663399996614,
+      "sha256": "01f50567afa27a3b41426bdf42655106b80ac3317a47d5a99a59678bfa1fcd57"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_031.npz",
+      "predictions": 22,
+      "scene_id": "scene_031",
+      "seconds": 1.4586523870002566,
+      "sha256": "24fcdee4fae066f8a94e5a9c918f68e89c7e5051b68c3c6ecc8921bcdeb91539"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_032.npz",
+      "predictions": 5,
+      "scene_id": "scene_032",
+      "seconds": 1.2416050800002267,
+      "sha256": "5ac3fdf90cc45f510dc46eed7bc61df1006e29bb501f0c72ea975996c25c5604"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_033.npz",
+      "predictions": 4,
+      "scene_id": "scene_033",
+      "seconds": 1.2435489889994642,
+      "sha256": "c4294e320ff0d6622c8a35b287ac883bdc2c29825402319738c342e19cff4088"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_034.npz",
+      "predictions": 28,
+      "scene_id": "scene_034",
+      "seconds": 1.585321833999842,
+      "sha256": "a19fe72fc8e34a0504ea213a949ed6ea1969e9ee6e856a05097700e625e5790c"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_04/scene_035.npz",
+      "predictions": 6,
+      "scene_id": "scene_035",
+      "seconds": 1.2481820420016447,
+      "sha256": "9f3da5d7e4616e4b724e54e3eeeee7d77e9bc7cae0889b9d679a3b34c33f7378"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_024.npz",
+      "predictions": 6,
+      "scene_id": "scene_024",
+      "seconds": 5.239210239999011,
+      "sha256": "adad30818d3b31a4ed999cd3261d0e66ddcd5f8b6192311b4bebcbf94bf62924"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_025.npz",
+      "predictions": 16,
+      "scene_id": "scene_025",
+      "seconds": 1.3895003620000352,
+      "sha256": "95afa6182ac88bb2093ba5113b361574ebdb9b9fa8eb2220bb6dabd20f5b409c"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_026.npz",
+      "predictions": 13,
+      "scene_id": "scene_026",
+      "seconds": 1.7120557719990757,
+      "sha256": "96d0cde721c53f15f678516aa0cee5453192be5380f3153fd9940e0b04154864"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_027.npz",
+      "predictions": 12,
+      "scene_id": "scene_027",
+      "seconds": 1.337565389001611,
+      "sha256": "2d6e1dd20588763ea25542a2587a0b279be63728570dcbfa4491e88da8403fbf"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_028.npz",
+      "predictions": 21,
+      "scene_id": "scene_028",
+      "seconds": 2.2053555820002657,
+      "sha256": "33a201cba8d1bc270bc6697af47f4f7f3a3f75af1b67077bfa1dbc213596feb4"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_029.npz",
+      "predictions": 18,
+      "scene_id": "scene_029",
+      "seconds": 1.7178922439998132,
+      "sha256": "99a22afffa43a9f029f321b79e57ec6fa47478146e4168ea208006742f3409be"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_030.npz",
+      "predictions": 1,
+      "scene_id": "scene_030",
+      "seconds": 1.4365960400009499,
+      "sha256": "3ce0c265da35c561161f8b088674fd3f81a1e147cb8f595e94439fd61ecab325"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_031.npz",
+      "predictions": 24,
+      "scene_id": "scene_031",
+      "seconds": 1.5106193840001652,
+      "sha256": "d5a27a38b2c699889d8cc4acec4fcf764a311d4774f21fc9ddb56009d4d4b204"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_032.npz",
+      "predictions": 25,
+      "scene_id": "scene_032",
+      "seconds": 1.5326514289990882,
+      "sha256": "2fcfbb55541c952031cadfe2a7cf895102e19e7011b5c6f53e054f00c02d7e81"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_033.npz",
+      "predictions": 12,
+      "scene_id": "scene_033",
+      "seconds": 1.3502369540001382,
+      "sha256": "b6336bfdb010cfd68372bf407607ba523a4b9cedefca34c2262ac555da3067d7"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_034.npz",
+      "predictions": 19,
+      "scene_id": "scene_034",
+      "seconds": 1.483860836000531,
+      "sha256": "ba0c1c63e281fd9c89d39a3bf1926a0b83044b5528a94c8f41ab716b0ec0f78a"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_05/scene_035.npz",
+      "predictions": 4,
+      "scene_id": "scene_035",
+      "seconds": 1.185183835999851,
+      "sha256": "5b954f5208b5ce0c28e56f82c9c95f957c46309c1ea30f4cf2c168e2d478da89"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_024.npz",
+      "predictions": 1,
+      "scene_id": "scene_024",
+      "seconds": 2.838681777000602,
+      "sha256": "810333a10ce319df282f6b524ada59a42e3e62fa32eb1ed42b86e06fceea8172"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_025.npz",
+      "predictions": 15,
+      "scene_id": "scene_025",
+      "seconds": 2.364514967001014,
+      "sha256": "10d7a395281ff92547b22d674013e3d3770ba5e68365af93e86d76471f6695d1"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_026.npz",
+      "predictions": 15,
+      "scene_id": "scene_026",
+      "seconds": 3.0075553320002655,
+      "sha256": "9dccd65647a1da6dda554de2ecaaf7beae1b6fa8749c256f669c044be6d62231"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_027.npz",
+      "predictions": 8,
+      "scene_id": "scene_027",
+      "seconds": 1.3412624420016073,
+      "sha256": "14bbfb59ebb7e95c20e56ec6d0d72383ebad4a4850b4ce6c64a6482d7e1e1699"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_028.npz",
+      "predictions": 17,
+      "scene_id": "scene_028",
+      "seconds": 1.8708522169999924,
+      "sha256": "4c53b2284447474e78b982cdf105f6ea4555e304a75afd46966dfc9ce1da583f"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_029.npz",
+      "predictions": 19,
+      "scene_id": "scene_029",
+      "seconds": 1.4570588870010397,
+      "sha256": "05d8a44a26a2f9949b2fcbd5763d6b92da62ce2be05604c4e466acc4c9aa603a"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_030.npz",
+      "predictions": 1,
+      "scene_id": "scene_030",
+      "seconds": 1.1954253909989347,
+      "sha256": "df49f9c6b4a8e01fa4481cb660f1a3ba818aee5c90523571700043d05be8dc66"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_031.npz",
+      "predictions": 16,
+      "scene_id": "scene_031",
+      "seconds": 1.3884720760015625,
+      "sha256": "f01ce4a1daf42b441894f4ac70d8d0525e8a743e332f6f67aff59698d0fd20e2"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_032.npz",
+      "predictions": 20,
+      "scene_id": "scene_032",
+      "seconds": 1.4207203989990376,
+      "sha256": "db1030a38bd3d4e188c9067dce679fe22fd9f71c89df2dff95e42983a91b96a7"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_033.npz",
+      "predictions": 24,
+      "scene_id": "scene_033",
+      "seconds": 1.5419844329990156,
+      "sha256": "5817194d0e4ed3f892b86b00d775fc542c747f62a5b69cac6586a3cabb3103c7"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_034.npz",
+      "predictions": 15,
+      "scene_id": "scene_034",
+      "seconds": 1.388783964999675,
+      "sha256": "5813c0dc9568e58ad578084eaa04377877ba206905a5ff9ac7b5aad3a07efef6"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_06/scene_035.npz",
+      "predictions": 2,
+      "scene_id": "scene_035",
+      "seconds": 1.211361809000664,
+      "sha256": "50efdc51c0afd374a103491303aa5818c8282d27df0f9f953028e0202a7e4a4d"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_024.npz",
+      "predictions": 0,
+      "scene_id": "scene_024",
+      "seconds": 3.2113297399992007,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_025.npz",
+      "predictions": 11,
+      "scene_id": "scene_025",
+      "seconds": 5.397294857999441,
+      "sha256": "5fd72cbcb4e5f93b227c20b89ad70d4cdca722eefb9fb10ab4c4267daa1c1247"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_026.npz",
+      "predictions": 6,
+      "scene_id": "scene_026",
+      "seconds": 1.9640959079988534,
+      "sha256": "f5ca40dea6d6c30457abcab0348b1a387a22753b3698a9774035f5ebf1849418"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_027.npz",
+      "predictions": 6,
+      "scene_id": "scene_027",
+      "seconds": 1.49474718700003,
+      "sha256": "d6d7ed2391862533051627f2334ed0f8ac1667fcf39951eb2d4bc0205b3209e6"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_028.npz",
+      "predictions": 14,
+      "scene_id": "scene_028",
+      "seconds": 1.4803241720001097,
+      "sha256": "1bf915bfda098c53354ce432ea1c6b5419981a0ed74e37b064ea1fa8640443f6"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_029.npz",
+      "predictions": 15,
+      "scene_id": "scene_029",
+      "seconds": 1.3519522139995388,
+      "sha256": "eb329d0d4059e5255787dc1f5b9f2900b260d4e0b199d346c6cc00944b48f50e"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_030.npz",
+      "predictions": 0,
+      "scene_id": "scene_030",
+      "seconds": 2.0933387499990204,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_031.npz",
+      "predictions": 13,
+      "scene_id": "scene_031",
+      "seconds": 1.4394658199998958,
+      "sha256": "4d0c5d7ac0954b3e791604324320ddec1e44ecb8ca595f96e52ccc0b007cd277"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_032.npz",
+      "predictions": 21,
+      "scene_id": "scene_032",
+      "seconds": 1.5084562219999498,
+      "sha256": "ca2375b32f41652857ba295e51fc5991d697a18dba41eab0b7310fea19c1c8d1"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_033.npz",
+      "predictions": 13,
+      "scene_id": "scene_033",
+      "seconds": 1.4587981610002316,
+      "sha256": "c1637e5ca944ea4c213256426ce13071315fc453c9de5ca4813f8946ac817f91"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_034.npz",
+      "predictions": 12,
+      "scene_id": "scene_034",
+      "seconds": 1.5546693570013304,
+      "sha256": "17f8a8e893f626d7e640d050eaa3c65dc7e811afe11fe083038b8c0ac0985b24"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_07/scene_035.npz",
+      "predictions": 2,
+      "scene_id": "scene_035",
+      "seconds": 1.3483699539992813,
+      "sha256": "6fa0b8eb856bf6d431d0f57a9af8d986a3b4b154a7589c38d4290186a7fe0695"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_024.npz",
+      "predictions": 1,
+      "scene_id": "scene_024",
+      "seconds": 2.4843925409986696,
+      "sha256": "328389c0721858dafe78022d0c17c62deb97f108d17c44c3cdc9cecb77912dd6"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_025.npz",
+      "predictions": 6,
+      "scene_id": "scene_025",
+      "seconds": 1.4100715040003706,
+      "sha256": "a88664cfd1854c2ba301930af833d8f89867d018b7e23132b9b591693a1be718"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_026.npz",
+      "predictions": 10,
+      "scene_id": "scene_026",
+      "seconds": 1.9797531759995763,
+      "sha256": "2b950e68d8fab8de3a6cc41175777a4d53bd213931aa09456980f40caeb2ff18"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_027.npz",
+      "predictions": 6,
+      "scene_id": "scene_027",
+      "seconds": 1.279011222999543,
+      "sha256": "990cff7236220719db17e6d7c258ee7fd0ed5f04d7ddd56e75a09a5f9b0a019b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_028.npz",
+      "predictions": 8,
+      "scene_id": "scene_028",
+      "seconds": 1.3164473199994973,
+      "sha256": "a28076a038ec1c93a98aad7129e414bd80e06559c3ba98c8334a448771096a3c"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_029.npz",
+      "predictions": 2,
+      "scene_id": "scene_029",
+      "seconds": 1.202075491000869,
+      "sha256": "d0576d78c2f62eebd1a9f8af93351d509cd1fc53eaece6a4ba6781477174a8c0"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_030.npz",
+      "predictions": 0,
+      "scene_id": "scene_030",
+      "seconds": 1.2316582570001628,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_031.npz",
+      "predictions": 11,
+      "scene_id": "scene_031",
+      "seconds": 1.3493953039996995,
+      "sha256": "9a51350c6475c7aca38d1d6b29fac92c76804cc7c7dee042c66bd29407c60e02"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_032.npz",
+      "predictions": 15,
+      "scene_id": "scene_032",
+      "seconds": 1.452138227999967,
+      "sha256": "9c3acff498598aba2a92cd0e7f118673de176ab206862daf21ae1d7626c4bbd4"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_033.npz",
+      "predictions": 8,
+      "scene_id": "scene_033",
+      "seconds": 1.4504885200003628,
+      "sha256": "4b4f413bb8cac0e530c1acdcbdb849d6a5f5c77add77a06a93cdfccdb48aa0d5"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_034.npz",
+      "predictions": 15,
+      "scene_id": "scene_034",
+      "seconds": 1.8863963259991579,
+      "sha256": "d9330c902d0c338ada4df8813eec4ed46dca25bb480c04c4473f4094c31d8589"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_08/scene_035.npz",
+      "predictions": 3,
+      "scene_id": "scene_035",
+      "seconds": 1.267740152999977,
+      "sha256": "69942b81801390d3def54c2b11b92c2f067bc1a45b5830d3fa38979e874a36e6"
+    }
+  ],
+  "reason": "All eight checkpoints failed frozen validation gate; no export or parity inference authorized after rejection.",
+  "storage": "retained local external filesystem; no remote upload or durability claim"
+}

@@ -91,15 +91,15 @@ python3 tools/segmentation_v2/analyze_validation.py --artifacts /external/new-pi
 ```
 
 The last two commands are CPU-smoke validation diagnostics; they refuse a full
-training checkpoint and never inspect held-out predictions. For full CUDA
-training, the recipe uses at most eight epochs/1800 s, fixed RNG seeds,
+training checkpoint and never inspect held-out predictions. The original
+`train.py` entry point implements the smoke fallback. Its full CUDA recipe uses at most eight epochs/1800 s, fixed RNG seeds,
 deterministic algorithms and CUBLAS configuration. CPU performs exactly at most
 two optimizer steps/300 s, saving an explicitly ineligible smoke checkpoint.
 Each step saves the actual mask/class/RPN losses; CSV, JSONL and SVG retain curves.
 Full training selects only on validation IoU, symmetric boundary distance and
 false-positive penalty. Missed objects receive IoU=0 and boundary=512 pixels.
 
-## Export and qualification remain blocked
+## Original pilot export limitation (superseded by explicit adapter)
 
 Historical EPD instrumentation supports RGB01 and full-image-mask flags that
 are absent from EPD main. Main subtracts BGR means and later resizes the entire
@@ -134,3 +134,32 @@ The explicit C++ RGB01/full-image adapter and reusable export verification are
 specified in [the adapter contract](../../docs/segmentation_v2_adapter.md).
 The smoke model remains rejected. Adapter evidence is separate from pilot model
 quality and does not qualify a v2 checkpoint or alter the frozen dataset.
+
+## Bounded full training campaign (001)
+
+`campaign.py` supersedes the automatic CPU smoke fallback for full training.
+It requires recorded preflight identities and measured full-run CPU feasibility,
+then trains all 24 frozen training scenes for eight epochs. Its separate
+`campaign.json` freezes the user improvement gate before measurement. It saves
+model/optimizer/RNG checkpoints and raw predictions for the 12 validation scenes
+only, selecting exclusively among eligible checkpoints. No automatic downloads.
+
+Actual completed run and all failures: [campaign 001 evidence](../../evidence/segmentation_v2/campaign_001/README.md).
+All eight checkpoints were rejected; export and C++ parity were therefore skipped.
+This does not change the already verified adapter contract.
+
+The exact executed host-specific preflight source and process evidence are retained
+with the report. A new machine must measure feasibility against its own declared
+budget and paths before launching; never reuse another host's timing admission.
+The completed run used these commands (do not rerun the campaign into its existing
+output directory):
+
+```bash
+python3 -m unittest discover -s tools/segmentation_v2 -p 'test_*.py'
+python3 tools/segmentation_v2/campaign.py train --artifacts /home/user/epd-v2-artifacts/pilot-001 --weights /home/user/epd-v2-artifacts/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth --preflight /home/user/epd-v2-artifacts/campaign-001/preflight --output /home/user/epd-v2-artifacts/campaign-001/training
+python3 tools/segmentation_v2/audit_campaign.py --artifacts /home/user/epd-v2-artifacts/pilot-001 --training /home/user/epd-v2-artifacts/campaign-001/training --output /home/user/epd-v2-artifacts/campaign-001/offline_audit.json
+```
+
+Offline audit performs no inference or checkpoint deserialization; it verifies
+hashes and recomputes the frozen decision from genuine retained validation arrays.
+It never enumerates held-out scene files.

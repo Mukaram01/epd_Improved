@@ -1,0 +1,29 @@
+{
+  "schema": "epd_v2_full_campaign/1",
+  "base_commit": "0e83096cd239c352e5cd384eb5c46e66945da5fd",
+  "recipe": "train.json",
+  "epochs": 8,
+  "batch_size": 1,
+  "seed": 260110,
+  "cpu_timeout_seconds": 3600,
+  "cuda_timeout_seconds": 1800,
+  "memory_mib": 6144,
+  "disk_reserve_gib": 5,
+  "cpu_feasibility_timeout_seconds": 180,
+  "feasibility_safety_factor": 1.5,
+  "feasibility_overhead_seconds": 120,
+  "gate": {
+    "positives": 22,
+    "minimum_recovered": 18,
+    "mean_iou_strict_gt": 0.685890,
+    "maximum_false_positives": 1,
+    "background_spill_strict_lt": 1915,
+    "maximum_contract_violations": 0,
+    "confidence_threshold": 0.8,
+    "mask_threshold_strict_gt": 0.5
+  },
+  "eligible_order": ["recovered_desc", "mean_iou_desc", "background_spill_asc", "epoch_asc"],
+  "no_smoke_initialization": true,
+  "held_out_access": false,
+  "historical_regression_access": false
+}

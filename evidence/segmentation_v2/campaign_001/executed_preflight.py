@@ -1,0 +1,62 @@
+import sys,json,time,resource,importlib.metadata,shutil,random,os
+from pathlib import Path
+sys.path.insert(0,'/home/user/epd-v2-supervised-pilot/tools/segmentation_v2')
+from train import verified_rows,build_model,tensors
+from pilot import sha,write_json
+root=Path('/home/user/epd-v2-supervised-pilot');out=Path(__file__).parent
+art=Path('/home/user/epd-v2-artifacts/pilot-001');weights=Path('/home/user/epd-v2-artifacts/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth')
+cfg=json.loads((root/'tools/segmentation_v2/train.json').read_text());policy=json.loads((root/'tools/segmentation_v2/campaign.json').read_text())
+train=list(verified_rows(art,'train'));val=list(verified_rows(art,'validation'))
+assert sha(weights)==cfg['weights_sha256']
+old=json.loads((art/'training/result.json').read_text());assert sha(Path(old['checkpoint']))==old['checkpoint_sha256']
+prior=json.loads((art/'training/run_config.json').read_text())
+assert sha(art/'scenes.json')==json.loads((art/'acquisition.json').read_text())['frozen_plan_sha256']
+import torch,numpy as np
+for n in ('torch','torchvision'): assert importlib.metadata.version(n).split('+')[0]==cfg[n]
+torch.set_num_threads(2);torch.manual_seed(cfg['seed']);np.random.seed(cfg['seed']);random.seed(cfg['seed']);torch.use_deterministic_algorithms(True)
+info=dict(cuda_available=torch.cuda.is_available(),cuda_device_count=torch.cuda.device_count(),torch_cuda_build=torch.version.cuda,
+ versions={n:importlib.metadata.version(n) for n in ('torch','torchvision','numpy','onnx','onnxruntime','opencv-python')},
+ available_ram_kib=int(next(l.split()[1] for l in Path('/proc/meminfo').read_text().splitlines() if l.startswith('MemAvailable:'))),
+ free_disk_bytes=shutil.disk_usage(out).free,cpu_count=os.cpu_count(),
+ train_scenes=len(train),validation_scenes=len(val),frozen_test_scenes_manifest_only=12,
+ config_sha256=sha(root/'tools/segmentation_v2/train.json'),campaign_sha256=sha(root/'tools/segmentation_v2/campaign.json'),
+ acquisition_sha256=sha(art/'acquisition.json'),plan_sha256=sha(art/'scenes.json'),weights_sha256=sha(weights),
+ prior_smoke_sha256=old['checkpoint_sha256'],prior_smoke_loaded=False,
+ source_sha256={n:sha(root/'tools/segmentation_v2'/n) for n in ('pilot.py','train.py')},
+ prior_source_snapshots_verified={str(p):sha(p) for p in (art/'training/executed_sources').glob('*.py')},
+ train_validation_files_verified=sum(len(r[0]['sha256']) for r in train+val),held_out_files_opened=0,
+ optimizer_updates=0,checkpoint_saved=False)
+write_json(out/'identity.json',info)
+if info['cuda_available']:
+ info['gpus']=[dict(name=torch.cuda.get_device_name(i),total_bytes=torch.cuda.get_device_properties(i).total_memory) for i in range(torch.cuda.device_count())]
+ write_json(out/'cuda.json',info);sys.exit(0)
+model=build_model(cfg,weights,torch)
+# One negative and two most populated/largest visible target scenes, before any updates.
+def complexity(row):
+ _,folder,report,ids=row
+ _,target=tensors(folder,report,ids,torch)
+ return (len(target['labels']),int(target['masks'].sum()))
+selected=[next(r for r in train if complexity(r)[0]==0)]+sorted(train,key=complexity,reverse=True)[:2]
+timings=[]
+for row in selected:
+ _,folder,report,ids=row;image,target=tensors(folder,report,ids,torch)
+ model.train();model.zero_grad(set_to_none=True);start=time.monotonic()
+ losses=model([image],[target]);loss=sum(losses.values());assert torch.isfinite(loss);loss.backward()
+ timings.append(dict(scene_id=folder.name,kind='forward_backward_without_update',seconds=time.monotonic()-start,
+  objects=len(target['labels']),losses={k:float(v.detach()) for k,v in losses.items()}))
+ del losses,loss
+model.zero_grad(set_to_none=True);model.eval()
+with torch.no_grad():
+ for row in [val[0],max(val,key=complexity)]:
+  _,folder,report,ids=row;image,_=tensors(folder,report,ids,torch);start=time.monotonic();pred=model([image])[0]
+  timings.append(dict(scene_id=folder.name,kind='validation_forward_only',seconds=time.monotonic()-start,detections=len(pred['scores'])))
+  del pred
+train_max=max(r['seconds'] for r in timings if r['kind'].startswith('forward'))
+val_max=max(r['seconds'] for r in timings if r['kind'].startswith('validation'))
+estimate=(192*train_max+96*val_max)*policy['feasibility_safety_factor']+policy['feasibility_overhead_seconds']
+peak=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+report=dict(measurements=timings,estimated_full_campaign_seconds=estimate,declared_budget_seconds=policy['cpu_timeout_seconds'],
+ peak_rss_kib=peak,projected_rss_kib=peak*1.5,declared_memory_mib=policy['memory_mib'],
+ feasible=estimate<=policy['cpu_timeout_seconds'] and peak*1.5<=policy['memory_mib']*1024,
+ optimizer_updates=0,checkpoint_saved=False,held_out_files_opened=0)
+write_json(out/'feasibility.json',report);print(json.dumps(report),flush=True)

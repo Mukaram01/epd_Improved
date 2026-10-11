@@ -1,0 +1,26 @@
+{
+  "checks": {
+    "base_source:pilot.py": true,
+    "base_source:train.json": true,
+    "base_source:train.py": true,
+    "prior_execution:executed_sources/pilot.py": true,
+    "prior_execution:executed_sources/test_pilot.py": true,
+    "prior_execution:training/executed_sources/pilot.py": true,
+    "prior_execution:training/executed_sources/train.py": true,
+    "prior_execution:validation-diagnostic-corrected/evaluate_validation.py": true,
+    "prior_execution:validation-diagnostic-corrected/pilot.py": true,
+    "prior_execution:validation-diagnostic-corrected/train.py": true,
+    "prior_execution:validation-diagnostic/executed_evaluate_validation.py": true,
+    "prior_training_source": true
+  },
+  "configuration_differences": {
+    "validation_selection": {
+      "now": "mean instance IoU minus mean symmetric boundary error /512 minus false positives /(visible targets + validation scenes); recovery IoU>=0.5; misses IoU=0, boundary=512",
+      "then": "mean instance IoU minus mean symmetric boundary error /512; misses IoU=0, boundary=512"
+    }
+  },
+  "current_configuration_sha256": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+  "historical_config_byte_reconstruction_verified": true,
+  "prior_smoke_configuration_file_identity": "different from baseline version; full executed config preserved in run_config",
+  "prior_smoke_configuration_sha256": "b040f0010de5d169ffc15ac85794ac4bb474dff01c279afad4267f3c1f559ea4"
+}

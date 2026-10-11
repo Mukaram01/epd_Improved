@@ -1,0 +1,561 @@
+{
+  "authoritative_emd_association": "NOT_EXECUTED",
+  "background_spill": 0,
+  "confidence_threshold": 0.8,
+  "contract_violations": 0,
+  "cross_object": 0,
+  "eligible": false,
+  "epoch": 3,
+  "false_positives": 0,
+  "held_out_evaluated": false,
+  "mask_threshold_strict_gt": 0.5,
+  "max_boundary_px": 512,
+  "mean_boundary_px": 512.0,
+  "mean_iou": 0.0,
+  "missing_visible": 58237,
+  "positives": 22,
+  "raw_predictions": [
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_024.npz",
+      "predictions": 11,
+      "scene_id": "scene_024",
+      "seconds": 3.431935127999168,
+      "sha256": "3d14c352ab7e845cf233c4c702efc1654ca6f92699c35bfac621ebd508e47a5e"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_025.npz",
+      "predictions": 12,
+      "scene_id": "scene_025",
+      "seconds": 1.9945197710003413,
+      "sha256": "e7e6a669a844527ad904e4bd831f02b68dd7154efe4838e75835b2d07d711993"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_026.npz",
+      "predictions": 8,
+      "scene_id": "scene_026",
+      "seconds": 1.4418901560002269,
+      "sha256": "002ec421913f59d1697c0bfd3c91623aae9c3571dada22fee25afb5bed248113"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_027.npz",
+      "predictions": 21,
+      "scene_id": "scene_027",
+      "seconds": 1.46030540799984,
+      "sha256": "9c6e150e7023610acc82aa64df87e722319fe419a7f51b963140a39bcd6b44bd"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_028.npz",
+      "predictions": 33,
+      "scene_id": "scene_028",
+      "seconds": 1.6572780719998264,
+      "sha256": "fc6f9a8fcf8b7d616af3a14b9b70e2a767c9f5ad6b450851d84f0268631290ad"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_029.npz",
+      "predictions": 4,
+      "scene_id": "scene_029",
+      "seconds": 1.837500445999467,
+      "sha256": "fd883e9a16789fe583170473e14a41db08edda815219c98cf9a8117e909c6bc0"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_030.npz",
+      "predictions": 1,
+      "scene_id": "scene_030",
+      "seconds": 1.6352165659991442,
+      "sha256": "4a4a95a035cd28f3541d10f2593548f6f3e5bb9088ce601cfe78698018e63479"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_031.npz",
+      "predictions": 28,
+      "scene_id": "scene_031",
+      "seconds": 1.5807229350011767,
+      "sha256": "1b6cf72077541ca07608e2fba5ef9ddc754b05aedd83e539aeeed1669a33a609"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_032.npz",
+      "predictions": 11,
+      "scene_id": "scene_032",
+      "seconds": 1.3302653689988801,
+      "sha256": "152cff8b13234d27e7c4afed2f7439e589a3d25ebefd8d00e25b83b70e4d1fc4"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_033.npz",
+      "predictions": 12,
+      "scene_id": "scene_033",
+      "seconds": 1.3552453420015809,
+      "sha256": "e965354a97256cb8ea87b5a97d43766e710de38adec26d9fd0203d5cc1ae51f0"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_034.npz",
+      "predictions": 31,
+      "scene_id": "scene_034",
+      "seconds": 1.6691470099995058,
+      "sha256": "474559b1de8bd928afd4ff28a403da8b1a9cd88d30ae429a2dee3aad46b324d8"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/validation_03/scene_035.npz",
+      "predictions": 12,
+      "scene_id": "scene_035",
+      "seconds": 1.4336245300000883,
+      "sha256": "48660946637fc82c766d9a9f53c226e923777e680aac724ec93a27f8e549725f"
+    }
+  ],
+  "recall": 0.0,
+  "recovered": 0,
+  "scenes": [
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [],
+      "mean_iou": 0.0,
+      "missing_visible": 0,
+      "negative": true,
+      "positives": 0,
+      "recovered": 0,
+      "scene_id": "scene_024"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 318,
+          "prediction_index": null,
+          "renderer_identity": 65503,
+          "scene_id": "scene_025",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 4009,
+          "prediction_index": null,
+          "renderer_identity": 65508,
+          "scene_id": "scene_025",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 4327,
+      "negative": false,
+      "positives": 2,
+      "recovered": 0,
+      "scene_id": "scene_025"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 2276,
+          "prediction_index": null,
+          "renderer_identity": 65496,
+          "scene_id": "scene_026",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 3613,
+          "prediction_index": null,
+          "renderer_identity": 65501,
+          "scene_id": "scene_026",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 4093,
+          "prediction_index": null,
+          "renderer_identity": 65506,
+          "scene_id": "scene_026",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 9982,
+      "negative": false,
+      "positives": 3,
+      "recovered": 0,
+      "scene_id": "scene_026"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 4247,
+          "prediction_index": null,
+          "renderer_identity": 65510,
+          "scene_id": "scene_027",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 4247,
+      "negative": false,
+      "positives": 1,
+      "recovered": 0,
+      "scene_id": "scene_027"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 3538,
+          "prediction_index": null,
+          "renderer_identity": 65503,
+          "scene_id": "scene_028",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 1516,
+          "prediction_index": null,
+          "renderer_identity": 65508,
+          "scene_id": "scene_028",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 5054,
+      "negative": false,
+      "positives": 2,
+      "recovered": 0,
+      "scene_id": "scene_028"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 1382,
+          "prediction_index": null,
+          "renderer_identity": 65496,
+          "scene_id": "scene_029",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 736,
+          "prediction_index": null,
+          "renderer_identity": 65501,
+          "scene_id": "scene_029",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 3172,
+          "prediction_index": null,
+          "renderer_identity": 65506,
+          "scene_id": "scene_029",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 5290,
+      "negative": false,
+      "positives": 3,
+      "recovered": 0,
+      "scene_id": "scene_029"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [],
+      "mean_iou": 0.0,
+      "missing_visible": 0,
+      "negative": true,
+      "positives": 0,
+      "recovered": 0,
+      "scene_id": "scene_030"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 1397,
+          "prediction_index": null,
+          "renderer_identity": 65503,
+          "scene_id": "scene_031",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 8658,
+          "prediction_index": null,
+          "renderer_identity": 65508,
+          "scene_id": "scene_031",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 10055,
+      "negative": false,
+      "positives": 2,
+      "recovered": 0,
+      "scene_id": "scene_031"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 5261,
+          "prediction_index": null,
+          "renderer_identity": 65496,
+          "scene_id": "scene_032",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 2454,
+          "prediction_index": null,
+          "renderer_identity": 65501,
+          "scene_id": "scene_032",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 1541,
+          "prediction_index": null,
+          "renderer_identity": 65506,
+          "scene_id": "scene_032",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 9256,
+      "negative": false,
+      "positives": 3,
+      "recovered": 0,
+      "scene_id": "scene_032"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 3310,
+          "prediction_index": null,
+          "renderer_identity": 65510,
+          "scene_id": "scene_033",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 3310,
+      "negative": false,
+      "positives": 1,
+      "recovered": 0,
+      "scene_id": "scene_033"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 717,
+          "prediction_index": null,
+          "renderer_identity": 65503,
+          "scene_id": "scene_034",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 1612,
+          "prediction_index": null,
+          "renderer_identity": 65508,
+          "scene_id": "scene_034",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 2329,
+      "negative": false,
+      "positives": 2,
+      "recovered": 0,
+      "scene_id": "scene_034"
+    },
+    {
+      "background_spill": 0,
+      "confident_detections": 0,
+      "contract_violations": 0,
+      "cross_object": 0,
+      "detections": [],
+      "false_positives": 0,
+      "instances": [
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 582,
+          "prediction_index": null,
+          "renderer_identity": 65496,
+          "scene_id": "scene_035",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 1527,
+          "prediction_index": null,
+          "renderer_identity": 65501,
+          "scene_id": "scene_035",
+          "strict_accept": false
+        },
+        {
+          "background_spill": 0,
+          "boundary_max_px": null,
+          "boundary_mean_px": null,
+          "cross_object": 0,
+          "iou": 0.0,
+          "missing_visible": 2278,
+          "prediction_index": null,
+          "renderer_identity": 65506,
+          "scene_id": "scene_035",
+          "strict_accept": false
+        }
+      ],
+      "mean_iou": 0.0,
+      "missing_visible": 4387,
+      "negative": false,
+      "positives": 3,
+      "recovered": 0,
+      "scene_id": "scene_035"
+    }
+  ]
+}

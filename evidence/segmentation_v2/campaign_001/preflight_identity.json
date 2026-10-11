@@ -1,0 +1,38 @@
+{
+  "acquisition_sha256": "f31442413a78449a683ad0f61328d05a5c816bc1a722e0aae3c93b9cca6703e9",
+  "available_ram_kib": 12368240,
+  "campaign_sha256": "1820832149bfc4931c0ee36e800b9f9d2273bdc6c49355408c718b44a7756360",
+  "checkpoint_saved": false,
+  "config_sha256": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+  "cpu_count": 8,
+  "cuda_available": false,
+  "cuda_device_count": 0,
+  "free_disk_bytes": 93699723264,
+  "frozen_test_scenes_manifest_only": 12,
+  "held_out_files_opened": 0,
+  "optimizer_updates": 0,
+  "plan_sha256": "1b99d7ba8cbfbe594c658f21cf61d13371a88557529bb36a594487a834ed30ab",
+  "prior_smoke_loaded": false,
+  "prior_smoke_sha256": "fcbaf0d593804bcaefdad0e834ad90393692551bca3101755df3634011f5cd0f",
+  "prior_source_snapshots_verified": {
+    "/home/user/epd-v2-artifacts/pilot-001/training/executed_sources/pilot.py": "c5dac83c1ca00b32f09c8fcdb25d588d38bc4a15093406a043b0549e2371a9df",
+    "/home/user/epd-v2-artifacts/pilot-001/training/executed_sources/train.py": "8ea244cded29ea7ba3be201e6343a9db22a94aa128348f1686de5fff5b3cf295"
+  },
+  "source_sha256": {
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "train.py": "63d4ccf13ace18a28bc509a277f9f8b047356307173a532591d5d7c95e596977"
+  },
+  "torch_cuda_build": "12.6",
+  "train_scenes": 24,
+  "train_validation_files_verified": 360,
+  "validation_scenes": 12,
+  "versions": {
+    "numpy": "1.26.4",
+    "onnx": "1.17.0",
+    "onnxruntime": "1.22.0",
+    "opencv-python": "4.11.0.86",
+    "torch": "2.7.0",
+    "torchvision": "0.22.0"
+  },
+  "weights_sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0"
+}

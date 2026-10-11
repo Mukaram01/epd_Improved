@@ -1,0 +1,20 @@
+{
+  "child_peak_rss_kib": 2059364,
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/campaign.py",
+    "worker",
+    "--artifacts",
+    "/home/user/epd-v2-artifacts/pilot-001",
+    "--weights",
+    "/home/user/epd-v2-artifacts/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
+    "--preflight",
+    "/home/user/epd-v2-artifacts/campaign-001/preflight",
+    "--output",
+    "/home/user/epd-v2-artifacts/campaign-001/training"
+  ],
+  "exit_code": 0,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 2059920,
+  "wall_seconds": 579.0828605060015
+}

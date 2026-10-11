@@ -1,0 +1,24 @@
+{
+  "head_sha": "0e83096cd239c352e5cd384eb5c46e66945da5fd",
+  "base_sha": "432a15317ff899fa8636533bf24dc44369b360b0",
+  "workflows": {
+    "CLI_CI": {
+      "head_run": 38152795252,
+      "base_run": 34814110609,
+      "failure": "Inherited W503 lint errors; identical paths/lines"
+    },
+    "GUI_CI": {
+      "head_run": 38152795250,
+      "base_run": 34814110575,
+      "failure": "inherited pycodestyle no such option --extend-ignore"
+    },
+    "ROS_HUMBLE_CI": {
+      "head_run": 38152795235,
+      "base_run": 34814110507,
+      "failure": "inherited missing numpy in rosidl_generator_py/epd_msgs"
+    }
+  },
+  "introduced_failure_identified": false,
+  "workflow_changes": false,
+  "classification": "All three completed starting-head CI failures match base exactly; downstream tests skipped, no green CI claim"
+}

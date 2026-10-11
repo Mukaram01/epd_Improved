@@ -1,0 +1,8 @@
+{"epoch": 1, "steps": 24, "recovered": 0, "mean_iou": 0.0, "false_positives": 0, "background_spill": 0, "eligible": false, "wall_seconds": 57.233424808000564}
+{"epoch": 2, "steps": 48, "recovered": 0, "mean_iou": 0.0, "false_positives": 0, "background_spill": 0, "eligible": false, "wall_seconds": 126.52405979099967}
+{"epoch": 3, "steps": 72, "recovered": 0, "mean_iou": 0.0, "false_positives": 0, "background_spill": 0, "eligible": false, "wall_seconds": 202.63041156299914}
+{"epoch": 4, "steps": 96, "recovered": 1, "mean_iou": 0.03793835674039189, "false_positives": 0, "background_spill": 77, "eligible": false, "wall_seconds": 275.84949637200043}
+{"epoch": 5, "steps": 120, "recovered": 4, "mean_iou": 0.1656697913847931, "false_positives": 0, "background_spill": 380, "eligible": false, "wall_seconds": 353.4197498220001}
+{"epoch": 6, "steps": 144, "recovered": 5, "mean_iou": 0.2171941390927536, "false_positives": 1, "background_spill": 339, "eligible": false, "wall_seconds": 427.00701984399893}
+{"epoch": 7, "steps": 168, "recovered": 6, "mean_iou": 0.24892643427992736, "false_positives": 0, "background_spill": 266, "eligible": false, "wall_seconds": 503.86825907099956}
+{"epoch": 8, "steps": 192, "recovered": 6, "mean_iou": 0.2501199405210875, "false_positives": 0, "background_spill": 238, "eligible": false, "wall_seconds": 574.3384140609996}

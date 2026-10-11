@@ -1,0 +1,63 @@
+{
+  "cli": {
+    "classification": "INHERITED_IDENTICAL_FAILURE",
+    "base_failures": [
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_workcell_contract_bridge.py:8:5: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_workcell_contract_bridge.py:9:5: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:239:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:240:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:245:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:246:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:263:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:264:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:271:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:272:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:517:21: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_release_quality.py:126:9: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_release_quality.py:127:9: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_release_quality.py:128:9: W503 line break before binary operator"
+    ],
+    "head_failures": [
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_workcell_contract_bridge.py:8:5: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_workcell_contract_bridge.py:9:5: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:239:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:240:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:245:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:246:17: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:263:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:264:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:271:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:272:13: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py:517:21: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_release_quality.py:126:9: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_release_quality.py:127:9: W503 line break before binary operator",
+      "easy_perception_deployment/easy_perception_deployment/scripts/test_release_quality.py:128:9: W503 line break before binary operator"
+    ],
+    "base_log_sha256": "8b9440cff24fb5b237457c0cbef2275bbfef9bf891b524628b6e7ad36df1b7c8",
+    "head_log_sha256": "a02cb287d24ea2938124ac7ea72bf0e5cf2f9f9a186c97d7a480dee0d3c2cdf8"
+  },
+  "gui": {
+    "classification": "INHERITED_IDENTICAL_FAILURE",
+    "base_failures": [
+      "pycodestyle: error: no such option: --extend-ignore"
+    ],
+    "head_failures": [
+      "pycodestyle: error: no such option: --extend-ignore"
+    ],
+    "base_log_sha256": "1fef3324cba458c0fc2c79ac2d291c9b1e7d0fffec52bbc79263a05ff6746560",
+    "head_log_sha256": "6ddbe7241ae2c6eafba6f774c5e0ac26ba34d6a84caffe22352c428db1b69c00"
+  },
+  "ros": {
+    "classification": "INHERITED_IDENTICAL_FAILURE",
+    "base_failures": [
+      "ModuleNotFoundError: No module named 'numpy'",
+      "ModuleNotFoundError: No module named 'numpy'"
+    ],
+    "head_failures": [
+      "ModuleNotFoundError: No module named 'numpy'",
+      "ModuleNotFoundError: No module named 'numpy'"
+    ],
+    "base_log_sha256": "e2babe1d6d68293dafe6b3b177a83ecd78f333f0f60b6a853030940658832ca5",
+    "head_log_sha256": "3e66e24fccf1eed758da284c704f8c5f4b6a10fc3499975c6738a5f0302df1cc"
+  }
+}

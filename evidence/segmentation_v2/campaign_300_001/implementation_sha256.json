@@ -1,0 +1,9 @@
+{
+  "tools/segmentation_v2/audit_campaign.py": "5c3e762017e0ee6381cca73423bab24291b0669d178b849d4a10deb44558d6b0",
+  "tools/segmentation_v2/campaign.py": "eac2f1c921fe88eb1b1db5ad9e2ea30506bfac00bf11cbcf9522f46f253647f6",
+  "tools/segmentation_v2/campaign_300.json": "722252faf930592d0123ee7fa53282449e7b10b81a38c19703ad897bc7c5a6d4",
+  "tools/segmentation_v2/measure_300.py": "868866f17273bea679ccc0bc4371666e97990687d0fac025086d6dbd3d1e4d10",
+  "tools/segmentation_v2/test_campaign_300.py": "f4cd7c06ed929530803c764e43712d4cf1c66254851346dad78b56d21023d10d",
+  "tools/segmentation_v2/train.json": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+  "tools/segmentation_v2/train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+}

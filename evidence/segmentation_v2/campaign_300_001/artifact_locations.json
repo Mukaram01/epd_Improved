@@ -1,0 +1,71 @@
+{
+  "files": [
+    {
+      "bytes": 18461,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/campaign.py",
+      "sha256": "c9a5a65cf136ce3ad202dfb8487c7fab1ffbd640615b321c714306e2aefeea5b"
+    },
+    {
+      "bytes": 1025,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/campaign_300.json",
+      "sha256": "722252faf930592d0123ee7fa53282449e7b10b81a38c19703ad897bc7c5a6d4"
+    },
+    {
+      "bytes": 1690,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/dataset.py",
+      "sha256": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac"
+    },
+    {
+      "bytes": 2404,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/dataset_bindings.py",
+      "sha256": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3"
+    },
+    {
+      "bytes": 18457,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/expansion.py",
+      "sha256": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443"
+    },
+    {
+      "bytes": 5225,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/measure_300.py",
+      "sha256": "dea8a84fc9ebae401d789e80934e277b9bc959774bc58a9c36b4eb2f8dd1332e"
+    },
+    {
+      "bytes": 13442,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/pilot.py",
+      "sha256": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692"
+    },
+    {
+      "bytes": 1052,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/train.json",
+      "sha256": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab"
+    },
+    {
+      "bytes": 13821,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/executed_sources/train.py",
+      "sha256": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    {
+      "bytes": 2184,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/feasibility.json",
+      "sha256": "231c49d98435c8fdb3e0a43c6500e9129082b2f6e0bdcad8420c06e79553514c"
+    },
+    {
+      "bytes": 1725,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/identity.json",
+      "sha256": "60c9e6bec85c0cdcc98a84a02bb243b04cf98c969a9a2d94e087e382e22e12f8"
+    },
+    {
+      "bytes": 30721,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/identity_audit.json",
+      "sha256": "f2a4829fb9407c2a509837ba5fb0be971efc287abbdfc18d4e4508f00200c38e"
+    },
+    {
+      "bytes": 1739,
+      "path": "/home/user/epd-v2-artifacts/campaign-300-001-preflight/preserved_checkpoints.json",
+      "sha256": "b4fc7f053bab5d4e34448cbdac3b0586f65523249bbf825c02c92f4d6dbf7aa6"
+    }
+  ],
+  "root": "/home/user/epd-v2-artifacts/campaign-300-001-preflight",
+  "storage": "local retained filesystem; no remote durability claim"
+}

@@ -42,7 +42,48 @@ def validate_identity_mapping(spec, report):
             raise ValueError('authored/native geometry identity mismatch')
 
 
+def dataset_identity(source):
+    return sha(source if source.is_file() else source/'acquisition.json')
+
+
+def require_feasibility(preflight, device, policy):
+    # Original 24-scene CUDA policy remains supported; expanded campaigns always
+    # require a successful measurement for the actual selected device.
+    if device=='cpu' or policy.get('training_samples',24)==300:
+        measurement=json.loads((preflight/'feasibility.json').read_text())
+        if not measurement['feasible'] or measurement['optimizer_updates']!=0:
+            raise ValueError('full-run feasibility not approved')
+        if policy.get('training_samples',24)==300 and measurement.get('device')!=device:
+            raise ValueError('feasibility device mismatch')
+
+
+def campaign_rows(source, policy):
+    train=list(verified_rows(source,'train'));val=list(verified_rows(source,'validation'))
+    if len(train)!=policy.get('training_samples',24) or len(val)!=12:raise ValueError('campaign sample counts')
+    train_ids={r['scene_id'] for r,_,_,_ in train};val_ids={r['scene_id'] for r,_,_,_ in val}
+    if len(train_ids)!=len(train) or len(val_ids)!=len(val) or train_ids & val_ids:
+        raise ValueError('campaign duplicate or split overlap')
+    return train,val
+
+
+def epoch_order(count, seed, epoch):
+    order=list(range(count));random.Random(seed+epoch-1).shuffle(order)
+    return order
+
+
 def audit_identities(artifacts):
+    if artifacts.is_file():
+        from expansion import label_integrity
+        checked=[]
+        for split in ('train','validation'):
+            for row,folder,report,ids in verified_rows(artifacts,split):
+                spec=json.loads((folder/'scene.json').read_text())
+                if row['origin']=='expansion_002':label_integrity(spec,report,ids)
+                else:validate_identity_mapping(spec,report)
+                checked.append(dict(scene_id=row['scene_id'],split=split,mapped_objects=len(report['mapping'])))
+        return dict(contract_violations=0,checked_scenes=checked,held_out_files_opened=0,
+                    dataset_sha256=sha(artifacts),acquisition_outcomes_verified_from_manifest=324)
+
     plan=json.loads((artifacts/'scenes.json').read_text())
     specs={s['scene_id']:s for s in plan['scenes']};checked=[]
     for split in ('train','validation'):
@@ -155,10 +196,10 @@ def validate_epoch(model, rows, device, torch, folder, epoch, policy):
 
 def worker(args):
     import torch
-    cfg=json.loads((HERE/'train.json').read_text());policy=json.loads((HERE/'campaign.json').read_text())
+    cfg=json.loads((HERE/'train.json').read_text());policy=json.loads(args.policy.read_text())
     # Do not admit policy drift or a different attempt after the preflight.
     identity=json.loads((args.preflight/'identity.json').read_text())
-    if sha(HERE/'campaign.json')!=identity['campaign_sha256'] or sha(HERE/'train.json')!=identity['config_sha256']:
+    if sha(args.policy)!=identity['campaign_sha256'] or sha(HERE/'train.json')!=identity['config_sha256']:
         raise ValueError('configuration changed after feasibility declaration')
     for name,digest in identity['source_sha256'].items():
         if sha(HERE/name)!=digest:raise ValueError('source changed after feasibility: '+name)
@@ -166,32 +207,30 @@ def worker(args):
     for name in ('torch','torchvision'):
         if importlib.metadata.version(name).split('+')[0]!=cfg[name]:raise ValueError('dependency version mismatch')
     device='cuda' if torch.cuda.is_available() else 'cpu'
-    if device=='cpu':
-        feasibility=json.loads((args.preflight/'feasibility.json').read_text())
-        if not feasibility['feasible'] or feasibility['optimizer_updates']!=0:raise ValueError('CPU full-run feasibility not approved')
+    require_feasibility(args.preflight,device,policy)
     if cfg['seed']!=policy['seed'] or cfg['batch_size']!=1 or cfg['epochs']!=8:raise ValueError('recipe drift')
     seed=cfg['seed'];random.seed(seed);np.random.seed(seed);torch.manual_seed(seed)
     torch.set_num_threads(cfg['cpu_threads']);torch.use_deterministic_algorithms(True)
     if device=='cuda':
         torch.cuda.manual_seed_all(seed);torch.backends.cudnn.benchmark=False
         torch.backends.cudnn.deterministic=True;torch.cuda.reset_peak_memory_stats()
-    train=list(verified_rows(args.artifacts,'train'));val=list(verified_rows(args.artifacts,'validation'))
-    if sha(args.artifacts/'acquisition.json')!=identity['acquisition_sha256']:raise ValueError('acquisition identity drift')
+    train,val=campaign_rows(args.artifacts,policy)
+    if dataset_identity(args.artifacts)!=identity['acquisition_sha256']:raise ValueError('acquisition identity drift')
     write_json(args.output/'identity_audit.json',audit_identities(args.artifacts))
     model=build_model(cfg,args.weights,torch).to(device)
     optimizer=torch.optim.SGD([p for p in model.parameters() if p.requires_grad],lr=cfg['learning_rate'],
         momentum=cfg['momentum'],weight_decay=cfg['weight_decay'])
     snapshots=args.output/'executed_sources';snapshots.mkdir()
-    for name in ('campaign.py','campaign.json','train.py','train.json','pilot.py'):
+    for name in ('campaign.py',args.policy.name,'train.py','train.json','pilot.py','dataset.py','dataset_bindings.py','expansion.py'):
         shutil.copy2(HERE/name,snapshots/name)
     write_json(args.output/'run_config.json',dict(device=device,recipe=cfg,policy=policy,
         sources={p.name:sha(p) for p in snapshots.iterdir()},weights_sha256=sha(args.weights),
-        acquisition_sha256=sha(args.artifacts/'acquisition.json'),seed=seed,batch_size=1,
+        acquisition_sha256=dataset_identity(args.artifacts),seed=seed,batch_size=1,
         initialized_from_rejected_smoke=False,smoke_only=False))
     start=time.monotonic();step=0;history=[];epochs=[];best=None;checkpoints=[]
     for epoch in range(1,policy['epochs']+1):
         if shutil.disk_usage(args.output).free<policy['disk_reserve_gib']*1024**3:raise RuntimeError('disk reserve')
-        model.train();order=list(range(len(train)));random.Random(seed+epoch-1).shuffle(order)
+        model.train();order=epoch_order(len(train),seed,epoch)
         for index in order:
             row,scene,report,ids=train[index];image,target=tensors(scene,report,ids,torch)
             iteration=time.monotonic();optimizer.zero_grad(set_to_none=True)
@@ -215,7 +254,9 @@ def worker(args):
         score=validate_epoch(model,val,device,torch,args.output/f'validation_{epoch:02d}',epoch,policy)
         epochs.append(score)
         if score['eligible'] and (best is None or checkpoint_key(score)>checkpoint_key(best)):best=score
-        write_json(args.output/f'epoch_{epoch:02d}_summary.json',dict(checkpoint=checkpoints[-1],metrics=score))
+        write_json(args.output/f'epoch_{epoch:02d}_summary.json',dict(checkpoint=checkpoints[-1],metrics=score,
+            mean_losses={k:float(np.mean([r[k] for r in history if r['epoch']==epoch]))
+                         for k in ('total_loss','loss_classifier','loss_box_reg','loss_mask','loss_objectness','loss_rpn_box_reg')}))
         print(json.dumps(dict(epoch=epoch,steps=step,recovered=score['recovered'],mean_iou=score['mean_iou'],
             false_positives=score['false_positives'],background_spill=score['background_spill'],eligible=score['eligible'],
             wall_seconds=time.monotonic()-start)),flush=True)
@@ -241,14 +282,15 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=['train','worker']);parser.add_argument('--artifacts',type=Path,required=True)
     parser.add_argument('--weights',type=Path,required=True);parser.add_argument('--preflight',type=Path,required=True)
+    parser.add_argument('--policy',type=Path,default=HERE/'campaign.json')
     parser.add_argument('--output',type=Path,required=True);args=parser.parse_args()
     if args.action=='worker':worker(args)
     else:
-        policy=json.loads((HERE/'campaign.json').read_text());args.output.mkdir()
+        policy=json.loads(args.policy.read_text());args.output.mkdir()
         identity=json.loads((args.preflight/'identity.json').read_text())
         timeout=policy['cuda_timeout_seconds'] if identity['cuda_available'] else policy['cpu_timeout_seconds']
         result=bounded([sys.executable,str(Path(__file__).resolve()),'worker','--artifacts',str(args.artifacts),
-            '--weights',str(args.weights),'--preflight',str(args.preflight),'--output',str(args.output)],
+            '--policy',str(args.policy),'--weights',str(args.weights),'--preflight',str(args.preflight),'--output',str(args.output)],
             args.output,timeout,dict(os.environ,CUBLAS_WORKSPACE_CONFIG=':4096:8',OMP_NUM_THREADS='2'),
             memory_mib=policy['memory_mib'])
         write_json(args.output/'process.json',result);print(json.dumps(result),flush=True)

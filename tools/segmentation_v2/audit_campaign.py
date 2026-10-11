@@ -16,20 +16,20 @@ from pilot import sha, write_json
 def audit(artifacts, training):
     result=json.loads((training/'result.json').read_text())
     run=json.loads((training/'run_config.json').read_text());policy=run['policy']
-    identity=audit_identities(artifacts)
-    if result['epochs']!=policy['epochs'] or result['steps']!=24*policy['epochs']:
+    identity=audit_identities(artifacts);count=policy.get('training_samples',24)
+    if result['epochs']!=policy['epochs'] or result['steps']!=count*policy['epochs']:
         raise ValueError('full campaign incomplete')
     if [c['epoch'] for c in result['checkpoints']]!=list(range(1,policy['epochs']+1)):
         raise ValueError('checkpoint epochs')
     history=[json.loads(line) for line in (training/'history.jsonl').read_text().splitlines()]
-    steps=24*policy['epochs']
+    steps=count*policy['epochs']
     if len(history)!=steps or [r.get('step') for r in history]!=list(range(1,steps+1)) or any(
-            r['epoch']!=(r['step']-1)//24+1 for r in history):
+            r['epoch']!=(r['step']-1)//count+1 for r in history):
         raise ValueError('training history')
     expected={r['scene_id'] for r,_,_,_ in verified_rows(artifacts,'train')}
     for epoch in range(1,policy['epochs']+1):
         rows=[r for r in history if r['epoch']==epoch]
-        if len(rows)!=24 or {r['scene_id'] for r in rows}!=expected:raise ValueError('training split visits')
+        if len(rows)!=count or {r['scene_id'] for r in rows}!=expected:raise ValueError('training split visits')
     validation=list(verified_rows(artifacts,'validation'));epochs=[];best=None
     for checkpoint in result['checkpoints']:
         if sha(checkpoint['path'])!=checkpoint['sha256']:raise ValueError('checkpoint hash')
@@ -70,7 +70,7 @@ def audit(artifacts, training):
         original_metrics_reproduced_exactly=True,zero_boundary_reporting_fixed=True,
         checkpoint_count=len(epochs),training_steps_verified=len(history),
         held_out_files_opened=0,historical_regression_evaluated=False,
-        policy_sha256=run['sources']['campaign.json'],audit_source_sha256=sha(__file__))
+        policy_sha256=run['sources'].get('campaign_300.json',run['sources'].get('campaign.json')),audit_source_sha256=sha(__file__))
 
 
 if __name__=='__main__':

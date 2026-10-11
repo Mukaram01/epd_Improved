@@ -1,0 +1,46 @@
+{
+  "loaded": false,
+  "prior_full_campaign": [
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_01.pt",
+      "sha256": "3adad2cff8d1c2fbb86e7ce53250d24ee7bff2d3f40b18c640339d22f854dfa4",
+      "unchanged": true
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_02.pt",
+      "sha256": "b5e94a62b8461ce25c624805751cd8f3bb24ba13a49f423d1fa4c8aa9ac09fe6",
+      "unchanged": true
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_03.pt",
+      "sha256": "4f64635a9109ca3d9ba72d2b0ad98b7ae6878bbe77b8b943182c16dd0d2747dd",
+      "unchanged": true
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_04.pt",
+      "sha256": "46b9007fa04ecdb86c21a46d00b2f273675718c6a51f73775d75cbf8dfafbe13",
+      "unchanged": true
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_05.pt",
+      "sha256": "77fdf774ab6b2628630679564aab23f804913a944b9be43d23873d0d505c1aa9",
+      "unchanged": true
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_06.pt",
+      "sha256": "44e3444186c7e031fb77845666d37f988d1d4345d927e50792c65eed0b93442c",
+      "unchanged": true
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_07.pt",
+      "sha256": "dab4dc7e81da575e4bdbf33a5baacecc05a3edfce4fba632ead1b8743c8d2f60",
+      "unchanged": true
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/campaign-001/training/epoch_08.pt",
+      "sha256": "b284ee6e64b3f75a4cc9a2bac0ec997916827cb4a982d5ad0c840e80ac9bda8a",
+      "unchanged": true
+    }
+  ],
+  "smoke_sha256": "fcbaf0d593804bcaefdad0e834ad90393692551bca3101755df3634011f5cd0f"
+}

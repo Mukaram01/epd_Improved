@@ -1,0 +1,34 @@
+test_gate_strict_and_frozen (test_campaign.CampaignTests) ... ok
+test_output_contract_empty_and_invalid (test_campaign.CampaignTests) ... ok
+test_scoring_negative_false_positive_and_threshold (test_campaign.CampaignTests) ... ok
+test_selection_eligible_only_order (test_campaign.CampaignTests) ... ok
+test_mapping_class_and_unique_ownership (test_campaign.IdentityAuditTests) ... ok
+test_replay_and_checkpoint_identity (test_campaign.OfflineAuditTests) ... ok
+test_both_devices_require_matching_successful_feasibility (test_campaign_300.ExpandedCampaignTests) ... ok
+test_composite_identity_is_hash_bound (test_campaign_300.ExpandedCampaignTests) ... ok
+test_expansion_policy_preserves_recipe_gate_and_legacy (test_campaign_300.ExpandedCampaignTests) ... ok
+test_order_visits_all_300_once_per_epoch (test_campaign_300.ExpandedCampaignTests) ... ok
+test_training_loader_enforces_counts_and_split_isolation (test_campaign_300.ExpandedCampaignTests) ... ok
+test_batch_seals_require_exact_coverage_and_acquisition_hashes (test_dataset_integration.IntegrationTests) ... ok
+test_geometric_occlusion_is_measurement_only (test_dataset_integration.IntegrationTests) ... ok
+test_global_membership_rejects_validation_contamination (test_dataset_integration.IntegrationTests) ... ok
+test_smoke_rejects_bad_supervised_tensors_without_model (test_dataset_integration.IntegrationTests) ... ok
+test_duplicate_rgb_rejected_against_other_splits_and_historical (test_expansion.ExpansionTests) ... ok
+test_frozen_manifest_exclusive_and_contract_change_rejected (test_expansion.ExpansionTests) ... ok
+test_frozen_plan_variety_and_no_pilot_collision (test_expansion.ExpansionTests) ... ok
+test_identity_collision_ownership_and_negative_labels (test_expansion.ExpansionTests) ... ok
+test_loader_filters_membership_before_pixel_access_and_legacy_delegates (test_expansion.ExpansionTests) ... ok
+test_partial_campaign_is_not_complete_and_attempts_are_never_reused (test_expansion.ExpansionTests) ... ok
+test_all_negative_predictions_have_background_spill (test_pilot.Contracts) ... ok
+test_frozen_splits_and_negatives (test_pilot.Contracts) ... ok
+test_native_contract_rejects_unknown_ids_and_stale_capture (test_pilot.Contracts) ... ok
+test_negative_false_positives_penalize_validation (test_pilot.Contracts) ... ok
+test_split_membership_rejects_duplicate_and_reassigned_scenes (test_pilot.Contracts) ... ok
+test_strict_metrics_and_threshold (test_pilot.Contracts) ... ok
+test_timeout_preserves_failure_logs (test_pilot.Contracts) ... ok
+test_training_refuses_incomplete_acquisition (test_pilot.Contracts) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 2.900s
+
+OK

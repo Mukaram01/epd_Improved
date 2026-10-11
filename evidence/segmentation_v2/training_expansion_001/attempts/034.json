@@ -1,0 +1,97 @@
+{
+  "batch": 0,
+  "binary_sha256": "755af4a1c34ea22669d5df5145585826ed6bba69955ce0e56a3329a61c8ca4d3",
+  "labels": {
+    "authored_objects": 2,
+    "background_pixels": 249231,
+    "instances": [
+      {
+        "box": [
+          134,
+          140,
+          230,
+          240
+        ],
+        "model": "cube_0",
+        "renderer_id": 65508,
+        "visible_pixels": 7427
+      },
+      {
+        "box": [
+          241,
+          158,
+          317,
+          251
+        ],
+        "model": "cube_1",
+        "renderer_id": 65503,
+        "visible_pixels": 5486
+      }
+    ],
+    "ownership": [
+      {
+        "collision_entity": 7,
+        "link_entity": 5,
+        "model": "background_table",
+        "model_entity": 4,
+        "renderer_id": 65519,
+        "visual_entity": 6
+      },
+      {
+        "collision_entity": 11,
+        "link_entity": 9,
+        "model": "background_wall",
+        "model_entity": 8,
+        "renderer_id": 65513,
+        "visual_entity": 10
+      },
+      {
+        "collision_entity": 15,
+        "link_entity": 13,
+        "model": "cube_0",
+        "model_entity": 12,
+        "renderer_id": 65508,
+        "visual_entity": 14
+      },
+      {
+        "collision_entity": 19,
+        "link_entity": 17,
+        "model": "cube_1",
+        "model_entity": 16,
+        "renderer_id": 65503,
+        "visual_entity": 18
+      }
+    ],
+    "visible_objects": 2
+  },
+  "plan_sha256": "3ac531d12091932375503f287540244e4a6dd602799b61eaf6e8110c8e1e4e0d",
+  "runtime": {
+    "child_peak_rss_kib": 633728,
+    "command": [
+      "/home/user/epd-v2-artifacts/pilot-001/build/epd_v2_capture",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_034/world.sdf",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_034/scene.json",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_034/capture.json"
+    ],
+    "exit_code": 0,
+    "resource_limit_reason": null,
+    "sampled_process_peak_rss_kib": 561704,
+    "wall_seconds": 2.6686081909992936
+  },
+  "scene_id": "expansion_034",
+  "seed": 260111034,
+  "sha256": {
+    "capture.json": "431b5809b85624ef9983693170592acb95e2433a008a85ac326dcf9cd9a5c5e2",
+    "capture.json.ids.u32": "0671618d119f7a78b5024e7b5060f0dbfcd6de285d993f1c80dd27a280ce4ce2",
+    "capture.json.native512.ids.u32": "4ed6addb4bb1bcf8cd25b409b11113997190e542f2dfabf850fe9db137f76fe4",
+    "capture.json.native512.rgb8": "3bc1946423b89a928a8c35669bcfd8114eca47c2e86bbbba83cba2dc1cf2d368",
+    "capture.json.rgb8": "bc193e428dd276c406bafe9b165fcabc54317904f72608893019784292306a35",
+    "process.json": "7e6e1fa9214e7afda61736f8d4d84ce66f94670c979274127ad1ccdb3d412a4a",
+    "scene.json": "9d397c777ef85f89cd2bbc22b49ce3e3f08a6ed2190de80ed4520884fb0d22bc",
+    "stderr.log": "e670fbdb9f009dbe820310b6b00f0d0c31f5e006e738bdf8c003eefd9760e8d3",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "world.sdf": "bbb048690191d90c5db2a91c74a8310947549a63c353aaf67128e3bef2c942e1"
+  },
+  "split": "train",
+  "status": "ACQUIRED"
+}

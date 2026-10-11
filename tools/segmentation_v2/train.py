@@ -23,6 +23,11 @@ from pilot import (HERE, HISTORICAL_RGB, sha, validate_native, write_json, mask_
 
 
 def verified_rows(artifacts, split):
+    artifacts=Path(artifacts)
+    if artifacts.is_file():
+        from dataset import verified_rows as dataset_rows
+        yield from dataset_rows(artifacts,split)
+        return
     acquisition = json.loads((artifacts/'acquisition.json').read_text())
     if acquisition['status']!='ACQUIRED' or len(acquisition['scenes'])!=48:
         raise ValueError('training requires all 48 genuinely acquired scenes')

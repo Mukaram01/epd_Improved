@@ -1,0 +1,6 @@
+{"batch": 0, "successful": 46, "wall_seconds": 124.13042646000031}
+{"batch": 1, "successful": 92, "wall_seconds": 248.3435532429994}
+{"batch": 2, "successful": 138, "wall_seconds": 372.0719916859998}
+{"batch": 3, "successful": 184, "wall_seconds": 496.4119909740002}
+{"batch": 4, "successful": 230, "wall_seconds": 620.3961655419989}
+{"batch": 5, "successful": 276, "wall_seconds": 744.1390300629992}

@@ -1,0 +1,6 @@
+{
+  "status": "BLOCKED_PREFLIGHT",
+  "attempted_scenes": 0,
+  "error": "FileNotFoundError: committed pilot source_manifest.json absent; actual source manifest external",
+  "resolution": "verify all native headers directly against pinned read-only EMD commit; freeze in new exclusive directory"
+}

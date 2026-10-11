@@ -1,0 +1,17 @@
+{
+  "method": "4x3 concatenation of genuine raw training RGB256 captures; no ID overlays or mask painting; raw input files unchanged",
+  "scene_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    10,
+    11,
+    14,
+    17
+  ]
+}

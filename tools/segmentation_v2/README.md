@@ -163,3 +163,38 @@ python3 tools/segmentation_v2/audit_campaign.py --artifacts /home/user/epd-v2-ar
 Offline audit performs no inference or checkpoint deserialization; it verifies
 hashes and recomputes the frozen decision from genuine retained validation arrays.
 It never enumerates held-out scene files.
+
+## 300-scene training dataset expansion
+
+[Executed expansion evidence](../../evidence/segmentation_v2/training_expansion_001/README.md)
+records276 genuine new captures and final300/12/12 membership. Original pilot,
+frozen evaluation memberships and rejected checkpoints remain intact.
+
+`expansion.py` freezes an exclusive training-only plan and acquires six bounded
+batches46 using the retained, hash-verified native executable. Attempts, progress
+and batch seals are retained; the first failure stops capture. Existing attempts
+cannot be silently retried. The read-only `verify` action checks immutable batch
+and attempt hashes and reports remaining unattempted IDs; any failed-campaign
+continuation requires separate explicit review/authorization.
+
+For reproducible **new** acquisition, use a new exclusive external directory;
+do not rerun successful captures in the completed directory:
+
+```bash
+python3 tools/segmentation_v2/expansion.py freeze --pilot /external/pilot-001 --emd-repo /read-only/EMD --output /external/new-expansion
+python3 tools/segmentation_v2/expansion.py acquire --output /external/new-expansion
+python3 tools/segmentation_v2/expansion.py verify --output /external/new-expansion
+python3 tools/segmentation_v2/integrate_dataset.py integrate --pilot /external/pilot-001 --expansion /external/new-expansion --output /external/new-expansion/integration
+python3 tools/segmentation_v2/integrate_dataset.py smoke --manifest /external/new-expansion/integration/dataset.json --output /external/new-expansion/integration/loader_smoke.json
+python3 -m unittest discover -s tools/segmentation_v2 -p 'test_*.py'
+```
+
+The executed smoke was additionally wrapped by `pilot.bounded` at300 seconds/
+4096 MiB; its exact command and process result are in the evidence. All metadata
+bindings are validated before pixel access. `dataset.enumerate_records(manifest,
+ 'train')` enumerates300 records without opening evaluation pixels;
+`train.verified_rows(manifest,'train')` yields the existing row/folder/report/IDs
+interface, and `train.tensors` retains the original preprocessing and target
+contract. Legacy pilot-directory calls remain unchanged. No training entrypoint
+was run against the composed manifest; a future training campaign needs its own
+budget and updated full-run assumptions.

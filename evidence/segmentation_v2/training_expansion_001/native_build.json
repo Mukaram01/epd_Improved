@@ -1,0 +1,10 @@
+{
+  "binary_sha256": "755af4a1c34ea22669d5df5145585826ed6bba69955ce0e56a3329a61c8ca4d3",
+  "scenes_sha256": "1b99d7ba8cbfbe594c658f21cf61d13371a88557529bb36a594487a834ed30ab",
+  "sources": {
+    "CMakeLists.txt": "00527a4ad19ffc9306927d585a40aea60fa4562ba3edb18b6a2a036f5373f9d6",
+    "capture.cpp": "72fd32abc69cc5534532f73e16aa954e98df8c3201aef9cd54c394ede5080f5b",
+    "pilot.py": "ac5adc89516fda66c47d7b1d10daac73978a35b2dde003493c899c00f792bfba",
+    "test_pilot.py": "99135ed4094d0d21bb52cb6ecec292af4d040b7ac5e318a4e2c05bebd99d4c90"
+  }
+}

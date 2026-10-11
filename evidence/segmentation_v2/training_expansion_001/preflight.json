@@ -1,0 +1,83 @@
+{
+  "binary": "/home/user/epd-v2-artifacts/pilot-001/build/epd_v2_capture",
+  "binary_sha256": "755af4a1c34ea22669d5df5145585826ed6bba69955ce0e56a3329a61c8ca4d3",
+  "budgets": {
+    "batch_seconds": 600,
+    "batches": 6,
+    "campaign_seconds": 4000,
+    "disk_reserve_gib": 5,
+    "memory_mib": 2048,
+    "scene_seconds": 30,
+    "scenes_per_batch": 46
+  },
+  "camera": {
+    "aspect": 1,
+    "far": 2,
+    "fovy_radians": 1.0471975511965976,
+    "look_at": [
+      0,
+      0,
+      0.025
+    ],
+    "near": 0.01,
+    "position": [
+      0,
+      -0.4,
+      0.28
+    ],
+    "up": [
+      0,
+      0,
+      1
+    ]
+  },
+  "camera_provenance": "fixed camera in hash-verified capture.cpp; fovy/position/lookAt match CAMERA",
+  "free_disk_bytes": 91710275584,
+  "headers": {
+    "emd_commit": "e25d03831292098543c2ed3467d50c65ce000762",
+    "headers": {
+      "fragment_mrt.hh": "b70a619781b13aaa546791b14756300bfccaaa1aca5a79a19ff594ca546d600e",
+      "paired_native/native_pass.hh": "7f459f3bf3a67ec90007e91f118935d392ba6c256f08d659260d1f5051571571",
+      "physics_owner/identity_inventory.hh": "ab3dc8c1a2167d0c0e42f22603cb93d7ecc066c5af0557653b38a9eb455895cc"
+    }
+  },
+  "memberships_manifest_only": {
+    "test": 12,
+    "train": 24,
+    "validation": 12
+  },
+  "memory_available_kib": 12437460,
+  "native_pkg_versions": [
+    "6.18.0",
+    "6.6.4",
+    "2.2.5",
+    "1.9.5",
+    "1.2"
+  ],
+  "pilot_manifests": {
+    "acquisition.json": "f31442413a78449a683ad0f61328d05a5c816bc1a722e0aae3c93b9cca6703e9",
+    "build_manifest.json": "c815077ce23143207c662eef3e82cbfa05ec30906b64d457fd388f24d4008db2",
+    "scenes.json": "1b99d7ba8cbfbe594c658f21cf61d13371a88557529bb36a594487a834ed30ab",
+    "source_manifest.json": "ccf43b8ad07a13290cd221bb4a4140617627e3394163ff9adc17234df8bacc58"
+  },
+  "pilot_root": "/home/user/epd-v2-artifacts/pilot-001",
+  "plan_sha256": "3ac531d12091932375503f287540244e4a6dd602799b61eaf6e8110c8e1e4e0d",
+  "rgb_profile": "EPD_directional_diffuse_MRT_v1_no_shadows_no_MSAA",
+  "source_sha256": {
+    "CMakeLists.txt": "00527a4ad19ffc9306927d585a40aea60fa4562ba3edb18b6a2a036f5373f9d6",
+    "campaign.py": "2c37c9c871354139bcbeaa471fdf24cb9d9c9a9c61e8f7504f7efe8a02f5829b",
+    "capture.cpp": "72fd32abc69cc5534532f73e16aa954e98df8c3201aef9cd54c394ede5080f5b",
+    "dataset.py": "87c2f3a85d1ab563204a1356001cbf63d9684dee306479ccd7b603c15c908a8c",
+    "expansion.py": "dac59aa1477aeb7fe610a19f1c171bc07ee074dfc504cd5792fbe9661de0015d",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+  },
+  "train_samples_verified": 24,
+  "validation_test_pixels_opened": 0,
+  "versions": {
+    "numpy": "1.26.4",
+    "opencv-python": "4.11.0.86",
+    "torch": "2.7.0",
+    "torchvision": "0.22.0"
+  }
+}

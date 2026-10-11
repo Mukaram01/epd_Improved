@@ -1,0 +1,14 @@
+Command: python3 -m unittest discover -s tools/segmentation_v2 -p 'test_*.py'
+........................
+----------------------------------------------------------------------
+Ran 24 tests in 3.000s
+
+OK
+
+Python compilation (expansion,dataset,dataset_bindings,integrate_dataset,train): exit0
+Whitespace check: git diff --check, exit0
+Actual capture:276 exit0, six distinct46-scene seals, no retries
+Read-only completed verification:276 successes,0 failures,0 unattempted
+Actual supervised DataLoader process:300 samples,484 visible instances,50 negatives; model/inference/optimizer=0, evaluation scene access=0; exit0
+
+Staged whitespace check initially flagged mandatory blank context lines in unified-diff evidence; patches retained losslessly as gzip, then full staged check rerun.

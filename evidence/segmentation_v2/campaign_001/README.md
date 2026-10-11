@@ -40,7 +40,7 @@ Both validation negative images (`scene_024`, `scene_030`) had zero confident de
 
 ## Retained artifacts and verification
 
-Large artifacts remain at `/home/user/epd-v2-artifacts/campaign-001/training` on this host, outside Git. This is retained local storage, not a claim of remote artifact hosting. All eight model+optimizer/RNG checkpoints and 96 raw validation NPZs have paths, sizes where available, and full SHA256 references in `artifact_locations.json`. Loss curves/history, source/config provenance and process output are committed here. `executed_preflight.py` is the exact host-specific measurement script; `preflight_process.json` records its bounded invocation.
+Large artifacts remain at `/home/user/epd-v2-artifacts/campaign-001/training` on this host, outside Git. This is retained local storage, not a claim of remote artifact hosting. All eight model+optimizer/RNG checkpoints and 96 raw validation NPZs have paths, sizes where available, and full SHA256 references in `artifact_locations.json`. Loss curves/history, source/config provenance and process output are committed here. The committed CSV uses LF line endings; external original retains csv.writer CRLF, with identical values. `executed_preflight.py` is the exact host-specific measurement script; `preflight_process.json` records its bounded invocation.
 
 Epoch 8 SHA256: `b284ee6e64b3f75a4cc9a2bac0ec997916827cb4a982d5ad0c840e80ac9bda8a`. ONNX SHA: null (not exported after rejection). The existing adapter/export contract in `docs/segmentation_v2_adapter.md` remains intact; PyTorch→ONNX→C++ verification must await an eligible candidate. Authoritative EMD association counts remain unexecuted.
 

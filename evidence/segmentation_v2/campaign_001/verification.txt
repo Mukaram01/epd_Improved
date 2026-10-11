@@ -9,3 +9,5 @@ python3 -m py_compile tools/segmentation_v2/{campaign,audit_campaign,test_campai
 git diff --check: exit 0
 Offline audit: all8 checkpoints /96 raw NPZ hashes verified,192 steps and36 train/validation identity maps; metrics reproduced exactly; V2_TRAINED_BUT_REJECTED.
 Read-only review: no remaining important findings.
+
+Staged whitespace check detected CSV writer CRLF line endings; committed CSV normalized to LF, values unchanged. External original retained. Final staged whitespace check rerun after normalization.

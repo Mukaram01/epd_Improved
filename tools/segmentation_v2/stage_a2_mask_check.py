@@ -46,18 +46,22 @@ def worker(args):
         mapped_mask=map_mask(roi,box);mapped.append(mapped_mask)
         detections.append(dict(prediction_index=i,class_index=int(label),label='cube',confidence=float(score),bbox=box))
         values,counts=np.unique(ids[mapped_mask],return_counts=True)
-        measurements.append(dict(prediction_index=i,score=float(score),mapped_id_counts={str(int(v)):int(c) for v,c in zip(values,counts)},
+        identity=max((int(v) for v in np.unique(ids) if v),key=lambda v:int(((ids==v)&mapped_mask).sum()))
+        measurements.append(dict(prediction_index=i,score=float(score),reference_identity=identity,
+            mapped_missing_pixels=int(((ids==identity)&~mapped_mask).sum()),
+            native512_raw_missing=int(((native_ids==identity)&~(mask>.5)).sum()),
+            mapped_id_counts={str(int(v)):int(c) for v,c in zip(values,counts)},
             native512_raw_background=int(((mask>.5)&(native_ids==0)).sum()),
             native512_roi_background=int(((roi>.5)&(native_ids[y0:y1,x0:x1]==0)).sum())))
     association=associate(owner,report,rgb,ids,detections,mapped)
-    write_json(args.output/'result.json',dict(status='STAGE_A2_ASSOCIATION_PASS' if association['accepted'] else 'BLOCKED_STRICT_ASSOCIATION',
+    write_json(args.output/'result.json',dict(status='STAGE_A2_ASSOCIATION_PASS' if association['accepted']==2 else 'BLOCKED_STRICT_ASSOCIATION',
         checkpoint=chosen,source_sha256=sha(__file__),input_rgb_sha256=report['rgb_sha256'],capture_manifest_sha256=sha(args.retained/'sha256.json'),
         association=association,measurements=measurements,inference_seconds=time.monotonic()-t,
         mapping='unchanged EPD integer clipped bbox ROI; exact values; existing union2x2 map_mask; >.5 and >=.8',
         emd_sources={name:sha(args.emd_scripts/name) for name in ('stage_a_epd_retained.py','stage_a_fragment_identity.py')},
         ids_used_as_model_inputs=False,held_out_files_opened=0,used_for_selection=False,exported=False))
     print(json.dumps(dict(accepted=association['accepted'],measurements=measurements)))
-    return 0 if association['accepted'] else 2
+    return 0 if association['accepted']==2 else 2
 
 
 if __name__=='__main__':

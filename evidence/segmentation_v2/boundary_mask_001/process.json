@@ -1,0 +1,20 @@
+{
+  "child_peak_rss_kib": 2713492,
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/mask_finetune.py",
+    "worker",
+    "--policy",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/boundary_mask.json",
+    "--checkpoint",
+    "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+    "--artifacts",
+    "/home/user/epd-v2-artifacts/training-expansion-002/integration/dataset.json",
+    "--output",
+    "/home/user/epd-v2-artifacts/boundary-mask-001"
+  ],
+  "exit_code": 0,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 2713712,
+  "wall_seconds": 1024.3003709480108
+}

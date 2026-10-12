@@ -1,0 +1,20 @@
+{
+  "child_peak_rss_kib": 1348628,
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/stage_a2_mask_check.py",
+    "worker",
+    "--campaign",
+    "/home/user/epd-v2-artifacts/boundary-mask-001",
+    "--retained",
+    "/home/user/workcell_ws_stage_a2/evidence/stage_a2_geometry/physics_owner/same_fragment/paired_native_reference",
+    "--emd-scripts",
+    "/home/user/workcell_ws_stage_a2/scripts",
+    "--output",
+    "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001"
+  ],
+  "exit_code": 2,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 1349008,
+  "wall_seconds": 7.676239183987491
+}

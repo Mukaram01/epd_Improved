@@ -1,0 +1,13 @@
+{
+  "admitted": true,
+  "basis": "same original architecture and forward pass; mask-only backward subset; 28-grid pooling/weighted BCE covered by unchanged1.5 factor",
+  "failures": [],
+  "method": "maximum observed full SGD step and validation forward; 1.5 safety factor +240s startup/checkpoint/scoring overhead",
+  "optimizer_steps": 300,
+  "prior_eight_epoch_admission_remains_failed": true,
+  "projected_rss_kib": 2927748.0,
+  "projected_seconds": 2542.8639318747155,
+  "required_disk_bytes": 5788139520,
+  "resource_evidence_sha256": "c1ae61f137a59d2bd3417f139ed29f529389c013025b497fae0b32d54d878025",
+  "validation_forwards": 24
+}

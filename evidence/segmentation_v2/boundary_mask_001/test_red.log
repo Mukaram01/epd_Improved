@@ -1,0 +1,21 @@
+EF
+======================================================================
+ERROR: test_actual_torchvision_loss_uniform_equivalence_empty_and_gradients (test_boundary_loss.BoundaryLossTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_boundary_loss.py", line 21, in test_actual_torchvision_loss_uniform_equivalence_empty_and_gradients
+    from boundary_loss import boundary_maskrcnn_loss
+ModuleNotFoundError: No module named 'boundary_loss'
+
+======================================================================
+FAIL: test_boundary_weights_preserve_targets_and_cover_both_sides (test_boundary_loss.BoundaryLossTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_boundary_loss.py", line 7, in test_boundary_weights_preserve_targets_and_cover_both_sides
+    self.assertIsNotNone(importlib.util.find_spec('boundary_loss'))
+AssertionError: unexpectedly None
+
+----------------------------------------------------------------------
+Ran 2 tests in 2.485s
+
+FAILED (failures=1, errors=1)

@@ -1,0 +1,527 @@
+[
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/admission.json",
+    "bytes": 638,
+    "sha256": "4cb086d9d1dd24790d7ff5d5ed473cb101d0469300405dab772ba1c708a78a3e"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/baseline_summary.json",
+    "bytes": 28221,
+    "sha256": "22327ad65d5342b14bc37bceea2977ea10bb3e96c028e1c885ec47c356a1c1be"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/configuration.json",
+    "bytes": 4247,
+    "sha256": "6f39c16a6764a473f3294228887dce111bfc58eb727d2ea284d86848ccb63dff"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/epoch_01.pt",
+    "bytes": 186734847,
+    "sha256": "22bf99d95e00e590aebb469bf77d20b7e1cbb3d8065a5a0e59a86c8f5291f305"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/epoch_01_summary.json",
+    "bytes": 30632,
+    "sha256": "1e7dcd8de54c6e7912b294ec6d09f48419837534b495b7b42ec076b22601e897"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/boundary_loss.py",
+    "bytes": 1306,
+    "sha256": "a643dc2e1fe1a26835d89ea5e78e5ae4c0bba8e45af2bd635fcb96fbdecdca0d"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/boundary_mask.json",
+    "bytes": 2396,
+    "sha256": "70372c648b28818b329742a018824aecdd1579366818477b99632ae7f9763aed"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/campaign.py",
+    "bytes": 24258,
+    "sha256": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/continuation.py",
+    "bytes": 7104,
+    "sha256": "074a6725b3ec01fd3cc2caffa48ff7b9a1c6eccc8973475868bc87242d7fcce0"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/dataset.py",
+    "bytes": 1690,
+    "sha256": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/dataset_bindings.py",
+    "bytes": 2404,
+    "sha256": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/expansion.py",
+    "bytes": 18457,
+    "sha256": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/mask_finetune.json",
+    "bytes": 1970,
+    "sha256": "96834ddc7e5192ff178b773ed2e7c808b74871f5c016d5c7032ac5b7814e4d4f"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/mask_finetune.py",
+    "bytes": 10353,
+    "sha256": "2a47746c6818decf6c35afd4cbe3ecc192ac224ed5a9393c488fba1f6150c129"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/original_finetune.py",
+    "bytes": 11493,
+    "sha256": "eb3eb0efd9b4e056b2a0beb87633d86aa66994191ba8ae3f8cf861481b0e08f9"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/pilot.py",
+    "bytes": 13442,
+    "sha256": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/recover_original.py",
+    "bytes": 15641,
+    "sha256": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/executed_sources/train.py",
+    "bytes": 13821,
+    "sha256": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/history.jsonl",
+    "bytes": 91734,
+    "sha256": "d05d7c65be71839c036734fcde0c5cea0a39116d695a5fe348199b0dd34d9728"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/process.json",
+    "bytes": 695,
+    "sha256": "05f3248c286def3087b85b5a6efad257371a6f86a88c57e7ccc24b9c8afd001d"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/result.json",
+    "bytes": 62880,
+    "sha256": "65370b11ff757bb14293223849d6ddb1732d123ef6793139818ce217483b3560"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/stdout.log",
+    "bytes": 584,
+    "sha256": "802878315f1ad1d4aac9c88ee8d2094c44f9ff4a7361ad0b81229bec017e65a8"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/metrics.json",
+    "bytes": 28225,
+    "sha256": "b4814afe6acaf9816c397cd0c8ff6d3207254973036668015cd6b9648df12a7c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_024.npz",
+    "bytes": 79400,
+    "sha256": "535ded28e7df31e002d033abf8f778b897ba95e3be5c733d16258a66326ba461"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_025.npz",
+    "bytes": 35799,
+    "sha256": "e1abdb1ec8b3398a7e9c91088964df6aed555b86b6e0390f97252f1460d5980c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_026.npz",
+    "bytes": 186018,
+    "sha256": "bd2606f72b6443988e00b5eeb9e8a65f976a40146f1867b9259c0062844bca0d"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_027.npz",
+    "bytes": 30734,
+    "sha256": "8e5052c43da79513d7dc110b6c5265c696cf0203f92a614e1285227d54f5967b"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_028.npz",
+    "bytes": 106532,
+    "sha256": "2d83f231553171d08c30507557eda18c19abea75e8c9f693e4b2f736cd95b3b3"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_029.npz",
+    "bytes": 138813,
+    "sha256": "b7f49213b74e71e885b06f44a5cb684780dc7ada6af65020c5098b33ab309017"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_030.npz",
+    "bytes": 765,
+    "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_031.npz",
+    "bytes": 135142,
+    "sha256": "68fd6a65d29756b54eab28e50ffee462387e7f14c356be8fc31968c8a8eb8036"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_032.npz",
+    "bytes": 195291,
+    "sha256": "2556c2fb7b282b63cf2c21ea6da75f7bb202b78588071c49bbf4e26e3fd735b3"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_033.npz",
+    "bytes": 22037,
+    "sha256": "6cc53e4a3ec39eeb2fce2b426cbe00fc1f46ddc2c5d7f6d8a2afa6f391a83cb5"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_034.npz",
+    "bytes": 22349,
+    "sha256": "c70f3173a6734b16c666aa2d632086fdf413fe5250b908c92abb8b05ab46409c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/validation_01/scene_035.npz",
+    "bytes": 75700,
+    "sha256": "c1dd0c2fda3b8068438adf25727a0ee0fabcb4b44e4c834bf71b28547a550ae0"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/camera_ray_disassembly.txt",
+    "bytes": 10305,
+    "sha256": "d8f5640c5619f011c8d95570adf22e55a4352d2df71a372ca3c327493943b46d"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/capture.checked.json",
+    "bytes": 162135,
+    "sha256": "6ac53702310e250b0732332a5868bfadd8c5ce388b0de9e0957961d601f6c9e4"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/capture.json",
+    "bytes": 136624,
+    "sha256": "72f0a786714fc6eb0e34e6d6ffc10c8b4b6cc6aa4c5fa023c7bb8a7235b55aa3"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/capture.json.ids.u32",
+    "bytes": 262144,
+    "sha256": "75246c2b20a8a0bcbbef866b6ade995535de6fa8f7be24f46bcb1d8197681a19"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/capture.json.maps",
+    "bytes": 119494,
+    "sha256": "3bf96825728a3d51f6658f89a56487d38867bbb73c1c2a1a56b0142018cf283b"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/capture.json.native512.ids.u32",
+    "bytes": 1048576,
+    "sha256": "8365c3fc5df29278aa63b40a7a6ad0beb2c307235d30525537e4c7ed14603ee1"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/capture.json.native512.rgb8",
+    "bytes": 786432,
+    "sha256": "165003a59c6ed156686818aed207c6f32defc73d3dacf46f572959631ffa31ad"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/capture.json.rgb8",
+    "bytes": 196608,
+    "sha256": "92f1ba8ad58b2437fa5ccf55e73d53cc9dcba469b04efefbe624ce1505585793"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/child_exit.json",
+    "bytes": 16,
+    "sha256": "124fd50cb6d223cdd18fedc166d00af7254199b6e6dedf9be82f71db87af6d01"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/debugger.gdb",
+    "bytes": 952,
+    "sha256": "6a16bf28f6207575baed72ca3e6e49c9278e75b4e99d240905169446c1bd30a2"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/diagnostic.json",
+    "bytes": 444488,
+    "sha256": "6b5c4eaaf9606d5d044f8c9fd6a927dc26b41c994afb839e8cc3c0429cfe3ae6"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_binary.bin",
+    "bytes": 2218408,
+    "sha256": "f045931fe74142889e2e391408a4b0246de7d63756f69564da1aadef7b1228e0"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/Ogre2Scene.cc",
+    "bytes": 49873,
+    "sha256": "835e120500758664b42e48b1a5ed19c85c1261fdafa2f2dd0898ef5e6631609c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/flags.make",
+    "bytes": 2015,
+    "sha256": "071d9896b8acd1dd1399e69b60bd622058f32fbb17a7ab24bcebe3624f6ed124"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/link.txt",
+    "bytes": 2692,
+    "sha256": "df9f88be400c0ec03c54b6c3c3e6fb0e7d11f257bd4239f4246f931e682093ba"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/perceived_object_grasp_plan.py",
+    "bytes": 22044,
+    "sha256": "f3b9a592201660f75b5beaaa27501cd7e1c41002109337085f555813df522660"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_epd_origin.py",
+    "bytes": 9985,
+    "sha256": "9db1ab40637dbf81fbdaa316f87c6e3acfefc27669a874d40e75f07d6117e001"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_epd_retained.py",
+    "bytes": 9543,
+    "sha256": "fb23991be23f4b6c8d17d9d785edad75a336930fa1e8a2218c42864579e9b20f"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_epd_spill.py",
+    "bytes": 11154,
+    "sha256": "682d6e7e564e2b70ec1dbe0ded592502ed700275183b58bb756e590fc2bed9bd"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_fragment_camera.py",
+    "bytes": 4101,
+    "sha256": "312753b8e89ab41f374e5aad2b0fb413d3e74ea1b12e3b1392d60c752c1cfb2a"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_fragment_identity.py",
+    "bytes": 10587,
+    "sha256": "3a4f4496fdc91775f9cebc49de10d6f818de4efcdd45d0e0a5103f96e4ba4127"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_gazebo_fragment.py",
+    "bytes": 16324,
+    "sha256": "54db9d6acfd23e3a1eaa9fb09f332db4b454b62ecb87f828a7687197e92861df"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_paired_capture.py",
+    "bytes": 11159,
+    "sha256": "512e119820ae3e6bfa65cd59139c16e7614d65b8de981fcdc3743849eb87d40c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_paired_reference.py",
+    "bytes": 5706,
+    "sha256": "f6fa59a8e769679d7d61f83635cf65af24f118722686dd6bfe0318003e5a9396"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_physics_contact.py",
+    "bytes": 18872,
+    "sha256": "bcfe6bf167ae1b54e0f75ff1286bf7082c526f7770f1afeed2a55fea02fc500c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_relative_support.py",
+    "bytes": 12031,
+    "sha256": "c5cd36bbe0aea80d54b3a1479ba8a7162a93f56c1144a4e2a592a892555cd89b"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/fragment_mrt.hh",
+    "bytes": 7583,
+    "sha256": "b70a619781b13aaa546791b14756300bfccaaa1aca5a79a19ff594ca546d600e"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/gazebo_fragment_capture.cpp",
+    "bytes": 21140,
+    "sha256": "9dcd1d7b68569fd721acddaca873e490620549175c30f3ccb560716a63544658"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/gl_context_check.hh",
+    "bytes": 827,
+    "sha256": "4b9035e37cd5dab6e8da55528ee40f0404055f6d91b10a45b5a980173a943df1"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/gl_context_witness.hh",
+    "bytes": 1997,
+    "sha256": "f69ed63bade0d39b72714ad1dcd90043fbd1ca8b23b8a14f9a3fd8d7de1b7b3e"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/inventory_compare.hh",
+    "bytes": 7953,
+    "sha256": "d9844e5f6f52543e679b9035689a77a7a0164407120bb5aff707f6f3ad87b705"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/inventory_ecm_diagnostics.hh",
+    "bytes": 3071,
+    "sha256": "429598724fd48c87ceffb2cce7817dffe7d62eae7a8ddde83b39afad4a745574"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/material_contract.hh",
+    "bytes": 1651,
+    "sha256": "0100896ed4f8c3d6eae80a5635129904cc8e0240b3fcf79c49b7dcc7d0fd9929"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/material_witness.hh",
+    "bytes": 3545,
+    "sha256": "e701c6127eff15dd2f8db8720c55999b12d75e35eebe920af051aae3ef797785"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/paired_native/CMakeLists.txt",
+    "bytes": 1181,
+    "sha256": "2bd717cc403bc8dddd363bf40c0c7b79af3702dbf743d919e093b64546ab3eca"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/paired_native/capture.cpp",
+    "bytes": 397,
+    "sha256": "bc7005480c93f999812b253093b024cde3aebeb76dcc7eb18feacad838e2546c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/paired_native/native_pass.hh",
+    "bytes": 6773,
+    "sha256": "7f459f3bf3a67ec90007e91f118935d392ba6c256f08d659260d1f5051571571"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/paired_native/paired_capture.hh",
+    "bytes": 5511,
+    "sha256": "f06c5b1ca46208ce4e36578ebc8b028f66e12eb56ca363626b1955b1ba25516d"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/paired_native/test_frozen.cpp",
+    "bytes": 751,
+    "sha256": "aadb302e828e54aae60545f649365715bc8d0a0b982c29630eb9317836cf2399"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/physics_owner/identity_inventory.hh",
+    "bytes": 2617,
+    "sha256": "ab3dc8c1a2167d0c0e42f22603cb93d7ecc066c5af0557653b38a9eb455895cc"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/renderer_identity.hh",
+    "bytes": 3610,
+    "sha256": "8d665af6c101a1738dca8d1eb41c431f3164d59fe084d7c193322d178dd101b5"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/scripts/stage_a_rgbd/renderer_identity_check.hh",
+    "bytes": 2921,
+    "sha256": "79a43e9f66ce41196807b46ddef9a81755c10b870edc7ba6e9a152f9408949f0"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/stage_a_paired_capture.py",
+    "bytes": 11159,
+    "sha256": "512e119820ae3e6bfa65cd59139c16e7614d65b8de981fcdc3743849eb87d40c"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/executed_sources/stage_a_paired_reference.py",
+    "bytes": 5706,
+    "sha256": "f6fa59a8e769679d7d61f83635cf65af24f118722686dd6bfe0318003e5a9396"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/execution_claim.json",
+    "bytes": 66,
+    "sha256": "54be8b02418baf01aa0a938760471d695c43f06ab6f6bf6112706215bd54793d"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/offline_negative_tests.json",
+    "bytes": 238,
+    "sha256": "a02da89d24ff96828eaa8c15d4b2926344ab9bdfe2fe5bd5822410b9ab7376b9"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/offline_ray_replay.json",
+    "bytes": 2376,
+    "sha256": "c28acf44bbdd5affb2dac274bc05b82bc6cf71a43f832b068fae3deb0736025f"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/offline_ray_replay_binary.bin",
+    "bytes": 26576,
+    "sha256": "2c4cc0f045c4bfb6771866dcdf60a567bd60c9465b0c8b99fabf71a232fde6b5"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/offline_sources/scripts/stage_a_paired_capture.py",
+    "bytes": 12771,
+    "sha256": "fa4e64458f724af1fe62b14cf4f9029f5df59905c9efc5b5734df2f90a6fea1e"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/offline_sources/scripts/stage_a_paired_reference.py",
+    "bytes": 7509,
+    "sha256": "265cf0c9e960129fbdc33b59de68f52e22a4916f030a6016e14c9fe476ac4ea9"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/offline_sources/scripts/stage_a_rgbd/paired_native/CMakeLists.txt",
+    "bytes": 1452,
+    "sha256": "220327811654323461d099eb761c0e5130ae28b78ec9b371ad82d2ca25b104b3"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/offline_sources/scripts/stage_a_rgbd/paired_native/ray_replay.cpp",
+    "bytes": 1583,
+    "sha256": "4d796e871f0a7f6a7928354a19b4687cdf59bd29fe673f15a6df4f6bb362b0d8"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/owner.jsonl",
+    "bytes": 5116,
+    "sha256": "bc2f50420b8799141320a0211da51a4001ccd6d734cdb989c4a2585fc4d200e8"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/paired.checked.json",
+    "bytes": 68262,
+    "sha256": "49020d12569fa8313911c869a738583d0dbb240730aa5e836f3761d3ea780829"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/paired_preflight.json",
+    "bytes": 225401,
+    "sha256": "d4aa56c43f449ac4de08511b49094a6ca39f127dc29dee549aa15fb64ffaa1d7"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/postcapture_validation.json",
+    "bytes": 819,
+    "sha256": "194216e09c979422cc8b12c4d60d71cb1ec1dd476683820bf63eeae10355c040"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/preflight.json",
+    "bytes": 4403,
+    "sha256": "7f1f568d40f38828b58d5b89c0a64b02318fbf29cfdca4b0ec555f01ff93514b"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/process_exit.json",
+    "bytes": 69,
+    "sha256": "e5defb38a1aed308ee45c48457c1e9ca136feb58553114c58d51f2a8af13b431"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/raw_sha256.json",
+    "bytes": 7118,
+    "sha256": "927cabf64d305c73bbfd48226c009cebb3454ce62d0ef20b3ef69dc197d1a264"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/result.json",
+    "bytes": 216177,
+    "sha256": "e55204afb805fb5d3e8fe36d12c048e56f5c329d10eea84c81e34d532e45061b"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/retention_inventory.json",
+    "bytes": 4185,
+    "sha256": "defc92134698b54a04bef478a75294e43413b544af4f2fc18234e8bf8a57dbed"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/stderr.log",
+    "bytes": 1606,
+    "sha256": "5035102055c57d478e7f4e170d1ab0d6f947acea33f2a66fd2e0aa24e00bcb93"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/stdout.log",
+    "bytes": 4482,
+    "sha256": "1e135c87a257e0246b205ed717868159f4288886ac7b622911386054eebfb79f"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/capture/world.sdf",
+    "bytes": 2356,
+    "sha256": "b4166904924fe0bd6371e5fdbe603eb0aadc892cb837200bedb0d144371989c8"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/predictions.npz",
+    "bytes": 88850,
+    "sha256": "c7375ba23d5c5a518d8c8775e20ada45c03bb1d0ec19dbaf6f6f1df9bd050d89"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/process.json",
+    "bytes": 664,
+    "sha256": "6a6faaeda086367e8c3287f3fd8253cf315225efab5157a8189111170db005a3"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/result.json",
+    "bytes": 4079,
+    "sha256": "a94c20e43ca2911130f787b5087c5d202f2f0caf708aeba1e259106021710ebf"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/stderr.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-stage-a2-001/stdout.log",
+    "bytes": 1047,
+    "sha256": "ce81da92803ffd8f4d4f4d664eeff8c56cab6e629051b39c4c590ae071872e63"
+  }
+]

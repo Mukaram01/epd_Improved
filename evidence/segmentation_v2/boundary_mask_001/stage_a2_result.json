@@ -1,0 +1,143 @@
+{
+  "association": {
+    "accepted": 0,
+    "contact_authority": false,
+    "detections": [
+      {
+        "association": "REJECTED",
+        "bbox": [
+          370,
+          209,
+          470,
+          302
+        ],
+        "class_index": 1,
+        "confidence": 0.9878131151199341,
+        "label": "cube",
+        "prediction_index": 0,
+        "reason": "BLOCKED: physics contact: mixed, missing or ambiguous mask ID"
+      },
+      {
+        "association": "REJECTED",
+        "bbox": [
+          38,
+          210,
+          143,
+          302
+        ],
+        "class_index": 1,
+        "confidence": 0.9688777923583984,
+        "label": "cube",
+        "prediction_index": 1,
+        "reason": "BLOCKED: physics contact: mixed, missing or ambiguous mask ID"
+      },
+      {
+        "association": "REJECTED",
+        "bbox": [
+          373,
+          296,
+          393,
+          301
+        ],
+        "class_index": 1,
+        "confidence": 0.13757672905921936,
+        "label": "cube",
+        "prediction_index": 2,
+        "reason": "below original confidence threshold or invalid confidence"
+      },
+      {
+        "association": "REJECTED",
+        "bbox": [
+          94,
+          212,
+          143,
+          296
+        ],
+        "class_index": 1,
+        "confidence": 0.09454692900180817,
+        "label": "cube",
+        "prediction_index": 3,
+        "reason": "below original confidence threshold or invalid confidence"
+      }
+    ],
+    "execution_goals": 0,
+    "extraction_authority": "BLOCKED",
+    "physical_penetration": "BLOCKED",
+    "rgbd_localization": "NOT_CLAIMED_NO_DEPTH_OR_CALIBRATION",
+    "timing_authority": "BLOCKED"
+  },
+  "capture_manifest_sha256": "927cabf64d305c73bbfd48226c009cebb3454ce62d0ef20b3ef69dc197d1a264",
+  "checkpoint": {
+    "bytes": 186734847,
+    "epoch": 1,
+    "path": "/home/user/epd-v2-artifacts/boundary-mask-001/epoch_01.pt",
+    "sha256": "22bf99d95e00e590aebb469bf77d20b7e1cbb3d8065a5a0e59a86c8f5291f305"
+  },
+  "emd_sources": {
+    "stage_a_epd_retained.py": "fb23991be23f4b6c8d17d9d785edad75a336930fa1e8a2218c42864579e9b20f",
+    "stage_a_fragment_identity.py": "3a4f4496fdc91775f9cebc49de10d6f818de4efcdd45d0e0a5103f96e4ba4127"
+  },
+  "exported": false,
+  "held_out_files_opened": 0,
+  "ids_used_as_model_inputs": false,
+  "inference_seconds": 2.6881192000000738,
+  "input_rgb_sha256": "92f1ba8ad58b2437fa5ccf55e73d53cc9dcba469b04efefbe624ce1505585793",
+  "mapping": "unchanged EPD integer clipped bbox ROI; exact values; existing union2x2 map_mask; >.5 and >=.8",
+  "measurements": [
+    {
+      "mapped_id_counts": {
+        "0": 144,
+        "65517": 2079
+      },
+      "mapped_missing_pixels": 0,
+      "native512_raw_background": 270,
+      "native512_raw_missing": 5,
+      "native512_roi_background": 270,
+      "prediction_index": 0,
+      "reference_identity": 65517,
+      "score": 0.9878131151199341
+    },
+    {
+      "mapped_id_counts": {
+        "0": 157,
+        "65523": 2166
+      },
+      "mapped_missing_pixels": 0,
+      "native512_raw_background": 568,
+      "native512_raw_missing": 0,
+      "native512_roi_background": 502,
+      "prediction_index": 1,
+      "reference_identity": 65523,
+      "score": 0.9688777923583984
+    },
+    {
+      "mapped_id_counts": {
+        "0": 20,
+        "65517": 10
+      },
+      "mapped_missing_pixels": 2069,
+      "native512_raw_background": 56,
+      "native512_raw_missing": 8324,
+      "native512_roi_background": 39,
+      "prediction_index": 2,
+      "reference_identity": 65517,
+      "score": 0.13757672905921936
+    },
+    {
+      "mapped_id_counts": {
+        "0": 29,
+        "65523": 985
+      },
+      "mapped_missing_pixels": 1181,
+      "native512_raw_background": 79,
+      "native512_raw_missing": 4550,
+      "native512_roi_background": 77,
+      "prediction_index": 3,
+      "reference_identity": 65523,
+      "score": 0.09454692900180817
+    }
+  ],
+  "source_sha256": "fa235f08e3e319c14ced544e9a43b17ae6d9769a9ccb67b6f284c7a046866e82",
+  "status": "BLOCKED_STRICT_ASSOCIATION",
+  "used_for_selection": false
+}

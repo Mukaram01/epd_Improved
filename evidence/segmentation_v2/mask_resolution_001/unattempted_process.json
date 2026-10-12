@@ -1,0 +1,16 @@
+{
+  "child_peak_rss_kib": 1716808,
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/mask_resolution.py",
+    "worker",
+    "--output",
+    "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001",
+    "--prior-failed-probe",
+    "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001"
+  ],
+  "exit_code": 0,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 1712140,
+  "wall_seconds": 44.12713610401261
+}

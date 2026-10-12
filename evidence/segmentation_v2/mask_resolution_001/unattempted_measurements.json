@@ -1,0 +1,40 @@
+[
+  {
+    "instances": 3,
+    "logits_shape": [
+      47,
+      2,
+      56,
+      56
+    ],
+    "losses": {
+      "loss_box_reg": 0.1949472427368164,
+      "loss_classifier": 0.1650225818157196,
+      "loss_mask": 0.23704825341701508,
+      "loss_objectness": 0.016319995746016502,
+      "loss_rpn_box_reg": 0.005810217000544071
+    },
+    "peak_rss_kib": 1604252,
+    "scene_id": "expansion_093",
+    "seconds": 6.606864817003952
+  },
+  {
+    "instances": 1,
+    "logits_shape": [
+      21,
+      2,
+      56,
+      56
+    ],
+    "losses": {
+      "loss_box_reg": 0.030395694077014923,
+      "loss_classifier": 0.06059909239411354,
+      "loss_mask": 0.147926464676857,
+      "loss_objectness": 0.0013500871136784554,
+      "loss_rpn_box_reg": 0.0003428481286391616
+    },
+    "peak_rss_kib": 1604252,
+    "scene_id": "expansion_123",
+    "seconds": 4.050797860996681
+  }
+]

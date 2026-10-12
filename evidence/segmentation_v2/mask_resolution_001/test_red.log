@@ -1,0 +1,13 @@
+F
+======================================================================
+FAIL: test_real_pool_and_predictor_double_logits_without_replacing_weights (test_mask_resolution.MaskResolutionTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_mask_resolution.py", line 9, in test_real_pool_and_predictor_double_logits_without_replacing_weights
+    self.assertIsNotNone(importlib.util.find_spec('mask_resolution'))
+AssertionError: unexpectedly None
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+FAILED (failures=1)

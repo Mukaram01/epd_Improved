@@ -1,0 +1,10 @@
+test_original_frozenbn_uses_coco_v1_zero_epsilon (test_recover_original.RecoveryTests) ... ok
+test_parity_requires_exact_labels_counts_and_foreground (test_recover_original.RecoveryTests) ... ok
+test_safe_loader_has_no_unsafe_pickle_fallback (test_recover_original.RecoveryTests) ... ok
+test_safe_loader_rejects_hash_before_deserialization (test_recover_original.RecoveryTests) ... ok
+test_schema_and_class_heads_fail_closed (test_recover_original.RecoveryTests) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 1.521s
+
+OK

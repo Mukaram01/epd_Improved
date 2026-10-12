@@ -1,0 +1,22 @@
+{
+  "child_peak_rss_kib": 2063604,
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py",
+    "worker",
+    "--checkpoint",
+    "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+    "--onnx",
+    "/home/user/stage_a_cube_model/cube_maskrcnn.onnx",
+    "--image",
+    "/home/user/epd-v2-artifacts/adapter-historical-001/historical_bgr512.png",
+    "--reference",
+    "/home/user/epd-v2-artifacts/pilot-001/validation-diagnostic-corrected/baseline_scene_025.npz",
+    "--output",
+    "/home/user/epd-v2-artifacts/original-cube-recovery-002"
+  ],
+  "exit_code": 1,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 2042608,
+  "wall_seconds": 11.983485869001015
+}

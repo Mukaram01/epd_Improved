@@ -1,0 +1,90 @@
+{
+  "files": [
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+      "bytes": 176226850,
+      "sha256": "b2668971dd1230cdbc93bbc7d0182b46c91e7469717dc210052fa4eb20fa8bdb"
+    },
+    {
+      "path": "/home/user/stage_a_cube_model/cube_maskrcnn.onnx",
+      "bytes": 176310020,
+      "sha256": "21362d62d816bd684f2b5c7769d0bcd1cd568af86419788fca9d095c46f2bad2"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/adapter-historical-001/historical_bgr512.png",
+      "bytes": 6789,
+      "sha256": "32ec128ba594ec93ac32757538c05780ffd94c5d8974e85a5cf3503864138995"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/pilot-001/validation-diagnostic-corrected/baseline_scene_025.npz",
+      "bytes": 26787,
+      "sha256": "31294906f437b944cc013ee6ccdb5757ca4c6dff947fd3d72af965a3dc5e694b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002-executed-source.py",
+      "bytes": 12706,
+      "sha256": "d0dea30c7e343a0032bb4244a4f35d62610683f74527e13086e0db0a7f28478e"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-001/process.json",
+      "bytes": 789,
+      "sha256": "0b65a19eddf55fe800126a091f6402acc43fcbd2be12041ddb09ff796fa0a38d"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-001/stderr.log",
+      "bytes": 574,
+      "sha256": "d729b2667aadc18dcfc77971bc8c6fd8ca0787fc7579276b171dd92c8bb2b366"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-001/stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002/process.json",
+      "bytes": 790,
+      "sha256": "f2eb901d5c904ce757269ba5992a643017b69760caf8f233fa1d37921684b180"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002/input.npy",
+      "bytes": 3145856,
+      "sha256": "5478fcfca7f6ca48f3b5af99f0420bfab9a6e9112833ecb61a38993b94102fe2"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002/pytorch.npz",
+      "bytes": 26786,
+      "sha256": "7078e30d60cc9e4fa7181eef13e3838ac0f1ad59b7a82d0f1660e06f39f6d9ce"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002/inspection.json",
+      "bytes": 63612,
+      "sha256": "1cd6075d2e4130f8ec203688493526c23df2e599400f456280d6b17a8d218f36"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002/onnx.npz",
+      "bytes": 26767,
+      "sha256": "0f05eee328f9a8d8bf836115eb4afe4fcc5ededc9feca18c16288246e024fcd6"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002/stderr.log",
+      "bytes": 866,
+      "sha256": "09aa358103b58b1ec400e2fd5c0ae41c1998ba39ae83a1c45e47ae0fd6b1b487"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-002/stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-003/result.json",
+      "bytes": 65815,
+      "sha256": "0689aebe0c11144de570ecee74e3138beefdeb91b883148d8dbf398b32d54923"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-recovery-004/result.json",
+      "bytes": 65815,
+      "sha256": "7b8476f85a016e43878aa2e3f2c4cfaddfe20c2993d5c4ddc08e6a10e09de915"
+    }
+  ],
+  "storage": "host-local retained filesystem; no remote durability claim"
+}

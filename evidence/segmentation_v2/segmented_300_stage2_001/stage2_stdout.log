@@ -1,0 +1,4 @@
+{"epoch": 5, "steps": 1500, "recovered": 12, "mean_iou": 0.4725803863791908, "false_positives": 1, "background_spill": 1097, "eligible": false, "wall_seconds": 687.0360926729991}
+{"epoch": 6, "steps": 1800, "recovered": 9, "mean_iou": 0.3982343607590252, "false_positives": 2, "background_spill": 935, "eligible": false, "wall_seconds": 1378.2964164229998}
+{"epoch": 7, "steps": 2100, "recovered": 12, "mean_iou": 0.5049044735818402, "false_positives": 5, "background_spill": 823, "eligible": false, "wall_seconds": 2079.4967566919986}
+{"epoch": 8, "steps": 2400, "recovered": 15, "mean_iou": 0.5612330413002703, "false_positives": 3, "background_spill": 1081, "eligible": false, "wall_seconds": 2779.3427360290007}

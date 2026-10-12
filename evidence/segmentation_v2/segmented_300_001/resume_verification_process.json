@@ -1,0 +1,21 @@
+{
+  "child_peak_rss_kib": 1490700,
+  "command": [
+    "/usr/bin/python3",
+    "tools/segmentation_v2/prepare_stage2.py",
+    "--stage1",
+    "/home/user/epd-v2-artifacts/segmented-300-001/stage1",
+    "--checkpoint-sha256",
+    "98bb7afde01d0c013df0c4e40ba8cee17449973edc9a991f517d90fcfd45d3e8",
+    "--artifacts",
+    "/home/user/epd-v2-artifacts/training-expansion-002/integration/dataset.json",
+    "--weights",
+    "/home/user/epd-v2-artifacts/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
+    "--output",
+    "/home/user/epd-v2-artifacts/segmented-300-001/stage2-preflight"
+  ],
+  "exit_code": 0,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 1405396,
+  "wall_seconds": 13.68543660299838
+}

@@ -1,0 +1,17 @@
+{
+  "child_peak_rss_kib": 1687128,
+  "command": [
+    "/usr/bin/python3",
+    "tools/segmentation_v2/measure_segmented.py",
+    "--artifacts",
+    "/home/user/epd-v2-artifacts/training-expansion-002/integration/dataset.json",
+    "--weights",
+    "/home/user/epd-v2-artifacts/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
+    "--output",
+    "/home/user/epd-v2-artifacts/segmented-300-001/preflight"
+  ],
+  "exit_code": 0,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 1684564,
+  "wall_seconds": 33.56025102000058
+}

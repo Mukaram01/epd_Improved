@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "ort_cpp_lib/ort_base.hpp"
+#include "ort_cpp_lib/p3_model_adapter.hpp"
 #include "epd_utils_lib/message_utils.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
 
@@ -59,7 +60,8 @@ public:
     const boost::optional<std::vector<std::vector<int64_t>>> &
     inputShapes = boost::none,
     InputTensorLayout inputTensorLayout = InputTensorLayout::CHW,
-    const boost::optional<bool> & logModelInfo = boost::none);
+    const boost::optional<bool> & logModelInfo = boost::none,
+    ModelProfile profile = {});
   /*! \brief A Destructor function*/
   ~P3OrtBase();
   /*! \brief A auxillary Mutator function that calls the internal overloading
@@ -100,6 +102,9 @@ public:
   void initClassNames(const std::vector<std::string> & classNames);
 
 private:
+  ModelProfile model_profile_;
+  P3Decoded runAdapter(const cv::Mat & image, float * dst, float confidence, bool integer_boxes,
+    int newW, int newH, int paddedW, int paddedH, const cv::Scalar & mean);
   /*! \brief The number of object text labels given an input label list.*/
   const uint16_t m_numClasses;
   /*! \brief The aspect ratio calculated from the dimension of an input image
@@ -118,18 +123,6 @@ private:
    * might introduce concurrent callers. */
   mutable std::mutex preprocess_buffer_mutex_;
   InputTensorLayout input_tensor_layout_{InputTensorLayout::CHW};
-
-  /*! \brief A Mutator function that converts a 3-layered 2D RGB input image
-  into a 1D input data tensor to be passed to the Ort Session for processing.\n
-  This variant takes a generic input image represented by a conventional opencv
-  Matrix.
-  */
-  void preprocess(
-    float * dst,
-    const cv::Mat & imgSrc,
-    const int64_t targetImgWidth,
-    const int64_t targetImgHeight,
-    const int numChannels) const;
 
   /*! \brief A Mutator function that runs a P3 Ort Session and gets P3
   inference result for use by external agents.*/

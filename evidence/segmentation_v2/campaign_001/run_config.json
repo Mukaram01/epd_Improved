@@ -1,0 +1,80 @@
+{
+  "acquisition_sha256": "f31442413a78449a683ad0f61328d05a5c816bc1a722e0aae3c93b9cca6703e9",
+  "batch_size": 1,
+  "device": "cpu",
+  "initialized_from_rejected_smoke": false,
+  "policy": {
+    "base_commit": "0e83096cd239c352e5cd384eb5c46e66945da5fd",
+    "batch_size": 1,
+    "cpu_feasibility_timeout_seconds": 180,
+    "cpu_timeout_seconds": 3600,
+    "cuda_timeout_seconds": 1800,
+    "disk_reserve_gib": 5,
+    "eligible_order": [
+      "recovered_desc",
+      "mean_iou_desc",
+      "background_spill_asc",
+      "epoch_asc"
+    ],
+    "epochs": 8,
+    "feasibility_overhead_seconds": 120,
+    "feasibility_safety_factor": 1.5,
+    "gate": {
+      "background_spill_strict_lt": 1915,
+      "confidence_threshold": 0.8,
+      "mask_threshold_strict_gt": 0.5,
+      "maximum_contract_violations": 0,
+      "maximum_false_positives": 1,
+      "mean_iou_strict_gt": 0.68589,
+      "minimum_recovered": 18,
+      "positives": 22
+    },
+    "held_out_access": false,
+    "historical_regression_access": false,
+    "memory_mib": 6144,
+    "no_smoke_initialization": true,
+    "recipe": "train.json",
+    "schema": "epd_v2_full_campaign/1",
+    "seed": 260110
+  },
+  "recipe": {
+    "architecture": "torchvision.maskrcnn_resnet50_fpn",
+    "batch_size": 1,
+    "classes": [
+      "__background__",
+      "cube"
+    ],
+    "confidence_threshold": 0.8,
+    "cpu_max_steps": 2,
+    "cpu_threads": 2,
+    "cpu_timeout_seconds": 300,
+    "cuda_timeout_seconds": 1800,
+    "epochs": 8,
+    "image_size": 512,
+    "initial_weights": "MaskRCNN_ResNet50_FPN_Weights.COCO_V1",
+    "learning_rate": 0.001,
+    "mask_threshold_strict_gt": 0.5,
+    "momentum": 0.9,
+    "schema": "epd_v2_training/1",
+    "seed": 260110,
+    "smoke_eligible_for_export_or_selection": false,
+    "torch": "2.7.0",
+    "torchvision": "0.22.0",
+    "train_backbone": false,
+    "validation_selection": "mean instance IoU minus mean symmetric boundary error /512 minus false positives /(visible targets + validation scenes); recovery IoU>=0.5; misses IoU=0, boundary=512",
+    "weight_decay": 0.0001,
+    "weights_sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0",
+    "weights_sha256_prefix": "bf2d0c1e",
+    "weights_url": "https://download.pytorch.org/models/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth"
+  },
+  "seed": 260110,
+  "smoke_only": false,
+  "sources": {
+    "campaign.json": "1820832149bfc4931c0ee36e800b9f9d2273bdc6c49355408c718b44a7756360",
+    "campaign.py": "d577052c63b424b9b2b5e0ef12b8473e498303c209c8de27876838b6cd9725bb",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "train.json": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+    "train.py": "63d4ccf13ace18a28bc509a277f9f8b047356307173a532591d5d7c95e596977"
+  },
+  "weights_sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0"
+}

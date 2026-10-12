@@ -363,7 +363,10 @@ void EPDContainer::setFrameDimension(int input_width, int input_height)
 
 void EPDContainer::initORTSessionHandler()
 {
-  const ResizeParams resize_params = calculateResizeParams();
+  if (model_profile.fullImage() && precision_level!=3)
+    throw std::invalid_argument("RGB01/full_image profile requires P3 instance segmentation");
+  const ResizeParams resize_params = model_profile.fullImage() ?
+    ResizeParams{1.0f,frame_width,frame_height,frame_width,frame_height} : calculateResizeParams();
   const float ratio = resize_params.ratio;
   const int newW = resize_params.resized_width;
   const int newH = resize_params.resized_height;
@@ -414,7 +417,8 @@ void EPDContainer::initORTSessionHandler()
         execution_mode,
         std::vector<std::vector<int64_t>>{model_input_info.fed_shape},
         model_input_info.layout,
-        log_model_info
+        log_model_info,
+        model_profile
       );
       p3_ort_session->initClassNames(classNames);
       break;
@@ -460,6 +464,7 @@ void EPDContainer::setModelConfigFile()
             PATH_TO_SESSION_CONFIG + " Errors: " + parse_errors);
   }
 
+  model_profile = Ort::ModelProfile::parse(obj);
   onnx_model_path = obj["path_to_model"].asString();
   class_label_path = obj["path_to_label_list"].asString();
 
@@ -802,7 +807,9 @@ cv::Mat EPDContainer::visualize(
 
     // Visualizing masks
     if (!noMasksFound) {
-      cv::resize(curMask, curMask, curBoxRect.size());
+      if (model_profile.fullImage()) {
+        if (curMask.size()!=curBoxRect.size()) throw std::runtime_error("RGB01 ROI mask size mismatch");
+      } else cv::resize(curMask, curMask, curBoxRect.size());
       // Assigning masks that exceed the maskThreshold.
       finalMask = (curMask > 0.5);
     }
@@ -897,7 +904,9 @@ cv::Mat EPDContainer::visualize(
     }
 
     // Visualizing masks
-    cv::resize(curMask, curMask, curBoxRect.size());
+    if (model_profile.fullImage()) {
+      if (curMask.size()!=curBoxRect.size()) throw std::runtime_error("RGB01 ROI mask size mismatch");
+    } else cv::resize(curMask, curMask, curBoxRect.size());
     // Assigning masks that exceed the maskThreshold.
     cv::Mat finalMask = (curMask > 0.5);
 

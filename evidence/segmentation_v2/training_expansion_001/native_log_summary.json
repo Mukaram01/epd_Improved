@@ -1,0 +1,8 @@
+{
+  "interpretation": "Retained nonfatal Gazebo SDF conversion and EGL software-selection messages; all native exits0 and native attachment/depth/identity checks passed",
+  "sample_count": 276,
+  "stderr_lines": {
+    "[Err] [Conversions.cc:1808] Tried to convert SDF [world] into [plugin]": 276,
+    "libEGL warning: Not allowed to force software rendering when API explicitly selects a hardware device.": 276
+  }
+}

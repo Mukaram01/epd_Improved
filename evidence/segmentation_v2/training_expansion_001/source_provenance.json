@@ -1,0 +1,26 @@
+{
+  "capture_source_scope": "exact snapshots taken before freezing and capture; C++ sources/headers/executable match the preserved pilot build",
+  "capture_sources": {
+    "CMakeLists.txt": "00527a4ad19ffc9306927d585a40aea60fa4562ba3edb18b6a2a036f5373f9d6",
+    "campaign.py": "2c37c9c871354139bcbeaa471fdf24cb9d9c9a9c61e8f7504f7efe8a02f5829b",
+    "capture.cpp": "72fd32abc69cc5534532f73e16aa954e98df8c3201aef9cd54c394ede5080f5b",
+    "dataset.py": "87c2f3a85d1ab563204a1356001cbf63d9684dee306479ccd7b603c15c908a8c",
+    "expansion.py": "dac59aa1477aeb7fe610a19f1c171bc07ee074dfc504cd5792fbe9661de0015d",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+  },
+  "current_sources": {
+    "CMakeLists.txt": "00527a4ad19ffc9306927d585a40aea60fa4562ba3edb18b6a2a036f5373f9d6",
+    "campaign.py": "2c37c9c871354139bcbeaa471fdf24cb9d9c9a9c61e8f7504f7efe8a02f5829b",
+    "capture.cpp": "72fd32abc69cc5534532f73e16aa954e98df8c3201aef9cd54c394ede5080f5b",
+    "dataset.py": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac",
+    "dataset_bindings.py": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3",
+    "expansion.py": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443",
+    "integrate_dataset.py": "97663344b05cbf9cfd74c0ef3d444232468308c391f4528d6e54923f10d54e45",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+  },
+  "integration_sources_location": "/home/user/epd-v2-artifacts/training-expansion-002/integration/final_sources",
+  "post_capture_changes": "dataset metadata binding, exactbatch coverage audit, future freeze snapshots include integration/binding modules, read-only verify CLI; no RGB,IDs,scene definitions or native capture code changed",
+  "raw_capture_root": "/home/user/epd-v2-artifacts/training-expansion-002"
+}

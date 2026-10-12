@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+platform linux -- Python 3.10.12, pytest-6.2.5, py-1.10.0, pluggy-1.6.0
+PySide6 6.11.0 -- Qt runtime 6.11.0 -- Qt compiled 6.11.0
+rootdir: /home/user/epd-v2-supervised-pilot
+plugins: qt-4.4.0, dash-3.0.4, cov-6.2.1, timeout-2.1.0, rerunfailures-10.2, repeat-0.9.1, mock-3.6.1, colcon-core-0.21.3
+collected 222 items / 2 errors / 220 selected
+
+==================================== ERRORS ====================================
+_ ERROR collecting easy_perception_deployment/easy_perception_deployment/test_epd_emd_pipeline_launch.py _
+ImportError while importing test module '/home/user/epd-v2-supervised-pilot/easy_perception_deployment/easy_perception_deployment/test_epd_emd_pipeline_launch.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.10/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+easy_perception_deployment/easy_perception_deployment/test_epd_emd_pipeline_launch.py:4: in <module>
+    from launch.actions import DeclareLaunchArgument
+E   ModuleNotFoundError: No module named 'launch.actions'
+_ ERROR collecting easy_perception_deployment/easy_perception_deployment/gui/test_gui_gpu_local_only.py _
+easy_perception_deployment/easy_perception_deployment/gui/test_gui_gpu_local_only.py:67: in <module>
+    sys.exit(1)
+E   SystemExit: 1
+------------------------------- Captured stdout --------------------------------
+[ nvidia-smi ] command not found. Please install nvidia-driver.
+No GPU devices FOUND.
+Please install nvidia-driver and CUDA. Exiting...
+=========================== short test summary info ============================
+ERROR easy_perception_deployment/easy_perception_deployment/test_epd_emd_pipeline_launch.py
+ERROR easy_perception_deployment/easy_perception_deployment/gui/test_gui_gpu_local_only.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 2 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 2 errors in 2.16s ===============================

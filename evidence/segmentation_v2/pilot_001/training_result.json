@@ -1,0 +1,13 @@
+{
+  "checkpoint": "/home/user/epd-v2-artifacts/pilot-001/training/smoke.pt",
+  "checkpoint_sha256": "fcbaf0d593804bcaefdad0e834ad90393692551bca3101755df3634011f5cd0f",
+  "cuda_peak_bytes": null,
+  "epochs": 1,
+  "exported": false,
+  "held_out_evaluated": false,
+  "peak_rss_kib": 1233892,
+  "production_qualified": false,
+  "status": "CPU_SMOKE_ONLY_FULL_TRAINING_BLOCKED",
+  "steps": 2,
+  "wall_seconds": 15.854877265999676
+}

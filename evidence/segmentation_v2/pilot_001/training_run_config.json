@@ -1,0 +1,45 @@
+{
+  "config": {
+    "architecture": "torchvision.maskrcnn_resnet50_fpn",
+    "batch_size": 1,
+    "classes": [
+      "__background__",
+      "cube"
+    ],
+    "confidence_threshold": 0.8,
+    "cpu_max_steps": 2,
+    "cpu_threads": 2,
+    "cpu_timeout_seconds": 300,
+    "cuda_timeout_seconds": 1800,
+    "epochs": 8,
+    "image_size": 512,
+    "initial_weights": "MaskRCNN_ResNet50_FPN_Weights.COCO_V1",
+    "learning_rate": 0.001,
+    "mask_threshold_strict_gt": 0.5,
+    "momentum": 0.9,
+    "schema": "epd_v2_training/1",
+    "seed": 260110,
+    "smoke_eligible_for_export_or_selection": false,
+    "torch": "2.7.0",
+    "torchvision": "0.22.0",
+    "train_backbone": false,
+    "validation_selection": "mean instance IoU minus mean symmetric boundary error /512; misses IoU=0, boundary=512",
+    "weight_decay": 0.0001,
+    "weights_sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0",
+    "weights_sha256_prefix": "bf2d0c1e",
+    "weights_url": "https://download.pytorch.org/models/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth"
+  },
+  "config_sha256": "b040f0010de5d169ffc15ac85794ac4bb474dff01c279afad4267f3c1f559ea4",
+  "dataset_manifest_sha256": "f31442413a78449a683ad0f61328d05a5c816bc1a722e0aae3c93b9cca6703e9",
+  "device": "cpu",
+  "smoke_only": true,
+  "training_source_sha256": "8ea244cded29ea7ba3be201e6343a9db22a94aa128348f1686de5fff5b3cf295",
+  "weights": {
+    "architecture": "torchvision.maskrcnn_resnet50_fpn",
+    "code_license": "BSD-3-Clause (torchvision)",
+    "sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0",
+    "training_data": "COCO; see COCO image licences",
+    "url": "https://download.pytorch.org/models/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
+    "weights": "MaskRCNN_ResNet50_FPN_Weights.COCO_V1"
+  }
+}

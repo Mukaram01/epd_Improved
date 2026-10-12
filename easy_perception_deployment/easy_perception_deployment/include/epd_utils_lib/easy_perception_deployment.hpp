@@ -2271,7 +2271,13 @@ void EasyPerceptionDeployment::process_image_work(
             }
 
             cv::Mat resized_mask;
-            cv::resize(output_obj.masks[i], resized_mask, cv::Size(width, height));
+            if (ortAgent_.model_profile.fullImage()) {
+              if (output_obj.masks[i].size()!=cv::Size(width,height))
+                throw std::runtime_error("RGB01 segmentation ROI size mismatch");
+              resized_mask=output_obj.masks[i];
+            } else {
+              cv::resize(output_obj.masks[i], resized_mask, cv::Size(width, height));
+            }
             cv::Mat mask_binary = resized_mask > 0.5;
             cv::Mat mask_u8;
             mask_binary.convertTo(mask_u8, CV_8U);

@@ -1,0 +1,39 @@
+{
+  "acquisition_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+  "available_ram_kib": 12015092,
+  "campaign_sha256": "722252faf930592d0123ee7fa53282449e7b10b81a38c19703ad897bc7c5a6d4",
+  "checkpoint_saved": false,
+  "config_sha256": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+  "cpu_count": 8,
+  "cuda_available": false,
+  "cuda_device_count": 0,
+  "free_disk_bytes": 91063025664,
+  "frozen_test_scenes_manifest_only": 12,
+  "held_out_files_opened": 0,
+  "initialization": "fresh pinned COCO_V1",
+  "optimizer_updates": 0,
+  "plan_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+  "prior_smoke_loaded": false,
+  "source_sha256": {
+    "campaign.py": "c9a5a65cf136ce3ad202dfb8487c7fab1ffbd640615b321c714306e2aefeea5b",
+    "dataset.py": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac",
+    "dataset_bindings.py": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3",
+    "expansion.py": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443",
+    "measure_300.py": "dea8a84fc9ebae401d789e80934e277b9bc959774bc58a9c36b4eb2f8dd1332e",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+  },
+  "torch_cuda_build": "12.6",
+  "train_scenes": 300,
+  "train_validation_files_verified": 3120,
+  "validation_scenes": 12,
+  "versions": {
+    "numpy": "1.26.4",
+    "onnx": "1.17.0",
+    "onnxruntime": "1.22.0",
+    "opencv-python": "4.11.0.86",
+    "torch": "2.7.0",
+    "torchvision": "0.22.0"
+  },
+  "weights_sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0"
+}

@@ -1,0 +1,19 @@
+test_original_frozenbn_uses_coco_v1_zero_epsilon (test_recover_original.RecoveryTests) ... ok
+test_parity_requires_exact_labels_counts_and_foreground (test_recover_original.RecoveryTests) ... ok
+test_retained_reference_preserves_confident_masks_without_correction (test_recover_original.RecoveryTests) ... FAIL
+test_safe_loader_has_no_unsafe_pickle_fallback (test_recover_original.RecoveryTests) ... ok
+test_safe_loader_rejects_hash_before_deserialization (test_recover_original.RecoveryTests) ... ok
+test_schema_and_class_heads_fail_closed (test_recover_original.RecoveryTests) ... ok
+
+======================================================================
+FAIL: test_retained_reference_preserves_confident_masks_without_correction (test_recover_original.RecoveryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_recover_original.py", line 56, in test_retained_reference_preserves_confident_masks_without_correction
+    self.assertTrue(hasattr(self.api,'confident'),'explicit reference-format handling required')
+AssertionError: False is not true : explicit reference-format handling required
+
+----------------------------------------------------------------------
+Ran 6 tests in 1.505s
+
+FAILED (failures=1)

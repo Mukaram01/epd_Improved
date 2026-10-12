@@ -1,0 +1,65 @@
+{
+  "epochs": [
+    {
+      "background_spill": 51125,
+      "contract_violations": 0,
+      "cross_object": 1372,
+      "eligible": false,
+      "epoch": 1,
+      "exact_metric_replay": true,
+      "false_positives": 8,
+      "mean_boundary_px": 258.0210656496611,
+      "mean_iou": 0.3768743440682661,
+      "missing_visible": 24806,
+      "positives": 22,
+      "recovered": 9
+    },
+    {
+      "background_spill": 607,
+      "contract_violations": 0,
+      "cross_object": 1186,
+      "eligible": false,
+      "epoch": 2,
+      "exact_metric_replay": true,
+      "false_positives": 4,
+      "mean_boundary_px": 257.7966009107503,
+      "mean_iou": 0.3637385073104679,
+      "missing_visible": 26716,
+      "positives": 22,
+      "recovered": 9
+    },
+    {
+      "background_spill": 634,
+      "contract_violations": 0,
+      "cross_object": 226,
+      "eligible": false,
+      "epoch": 3,
+      "exact_metric_replay": true,
+      "false_positives": 1,
+      "mean_boundary_px": 256.91942986981434,
+      "mean_iou": 0.43441251795078206,
+      "missing_visible": 23465,
+      "positives": 22,
+      "recovered": 10
+    },
+    {
+      "background_spill": 574,
+      "contract_violations": 0,
+      "cross_object": 2687,
+      "eligible": false,
+      "epoch": 4,
+      "exact_metric_replay": true,
+      "false_positives": 1,
+      "mean_boundary_px": 256.9554286924276,
+      "mean_iou": 0.43582743746421815,
+      "missing_visible": 27909,
+      "positives": 22,
+      "recovered": 11
+    }
+  ],
+  "held_out_pixels_opened": 0,
+  "historical_regression_predictions": 0,
+  "model_inference_executed": false,
+  "source_sha256": "2c7658e77e5aeb327b1b269f10b9aa7107e239135438da89d9ba0a7b49ffb319",
+  "validation_scenes": 12
+}

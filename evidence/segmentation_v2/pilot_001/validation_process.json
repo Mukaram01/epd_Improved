@@ -1,0 +1,19 @@
+{
+  "child_peak_rss_kib": 2699324,
+  "command": [
+    "/usr/bin/python3",
+    "tools/segmentation_v2/evaluate_validation.py",
+    "--artifacts",
+    "/home/user/epd-v2-artifacts/pilot-001",
+    "--baseline",
+    "/home/user/stage_a_cube_model/cube_maskrcnn.onnx",
+    "--weights",
+    "/home/user/epd-v2-artifacts/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
+    "--output",
+    "/home/user/epd-v2-artifacts/pilot-001/validation-diagnostic-corrected"
+  ],
+  "exit_code": 0,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 2692968,
+  "wall_seconds": 68.62472170000001
+}

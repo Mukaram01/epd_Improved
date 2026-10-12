@@ -1,0 +1,1 @@
+Independent read-only review verified all 16 original external artifact hashes/sizes and reproduced the NumPy parity metrics. Critical: none. Important: failed parity reports exited successfully; fixed by explicit worker/audit exit status and red/green regression test. No deferred findings. No additional model inference or training was performed.

@@ -1,0 +1,20 @@
+test_failed_verification_exits_nonzero_for_automation (test_recover_original.RecoveryTests) ... FAIL
+test_original_frozenbn_uses_coco_v1_zero_epsilon (test_recover_original.RecoveryTests) ... ok
+test_parity_requires_exact_labels_counts_and_foreground (test_recover_original.RecoveryTests) ... ok
+test_retained_reference_preserves_confident_masks_without_correction (test_recover_original.RecoveryTests) ... ok
+test_safe_loader_has_no_unsafe_pickle_fallback (test_recover_original.RecoveryTests) ... ok
+test_safe_loader_rejects_hash_before_deserialization (test_recover_original.RecoveryTests) ... ok
+test_schema_and_class_heads_fail_closed (test_recover_original.RecoveryTests) ... ok
+
+======================================================================
+FAIL: test_failed_verification_exits_nonzero_for_automation (test_recover_original.RecoveryTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_recover_original.py", line 70, in test_failed_verification_exits_nonzero_for_automation
+    self.assertTrue(hasattr(self.api,'verification_exit_code'),'fail-closed CLI status required')
+AssertionError: False is not true : fail-closed CLI status required
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.604s
+
+FAILED (failures=1)

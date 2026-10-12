@@ -1,0 +1,116 @@
+{
+  "batch": 0,
+  "binary_sha256": "755af4a1c34ea22669d5df5145585826ed6bba69955ce0e56a3329a61c8ca4d3",
+  "labels": {
+    "authored_objects": 3,
+    "background_pixels": 246916,
+    "instances": [
+      {
+        "box": [
+          183,
+          185,
+          252,
+          269
+        ],
+        "model": "cube_0",
+        "renderer_id": 65506,
+        "visible_pixels": 5516
+      },
+      {
+        "box": [
+          252,
+          192,
+          313,
+          268
+        ],
+        "model": "cube_1",
+        "renderer_id": 65501,
+        "visible_pixels": 4463
+      },
+      {
+        "box": [
+          307,
+          187,
+          380,
+          269
+        ],
+        "model": "cube_2",
+        "renderer_id": 65496,
+        "visible_pixels": 5249
+      }
+    ],
+    "ownership": [
+      {
+        "collision_entity": 7,
+        "link_entity": 5,
+        "model": "background_table",
+        "model_entity": 4,
+        "renderer_id": 65517,
+        "visual_entity": 6
+      },
+      {
+        "collision_entity": 11,
+        "link_entity": 9,
+        "model": "background_wall",
+        "model_entity": 8,
+        "renderer_id": 65511,
+        "visual_entity": 10
+      },
+      {
+        "collision_entity": 15,
+        "link_entity": 13,
+        "model": "cube_0",
+        "model_entity": 12,
+        "renderer_id": 65506,
+        "visual_entity": 14
+      },
+      {
+        "collision_entity": 19,
+        "link_entity": 17,
+        "model": "cube_1",
+        "model_entity": 16,
+        "renderer_id": 65501,
+        "visual_entity": 18
+      },
+      {
+        "collision_entity": 23,
+        "link_entity": 21,
+        "model": "cube_2",
+        "model_entity": 20,
+        "renderer_id": 65496,
+        "visual_entity": 22
+      }
+    ],
+    "visible_objects": 3
+  },
+  "plan_sha256": "3ac531d12091932375503f287540244e4a6dd602799b61eaf6e8110c8e1e4e0d",
+  "runtime": {
+    "child_peak_rss_kib": 633728,
+    "command": [
+      "/home/user/epd-v2-artifacts/pilot-001/build/epd_v2_capture",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_039/world.sdf",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_039/scene.json",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_039/capture.json"
+    ],
+    "exit_code": 0,
+    "resource_limit_reason": null,
+    "sampled_process_peak_rss_kib": 564656,
+    "wall_seconds": 2.668860322999535
+  },
+  "scene_id": "expansion_039",
+  "seed": 260111039,
+  "sha256": {
+    "capture.json": "afdc63e1c321d614cfc15d3350453851190c5295324a75be2dfbfef31b2336b0",
+    "capture.json.ids.u32": "5e5b004f245da74de0bf7729cc2ff0d3e9506457b8cbf4c9d4523ce0f7dc073d",
+    "capture.json.native512.ids.u32": "cf21ade3bd8b0c27293376d9b28958a56469081d6c4d6ccd84f761ec9db1ec6e",
+    "capture.json.native512.rgb8": "77d74efcfe4528f9c3ae7bec8336a3e47a1ccaa63280349d71976d80ebbff2c6",
+    "capture.json.rgb8": "ab1eac528d3c6c12e2fcb30fc581063e9a7eb64a1b5be39baf53525b9810d71d",
+    "process.json": "cc927fd42ce78f48d07e6553a23543f8ccd7d82587fb210f5f166b1556244a25",
+    "scene.json": "61b2820f8c9d59550c3f76a9dc2d6f038916d4eb7622c76beed088756e921dae",
+    "stderr.log": "e670fbdb9f009dbe820310b6b00f0d0c31f5e006e738bdf8c003eefd9760e8d3",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "world.sdf": "9a0be453d8ddbf3383c04b057f6ddc7789280d5bfda87f289826403259bc799c"
+  },
+  "split": "train",
+  "status": "ACQUIRED"
+}

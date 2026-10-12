@@ -1,0 +1,13 @@
+{
+  "child_peak_rss_kib": 64200,
+  "command": [
+    "cmake",
+    "-S",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2",
+    "-B",
+    "/home/user/epd-v2-artifacts/pilot-001/build",
+    "-DEMD_HEADERS=/home/user/epd-v2-artifacts/pilot-001/headers"
+  ],
+  "exit_code": 0,
+  "wall_seconds": 2.652683475000231
+}

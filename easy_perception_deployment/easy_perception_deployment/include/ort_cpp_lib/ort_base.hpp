@@ -74,6 +74,8 @@ public:
   tensor data rather than float. Used by subclasses to choose the correct
   preprocessing path (skip mean subtraction for uint8 models). */
   bool isInputUint8(int inputIdx = 0) const;
+  void validateP3OutputTypes() const;
+  void validateRgb01Model(int width, int height) const;
   static bool resolveModelInfoLoggingEnabled(const boost::optional<bool> & logModelInfo);
 
 private:

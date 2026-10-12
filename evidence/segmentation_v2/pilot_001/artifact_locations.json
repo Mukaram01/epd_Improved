@@ -1,0 +1,34 @@
+{
+  "artifacts": [
+    {
+      "bytes": 231699497,
+      "path": "/home/user/epd-v2-artifacts/pilot-001-evidence.tar.gz",
+      "sha256": "f224adae07a218a326b0001940a78698404693dd84240b716be9c7fece79e2a7"
+    },
+    {
+      "bytes": 244717163,
+      "path": "/home/user/epd-v2-artifacts/pilot-001/training/smoke.pt",
+      "sha256": "fcbaf0d593804bcaefdad0e834ad90393692551bca3101755df3634011f5cd0f"
+    },
+    {
+      "bytes": 178090079,
+      "path": "/home/user/epd-v2-artifacts/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth",
+      "sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0"
+    },
+    {
+      "bytes": 176310020,
+      "path": "/home/user/stage_a_cube_model/cube_maskrcnn.onnx",
+      "sha256": "21362d62d816bd684f2b5c7769d0bcd1cd568af86419788fca9d095c46f2bad2"
+    },
+    {
+      "bytes": 13094,
+      "path": "/home/user/epd-v2-artifacts/pilot-001-offline-sources.tar.gz",
+      "sha256": "1555bed2aa78dddb0b17c759e45bb824085310c079bdbf1cbe5f5b5aa3adbfc2"
+    }
+  ],
+  "candidate_export": null,
+  "emd_baseline": "e25d03831292098543c2ed3467d50c65ce000762",
+  "held_out_predictions": null,
+  "schema": "epd_v2_artifacts/1",
+  "storage_scope": "Execution-host local artifacts; no remote artifact publication"
+}

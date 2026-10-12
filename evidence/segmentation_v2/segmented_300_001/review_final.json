@@ -1,0 +1,17 @@
+{
+  "current_sources_match_preflight": true,
+  "epoch_count": 4,
+  "held_out_pixels_opened": 0,
+  "important_findings": [],
+  "note": "README written after reviewer inspected evidence; root checked its figures against outcome/metrics.",
+  "outcome_metrics_hashes_and_admission_consistent": true,
+  "readonly": true,
+  "retained_artifacts_verified": 94,
+  "reviewer_model_construction_or_inference": false,
+  "sealed_files_verified": 81,
+  "selected_checkpoint": null,
+  "stage2_executed": false,
+  "tests_passed": 34,
+  "training_steps_verified": 1200,
+  "unique_training_scenes_per_epoch": 300
+}

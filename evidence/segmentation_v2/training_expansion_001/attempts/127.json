@@ -1,0 +1,78 @@
+{
+  "batch": 2,
+  "binary_sha256": "755af4a1c34ea22669d5df5145585826ed6bba69955ce0e56a3329a61c8ca4d3",
+  "labels": {
+    "authored_objects": 1,
+    "background_pixels": 253376,
+    "instances": [
+      {
+        "box": [
+          151,
+          127,
+          261,
+          252
+        ],
+        "model": "cube_0",
+        "renderer_id": 65510,
+        "visible_pixels": 8768
+      }
+    ],
+    "ownership": [
+      {
+        "collision_entity": 7,
+        "link_entity": 5,
+        "model": "background_table",
+        "model_entity": 4,
+        "renderer_id": 65521,
+        "visual_entity": 6
+      },
+      {
+        "collision_entity": 11,
+        "link_entity": 9,
+        "model": "background_wall",
+        "model_entity": 8,
+        "renderer_id": 65515,
+        "visual_entity": 10
+      },
+      {
+        "collision_entity": 15,
+        "link_entity": 13,
+        "model": "cube_0",
+        "model_entity": 12,
+        "renderer_id": 65510,
+        "visual_entity": 14
+      }
+    ],
+    "visible_objects": 1
+  },
+  "plan_sha256": "3ac531d12091932375503f287540244e4a6dd602799b61eaf6e8110c8e1e4e0d",
+  "runtime": {
+    "child_peak_rss_kib": 634040,
+    "command": [
+      "/home/user/epd-v2-artifacts/pilot-001/build/epd_v2_capture",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_127/world.sdf",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_127/scene.json",
+      "/home/user/epd-v2-artifacts/training-expansion-002/dataset/expansion_127/capture.json"
+    ],
+    "exit_code": 0,
+    "resource_limit_reason": null,
+    "sampled_process_peak_rss_kib": 558696,
+    "wall_seconds": 2.6689876679993176
+  },
+  "scene_id": "expansion_127",
+  "seed": 260111127,
+  "sha256": {
+    "capture.json": "faaaf96ea8f219699c4c330a80ecfe635c46b6c7b905a4e21a9821300ef55da7",
+    "capture.json.ids.u32": "a91c898ac9a8b660e686402235d4e10f313c6e18a9a89eaf4f1063e65e358526",
+    "capture.json.native512.ids.u32": "29d78eb5758a94e825019b6080fba8fd0c4c9229da32f52c1e41725aa340c7ed",
+    "capture.json.native512.rgb8": "cc786e2faee238a58b5ee2e3ead98c8135ac0052cd8cff214159e6ea11ff862d",
+    "capture.json.rgb8": "fe5e09ff22ab49249d43fe014ae89159f922449fc9eb924c02100032f5216e92",
+    "process.json": "c12393629c8a5b476d16e777fc23db42b8d1e256014d909434de83dcf172f954",
+    "scene.json": "9330af7c66ee0cd66960957014c70256959b326fc696cd3047a3ee1a4d5e222c",
+    "stderr.log": "e670fbdb9f009dbe820310b6b00f0d0c31f5e006e738bdf8c003eefd9760e8d3",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "world.sdf": "1e95261a3ab2ebadc1be817ed95abc4b4a99189e293decf8f1fd099c81c1b69b"
+  },
+  "split": "train",
+  "status": "ACQUIRED"
+}

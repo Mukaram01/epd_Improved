@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py", line 189, in <module>
+    if args.action=='worker':worker(args)
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py", line 141, in worker
+    model=reconstruct(state);identity=graph_identity(graph,state,model)
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py", line 93, in graph_identity
+    raise ValueError('FrozenBN mismatch: '+name)
+ValueError: FrozenBN mismatch: onnx::Mul_3986

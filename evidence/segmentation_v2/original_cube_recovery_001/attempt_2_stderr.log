@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py", line 198, in <module>
+    if args.action=='worker':worker(args)
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py", line 182, in worker
+    report.update(parity=compare(pt,actual),onnx_retained_reference=compare(actual,reference),
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py", line 131, in compare
+    if any(left[k].shape!=right[k].shape or left[k].dtype!=right[k].dtype for k in ('boxes','labels','scores','masks')):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py", line 131, in <genexpr>
+    if any(left[k].shape!=right[k].shape or left[k].dtype!=right[k].dtype for k in ('boxes','labels','scores','masks')):
+KeyError: 'masks'

@@ -1,0 +1,23 @@
+{
+  "artifacts_root": "/home/user/epd-v2-artifacts/campaign-300-001-preflight",
+  "budget_seconds": 10800,
+  "campaign_epochs": 0,
+  "checkpoints_created": 0,
+  "cpp_parity": null,
+  "epoch_losses": null,
+  "estimated_full_campaign_seconds": 15439.860740788397,
+  "held_out_pixels_opened": 0,
+  "historical_predictions_run": 0,
+  "max_forward_backward_seconds": 4.033225586001208,
+  "measurement_only": true,
+  "minimum_speedup_for_same_conservative_projection": 1.4344438895869287,
+  "next_action": "Provision CUDA-capable training hardware; measure complete-run feasibility before one campaign",
+  "onnx": null,
+  "optimizer_updates": 0,
+  "preflight_exit_code": 0,
+  "reason": "CPU projected complete run exceeds declared wall budget; CUDA unavailable",
+  "selected_checkpoint": null,
+  "sources_note": "Executed sources archived externally and pinned in identity.json. Final reusable integration adds split checks and portable measurement arguments after resource rejection; no second measurement or campaign.",
+  "status": "BLOCKED_TRAINING_RESOURCES",
+  "validation_campaign_metrics": null
+}

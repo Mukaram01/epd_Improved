@@ -1,0 +1,9 @@
+{
+  "final": "No further critical or important blocker for Stage1 measurement",
+  "initial_findings": [
+    "Stage2 must retain Stage1 selection evidence",
+    "Stage2 needs supported admission workflow"
+  ],
+  "readonly": true,
+  "resolved": true
+}

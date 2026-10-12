@@ -1,0 +1,104 @@
+{
+  "acquisition_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+  "batch_size": 1,
+  "device": "cpu",
+  "initialized_from_rejected_smoke": false,
+  "policy": {
+    "aggregate_timeout_seconds": 18000,
+    "base_commit": "b6dbacc61baf066b1a20652176eec3f0b4dcd278",
+    "batch_size": 1,
+    "checkpoint_boundary": "after validation; before next epoch",
+    "cpu_feasibility_timeout_seconds": 180,
+    "cpu_timeout_seconds": 10800,
+    "cuda_timeout_seconds": 10800,
+    "dataset_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+    "device": "cpu",
+    "disk_reserve_gib": 5,
+    "eligible_order": [
+      "recovered_desc",
+      "mean_iou_desc",
+      "background_spill_asc",
+      "epoch_asc"
+    ],
+    "epochs": 8,
+    "feasibility_overhead_seconds": 120,
+    "feasibility_safety_factor": 1.5,
+    "gate": {
+      "background_spill_strict_lt": 1915,
+      "confidence_threshold": 0.8,
+      "mask_threshold_strict_gt": 0.5,
+      "maximum_contract_violations": 0,
+      "maximum_false_positives": 1,
+      "mean_iou_strict_gt": 0.68589,
+      "minimum_recovered": 18,
+      "positives": 22
+    },
+    "held_out_access": false,
+    "historical_regression_access": false,
+    "memory_mib": 6144,
+    "no_smoke_initialization": true,
+    "optimizer_steps": 2400,
+    "recipe": "train.json",
+    "schema": "epd_v2_segmented_campaign/1",
+    "seed": 260110,
+    "stage_timeout_seconds": 10800,
+    "stages": [
+      [
+        1,
+        4
+      ],
+      [
+        5,
+        8
+      ]
+    ],
+    "training_samples": 300
+  },
+  "recipe": {
+    "architecture": "torchvision.maskrcnn_resnet50_fpn",
+    "batch_size": 1,
+    "classes": [
+      "__background__",
+      "cube"
+    ],
+    "confidence_threshold": 0.8,
+    "cpu_max_steps": 2,
+    "cpu_threads": 2,
+    "cpu_timeout_seconds": 300,
+    "cuda_timeout_seconds": 1800,
+    "epochs": 8,
+    "image_size": 512,
+    "initial_weights": "MaskRCNN_ResNet50_FPN_Weights.COCO_V1",
+    "learning_rate": 0.001,
+    "mask_threshold_strict_gt": 0.5,
+    "momentum": 0.9,
+    "schema": "epd_v2_training/1",
+    "seed": 260110,
+    "smoke_eligible_for_export_or_selection": false,
+    "torch": "2.7.0",
+    "torchvision": "0.22.0",
+    "train_backbone": false,
+    "validation_selection": "mean instance IoU minus mean symmetric boundary error /512 minus false positives /(visible targets + validation scenes); recovery IoU>=0.5; misses IoU=0, boundary=512",
+    "weight_decay": 0.0001,
+    "weights_sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0",
+    "weights_sha256_prefix": "bf2d0c1e",
+    "weights_url": "https://download.pytorch.org/models/maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth"
+  },
+  "seed": 260110,
+  "smoke_only": false,
+  "sources": {
+    "campaign.py": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae",
+    "campaign_segmented_300.json": "65576f8a1a9bf25a0e3f7ca3b07e40b1430e89ec552ee9e25b7c1479b77a914e",
+    "continuation.py": "074a6725b3ec01fd3cc2caffa48ff7b9a1c6eccc8973475868bc87242d7fcce0",
+    "dataset.py": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac",
+    "dataset_bindings.py": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3",
+    "expansion.py": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443",
+    "measure_segmented.py": "487f8503c2df5656f333dacc73c4a8d50bef0086c9ad429d48a9807ad3cf40fc",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "prepare_stage2.py": "8d72bfa726f40d274f75dab50fa37298540ebe74d20047c35ea379c9acedfb85",
+    "segmented_policy.py": "31ca04bf2128527e73b9d5798deeefadcef979bf6239cad3704f9bb2a1fa0dad",
+    "train.json": "9ee1cc8566d75694228d96a553eac2d1a1e0075ad3ed962d543c3f5c057e8bab",
+    "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+  },
+  "weights_sha256": "bf2d0c1efbc936eeee2bc95a48e80ebc86b891f61b0106485937fc29f9315fc0"
+}

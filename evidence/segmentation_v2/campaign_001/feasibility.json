@@ -1,0 +1,64 @@
+{
+  "checkpoint_saved": false,
+  "declared_budget_seconds": 3600,
+  "declared_memory_mib": 6144,
+  "estimated_full_campaign_seconds": 852.8095630556345,
+  "feasible": true,
+  "held_out_files_opened": 0,
+  "measurements": [
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.0,
+        "loss_classifier": 0.7764982581138611,
+        "loss_mask": 0.0,
+        "loss_objectness": 0.3731188178062439,
+        "loss_rpn_box_reg": 0.0
+      },
+      "objects": 0,
+      "scene_id": "scene_000",
+      "seconds": 1.413122337000459
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.010483842343091965,
+        "loss_classifier": 0.7780249118804932,
+        "loss_mask": 1.72702956199646,
+        "loss_objectness": 1.2003583908081055,
+        "loss_rpn_box_reg": 0.019116219133138657
+      },
+      "objects": 3,
+      "scene_id": "scene_014",
+      "seconds": 1.4525321450000774
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.02412392757833004,
+        "loss_classifier": 0.7958297729492188,
+        "loss_mask": 1.6703003644943237,
+        "loss_objectness": 0.3184264600276947,
+        "loss_rpn_box_reg": 0.031776513904333115
+      },
+      "objects": 3,
+      "scene_id": "scene_008",
+      "seconds": 1.5139785859992116
+    },
+    {
+      "detections": 100,
+      "kind": "validation_forward_only",
+      "scene_id": "scene_024",
+      "seconds": 2.0609981269990385
+    },
+    {
+      "detections": 100,
+      "kind": "validation_forward_only",
+      "scene_id": "scene_026",
+      "seconds": 2.0119279799982905
+    }
+  ],
+  "optimizer_updates": 0,
+  "peak_rss_kib": 1369432,
+  "projected_rss_kib": 2054148.0
+}

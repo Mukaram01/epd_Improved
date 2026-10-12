@@ -1,0 +1,29 @@
+{
+  "controllers_launched": false,
+  "cuda_available": false,
+  "emd_pr_modified": false,
+  "executed_source_snapshots": {
+    "executed_sources/pilot.py": "ac5adc89516fda66c47d7b1d10daac73978a35b2dde003493c899c00f792bfba",
+    "executed_sources/test_pilot.py": "99135ed4094d0d21bb52cb6ecec292af4d040b7ac5e318a4e2c05bebd99d4c90",
+    "training/executed_sources/pilot.py": "c5dac83c1ca00b32f09c8fcdb25d588d38bc4a15093406a043b0549e2371a9df",
+    "training/executed_sources/train.py": "8ea244cded29ea7ba3be201e6343a9db22a94aa128348f1686de5fff5b3cf295",
+    "validation-diagnostic-corrected/evaluate_validation.py": "57b093a1c2cc10b50e61a65a4d4ac19b39a0c11749a194a42b7cef31c03e8b68",
+    "validation-diagnostic-corrected/pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "validation-diagnostic-corrected/train.py": "609e0c75eb080489e3353c564567801b95095e6ecc46d37158093d0030ec6f90",
+    "validation-diagnostic/executed_evaluate_validation.py": "771292938deeb9c1c65edd2fdefa28809e25c6b4487058b0179e6801228782ac"
+  },
+  "execution_goals": 0,
+  "geometry_contact_authority": false,
+  "moveit_launched": false,
+  "physical_contact_requirement_mm": 0.1,
+  "torchvision_code_license": "BSD-3-Clause",
+  "versions": {
+    "numpy": "1.26.4",
+    "onnx": "1.17.0",
+    "onnxruntime": "1.22.0",
+    "opencv-python": "4.11.0.86",
+    "torch": "2.7.0",
+    "torchvision": "0.22.0"
+  },
+  "workcell_studio_deployment": false
+}

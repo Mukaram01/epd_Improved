@@ -1,0 +1,22 @@
+Running main() from /opt/ros/humble/src/gtest_vendor/src/gtest_main.cc
+Note: Google Test filter = P3Adapter.LegacyFloatScalingBoundaryUnchanged
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from P3Adapter
+[ RUN      ] P3Adapter.LegacyFloatScalingBoundaryUnchanged
+/home/user/epd-v2-supervised-pilot/easy_perception_deployment/easy_perception_deployment/test/test_p3_model_adapter.cpp:178: Failure
+Expected equality of these values:
+  decoded.boxes[0][0]
+    Which is: 0
+  1.f
+    Which is: 1
+[  FAILED  ] P3Adapter.LegacyFloatScalingBoundaryUnchanged (0 ms)
+[----------] 1 test from P3Adapter (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (0 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] P3Adapter.LegacyFloatScalingBoundaryUnchanged
+
+ 1 FAILED TEST

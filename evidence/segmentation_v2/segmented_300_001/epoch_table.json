@@ -1,0 +1,157 @@
+[
+  {
+    "epoch": 1,
+    "gate_failures": [
+      "recall>=18/22",
+      "IoU>0.685890",
+      "FP<=1",
+      "spill<1915"
+    ],
+    "losses": {
+      "loss_box_reg": 0.1460066641277323,
+      "loss_classifier": 0.09507292851650466,
+      "loss_mask": 0.2666337181379398,
+      "loss_objectness": 0.08918380200862884,
+      "loss_rpn_box_reg": 0.027937366970145375,
+      "total_loss": 0.6248344788886606
+    },
+    "metrics": {
+      "background_spill": 51125,
+      "contract_violations": 0,
+      "cross_object": 1372,
+      "eligible": false,
+      "false_positives": 8,
+      "max_boundary_px": 512,
+      "mean_boundary_px": 258.0210656496611,
+      "mean_iou": 0.3768743440682661,
+      "missing_visible": 24806,
+      "positives": 22,
+      "recovered": 9
+    },
+    "negatives": [
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_024"
+      },
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_030"
+      }
+    ]
+  },
+  {
+    "epoch": 2,
+    "gate_failures": [
+      "recall>=18/22",
+      "IoU>0.685890",
+      "FP<=1"
+    ],
+    "losses": {
+      "loss_box_reg": 0.1343136048099647,
+      "loss_classifier": 0.07301580134391164,
+      "loss_mask": 0.17505975584189096,
+      "loss_objectness": 0.03145457403656716,
+      "loss_rpn_box_reg": 0.024050479440144653,
+      "total_loss": 0.4378942163040241
+    },
+    "metrics": {
+      "background_spill": 607,
+      "contract_violations": 0,
+      "cross_object": 1186,
+      "eligible": false,
+      "false_positives": 4,
+      "max_boundary_px": 512,
+      "mean_boundary_px": 257.7966009107503,
+      "mean_iou": 0.3637385073104679,
+      "missing_visible": 26716,
+      "positives": 22,
+      "recovered": 9
+    },
+    "negatives": [
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_024"
+      },
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_030"
+      }
+    ]
+  },
+  {
+    "epoch": 3,
+    "gate_failures": [
+      "recall>=18/22",
+      "IoU>0.685890"
+    ],
+    "losses": {
+      "loss_box_reg": 0.1163629393807302,
+      "loss_classifier": 0.06423073257009189,
+      "loss_mask": 0.15122040182352067,
+      "loss_objectness": 0.020378898240936298,
+      "loss_rpn_box_reg": 0.020201314303146017,
+      "total_loss": 0.37239428718574347
+    },
+    "metrics": {
+      "background_spill": 634,
+      "contract_violations": 0,
+      "cross_object": 226,
+      "eligible": false,
+      "false_positives": 1,
+      "max_boundary_px": 512,
+      "mean_boundary_px": 256.91942986981434,
+      "mean_iou": 0.43441251795078206,
+      "missing_visible": 23465,
+      "positives": 22,
+      "recovered": 10
+    },
+    "negatives": [
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_024"
+      },
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_030"
+      }
+    ]
+  },
+  {
+    "epoch": 4,
+    "gate_failures": [
+      "recall>=18/22",
+      "IoU>0.685890"
+    ],
+    "losses": {
+      "loss_box_reg": 0.11037998706412812,
+      "loss_classifier": 0.05979694847056332,
+      "loss_mask": 0.13867429935683806,
+      "loss_objectness": 0.016153672878475238,
+      "loss_rpn_box_reg": 0.018064042427261787,
+      "total_loss": 0.3430689504921126
+    },
+    "metrics": {
+      "background_spill": 574,
+      "contract_violations": 0,
+      "cross_object": 2687,
+      "eligible": false,
+      "false_positives": 1,
+      "max_boundary_px": 512,
+      "mean_boundary_px": 256.9554286924276,
+      "mean_iou": 0.43582743746421815,
+      "missing_visible": 27909,
+      "positives": 22,
+      "recovered": 11
+    },
+    "negatives": [
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_024"
+      },
+      {
+        "confident_detections": 0,
+        "scene_id": "scene_030"
+      }
+    ]
+  }
+]

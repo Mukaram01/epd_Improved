@@ -1,0 +1,17 @@
+{
+  "files": {
+    "evidence/segmentation_v2/campaign_300_001/README.md": "bd89d9bad0ded99e11c90ecef049f307644ab644a00f768df2fd2bd4931f5838",
+    "evidence/segmentation_v2/campaign_300_001/artifact_locations.json": "b863dc63d3972b24741d0e6b649b373d0d20a7fea3f960a9bc2b341324e104da",
+    "evidence/segmentation_v2/campaign_300_001/ci_starting_head.log": "196cb7d9cd472d65f42919fd22465711625744482a3311b82a7c7a40ab339caa",
+    "evidence/segmentation_v2/campaign_300_001/executed_measure_300.py": "dea8a84fc9ebae401d789e80934e277b9bc959774bc58a9c36b4eb2f8dd1332e",
+    "evidence/segmentation_v2/campaign_300_001/feasibility.json": "231c49d98435c8fdb3e0a43c6500e9129082b2f6e0bdcad8420c06e79553514c",
+    "evidence/segmentation_v2/campaign_300_001/identity.json": "60c9e6bec85c0cdcc98a84a02bb243b04cf98c969a9a2d94e087e382e22e12f8",
+    "evidence/segmentation_v2/campaign_300_001/identity_audit.json": "f2a4829fb9407c2a509837ba5fb0be971efc287abbdfc18d4e4508f00200c38e",
+    "evidence/segmentation_v2/campaign_300_001/implementation_sha256.json": "c61482b09c55df79a41e466ffdf98fa29e627c66327bab74ec94e5f8db33f9ec",
+    "evidence/segmentation_v2/campaign_300_001/outcome.json": "ab1e3ecb801a6c401abed8054e890d2c84a2c35d3222f53972e905417a4bce51",
+    "evidence/segmentation_v2/campaign_300_001/preserved_checkpoints.json": "b4fc7f053bab5d4e34448cbdac3b0586f65523249bbf825c02c92f4d6dbf7aa6",
+    "evidence/segmentation_v2/campaign_300_001/review.json": "31a0f882a72afabe0a532f80fe910de88a8301ff57b84c300a1eb9c9550cc784",
+    "evidence/segmentation_v2/campaign_300_001/tests.log": "6f644d515789261bae96d40cb6a8c4eac641ed29e861d6641f33fe5fdb1e9a7b"
+  },
+  "full_run_feasibility_still_false": true
+}

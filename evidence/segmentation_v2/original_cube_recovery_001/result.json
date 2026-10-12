@@ -1,0 +1,2937 @@
+{
+  "checkpoint": {
+    "bytes": 176226850,
+    "path": "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+    "sha256": "b2668971dd1230cdbc93bbc7d0182b46c91e7469717dc210052fa4eb20fa8bdb"
+  },
+  "classification": "ORIGINAL_MODEL_RECOVERED",
+  "export_executed": false,
+  "finalizer_source_sha256": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db",
+  "graph_identity": {
+    "all_initializers_accounted_for": true,
+    "consumer_confidence_threshold": 0.8,
+    "folded_normalization": [
+      {
+        "max_abs": 7.450580596923828e-09,
+        "module": "backbone.body.bn1",
+        "name": "onnx::Mul_3986",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.bn1",
+        "name": "onnx::Add_3988",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer1.0.bn1",
+        "name": "onnx::Mul_3996",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.0.bn1",
+        "name": "onnx::Add_3998",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.0.bn2",
+        "name": "onnx::Mul_4006",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.0.bn2",
+        "name": "onnx::Add_4008",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer1.0.bn3",
+        "name": "onnx::Mul_4016",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 7.450580596923828e-09,
+        "module": "backbone.body.layer1.0.bn3",
+        "name": "onnx::Add_4018",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.0.downsample.1",
+        "name": "onnx::Mul_4026",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.0.downsample.1",
+        "name": "onnx::Add_4028",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.1.bn1",
+        "name": "onnx::Mul_4036",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.1.bn1",
+        "name": "onnx::Add_4038",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.1.bn2",
+        "name": "onnx::Mul_4046",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.1.bn2",
+        "name": "onnx::Add_4048",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer1.1.bn3",
+        "name": "onnx::Mul_4056",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.1.bn3",
+        "name": "onnx::Add_4058",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.2.bn1",
+        "name": "onnx::Mul_4066",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.2.bn1",
+        "name": "onnx::Add_4068",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.2.bn2",
+        "name": "onnx::Mul_4076",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer1.2.bn2",
+        "name": "onnx::Add_4078",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer1.2.bn3",
+        "name": "onnx::Mul_4086",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer1.2.bn3",
+        "name": "onnx::Add_4088",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.0.bn1",
+        "name": "onnx::Mul_4096",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.0.bn1",
+        "name": "onnx::Add_4098",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.0.bn2",
+        "name": "onnx::Mul_4106",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.0.bn2",
+        "name": "onnx::Add_4108",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer2.0.bn3",
+        "name": "onnx::Mul_4116",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer2.0.bn3",
+        "name": "onnx::Add_4118",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer2.0.downsample.1",
+        "name": "onnx::Mul_4126",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer2.0.downsample.1",
+        "name": "onnx::Add_4128",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.1.bn1",
+        "name": "onnx::Mul_4136",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.1.bn1",
+        "name": "onnx::Add_4138",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.1.bn2",
+        "name": "onnx::Mul_4146",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.1.bn2",
+        "name": "onnx::Add_4148",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer2.1.bn3",
+        "name": "onnx::Mul_4156",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 7.450580596923828e-09,
+        "module": "backbone.body.layer2.1.bn3",
+        "name": "onnx::Add_4158",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer2.2.bn1",
+        "name": "onnx::Mul_4166",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer2.2.bn1",
+        "name": "onnx::Add_4168",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer2.2.bn2",
+        "name": "onnx::Mul_4176",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer2.2.bn2",
+        "name": "onnx::Add_4178",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer2.2.bn3",
+        "name": "onnx::Mul_4186",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer2.2.bn3",
+        "name": "onnx::Add_4188",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer2.3.bn1",
+        "name": "onnx::Mul_4196",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer2.3.bn1",
+        "name": "onnx::Add_4198",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.3.bn2",
+        "name": "onnx::Mul_4206",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.3.bn2",
+        "name": "onnx::Add_4208",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer2.3.bn3",
+        "name": "onnx::Mul_4216",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer2.3.bn3",
+        "name": "onnx::Add_4218",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer3.0.bn1",
+        "name": "onnx::Mul_4226",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.0.bn1",
+        "name": "onnx::Add_4228",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer3.0.bn2",
+        "name": "onnx::Mul_4236",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer3.0.bn2",
+        "name": "onnx::Add_4238",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer3.0.bn3",
+        "name": "onnx::Mul_4246",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.0.bn3",
+        "name": "onnx::Add_4248",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer3.0.downsample.1",
+        "name": "onnx::Mul_4256",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 3.725290298461914e-09,
+        "module": "backbone.body.layer3.0.downsample.1",
+        "name": "onnx::Add_4258",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer3.1.bn1",
+        "name": "onnx::Mul_4266",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 3.725290298461914e-09,
+        "module": "backbone.body.layer3.1.bn1",
+        "name": "onnx::Add_4268",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer3.1.bn2",
+        "name": "onnx::Mul_4276",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer3.1.bn2",
+        "name": "onnx::Add_4278",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer3.1.bn3",
+        "name": "onnx::Mul_4286",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer3.1.bn3",
+        "name": "onnx::Add_4288",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer3.2.bn1",
+        "name": "onnx::Mul_4296",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 7.450580596923828e-09,
+        "module": "backbone.body.layer3.2.bn1",
+        "name": "onnx::Add_4298",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer3.2.bn2",
+        "name": "onnx::Mul_4306",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.2.bn2",
+        "name": "onnx::Add_4308",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer3.2.bn3",
+        "name": "onnx::Mul_4316",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.2.bn3",
+        "name": "onnx::Add_4318",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer3.3.bn1",
+        "name": "onnx::Mul_4326",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.3.bn1",
+        "name": "onnx::Add_4328",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer3.3.bn2",
+        "name": "onnx::Mul_4336",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer3.3.bn2",
+        "name": "onnx::Add_4338",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer3.3.bn3",
+        "name": "onnx::Mul_4346",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.3.bn3",
+        "name": "onnx::Add_4348",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer3.4.bn1",
+        "name": "onnx::Mul_4356",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer3.4.bn1",
+        "name": "onnx::Add_4358",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer3.4.bn2",
+        "name": "onnx::Mul_4366",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer3.4.bn2",
+        "name": "onnx::Add_4368",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer3.4.bn3",
+        "name": "onnx::Mul_4376",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.4.bn3",
+        "name": "onnx::Add_4378",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.1920928955078125e-07,
+        "module": "backbone.body.layer3.5.bn1",
+        "name": "onnx::Mul_4386",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.5.bn1",
+        "name": "onnx::Add_4388",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer3.5.bn2",
+        "name": "onnx::Mul_4396",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer3.5.bn2",
+        "name": "onnx::Add_4398",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 4.76837158203125e-07,
+        "module": "backbone.body.layer3.5.bn3",
+        "name": "onnx::Mul_4406",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer3.5.bn3",
+        "name": "onnx::Add_4408",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer4.0.bn1",
+        "name": "onnx::Mul_4416",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 0.0,
+        "module": "backbone.body.layer4.0.bn1",
+        "name": "onnx::Add_4418",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer4.0.bn2",
+        "name": "onnx::Mul_4426",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer4.0.bn2",
+        "name": "onnx::Add_4428",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 9.5367431640625e-07,
+        "module": "backbone.body.layer4.0.bn3",
+        "name": "onnx::Mul_4436",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer4.0.bn3",
+        "name": "onnx::Add_4438",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 9.5367431640625e-07,
+        "module": "backbone.body.layer4.0.downsample.1",
+        "name": "onnx::Mul_4446",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 5.960464477539063e-08,
+        "module": "backbone.body.layer4.0.downsample.1",
+        "name": "onnx::Add_4448",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 5.960464477539063e-08,
+        "module": "backbone.body.layer4.1.bn1",
+        "name": "onnx::Mul_4456",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer4.1.bn1",
+        "name": "onnx::Add_4458",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer4.1.bn2",
+        "name": "onnx::Mul_4466",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 1.4901161193847656e-08,
+        "module": "backbone.body.layer4.1.bn2",
+        "name": "onnx::Add_4468",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 1.9073486328125e-06,
+        "module": "backbone.body.layer4.1.bn3",
+        "name": "onnx::Mul_4476",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer4.1.bn3",
+        "name": "onnx::Add_4478",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 5.960464477539063e-08,
+        "module": "backbone.body.layer4.2.bn1",
+        "name": "onnx::Mul_4486",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer4.2.bn1",
+        "name": "onnx::Add_4488",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 2.384185791015625e-07,
+        "module": "backbone.body.layer4.2.bn2",
+        "name": "onnx::Mul_4496",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 2.9802322387695312e-08,
+        "module": "backbone.body.layer4.2.bn2",
+        "name": "onnx::Add_4498",
+        "operation": "Add"
+      },
+      {
+        "max_abs": 3.814697265625e-06,
+        "module": "backbone.body.layer4.2.bn3",
+        "name": "onnx::Mul_4506",
+        "operation": "Mul"
+      },
+      {
+        "max_abs": 5.960464477539063e-08,
+        "module": "backbone.body.layer4.2.bn3",
+        "name": "onnx::Add_4508",
+        "operation": "Add"
+      }
+    ],
+    "initializer_count": 201,
+    "mask_threshold_strict_gt": 0.5,
+    "model_score_prefilter": 0.05,
+    "named_weights_bitwise_equal": [
+      "backbone.body.conv1.weight",
+      "backbone.body.layer1.0.conv1.weight",
+      "backbone.body.layer1.0.conv2.weight",
+      "backbone.body.layer1.0.conv3.weight",
+      "backbone.body.layer1.0.downsample.0.weight",
+      "backbone.body.layer1.1.conv1.weight",
+      "backbone.body.layer1.1.conv2.weight",
+      "backbone.body.layer1.1.conv3.weight",
+      "backbone.body.layer1.2.conv1.weight",
+      "backbone.body.layer1.2.conv2.weight",
+      "backbone.body.layer1.2.conv3.weight",
+      "backbone.body.layer2.0.conv1.weight",
+      "backbone.body.layer2.0.conv2.weight",
+      "backbone.body.layer2.0.conv3.weight",
+      "backbone.body.layer2.0.downsample.0.weight",
+      "backbone.body.layer2.1.conv1.weight",
+      "backbone.body.layer2.1.conv2.weight",
+      "backbone.body.layer2.1.conv3.weight",
+      "backbone.body.layer2.2.conv1.weight",
+      "backbone.body.layer2.2.conv2.weight",
+      "backbone.body.layer2.2.conv3.weight",
+      "backbone.body.layer2.3.conv1.weight",
+      "backbone.body.layer2.3.conv2.weight",
+      "backbone.body.layer2.3.conv3.weight",
+      "backbone.body.layer3.0.conv1.weight",
+      "backbone.body.layer3.0.conv2.weight",
+      "backbone.body.layer3.0.conv3.weight",
+      "backbone.body.layer3.0.downsample.0.weight",
+      "backbone.body.layer3.1.conv1.weight",
+      "backbone.body.layer3.1.conv2.weight",
+      "backbone.body.layer3.1.conv3.weight",
+      "backbone.body.layer3.2.conv1.weight",
+      "backbone.body.layer3.2.conv2.weight",
+      "backbone.body.layer3.2.conv3.weight",
+      "backbone.body.layer3.3.conv1.weight",
+      "backbone.body.layer3.3.conv2.weight",
+      "backbone.body.layer3.3.conv3.weight",
+      "backbone.body.layer3.4.conv1.weight",
+      "backbone.body.layer3.4.conv2.weight",
+      "backbone.body.layer3.4.conv3.weight",
+      "backbone.body.layer3.5.conv1.weight",
+      "backbone.body.layer3.5.conv2.weight",
+      "backbone.body.layer3.5.conv3.weight",
+      "backbone.body.layer4.0.conv1.weight",
+      "backbone.body.layer4.0.conv2.weight",
+      "backbone.body.layer4.0.conv3.weight",
+      "backbone.body.layer4.0.downsample.0.weight",
+      "backbone.body.layer4.1.conv1.weight",
+      "backbone.body.layer4.1.conv2.weight",
+      "backbone.body.layer4.1.conv3.weight",
+      "backbone.body.layer4.2.conv1.weight",
+      "backbone.body.layer4.2.conv2.weight",
+      "backbone.body.layer4.2.conv3.weight",
+      "backbone.fpn.inner_blocks.0.0.weight",
+      "backbone.fpn.inner_blocks.0.0.bias",
+      "backbone.fpn.inner_blocks.1.0.weight",
+      "backbone.fpn.inner_blocks.1.0.bias",
+      "backbone.fpn.inner_blocks.2.0.weight",
+      "backbone.fpn.inner_blocks.2.0.bias",
+      "backbone.fpn.inner_blocks.3.0.weight",
+      "backbone.fpn.inner_blocks.3.0.bias",
+      "backbone.fpn.layer_blocks.0.0.weight",
+      "backbone.fpn.layer_blocks.0.0.bias",
+      "backbone.fpn.layer_blocks.1.0.weight",
+      "backbone.fpn.layer_blocks.1.0.bias",
+      "backbone.fpn.layer_blocks.2.0.weight",
+      "backbone.fpn.layer_blocks.2.0.bias",
+      "backbone.fpn.layer_blocks.3.0.weight",
+      "backbone.fpn.layer_blocks.3.0.bias",
+      "rpn.head.conv.0.0.weight",
+      "rpn.head.conv.0.0.bias",
+      "rpn.head.cls_logits.weight",
+      "rpn.head.cls_logits.bias",
+      "rpn.head.bbox_pred.weight",
+      "rpn.head.bbox_pred.bias",
+      "roi_heads.box_head.fc6.weight",
+      "roi_heads.box_head.fc6.bias",
+      "roi_heads.box_head.fc7.weight",
+      "roi_heads.box_head.fc7.bias",
+      "roi_heads.box_predictor.cls_score.weight",
+      "roi_heads.box_predictor.cls_score.bias",
+      "roi_heads.box_predictor.bbox_pred.weight",
+      "roi_heads.box_predictor.bbox_pred.bias",
+      "roi_heads.mask_head.0.0.weight",
+      "roi_heads.mask_head.0.0.bias",
+      "roi_heads.mask_head.1.0.weight",
+      "roi_heads.mask_head.1.0.bias",
+      "roi_heads.mask_head.2.0.weight",
+      "roi_heads.mask_head.2.0.bias",
+      "roi_heads.mask_head.3.0.weight",
+      "roi_heads.mask_head.3.0.bias",
+      "roi_heads.mask_predictor.conv5_mask.weight",
+      "roi_heads.mask_predictor.conv5_mask.bias",
+      "roi_heads.mask_predictor.mask_fcn_logits.weight",
+      "roi_heads.mask_predictor.mask_fcn_logits.bias"
+    ],
+    "opsets": [
+      {
+        "domain": "",
+        "version": 17
+      }
+    ],
+    "producer": "pytorch",
+    "producer_version": "2.11.0",
+    "transform": {
+      "max_size": 1333,
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "min_size": 800,
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    }
+  },
+  "held_out_accessed": false,
+  "historical_two_cube_regression_accessed": false,
+  "inference_peak_rss_kib": 2063604,
+  "inference_process_wall_seconds": 11.983485869001015,
+  "input_contract": "RGB256 INTER_LINEAR512 then RGB01 CHW float32; model owns normalization/800 resize",
+  "input_image_sha256": "32ec128ba594ec93ac32757538c05780ffd94c5d8974e85a5cf3503864138995",
+  "input_scene": "frozen validation scene_025, retained adapter RGB512 PNG; no ID raster opened",
+  "metadata_self_reported": {
+    "architecture": "maskrcnn_resnet50_fpn",
+    "class_names": [
+      "background",
+      "cube"
+    ],
+    "epochs_completed": 3,
+    "num_classes": 2,
+    "torchvision_version": "0.26.0+cu130",
+    "train_images": 114,
+    "val_images": 11
+  },
+  "model_inference_executed": false,
+  "offline_finalization": true,
+  "onnx_retained_reference": {
+    "confidence_decision_differences": 0,
+    "correspondence": "same descending-score output order",
+    "count_left": 1,
+    "count_right": 1,
+    "foreground_decision_differences": 0,
+    "labels_exact": true,
+    "max_abs": {
+      "boxes": 0.0,
+      "masks": 0.0,
+      "scores": 0.0
+    },
+    "passed": true,
+    "tolerances": {
+      "boxes": 0.001,
+      "masks": 0.0001,
+      "scores": 1e-05
+    }
+  },
+  "onnx_sha256": "21362d62d816bd684f2b5c7769d0bcd1cd568af86419788fca9d095c46f2bad2",
+  "optimizer_state_present": false,
+  "original_inference_process": {
+    "child_peak_rss_kib": 2063604,
+    "command": [
+      "/usr/bin/python3",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py",
+      "worker",
+      "--checkpoint",
+      "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+      "--onnx",
+      "/home/user/stage_a_cube_model/cube_maskrcnn.onnx",
+      "--image",
+      "/home/user/epd-v2-artifacts/adapter-historical-001/historical_bgr512.png",
+      "--reference",
+      "/home/user/epd-v2-artifacts/pilot-001/validation-diagnostic-corrected/baseline_scene_025.npz",
+      "--output",
+      "/home/user/epd-v2-artifacts/original-cube-recovery-002"
+    ],
+    "exit_code": 1,
+    "resource_limit_reason": null,
+    "sampled_process_peak_rss_kib": 2042608,
+    "wall_seconds": 11.983485869001015
+  },
+  "parity": {
+    "confidence_decision_differences": 0,
+    "correspondence": "same descending-score output order",
+    "count_left": 1,
+    "count_right": 1,
+    "foreground_decision_differences": 0,
+    "labels_exact": true,
+    "max_abs": {
+      "boxes": 0.0,
+      "masks": 6.407499313354492e-06,
+      "scores": 0.0
+    },
+    "passed": true,
+    "tolerances": {
+      "boxes": 0.001,
+      "masks": 0.0001,
+      "scores": 1e-05
+    }
+  },
+  "provenance_unknown": [
+    "training/export source",
+    "original data identities",
+    "seed",
+    "optimizer",
+    "scheduler",
+    "learning rate",
+    "freeze policy"
+  ],
+  "reporting_failure": "Original process exited1 after both inferences: retained reference uses masks_confident. No inference repeated.",
+  "retained_reference_sha256": "31294906f437b944cc013ee6ccdb5757ca4c6dff947fd3d72af965a3dc5e694b",
+  "safe_deserialization": "torch.load CPU weights_only=True; no allowlist/fallback",
+  "source_sha256": "d0dea30c7e343a0032bb4244a4f35d62610683f74527e13086e0db0a7f28478e",
+  "strict_state_load": true,
+  "tensor_inventory": {
+    "backbone.body.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64,
+        3,
+        7,
+        7
+      ]
+    },
+    "backbone.body.layer1.0.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.0.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.0.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.0.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.0.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.0.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64,
+        64,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer1.0.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer1.0.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        64,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer1.0.downsample.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        64,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer1.0.downsample.1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.0.downsample.1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.0.downsample.1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.0.downsample.1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.1.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.1.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.1.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.1.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.1.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.1.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer1.1.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer1.1.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        64,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer1.2.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64
+      ]
+    },
+    "backbone.body.layer1.2.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.2.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.2.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.2.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer1.2.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer1.2.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        64,
+        64,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer1.2.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        64,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.0.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.0.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.0.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.0.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.0.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.0.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.0.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        128,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer2.0.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        128,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.0.downsample.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.0.downsample.1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.0.downsample.1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.0.downsample.1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.0.downsample.1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.1.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.1.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.1.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.1.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.1.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.1.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.1.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        128,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer2.1.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        128,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.2.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.2.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.2.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.2.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.2.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.2.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.2.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        128,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer2.2.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        128,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.3.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128
+      ]
+    },
+    "backbone.body.layer2.3.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.3.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.3.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.3.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer2.3.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer2.3.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        128,
+        128,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer2.3.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        128,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.0.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.0.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.0.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.0.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.0.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.0.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.0.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer3.0.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.0.downsample.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.0.downsample.1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.0.downsample.1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.0.downsample.1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.0.downsample.1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.1.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.1.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.1.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.1.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.1.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.1.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.1.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer3.1.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.2.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.2.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.2.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.2.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.2.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.2.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.2.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer3.2.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.3.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.3.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.3.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.3.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.3.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.3.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.3.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer3.3.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.4.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.4.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.4.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.4.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.4.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.4.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.4.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer3.4.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.5.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.body.layer3.5.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.5.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.5.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.5.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "backbone.body.layer3.5.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer3.5.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer3.5.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer4.0.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.0.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.0.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.0.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.0.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.0.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer4.0.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        512,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer4.0.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer4.0.downsample.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer4.0.downsample.1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.0.downsample.1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.0.downsample.1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.0.downsample.1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.1.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.1.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.1.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.1.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.1.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.1.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        2048,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer4.1.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        512,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer4.1.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer4.2.bn1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn1.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn1.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn2.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn2.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn2.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512
+      ]
+    },
+    "backbone.body.layer4.2.bn3.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.2.bn3.running_mean": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.2.bn3.running_var": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.2.bn3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048
+      ]
+    },
+    "backbone.body.layer4.2.conv1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        2048,
+        1,
+        1
+      ]
+    },
+    "backbone.body.layer4.2.conv2.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        512,
+        512,
+        3,
+        3
+      ]
+    },
+    "backbone.body.layer4.2.conv3.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2048,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.fpn.inner_blocks.0.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.inner_blocks.0.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        1,
+        1
+      ]
+    },
+    "backbone.fpn.inner_blocks.1.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.inner_blocks.1.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        512,
+        1,
+        1
+      ]
+    },
+    "backbone.fpn.inner_blocks.2.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.inner_blocks.2.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        1024,
+        1,
+        1
+      ]
+    },
+    "backbone.fpn.inner_blocks.3.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.inner_blocks.3.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        2048,
+        1,
+        1
+      ]
+    },
+    "backbone.fpn.layer_blocks.0.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.layer_blocks.0.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.fpn.layer_blocks.1.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.layer_blocks.1.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.fpn.layer_blocks.2.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.layer_blocks.2.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "backbone.fpn.layer_blocks.3.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "backbone.fpn.layer_blocks.3.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "roi_heads.box_head.fc6.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "roi_heads.box_head.fc6.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        12544
+      ]
+    },
+    "roi_heads.box_head.fc7.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024
+      ]
+    },
+    "roi_heads.box_head.fc7.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    "roi_heads.box_predictor.bbox_pred.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        8
+      ]
+    },
+    "roi_heads.box_predictor.bbox_pred.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        8,
+        1024
+      ]
+    },
+    "roi_heads.box_predictor.cls_score.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        2
+      ]
+    },
+    "roi_heads.box_predictor.cls_score.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        1024
+      ]
+    },
+    "roi_heads.mask_head.0.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "roi_heads.mask_head.0.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "roi_heads.mask_head.1.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "roi_heads.mask_head.1.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "roi_heads.mask_head.2.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "roi_heads.mask_head.2.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "roi_heads.mask_head.3.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "roi_heads.mask_head.3.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    },
+    "roi_heads.mask_predictor.conv5_mask.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "roi_heads.mask_predictor.conv5_mask.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        2,
+        2
+      ]
+    },
+    "roi_heads.mask_predictor.mask_fcn_logits.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        2
+      ]
+    },
+    "roi_heads.mask_predictor.mask_fcn_logits.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        2,
+        256,
+        1,
+        1
+      ]
+    },
+    "rpn.head.bbox_pred.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        12
+      ]
+    },
+    "rpn.head.bbox_pred.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        12,
+        256,
+        1,
+        1
+      ]
+    },
+    "rpn.head.cls_logits.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        3
+      ]
+    },
+    "rpn.head.cls_logits.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        3,
+        256,
+        1,
+        1
+      ]
+    },
+    "rpn.head.conv.0.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ]
+    },
+    "rpn.head.conv.0.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        256,
+        3,
+        3
+      ]
+    }
+  },
+  "training_executed": false,
+  "versions": {
+    "numpy": "1.26.4",
+    "onnx": "1.17.0",
+    "onnxruntime": "1.22.0",
+    "torch": "2.7.0",
+    "torchvision": "0.22.0"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "focused_tests": 37,
+  "focused_exit": 0,
+  "repository_pytest_exit": 2,
+  "repository_collection_errors": [
+    "test_epd_emd_pipeline_launch.py: missing launch.actions",
+    "gui/test_gui_gpu_local_only.py: no NVIDIA device; SystemExit1"
+  ],
+  "audit_exit": 0,
+  "exact_offline_replay": true,
+  "unchanged_source_snapshots": true,
+  "checkpoint_count": 8,
+  "raw_prediction_count": 96,
+  "training_step_wall_seconds": [
+    2615.3289785539855,
+    2711.9420631858993
+  ],
+  "validation_wall_seconds": [
+    65.0730303220007,
+    62.368572898998536
+  ],
+  "stage_native_exit_codes": [
+    0,
+    0
+  ],
+  "stage_worker_wall_seconds": [
+    2697.432626146001,
+    2796.5669091450036
+  ],
+  "aggregate_worker_wall_seconds": 5493.999535291005,
+  "peak_rss_kib": 3531208,
+  "production_config_restored": true,
+  "held_out_pixels_opened": 0,
+  "historical_regression_predictions": 0,
+  "onnx_exported": false
+}

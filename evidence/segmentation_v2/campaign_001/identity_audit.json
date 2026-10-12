@@ -1,0 +1,193 @@
+{
+  "acquisition_outcomes_verified_from_manifest": 48,
+  "audit_source_sha256": "2c37c9c871354139bcbeaa471fdf24cb9d9c9a9c61e8f7504f7efe8a02f5829b",
+  "checked_scenes": [
+    {
+      "mapped_objects": 2,
+      "scene_id": "scene_000",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_001",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_002",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 3,
+      "scene_id": "scene_003",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_004",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_005",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 2,
+      "scene_id": "scene_006",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_007",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_008",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 3,
+      "scene_id": "scene_009",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_010",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_011",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 2,
+      "scene_id": "scene_012",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_013",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_014",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 3,
+      "scene_id": "scene_015",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_016",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_017",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 2,
+      "scene_id": "scene_018",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_019",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_020",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 3,
+      "scene_id": "scene_021",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_022",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_023",
+      "split": "train"
+    },
+    {
+      "mapped_objects": 2,
+      "scene_id": "scene_024",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_025",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_026",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 3,
+      "scene_id": "scene_027",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_028",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_029",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 2,
+      "scene_id": "scene_030",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_031",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_032",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 3,
+      "scene_id": "scene_033",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 4,
+      "scene_id": "scene_034",
+      "split": "validation"
+    },
+    {
+      "mapped_objects": 5,
+      "scene_id": "scene_035",
+      "split": "validation"
+    }
+  ],
+  "contract_violations": 0,
+  "executed_sources_match_preflight": {
+    "pilot.py": true,
+    "train.py": true
+  },
+  "held_out_files_opened": 0,
+  "scope": "authored object/class, unique renderer/Item/visual/link/model identities and native ownership; one-to-one mask evaluation assignments; NOT EMD runtime association or zero pixel contamination"
+}

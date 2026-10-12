@@ -1,0 +1,77 @@
+{
+  "checkpoint_saved": false,
+  "declared_budget_seconds": 10800,
+  "declared_memory_mib": 6144,
+  "estimated_full_campaign_seconds": 15439.860740788397,
+  "feasible": false,
+  "held_out_files_opened": 0,
+  "measurements": [
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.0,
+        "loss_classifier": 0.7764982581138611,
+        "loss_mask": 0.0,
+        "loss_objectness": 0.3731188178062439,
+        "loss_rpn_box_reg": 0.0
+      },
+      "objects": 0,
+      "scene_id": "scene_000",
+      "seconds": 2.28583232100209
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.1848759651184082,
+        "loss_classifier": 0.7739879488945007,
+        "loss_mask": 3.106975555419922,
+        "loss_objectness": 0.21489766240119934,
+        "loss_rpn_box_reg": 0.00874303374439478
+      },
+      "objects": 3,
+      "scene_id": "expansion_122",
+      "seconds": 2.348128782999993
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.11087233573198318,
+        "loss_classifier": 0.7941709160804749,
+        "loss_mask": 1.446704387664795,
+        "loss_objectness": 0.46677011251449585,
+        "loss_rpn_box_reg": 0.007244199980050325
+      },
+      "objects": 3,
+      "scene_id": "expansion_093",
+      "seconds": 2.044598604999919
+    },
+    {
+      "kind": "forward_backward_without_update",
+      "losses": {
+        "loss_box_reg": 0.0037303047720342875,
+        "loss_classifier": 0.79732745885849,
+        "loss_mask": 3.743577003479004,
+        "loss_objectness": 0.4622075855731964,
+        "loss_rpn_box_reg": 0.011676992289721966
+      },
+      "objects": 1,
+      "scene_id": "expansion_123",
+      "seconds": 4.033225586001208
+    },
+    {
+      "detections": 100,
+      "kind": "validation_forward_only",
+      "scene_id": "scene_024",
+      "seconds": 5.55728216100033
+    },
+    {
+      "detections": 100,
+      "kind": "validation_forward_only",
+      "scene_id": "scene_026",
+      "seconds": 2.0416555310002877
+    }
+  ],
+  "optimizer_updates": 0,
+  "peak_rss_kib": 1746548,
+  "projected_rss_kib": 2619822.0
+}

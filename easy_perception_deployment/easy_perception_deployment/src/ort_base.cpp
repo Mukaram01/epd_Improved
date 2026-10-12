@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "ort_cpp_lib/ort_base.hpp"
+#include "ort_cpp_lib/p3_model_adapter.hpp"
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
 
 #ifndef EPD_ENABLE_TENSORRT
@@ -140,6 +141,8 @@ public:
     const boost::optional<bool> & logModelInfo);
   ~OrtBaseImpl();
 
+  void validateP3OutputTypes() const;
+  void validateRgb01Model(int width, int height) const;
   int getNumOutputs(void);
   bool hasSsdDetectionOutputs() const;
   bool isInputUint8(int inputIdx) const;
@@ -170,8 +173,8 @@ private:
   std::vector<int64_t> m_inputTensorSizes;
   std::vector<int64_t> m_outputTensorSizes;
 
-  uint8_t m_numInputs;
-  uint8_t m_numOutputs;
+  size_t m_numInputs;
+  size_t m_numOutputs;
   std::string m_modelPath;
   bool m_inputShapesProvided = false;
   bool m_logModelInfo = false;
@@ -195,6 +198,34 @@ OrtBase::OrtBase(
       inputShapes,
       logModelInfo))
 {}
+
+void OrtBase::validateP3OutputTypes() const {base_impl_->validateP3OutputTypes();}
+void OrtBase::OrtBaseImpl::validateP3OutputTypes() const {
+  const std::array<int,4> types{1,7,1,1};
+  if (m_numOutputs!=4) throw std::invalid_argument("P3 requires four outputs");
+  for (size_t i=0;i<4;++i) {
+    auto owner=m_session.GetOutputTypeInfo(i);
+    if (int(owner.GetTensorTypeAndShapeInfo().GetElementType())!=types[i])
+      throw std::invalid_argument("P3 requires float boxes, int64 labels, float scores and masks");
+  }
+}
+void OrtBase::validateRgb01Model(int width, int height) const {
+  base_impl_->validateRgb01Model(width, height);
+}
+void OrtBase::OrtBaseImpl::validateRgb01Model(int width, int height) const {
+  std::vector<TensorContract> inputs, outputs;
+  for (size_t i=0;i<m_numInputs;++i) {
+    auto owner=m_session.GetInputTypeInfo(i);
+    auto info=owner.GetTensorTypeAndShapeInfo();
+    inputs.push_back({m_inputNodeNames[i],int(info.GetElementType()),info.GetShape()});
+  }
+  for (size_t i=0;i<m_numOutputs;++i) {
+    auto owner=m_session.GetOutputTypeInfo(i);
+    auto info=owner.GetTensorTypeAndShapeInfo();
+    outputs.push_back({m_outputNodeNames[i],int(info.GetElementType()),info.GetShape()});
+  }
+  validateRgb01Contract(inputs,outputs,width,height);
+}
 
 OrtBase::~OrtBase() = default;
 
@@ -417,7 +448,7 @@ void OrtBase::OrtBaseImpl::initSession()
 
 void OrtBase::OrtBaseImpl::initModelInfo()
 {
-  for (int i = 0; i < m_numInputs; i++) {
+  for (size_t i = 0; i < m_numInputs; i++) {
     Ort::TypeInfo typeInfo = m_session.GetInputTypeInfo(i);
     auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
     m_inputElementTypes.emplace_back(tensorInfo.GetElementType());
@@ -426,21 +457,24 @@ void OrtBase::OrtBaseImpl::initModelInfo()
       m_inputShapes.emplace_back(tensorInfo.GetShape());
     }
 
+    if (m_inputShapesProvided && m_inputShapes.size() != m_numInputs) throw std::invalid_argument("Input shape count mismatch");
     const auto & curInputShape = m_inputShapes[i];
-
-    m_inputTensorSizes.emplace_back(
-      std::accumulate(
-        std::begin(curInputShape),
-        std::end(curInputShape),
-        1,
-        std::multiplies<int64_t>()));
+    const auto declared = tensorInfo.GetShape();
+    if (declared.size() != curInputShape.size()) throw std::invalid_argument("Input rank mismatch");
+    for (size_t d=0; d<declared.size(); ++d)
+      if (declared[d]>0 && declared[d]!=curInputShape[d])
+        throw std::invalid_argument("Fixed model input dimension mismatch");
+    if (tensorInfo.GetElementType()!=ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT &&
+        tensorInfo.GetElementType()!=ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8)
+      throw std::invalid_argument("Unsupported input tensor type");
+    m_inputTensorSizes.emplace_back(checkedTensorSize(curInputShape, false));
 
     char * inputName = m_session.GetInputName(i, m_ortAllocator);
     m_inputNodeNames.emplace_back(strdup(inputName));
     m_ortAllocator.Free(inputName);
   }
 
-  for (int i = 0; i < m_numOutputs; ++i) {
+  for (size_t i = 0; i < m_numOutputs; ++i) {
     Ort::TypeInfo typeInfo = m_session.GetOutputTypeInfo(i);
     auto tensorInfo = typeInfo.GetTensorTypeAndShapeInfo();
 
@@ -485,7 +519,8 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
   std::vector<Ort::Value> inputTensors;
   inputTensors.reserve(m_numInputs);
   std::vector<std::vector<uint8_t>> uint8Buffers;
-  for (int i = 0; i < m_numInputs; ++i) {
+  uint8Buffers.reserve(m_numInputs);
+  for (size_t i = 0; i < m_numInputs; ++i) {
     if (m_inputElementTypes[i] == ONNX_TENSOR_ELEMENT_DATA_TYPE_UINT8) {
       const int64_t tensorSize = m_inputTensorSizes[i];
       uint8Buffers.emplace_back(static_cast<size_t>(tensorSize));
@@ -535,7 +570,9 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
   for (auto & elem : m_outputTensors) {
     outputData.emplace_back(
       std::make_pair(
-        std::move(elem.GetTensorMutableData<float>()),
+        elem.GetTensorTypeAndShapeInfo().GetElementType() == ONNX_TENSOR_ELEMENT_DATA_TYPE_INT64 ?
+          reinterpret_cast<float*>(elem.GetTensorMutableData<int64_t>()) :
+          elem.GetTensorMutableData<float>(),
         elem.GetTensorTypeAndShapeInfo().GetShape()));
   }
   return outputData;

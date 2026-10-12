@@ -1,0 +1,10 @@
+[ 66%] Built target gtest
+[ 66%] Built target gtest_main
+Consolidate compiler generated dependencies of target epd_test_p3_adapter
+[ 83%] Building CXX object CMakeFiles/epd_test_p3_adapter.dir/test/test_p3_model_adapter.cpp.o
+[100%] Linking CXX executable epd_test_p3_adapter
+[100%] Built target epd_test_p3_adapter
+Consolidate compiler generated dependencies of target epd_p3_contract_probe
+[ 25%] Building CXX object CMakeFiles/epd_p3_contract_probe.dir/test/p3_contract_probe.cpp.o
+[ 50%] Linking CXX executable epd_p3_contract_probe
+[100%] Built target epd_p3_contract_probe

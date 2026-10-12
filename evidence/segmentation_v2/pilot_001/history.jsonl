@@ -1,0 +1,2 @@
+{"epoch": 1, "step": 1, "total_loss": 1.149617075920105, "loss_classifier": 0.7764982581138611, "loss_box_reg": 0.0, "loss_mask": 0.0, "loss_objectness": 0.3731188178062439, "loss_rpn_box_reg": 0.0}
+{"epoch": 1, "step": 2, "total_loss": 2.8455729484558105, "loss_classifier": 0.6789247989654541, "loss_box_reg": 0.030618824064731598, "loss_mask": 1.7016099691390991, "loss_objectness": 0.42647233605384827, "loss_rpn_box_reg": 0.007947041653096676}

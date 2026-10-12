@@ -1,0 +1,131 @@
+{
+  "association": {
+    "accepted": 0,
+    "contact_authority": false,
+    "detections": [
+      {
+        "association": "REJECTED",
+        "bbox": [
+          370,
+          209,
+          470,
+          302
+        ],
+        "class_index": 1,
+        "confidence": 0.9878131151199341,
+        "label": "cube",
+        "prediction_index": 0,
+        "reason": "BLOCKED: physics contact: mixed, missing or ambiguous mask ID"
+      },
+      {
+        "association": "REJECTED",
+        "bbox": [
+          38,
+          210,
+          143,
+          302
+        ],
+        "class_index": 1,
+        "confidence": 0.9688777923583984,
+        "label": "cube",
+        "prediction_index": 1,
+        "reason": "BLOCKED: physics contact: mixed, missing or ambiguous mask ID"
+      },
+      {
+        "association": "REJECTED",
+        "bbox": [
+          373,
+          296,
+          393,
+          301
+        ],
+        "class_index": 1,
+        "confidence": 0.13757672905921936,
+        "label": "cube",
+        "prediction_index": 2,
+        "reason": "below original confidence threshold or invalid confidence"
+      },
+      {
+        "association": "REJECTED",
+        "bbox": [
+          94,
+          212,
+          143,
+          296
+        ],
+        "class_index": 1,
+        "confidence": 0.09454692900180817,
+        "label": "cube",
+        "prediction_index": 3,
+        "reason": "below original confidence threshold or invalid confidence"
+      }
+    ],
+    "execution_goals": 0,
+    "extraction_authority": "BLOCKED",
+    "physical_penetration": "BLOCKED",
+    "rgbd_localization": "NOT_CLAIMED_NO_DEPTH_OR_CALIBRATION",
+    "timing_authority": "BLOCKED"
+  },
+  "capture_manifest_sha256": "927cabf64d305c73bbfd48226c009cebb3454ce62d0ef20b3ef69dc197d1a264",
+  "checkpoint": {
+    "bytes": 244737507,
+    "epoch": 2,
+    "path": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_02.pt",
+    "sha256": "f3e7531c25cb20920c04283d205d7241028d7321b1ea34e2f1848415744a3b56"
+  },
+  "emd_sources": {
+    "stage_a_epd_retained.py": "fb23991be23f4b6c8d17d9d785edad75a336930fa1e8a2218c42864579e9b20f",
+    "stage_a_fragment_identity.py": "3a4f4496fdc91775f9cebc49de10d6f818de4efcdd45d0e0a5103f96e4ba4127"
+  },
+  "exported": false,
+  "held_out_files_opened": 0,
+  "ids_used_as_model_inputs": false,
+  "inference_seconds": 2.6867674460081616,
+  "input_rgb_sha256": "92f1ba8ad58b2437fa5ccf55e73d53cc9dcba469b04efefbe624ce1505585793",
+  "mapping": "unchanged EPD integer clipped bbox ROI; exact values; existing union2x2 map_mask; >.5 and >=.8",
+  "measurements": [
+    {
+      "mapped_id_counts": {
+        "0": 154,
+        "65517": 2079
+      },
+      "native512_raw_background": 310,
+      "native512_roi_background": 310,
+      "prediction_index": 0,
+      "score": 0.9878131151199341
+    },
+    {
+      "mapped_id_counts": {
+        "0": 160,
+        "65523": 2166
+      },
+      "native512_raw_background": 572,
+      "native512_roi_background": 526,
+      "prediction_index": 1,
+      "score": 0.9688777923583984
+    },
+    {
+      "mapped_id_counts": {
+        "0": 20,
+        "65517": 10
+      },
+      "native512_raw_background": 56,
+      "native512_roi_background": 39,
+      "prediction_index": 2,
+      "score": 0.13757672905921936
+    },
+    {
+      "mapped_id_counts": {
+        "0": 27,
+        "65523": 985
+      },
+      "native512_raw_background": 74,
+      "native512_roi_background": 73,
+      "prediction_index": 3,
+      "score": 0.09454692900180817
+    }
+  ],
+  "source_sha256": "c84d60526de69e071868e373e2960f8dede78ede662930d9b519f8cb63a9ff55",
+  "status": "BLOCKED_STRICT_ASSOCIATION",
+  "used_for_selection": false
+}

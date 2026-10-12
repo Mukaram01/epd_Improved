@@ -1,0 +1,34 @@
+[
+  {
+    "checkpoint": {
+      "bytes": 244737507,
+      "epoch": 1,
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_01.pt",
+      "sha256": "9a2a20377b6b9938da5b00840d4681ee0cf1b159879f80ff34340c340460f848"
+    },
+    "mean_losses": {
+      "loss_box_reg": 0.09198845906027903,
+      "loss_classifier": 0.07048894752952037,
+      "loss_mask": 0.15639614660292864,
+      "loss_objectness": 0.04958624885948666,
+      "loss_rpn_box_reg": 0.022603188170469368,
+      "total_loss": 0.5474591358548302
+    }
+  },
+  {
+    "checkpoint": {
+      "bytes": 244737507,
+      "epoch": 2,
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_02.pt",
+      "sha256": "f3e7531c25cb20920c04283d205d7241028d7321b1ea34e2f1848415744a3b56"
+    },
+    "mean_losses": {
+      "loss_box_reg": 0.08383581335345903,
+      "loss_classifier": 0.06193709607614437,
+      "loss_mask": 0.13634358325352272,
+      "loss_objectness": 0.04248856876661496,
+      "loss_rpn_box_reg": 0.02182692660532363,
+      "total_loss": 0.48277557323376336
+    }
+  }
+]

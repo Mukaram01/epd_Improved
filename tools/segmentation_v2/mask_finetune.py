@@ -18,8 +18,8 @@ from campaign import campaign_rows, epoch_order, validate_epoch, checkpoint_key
 from continuation import atomic_checkpoint
 
 
-def policy():
-    return json.loads((HERE/'mask_finetune.json').read_text())
+def policy(path=None):
+    return json.loads((path or HERE/'mask_finetune.json').read_text())
 
 
 def weighted_loss(parts, weight):
@@ -44,13 +44,15 @@ def admission(p):
     val=max(r['seconds'] for r in timings if r['kind']=='disposable_validation_forward')
     result=projection(p,train,val,max(measured['peak_rss_kib'],process['sampled_process_peak_rss_kib']),shutil.disk_usage(folder).free)
     return dict(result,resource_evidence_sha256=p['admission_sha256'],
-        basis='same original model, frozen backbone, batch1 FP32 two CPU threads; only scalar loss weight/LR differ; unchanged1.5 factor',
+        basis=('same original architecture and forward pass; mask-only backward subset; 28-grid pooling/weighted BCE covered by unchanged1.5 factor'
+            if p.get('schema')=='epd_boundary_mask/1' else
+            'same original model, frozen backbone, batch1 FP32 two CPU threads; only scalar loss weight/LR differ; unchanged1.5 factor'),
         prior_eight_epoch_admission_remains_failed=True)
 
 
 def worker(args):
     import torch,importlib.metadata
-    p=policy();admit=admission(p)
+    p=policy(args.policy);admit=admission(p)
     write_json(args.output/'admission.json',admit)
     if not admit['admitted']:raise RuntimeError('resource admission rejected')
     if torch.cuda.is_available():raise RuntimeError('CPU resource identity changed')
@@ -61,12 +63,27 @@ def worker(args):
     train,val=campaign_rows(args.artifacts,p)
     torch.set_num_threads(p['cpu_threads']);torch.use_deterministic_algorithms(True)
     random.seed(p['seed']);np.random.seed(p['seed']);torch.manual_seed(p['seed'])
-    state,metadata=unpack(safe_load(args.checkpoint,p['checkpoint_sha256']))
-    model=reconstruct(state)
+    boundary=p.get('schema')=='epd_boundary_mask/1'
+    if boundary:
+        if sha(args.checkpoint)!=p['checkpoint_sha256']:raise ValueError('original checkpoint drift')
+        initial=safe_load(Path(p['initialization_checkpoint']),p['initialization_sha256'])
+        state=initial['model'];metadata=dict(initial_epoch=initial['epoch'],initial_step=initial['step'])
+        model=reconstruct(state)
+        import torchvision.models.detection.roi_heads as roi_heads
+        from boundary_loss import boundary_maskrcnn_loss
+        from functools import partial
+        roi_heads.maskrcnn_loss=partial(boundary_maskrcnn_loss,factor=p['boundary_factor'])
+        for name,parameter in model.named_parameters():
+            parameter.requires_grad=name.startswith(('roi_heads.mask_head.','roi_heads.mask_predictor.'))
+        del initial
+    else:
+        state,metadata=unpack(safe_load(args.checkpoint,p['checkpoint_sha256']))
+        model=reconstruct(state)
     for parameter in model.backbone.parameters():parameter.requires_grad=False
     optimizer=torch.optim.SGD([v for v in model.parameters() if v.requires_grad],lr=p['learning_rate'],momentum=p['momentum'],weight_decay=p['weight_decay'])
     sources=('mask_finetune.py','mask_finetune.json','recover_original.py','original_finetune.py','train.py','campaign.py',
              'pilot.py','dataset.py','dataset_bindings.py','continuation.py','expansion.py')
+    if boundary:sources+=('boundary_loss.py','boundary_mask.json')
     binding=dict(sources={name:sha(HERE/name) for name in sources},dataset=sha(args.artifacts),original=p['checkpoint_sha256'],
         versions={name:importlib.metadata.version(name) for name in ('torch','torchvision','numpy')})
     snapshots=args.output/'executed_sources';snapshots.mkdir()
@@ -74,7 +91,12 @@ def worker(args):
     write_json(args.output/'configuration.json',dict(policy=p,binding=binding,original_metadata_self_reported=metadata,
         fresh_optimizer=True,held_out_files_opened=0,trainable_parameters=sum(v.numel() for v in model.parameters() if v.requires_grad)))
     # Genuine original baseline, same model/tensors/scorer as candidates; no Stage-A2 input in selection.
-    baseline=validate_epoch(model,val,'cpu',torch,args.output/'baseline',0,p)
+    if boundary:
+        baseline_path=Path(p['baseline_metrics'])
+        if sha(baseline_path)!=p['baseline_metrics_sha256']:raise ValueError('retained baseline changed')
+        baseline=json.loads(baseline_path.read_text())
+    else:
+        baseline=validate_epoch(model,val,'cpu',torch,args.output/'baseline',0,p)
     write_json(args.output/'baseline_summary.json',baseline)
     del state
     start=time.monotonic();history=[];checkpoints=[];scores=[]
@@ -117,14 +139,15 @@ def worker(args):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action',choices=['run','worker'])
+    parser.add_argument('--policy',type=Path,default=HERE/'mask_finetune.json')
     for name in ('checkpoint','artifacts','output'):parser.add_argument('--'+name,type=Path,required=True)
     args=parser.parse_args()
     if args.action=='worker':worker(args)
     else:
-        p=policy();admit=admission(p)
+        p=policy(args.policy);admit=admission(p)
         if not admit['admitted']:raise RuntimeError('resource admission rejected before campaign')
         args.output.mkdir()
-        command=[sys.executable,str(Path(__file__).resolve()),'worker']
+        command=[sys.executable,str(Path(__file__).resolve()),'worker','--policy',str(args.policy.resolve())]
         for name in ('checkpoint','artifacts','output'):command+=['--'+name,str(getattr(args,name).resolve())]
         process=bounded(command,args.output,p['wall_limit_seconds'],dict(os.environ,OMP_NUM_THREADS='2'),memory_mib=p['memory_mib'])
         write_json(args.output/'process.json',process);print(json.dumps(process))

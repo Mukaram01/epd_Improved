@@ -1,0 +1,93 @@
+{
+  "steps": 300,
+  "epochs": 1,
+  "distinct_training_scenes": 300,
+  "contiguous_steps": true,
+  "seeded_order_exact": true,
+  "original_checkpoint_unchanged": true,
+  "initial_checkpoint_verified": true,
+  "selected_checkpoint_verified": true,
+  "execution_sources_unchanged": true,
+  "only_mask_tensors_changed": [
+    "roi_heads.mask_head.0.0.weight",
+    "roi_heads.mask_head.0.0.bias",
+    "roi_heads.mask_head.1.0.weight",
+    "roi_heads.mask_head.1.0.bias",
+    "roi_heads.mask_head.2.0.weight",
+    "roi_heads.mask_head.2.0.bias",
+    "roi_heads.mask_head.3.0.weight",
+    "roi_heads.mask_head.3.0.bias",
+    "roi_heads.mask_predictor.conv5_mask.weight",
+    "roi_heads.mask_predictor.conv5_mask.bias",
+    "roi_heads.mask_predictor.mask_fcn_logits.weight",
+    "roi_heads.mask_predictor.mask_fcn_logits.bias"
+  ],
+  "validation_detection_arrays_identical": {
+    "scene_030": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_034": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_029": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_035": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_031": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_028": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_033": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_024": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_026": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_025": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_027": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    },
+    "scene_032": {
+      "boxes": true,
+      "labels": true,
+      "scores": true
+    }
+  },
+  "stage_a2_detection_arrays_identical": {
+    "boxes": true,
+    "labels": true,
+    "scores": true
+  },
+  "held_out_pixels_opened": 0
+}

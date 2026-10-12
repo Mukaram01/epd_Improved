@@ -1,0 +1,101 @@
+{
+  "binding": {
+    "dataset": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+    "original": "b2668971dd1230cdbc93bbc7d0182b46c91e7469717dc210052fa4eb20fa8bdb",
+    "sources": {
+      "boundary_loss.py": "a643dc2e1fe1a26835d89ea5e78e5ae4c0bba8e45af2bd635fcb96fbdecdca0d",
+      "boundary_mask.json": "70372c648b28818b329742a018824aecdd1579366818477b99632ae7f9763aed",
+      "campaign.py": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae",
+      "continuation.py": "074a6725b3ec01fd3cc2caffa48ff7b9a1c6eccc8973475868bc87242d7fcce0",
+      "dataset.py": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac",
+      "dataset_bindings.py": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3",
+      "expansion.py": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443",
+      "mask_finetune.json": "96834ddc7e5192ff178b773ed2e7c808b74871f5c016d5c7032ac5b7814e4d4f",
+      "mask_finetune.py": "2a47746c6818decf6c35afd4cbe3ecc192ac224ed5a9393c488fba1f6150c129",
+      "original_finetune.py": "eb3eb0efd9b4e056b2a0beb87633d86aa66994191ba8ae3f8cf861481b0e08f9",
+      "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+      "recover_original.py": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db",
+      "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    "versions": {
+      "numpy": "1.26.4",
+      "torch": "2.7.0",
+      "torchvision": "0.22.0"
+    }
+  },
+  "fresh_optimizer": true,
+  "held_out_files_opened": 0,
+  "original_metadata_self_reported": {
+    "initial_epoch": 2,
+    "initial_step": 600
+  },
+  "policy": {
+    "admission_evidence": "/home/user/epd-v2-artifacts/original-finetune-002",
+    "admission_sha256": "c1ae61f137a59d2bd3417f139ed29f529389c013025b497fae0b32d54d878025",
+    "aggregate_limit_seconds": 18000,
+    "base_commit": "f04de31e1d9c2399ec6a87b37fc428e480b88691",
+    "baseline_metrics": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/metrics.json",
+    "baseline_metrics_sha256": "22327ad65d5342b14bc37bceea2977ea10bb3e96c028e1c885ec47c356a1c1be",
+    "batch_size": 1,
+    "benchmark_timeout_seconds": 240,
+    "benchmark_updates": 4,
+    "boundary_factor": 4.0,
+    "checkpoint_sha256": "b2668971dd1230cdbc93bbc7d0182b46c91e7469717dc210052fa4eb20fa8bdb",
+    "classes": [
+      "__background__",
+      "cube"
+    ],
+    "confidence_threshold": 0.8,
+    "cpu_threads": 2,
+    "dataset_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+    "disk_reserve_gib": 5,
+    "eligible_order": [
+      "recovered_desc",
+      "mean_iou_desc",
+      "background_spill_asc",
+      "epoch_asc"
+    ],
+    "epochs": 1,
+    "feasibility_overhead_seconds": 240,
+    "feasibility_safety_factor": 1.5,
+    "frozen_batchnorm_eps": 0.0,
+    "gate": {
+      "background_spill_strict_lt": 1915,
+      "confidence_threshold": 0.8,
+      "mask_threshold_strict_gt": 0.5,
+      "maximum_contract_violations": 0,
+      "maximum_false_positives": 1,
+      "mean_iou_strict_gt": 0.68589,
+      "minimum_recovered": 18,
+      "positives": 22
+    },
+    "held_out_access": false,
+    "held_out_samples": 12,
+    "historical_regression_access": false,
+    "initialization": "original recovered cube weights; strict loading; no head replacement",
+    "initialization_checkpoint": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_02.pt",
+    "initialization_sha256": "f3e7531c25cb20920c04283d205d7241028d7321b1ea34e2f1848415744a3b56",
+    "internal_max_size": 1333,
+    "internal_min_size": 800,
+    "learning_rate": 0.0001,
+    "mask_loss_weight": 2.0,
+    "mask_threshold_strict_gt": 0.5,
+    "memory_mib": 6144,
+    "momentum": 0.9,
+    "precision": "float32",
+    "preprocessing": "RGB256 INTER_LINEAR RGB512 /255 CHW; original model owns mean/std and 800/1333 transform",
+    "scheduler": null,
+    "schema": "epd_boundary_mask/1",
+    "seed": 260110,
+    "torch": "2.7.0",
+    "torchvision": "0.22.0",
+    "train_backbone": false,
+    "train_mask_only": true,
+    "training_samples": 300,
+    "validation_samples": 12,
+    "wall_limit_seconds": 10800,
+    "weight_decay": 0.0001,
+    "workers": 0
+  },
+  "trainable_parameters": 2623234
+}

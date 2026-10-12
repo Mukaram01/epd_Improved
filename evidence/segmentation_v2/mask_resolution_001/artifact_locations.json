@@ -1,0 +1,127 @@
+[
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001/executed_source_failed.py",
+    "bytes": 9103,
+    "sha256": "53c6b956f8c9cd80f24cc2867c083518e85c10da6ffbe9ca91cb74f7a9d38e52"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001/failure_audit.json",
+    "bytes": 595,
+    "sha256": "cd9b9d0fdd9f0b493da692cbb9170592a86413abdbe6d8686072a281e466d434"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001/measurements.json",
+    "bytes": 389,
+    "sha256": "95f79299e469a421ead0251e7e23e182149ed4f2d5cf7e0c4792fcf2c295384b"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001/process.json",
+    "bytes": 391,
+    "sha256": "cf84063697f26d79e5c6f126c97b2a48287dacc965ce5025265cbbc120071d30"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001/stderr.log",
+    "bytes": 800,
+    "sha256": "99c70f950e467911682c2c92887e363b836a44ea45f2d3535d205477dfe9d971"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001/stdout.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/DISPOSABLE_UNQUALIFIED_56.onnx",
+    "bytes": 176309892,
+    "sha256": "93a24a2720980630b6fc525a20cb92c6e74e43443dc824da7af8e386e42556f7"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/DISPOSABLE_ort_outputs.npz",
+    "bytes": 563118,
+    "sha256": "9bcaa255d19ea1b89d71565f6dba6e8ffcd4daee1a1c3c92a2e41318c80f0ec0"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/DISPOSABLE_trace_outputs.npz",
+    "bytes": 564253,
+    "sha256": "523f30477a71428f87ddeba82b1cc48baaf468a41dbab7df2d78ca99c201cafc"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/cpp.json",
+    "bytes": 1134,
+    "sha256": "c7019b12f7d1bc6e60303c5d9fbd37fba7c85fe5ccdf6fe340ef241410aa588a"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/cpp.json.mask_0.f32",
+    "bytes": 2552,
+    "sha256": "9d9fcbcb19a0bc2e0121ff88cdd4fe5e7556df701be61f5196dba9a781d4f48e"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/cpp.json.mask_1.f32",
+    "bytes": 36,
+    "sha256": "0a550af7c8f7201b68c802361a75f994440f4a20b312d8fb03c23a9752107620"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/cpp.json.mask_2.f32",
+    "bytes": 1200,
+    "sha256": "ea1ed31624566f95213e82fea47c80df5ab463a4f66ac34a45e9dee6e62ca771"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/cpp.json.mask_3.f32",
+    "bytes": 754832,
+    "sha256": "f03f6283cc8f485dfb2511f43a3b0695ea2852976f4494ec5628d601b2c53399"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/cpp.memory.txt",
+    "bytes": 1075,
+    "sha256": "57d63389a6d8982e16bc12d35d8a415c241e3d2398e713d3cd46ca3db78e9492"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/cpp.process.json",
+    "bytes": 8389,
+    "sha256": "8ec25b4f2946cf2b78351a3b6f0af0a1388a97ccec89d500086c3bfd04648145"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/executed_source.py",
+    "bytes": 10864,
+    "sha256": "ef5c80b341d40b479c16562dad43032e2ec2b90084499a80b8c242df92d5e878"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/measurement_expansion_093.json",
+    "bytes": 396,
+    "sha256": "34f8ed188102a1099bc2fb8bc95ec282cf9f8f6e2182f96398b3383565d79fdd"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/measurement_expansion_123.json",
+    "bytes": 399,
+    "sha256": "8ba35f0f3dc10d20578d8a9640902387e13e2609c21630ce690ea07afac33248"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/measurements.json",
+    "bytes": 876,
+    "sha256": "e59d62d85774702b66c1a6ea94bf4975641531066196117a1fb5106d3cd7fddb"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/process.json",
+    "bytes": 497,
+    "sha256": "09c04966423926e8a8de0cb5d26367320b7c02a7d7d9722cd76bd7f03ee90afa"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/result.json",
+    "bytes": 2706,
+    "sha256": "17cd698f8fa30cf159250e2065ff9203be1df07b3006043c1ba1c9cd64c83dcd"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/stderr.log",
+    "bytes": 4957,
+    "sha256": "c6990fcc1d53f56284cbb765c952424848761938e4a26b3e219f412ceef6a455"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/stdout.log",
+    "bytes": 141,
+    "sha256": "76d1cb706e4cb0fb9d827b5053d6ea72a6cfe93fb78695b313ec2e66b8f92b71"
+  },
+  {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-unattempted-001/training_rgb512.png",
+    "bytes": 3253,
+    "sha256": "77a4579ad3923515ee5230777b94b04fb53384330a4fc00415f6a96279ca7861"
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "instances": 0,
+    "logits_shape": [
+      0,
+      2,
+      56,
+      56
+    ],
+    "losses": {
+      "loss_box_reg": 0.0,
+      "loss_classifier": 0.0028416085988283157,
+      "loss_mask": 0.0,
+      "loss_objectness": 0.005316752940416336,
+      "loss_rpn_box_reg": 0.0
+    },
+    "peak_rss_kib": 1167024,
+    "scene_id": "scene_000",
+    "seconds": 2.4492686740122736
+  }
+]

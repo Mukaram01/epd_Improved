@@ -1,0 +1,43 @@
+{
+  "all_unthresholded_runtime_outputs": [
+    {
+      "prediction": 0,
+      "score": 0.7629018425941467,
+      "roi_shape": [
+        29,
+        22
+      ],
+      "roi_probabilities_bitwise_exact": true
+    },
+    {
+      "prediction": 1,
+      "score": 0.40276068449020386,
+      "roi_shape": [
+        1,
+        9
+      ],
+      "roi_probabilities_bitwise_exact": true
+    },
+    {
+      "prediction": 2,
+      "score": 0.1474532186985016,
+      "roi_shape": [
+        15,
+        20
+      ],
+      "roi_probabilities_bitwise_exact": true
+    },
+    {
+      "prediction": 3,
+      "score": 0.1059923842549324,
+      "roi_shape": [
+        382,
+        494
+      ],
+      "roi_probabilities_bitwise_exact": true
+    }
+  ],
+  "confident_count": 0,
+  "no_thresholds_changed": true,
+  "acceptance_not_evaluated": true
+}

@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "torch": "2.7.0",
+    "torchvision": "0.22.0",
+    "onnx": "1.17.0",
+    "onnxruntime": "1.22.0",
+    "numpy": "1.26.4",
+    "opencv-python": "4.11.0.86"
+  },
+  "cuda": false,
+  "decision": "GO_ONE_EPOCH_ONLY",
+  "new_dependencies_installed": false,
+  "source_sha256": "ef5c80b341d40b479c16562dad43032e2ec2b90084499a80b8c242df92d5e878",
+  "review": "Read-only narrow review: no demonstrated critical or important issues; no execution or pixels accessed"
+}

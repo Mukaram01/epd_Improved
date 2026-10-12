@@ -1,0 +1,14 @@
+{
+  "completed_disposable_updates": 2,
+  "retained_measurements": 1,
+  "second_step_seconds": null,
+  "reason": "exclusive measurements.json write failed after second optimizer.step; no architecture/resource failure",
+  "process_sha256": "cf84063697f26d79e5c6f126c97b2a48287dacc965ce5025265cbbc120071d30",
+  "stderr_sha256": "99c70f950e467911682c2c92887e363b836a44ea45f2d3535d205477dfe9d971",
+  "source_sha256": "53c6b956f8c9cd80f24cc2867c083518e85c10da6ffbe9ca91cb74f7a9d38e52",
+  "unattempted_scene_ids": [
+    "expansion_093",
+    "expansion_123"
+  ],
+  "repeated_batches_permitted": false
+}

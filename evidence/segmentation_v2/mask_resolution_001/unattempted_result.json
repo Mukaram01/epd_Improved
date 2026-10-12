@@ -1,0 +1,87 @@
+{
+  "accuracy_evaluated": false,
+  "architecture": "mask_roi_pool28 -> existing four256-channel convs -> existing stride2 deconv ->56 logits",
+  "benchmark_updates": 4,
+  "campaign_updates": 0,
+  "cpp_parity": {
+    "box_max_abs": 0.0,
+    "count": 0,
+    "labels_exact": true,
+    "mask_max_abs": 0.0,
+    "roi_masks_bitwise_exact": true,
+    "score_max_abs": 0.0
+  },
+  "cpp_seconds": 13.939130671002204,
+  "dataset_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+  "disposable": true,
+  "dynamic_N_metadata": true,
+  "export_seconds": 9.567566828991403,
+  "export_sha256": "93a24a2720980630b6fc525a20cb92c6e74e43443dc824da7af8e386e42556f7",
+  "full_model_zero_detection_runtime": "NOT_TESTED",
+  "held_out_pixels_opened": 0,
+  "initialization_sha256": "f3e7531c25cb20920c04283d205d7241028d7321b1ea34e2f1848415744a3b56",
+  "measurements": [
+    {
+      "instances": 3,
+      "logits_shape": [
+        47,
+        2,
+        56,
+        56
+      ],
+      "losses": {
+        "loss_box_reg": 0.1949472427368164,
+        "loss_classifier": 0.1650225818157196,
+        "loss_mask": 0.23704825341701508,
+        "loss_objectness": 0.016319995746016502,
+        "loss_rpn_box_reg": 0.005810217000544071
+      },
+      "peak_rss_kib": 1604252,
+      "scene_id": "expansion_093",
+      "seconds": 6.606864817003952
+    },
+    {
+      "instances": 1,
+      "logits_shape": [
+        21,
+        2,
+        56,
+        56
+      ],
+      "losses": {
+        "loss_box_reg": 0.030395694077014923,
+        "loss_classifier": 0.06059909239411354,
+        "loss_mask": 0.147926464676857,
+        "loss_objectness": 0.0013500871136784554,
+        "loss_rpn_box_reg": 0.0003428481286391616
+      },
+      "peak_rss_kib": 1604252,
+      "scene_id": "expansion_123",
+      "seconds": 4.050797860996681
+    }
+  ],
+  "ort_seconds": 2.733226848009508,
+  "parity_max_abs": {
+    "boxes": 0.00017547607421875,
+    "masks": 1.2814998626708984e-05,
+    "scores": 1.6391277313232422e-06
+  },
+  "peak_rss_kib": 1716808,
+  "prior_failed_probe": "/home/user/epd-v2-artifacts/mask-resolution-feasibility-001",
+  "probe_sha256": "8b942ecc6d96d13a15e538e41b5014b2cd9dc808358df17a64f144f473f1b1e6",
+  "projected_one_epoch_seconds": 8940.642815237632,
+  "projected_rss_kib": 3094470.0,
+  "projected_two_epoch_seconds": 17319.039600281278,
+  "qualified_model": false,
+  "source_sha256": "ef5c80b341d40b479c16562dad43032e2ec2b90084499a80b8c242df92d5e878",
+  "stage_a2_inference": false,
+  "status": "FEASIBILITY_PASS",
+  "step_time_upper_bound": 17.902557232999243,
+  "tolerances": {
+    "boxes": 0.001,
+    "masks": 0.0001,
+    "scores": 1e-05
+  },
+  "training_epochs": 0,
+  "wall_seconds": 41.96460067501175
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "kind": "disposable_full_SGD_step",
+    "losses": {
+      "loss_box_reg": 0.0,
+      "loss_classifier": 1.4770754205528647e-05,
+      "loss_mask": 0.0,
+      "loss_objectness": 0.004612666089087725,
+      "loss_rpn_box_reg": 0.0
+    },
+    "peak_rss_kib": 1664452,
+    "scene_id": "scene_000",
+    "seconds": 3.2467944380041445,
+    "visible_instances": 0
+  },
+  {
+    "kind": "disposable_full_SGD_step",
+    "losses": {
+      "loss_box_reg": 0.11128251254558563,
+      "loss_classifier": 0.11120272427797318,
+      "loss_mask": 0.11425241827964783,
+      "loss_objectness": 0.006193768233060837,
+      "loss_rpn_box_reg": 0.0016872583655640483
+    },
+    "peak_rss_kib": 1891184,
+    "scene_id": "expansion_122",
+    "seconds": 4.888312534007127,
+    "visible_instances": 3
+  },
+  {
+    "kind": "disposable_full_SGD_step",
+    "losses": {
+      "loss_box_reg": 0.22281044721603394,
+      "loss_classifier": 0.23449838161468506,
+      "loss_mask": 0.20754306018352509,
+      "loss_objectness": 0.05357767269015312,
+      "loss_rpn_box_reg": 0.00642535462975502
+    },
+    "peak_rss_kib": 1901492,
+    "scene_id": "expansion_093",
+    "seconds": 4.0423373419907875,
+    "visible_instances": 3
+  },
+  {
+    "kind": "disposable_full_SGD_step",
+    "losses": {
+      "loss_box_reg": 0.0387728214263916,
+      "loss_classifier": 0.10560493916273117,
+      "loss_mask": 0.16644494235515594,
+      "loss_objectness": 0.0007674877997487783,
+      "loss_rpn_box_reg": 0.0006461976445280015
+    },
+    "peak_rss_kib": 1937768,
+    "scene_id": "expansion_123",
+    "seconds": 4.877976832009153,
+    "visible_instances": 1
+  },
+  {
+    "kind": "disposable_validation_forward",
+    "scene_id": "scene_024",
+    "seconds": 2.7147407040029066
+  },
+  {
+    "kind": "disposable_validation_forward",
+    "scene_id": "scene_026",
+    "seconds": 2.864535876986338
+  }
+]

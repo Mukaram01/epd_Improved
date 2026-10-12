@@ -1,0 +1,13 @@
+..F
+======================================================================
+FAIL: test_measurements_are_exclusive_and_do_not_overwrite_prior_steps (test_original_finetune.OriginalFinetuneTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_original_finetune.py", line 23, in test_measurements_are_exclusive_and_do_not_overwrite_prior_steps
+    self.assertTrue(hasattr(api,"save_measurement"))
+AssertionError: False is not true
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.182s
+
+FAILED (failures=1)

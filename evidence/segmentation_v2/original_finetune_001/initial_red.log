@@ -1,0 +1,25 @@
+FE
+======================================================================
+ERROR: test_initialization_and_frozen_gate (test_original_finetune.OriginalFinetuneTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_original_finetune.py", line 21, in test_initialization_and_frozen_gate
+    p=json.loads((Path(__file__).parent/'original_finetune.json').read_text())
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/original_finetune.json'
+
+======================================================================
+FAIL: test_conservative_resource_gate_and_nonfinite_rejection (test_original_finetune.OriginalFinetuneTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_original_finetune.py", line 9, in test_conservative_resource_gate_and_nonfinite_rejection
+    self.assertIsNotNone(importlib.util.find_spec('original_finetune'),'original-checkpoint admission required')
+AssertionError: unexpectedly None : original-checkpoint admission required
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.001s
+
+FAILED (failures=1, errors=1)

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/original_finetune.py", line 166, in <module>
+    if args.action=='worker':sys.exit(worker(args))
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/original_finetune.py", line 133, in worker
+    measured.append(record);write_json(args.output/'measurements.json',measured);print(json.dumps(record),flush=True)
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/pilot.py", line 35, in write_json
+    with Path(path).open('x') as f: json.dump(value, f, indent=2, sort_keys=True); f.write('\n')
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileExistsError: [Errno 17] File exists: '/home/user/epd-v2-artifacts/original-finetune-001/measurements.json'

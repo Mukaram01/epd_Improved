@@ -1,0 +1,215 @@
+{
+  "schema": "epd_original_finetune_artifacts/1",
+  "files": [
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/dataset_verification.json",
+      "bytes": 49027,
+      "sha256": "37a6d07ddf7258e69afd99b5a49d77f4281f537c54c0f85f0a9472c07f0fb407"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/campaign.py",
+      "bytes": 24258,
+      "sha256": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/dataset.py",
+      "bytes": 1690,
+      "sha256": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/dataset_bindings.py",
+      "bytes": 2404,
+      "sha256": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/expansion.py",
+      "bytes": 18457,
+      "sha256": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/integrate_dataset.py",
+      "bytes": 14168,
+      "sha256": "97663344b05cbf9cfd74c0ef3d444232468308c391f4528d6e54923f10d54e45"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/original_finetune.json",
+      "bytes": 1734,
+      "sha256": "4d4ae11c508a21a36752a58e30dff2987a1cf50d0008a2223f17672dc2490983"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/original_finetune.py",
+      "bytes": 11343,
+      "sha256": "2bb6f53a703a51f1161b0a5864cf057ac74e9c84f6291f6d503824c1795e7312"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/pilot.py",
+      "bytes": 13442,
+      "sha256": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/recover_original.py",
+      "bytes": 15641,
+      "sha256": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/executed_sources/train.py",
+      "bytes": 13821,
+      "sha256": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/identity.json",
+      "bytes": 2115,
+      "sha256": "f7dd0450436af42ffedb4abba82a5a501e2684f6995ba71ee314b162433c84bd"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/identity_audit.json",
+      "bytes": 30721,
+      "sha256": "f2a4829fb9407c2a509837ba5fb0be971efc287abbdfc18d4e4508f00200c38e"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/measurements.json",
+      "bytes": 371,
+      "sha256": "5e2929298350bb152addb106a7c90a5fdcdb25d110b72634dad33a8d9de7d929"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/process.json",
+      "bytes": 706,
+      "sha256": "7889e476f11e8971fa020f06ec6c25a81b6dc6b086c37207cd2815db7b356d38"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/stderr.log",
+      "bytes": 862,
+      "sha256": "872a4bd4f7db0c2921fff655e5c382a39283bca77275e8c599da4f4b3fa6fdc5"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-001/stdout.log",
+      "bytes": 301,
+      "sha256": "2a118c5fdafed37a085d61577b6c8e2da49e15f153b5474b3c2e6bbd173bc548"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/admission.json",
+      "bytes": 2818,
+      "sha256": "c1ae61f137a59d2bd3417f139ed29f529389c013025b497fae0b32d54d878025"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/dataset_verification.json",
+      "bytes": 49027,
+      "sha256": "37a6d07ddf7258e69afd99b5a49d77f4281f537c54c0f85f0a9472c07f0fb407"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/campaign.py",
+      "bytes": 24258,
+      "sha256": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/dataset.py",
+      "bytes": 1690,
+      "sha256": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/dataset_bindings.py",
+      "bytes": 2404,
+      "sha256": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/expansion.py",
+      "bytes": 18457,
+      "sha256": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/integrate_dataset.py",
+      "bytes": 14168,
+      "sha256": "97663344b05cbf9cfd74c0ef3d444232468308c391f4528d6e54923f10d54e45"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/original_finetune.json",
+      "bytes": 1734,
+      "sha256": "4d4ae11c508a21a36752a58e30dff2987a1cf50d0008a2223f17672dc2490983"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/original_finetune.py",
+      "bytes": 11459,
+      "sha256": "142541319a53395081d3800338e40aa94365b6d4c14273621bec92526bcbff4d"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/pilot.py",
+      "bytes": 13442,
+      "sha256": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/recover_original.py",
+      "bytes": 15641,
+      "sha256": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/executed_sources/train.py",
+      "bytes": 13821,
+      "sha256": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/identity.json",
+      "bytes": 2115,
+      "sha256": "f910909b300c95d9f84b5910ce1c728dfe01b73e924fd1a11cd208009bb97476"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/identity_audit.json",
+      "bytes": 30721,
+      "sha256": "f2a4829fb9407c2a509837ba5fb0be971efc287abbdfc18d4e4508f00200c38e"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/measurement_01.json",
+      "bytes": 340,
+      "sha256": "89a1dc375bef6b4d0d808262fdbb02cf74188eea78c9b0933347f516dfc0a583"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/measurement_02.json",
+      "bytes": 390,
+      "sha256": "5469b5238d56ba9067add9f86ada9cf9c9bb5700f4588cfb0e7c5604f1a64e67"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/measurement_03.json",
+      "bytes": 388,
+      "sha256": "88738c5d8e5d10c9568d63155e2c0eb663725b601ae7e42b955adf75928b38df"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/measurement_04.json",
+      "bytes": 390,
+      "sha256": "c26dce3a6b3a6491948c7f3a1ffbae9f385ae28aa61743cfa880075fa757df66"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/measurements.json",
+      "bytes": 1860,
+      "sha256": "d809562727d776abd54edd405e28254c174b8ad0a2a2f774f882193507158576"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/process.json",
+      "bytes": 706,
+      "sha256": "207b6880242c982802f59e092333a7fdc30aa4326e61ecc756e9ad1ca5e248dc"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-finetune-002/stdout.log",
+      "bytes": 3686,
+      "sha256": "ede89b570f2541772505c98df3819525ada60d0ca35cb6e27d78cc92735c5146"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+      "bytes": 176226850,
+      "sha256": "b2668971dd1230cdbc93bbc7d0182b46c91e7469717dc210052fa4eb20fa8bdb"
+    },
+    {
+      "path": "/home/user/stage_a_cube_model/cube_maskrcnn.onnx",
+      "bytes": 176310020,
+      "sha256": "21362d62d816bd684f2b5c7769d0bcd1cd568af86419788fca9d095c46f2bad2"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/training-expansion-002/integration/dataset.json",
+      "bytes": 390241,
+      "sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11"
+    }
+  ]
+}

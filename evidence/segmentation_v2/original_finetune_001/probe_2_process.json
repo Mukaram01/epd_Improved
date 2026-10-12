@@ -1,0 +1,20 @@
+{
+  "child_peak_rss_kib": 1951144,
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/original_finetune.py",
+    "worker",
+    "--policy",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/original_finetune.json",
+    "--checkpoint",
+    "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+    "--artifacts",
+    "/home/user/epd-v2-artifacts/training-expansion-002/integration/dataset.json",
+    "--output",
+    "/home/user/epd-v2-artifacts/original-finetune-002"
+  ],
+  "exit_code": 2,
+  "resource_limit_reason": null,
+  "sampled_process_peak_rss_kib": 1951832,
+  "wall_seconds": 40.81293233500037
+}

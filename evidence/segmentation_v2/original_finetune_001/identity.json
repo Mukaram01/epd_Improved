@@ -1,0 +1,63 @@
+{
+  "available_ram_kib": 10716088,
+  "checkpoint_metadata_self_reported": {
+    "architecture": "maskrcnn_resnet50_fpn",
+    "class_names": [
+      "background",
+      "cube"
+    ],
+    "epochs_completed": 3,
+    "num_classes": 2,
+    "torchvision_version": "0.26.0+cu130",
+    "train_images": 114,
+    "val_images": 11
+  },
+  "checkpoint_sha256": "b2668971dd1230cdbc93bbc7d0182b46c91e7469717dc210052fa4eb20fa8bdb",
+  "cpu_count": 8,
+  "cpu_model": "Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz",
+  "cuda_available": false,
+  "cuda_device_count": 0,
+  "dataset_sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11",
+  "device": "cpu",
+  "free_disk_bytes": 88269352960,
+  "frozen_backbone": true,
+  "model_transform": {
+    "max_size": 1333,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "min_size": [
+      800
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "policy_sha256": "4d4ae11c508a21a36752a58e30dff2987a1cf50d0008a2223f17672dc2490983",
+  "source_sha256": {
+    "campaign.py": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae",
+    "dataset.py": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac",
+    "dataset_bindings.py": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3",
+    "expansion.py": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443",
+    "integrate_dataset.py": "97663344b05cbf9cfd74c0ef3d444232468308c391f4528d6e54923f10d54e45",
+    "original_finetune.py": "142541319a53395081d3800338e40aa94365b6d4c14273621bec92526bcbff4d",
+    "pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "recover_original.py": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db",
+    "train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+  },
+  "strict_state_tensors": 307,
+  "torch_cuda_build": "12.6",
+  "trainable_parameters": 17123099,
+  "versions": {
+    "numpy": "1.26.4",
+    "onnx": "1.17.0",
+    "onnxruntime": "1.22.0",
+    "opencv-python": "4.11.0.86",
+    "torch": "2.7.0",
+    "torchvision": "0.22.0"
+  }
+}

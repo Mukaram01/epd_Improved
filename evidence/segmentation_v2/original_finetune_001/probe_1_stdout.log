@@ -1,0 +1,1 @@
+{"kind": "disposable_full_SGD_step", "scene_id": "scene_000", "seconds": 4.309909117000643, "visible_instances": 0, "losses": {"loss_classifier": 1.4770754205528647e-05, "loss_box_reg": 0.0, "loss_mask": 0.0, "loss_objectness": 0.004612666089087725, "loss_rpn_box_reg": 0.0}, "peak_rss_kib": 1677620}

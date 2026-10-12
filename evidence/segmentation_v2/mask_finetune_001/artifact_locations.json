@@ -1,0 +1,354 @@
+{
+  "files": [
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/admission.json",
+      "bytes": 627,
+      "sha256": "505fedb822d862fd4b1fcea2fb984660828b20ac34133547d763fb2152fc7aae"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/metrics.json",
+      "bytes": 27510,
+      "sha256": "6dfedda879383c26aa119ef7e1794164ebd6fe1fbab48ac276a7b8e79bf89a0b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_024.npz",
+      "bytes": 765,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_025.npz",
+      "bytes": 26786,
+      "sha256": "7078e30d60cc9e4fa7181eef13e3838ac0f1ad59b7a82d0f1660e06f39f6d9ce"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_026.npz",
+      "bytes": 104173,
+      "sha256": "b3957d0e150db928f8ac32f1bfdb424716e5df8af0f53bda25317e83f0d43814"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_027.npz",
+      "bytes": 27785,
+      "sha256": "b0d93eef792fd14f1cefdacfd81ff39f1bf0fef365cea4b4d322bfe39b90922a"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_028.npz",
+      "bytes": 59278,
+      "sha256": "559195e76140421d2114ac9de0988909a827ab6de54c0bded5584374623881a5"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_029.npz",
+      "bytes": 111134,
+      "sha256": "4c9e9b6877e0e389abf4258ca2af8229fb802725dd56bf34a068319c25b6d474"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_030.npz",
+      "bytes": 765,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_031.npz",
+      "bytes": 71751,
+      "sha256": "0cfb4cba6f200a143dc5fb8b77bc63cc4ce7fb8bd26895b507ee8a00e683c5a5"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_032.npz",
+      "bytes": 141659,
+      "sha256": "96f9586a1a525e431916ec2b93576abbb9dcee077c156e06cff0262f2591474b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_033.npz",
+      "bytes": 19412,
+      "sha256": "7015dc05a31359083b786498554deccaab57fe2905bbde4c4f3c5568faa12bd8"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_034.npz",
+      "bytes": 16024,
+      "sha256": "67de2c4bb4e3bee04ad7aafe635156ed85b85e851973813dbd0b5a5658b5feb5"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline/scene_035.npz",
+      "bytes": 30996,
+      "sha256": "1d5d0496c261231edb0b8e50321bd66c9cdc854369bc94463e5c4fc353195ece"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/baseline_summary.json",
+      "bytes": 27510,
+      "sha256": "6dfedda879383c26aa119ef7e1794164ebd6fe1fbab48ac276a7b8e79bf89a0b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/configuration.json",
+      "bytes": 3816,
+      "sha256": "ef40e9ed7cf26fd539315d711adf4c27ff8d39dbe33bb34edcf5ae9a84a41760"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_01.pt",
+      "bytes": 244737507,
+      "sha256": "9a2a20377b6b9938da5b00840d4681ee0cf1b159879f80ff34340c340460f848"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_01_summary.json",
+      "bytes": 29939,
+      "sha256": "507ba6a648812f16435a703d0846bf89a25e40b0bb19009342ba670af1565601"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_02.pt",
+      "bytes": 244737507,
+      "sha256": "f3e7531c25cb20920c04283d205d7241028d7321b1ea34e2f1848415744a3b56"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/epoch_02_summary.json",
+      "bytes": 30629,
+      "sha256": "790513b94a04fe2939aab87b212fd09d61ede69b23e22695272bd2c82851c6a2"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/campaign.py",
+      "bytes": 24258,
+      "sha256": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/continuation.py",
+      "bytes": 7104,
+      "sha256": "074a6725b3ec01fd3cc2caffa48ff7b9a1c6eccc8973475868bc87242d7fcce0"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/dataset.py",
+      "bytes": 1690,
+      "sha256": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/dataset_bindings.py",
+      "bytes": 2404,
+      "sha256": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/expansion.py",
+      "bytes": 18457,
+      "sha256": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/mask_finetune.json",
+      "bytes": 1970,
+      "sha256": "96834ddc7e5192ff178b773ed2e7c808b74871f5c016d5c7032ac5b7814e4d4f"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/mask_finetune.py",
+      "bytes": 8825,
+      "sha256": "5e64d14d6275120ece356b14bacc544c03255387bdc3a56b231d8811c3d26e9b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/original_finetune.py",
+      "bytes": 11493,
+      "sha256": "eb3eb0efd9b4e056b2a0beb87633d86aa66994191ba8ae3f8cf861481b0e08f9"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/pilot.py",
+      "bytes": 13442,
+      "sha256": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/recover_original.py",
+      "bytes": 15641,
+      "sha256": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/executed_sources/train.py",
+      "bytes": 13821,
+      "sha256": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/history.jsonl",
+      "bytes": 183562,
+      "sha256": "679c73caa9e1c5c6d57dca28803a1fb968693299a6762ae6de5da3ea5cd71fda"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/process.json",
+      "bytes": 596,
+      "sha256": "a6fd9c0dbea403449977387a1375ca41e5ef93a8dc56b7f18b8644786acce5b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/result.json",
+      "bytes": 93636,
+      "sha256": "e0051601219ba3b2b5a114ac2c2a7d2189d6ff164ead8b8d93e6ea3ae94a9ab5"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/stdout.log",
+      "bytes": 843,
+      "sha256": "18077332d8780ef6e97f96b6bf811855a0d55a8f1688351c2f7227374e78171f"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/metrics.json",
+      "bytes": 27571,
+      "sha256": "42651df1ddc07f710c5aac7b585e1564f0f453a1ba02d50e19381b0cb780a097"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_024.npz",
+      "bytes": 765,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_025.npz",
+      "bytes": 33817,
+      "sha256": "3ecb6299f672c57bdf94648c2523d65ee16075e1c4bcafbc63e66f305eeb5bdf"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_026.npz",
+      "bytes": 171660,
+      "sha256": "392c1231a928c470c94d516575b8f0631c00b457bbad0f23c465c1a94aed9909"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_027.npz",
+      "bytes": 30860,
+      "sha256": "a1b25a7fbe4a6ec6c348327748b2349eac44a03602d58936b68abbc69ea702f6"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_028.npz",
+      "bytes": 81306,
+      "sha256": "4d9bb8b11e4f71d80c05a0f9ccba78929e8a1cdbb8b29bed71771e58236d464c"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_029.npz",
+      "bytes": 121296,
+      "sha256": "85b9d278f6deb2e14733023b4cdfb50e15e51c05bc15ee5c1fa45184f84f0489"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_030.npz",
+      "bytes": 765,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_031.npz",
+      "bytes": 116392,
+      "sha256": "d66d3a5e8019025ccf1d86696d3e33a328b8ada1d29311c4f5cbf6daa855ebb3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_032.npz",
+      "bytes": 194161,
+      "sha256": "b9df0f8dc8227ef690510698585fe5a21f2caa35ce1a2f359907605d0ebdb78d"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_033.npz",
+      "bytes": 22325,
+      "sha256": "850eae5c866ae7e5b0fd7ceaf07fcf5902ca359b36fa37ecf8752a8fc340adda"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_034.npz",
+      "bytes": 22860,
+      "sha256": "e8f33bc9091c03d121d2c5f66ece89cb30e891e8c1cc549b8157231b5bcfb4ed"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_01/scene_035.npz",
+      "bytes": 33347,
+      "sha256": "38202d745a3dd95c251149cf77453e835dfcd614bfef3205945f58c209f1e349"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/metrics.json",
+      "bytes": 28221,
+      "sha256": "22327ad65d5342b14bc37bceea2977ea10bb3e96c028e1c885ec47c356a1c1be"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_024.npz",
+      "bytes": 79353,
+      "sha256": "1265447923c153aaa22b293f546925fce8cef22ef5015d6596e95391492f6b24"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_025.npz",
+      "bytes": 35821,
+      "sha256": "1b4698e2b3311752a628e5e01352e43e8426ec482d0224b5aa3ce429717f3f2b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_026.npz",
+      "bytes": 186659,
+      "sha256": "d941f91aaa8e524c1410a3d497e7b483e9f7e83123a9caa044cb83ebf50947e2"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_027.npz",
+      "bytes": 30819,
+      "sha256": "e2e90c8c866ff0466f0dd1145154b1acbe7a4c233d54b3d11ff73df001770489"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_028.npz",
+      "bytes": 106919,
+      "sha256": "d7b3ef17aa4eb3632a4c983cf3fa08656ac4fafa7ee4b608a4362376b8671200"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_029.npz",
+      "bytes": 139252,
+      "sha256": "130557a032559fa4729b0e2e2d4b190db80b43bc7a54b7a2aaf2e77491a5cef9"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_030.npz",
+      "bytes": 765,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_031.npz",
+      "bytes": 135731,
+      "sha256": "59ce2ebeac0631398011efc4e7fa11199f26a3aaaca05844673e45549691f935"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_032.npz",
+      "bytes": 195802,
+      "sha256": "e58dadf63bab099f4d1a8ba8701ac9b15bfed28e38b5d0ba9f98a3a3d3ed0466"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_033.npz",
+      "bytes": 22103,
+      "sha256": "cdd3f0a9e99c0958fddd98ffa552aa2ecaade841e4c373f255effa736b81e77f"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_034.npz",
+      "bytes": 22465,
+      "sha256": "c9a56503148d19ccdfcebb5de8175f817400d71cb737429cef3e1c09f7f848b7"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-001/validation_02/scene_035.npz",
+      "bytes": 75755,
+      "sha256": "4344e2ab2d80a56839c8044a67ef9edc3263ffa8b9d30e7c875c6d4955c0ca24"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-stage-a2-001/predictions.npz",
+      "bytes": 88801,
+      "sha256": "e7fd803f2cee31ef26f19b3ee4a46b5137f2d91e51fab6c0dfd9bedaaaba2a21"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-stage-a2-001/process.json",
+      "bytes": 664,
+      "sha256": "b1c6958172d3b45510fa5630a0d37caaa583282824c68a8bd757c6fefc28e149"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-stage-a2-001/result.json",
+      "bytes": 3655,
+      "sha256": "4151926ed0ec010cb60370f1ff44369187a8bc5bb73c4ef414cddcfb0e86f0d2"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-stage-a2-001/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-finetune-stage-a2-001/stdout.log",
+      "bytes": 695,
+      "sha256": "1090a6eff5cf89fc0494da6d0850d68650a9fc3bde7419b7fb518a1c92b4c6ef"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/original-cube-checkpoint/cube_maskrcnn_checkpoint_thresh_08.pth",
+      "bytes": 176226850,
+      "sha256": "b2668971dd1230cdbc93bbc7d0182b46c91e7469717dc210052fa4eb20fa8bdb"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/training-expansion-002/integration/dataset.json",
+      "bytes": 390241,
+      "sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11"
+    },
+    {
+      "path": "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/stage_a2_mask_check.py",
+      "bytes": 4623,
+      "sha256": "c84d60526de69e071868e373e2960f8dede78ede662930d9b519f8cb63a9ff55"
+    }
+  ]
+}

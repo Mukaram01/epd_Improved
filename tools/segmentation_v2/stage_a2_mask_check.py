@@ -20,7 +20,22 @@ def worker(args):
     if sha(chosen['path'])!=chosen['sha256']:raise ValueError('candidate modified')
     torch.set_num_threads(2);torch.use_deterministic_algorithms(True)
     state=torch.load(chosen['path'],map_location='cpu',weights_only=True)
-    model=make_model();model.load_state_dict(state['model'],strict=True);model.eval()
+    architecture=state.get('architecture')
+    if architecture is None:
+        # Original #221/#222 historical checkpoints use native 28-logit masks.
+        model=make_model()
+    elif architecture=='mask_roi28_logits56':
+        if (state.get('mask_roi_output_size')!=28 or state.get('mask_logits_size')!=56 or
+                state.get('step')!=300 or state.get('epoch')!=1 or
+                state.get('policy',{}).get('schema')!='epd_56_grid_one_epoch/v1'):
+            raise ValueError('56-grid checkpoint lacks complete verified architecture/training identity')
+        if run.get('architecture')!=architecture or run.get('steps')!=300 or run.get('epochs')!=1:
+            raise ValueError('Stage-A2 candidate does not match completed 56-grid campaign')
+        from mask_resolution import configure56
+        model=configure56(make_model())
+    else:
+        raise ValueError('Unknown checkpoint architecture: no implicit mask resolution')
+    model.load_state_dict(state['model'],strict=True);model.eval()
     # Lossless extraction of genuine retained artifacts. Never launch Gazebo/EMD.
     capture=args.output/'capture';capture.mkdir()
     hashes=json.loads((args.retained/'sha256.json').read_text())

@@ -86,6 +86,18 @@ capture RGB/manifest identities. Where matching external
 SHA-256 and records spatial **shared/removed/added** spill, separately
 for native512 and mapped256. This is a **comparison of already recorded
 model outputs**, not an erosion or prospective corrected mask.
+The older #221 strict report has a **legacy schema**: it contains
+`mapped_id_counts` for both confident detections, but does **not** contain
+`reference_identity`, `mapped_missing_pixels` or `native512_raw_missing`.
+For #221 only, the audit derives an identity **solely if** that archived
+detection has exactly one nonzero renderer ID whose value matches the
+explicit ID of the same cube in the later report. It records
+`DERIVED_FROM_UNAMBIGUOUS_RECORDED_ID_COUNTS`; ambiguous/mismatched ID
+counts fail closed. Unrecorded fields remain `null` and are explicitly
+labelled unknown. If the hash-verified old prediction archive is present,
+its recomputed metrics may be compared separately, without pretending
+the old JSON recorded them.
+
 If a prior predictions archive is absent, it reports
 `pixelwise_overlap: UNAVAILABLE`, retaining the hash-verified metric
 summary only; it does not invent an overlap value. A present but tampered

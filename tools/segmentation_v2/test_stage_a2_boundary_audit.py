@@ -178,6 +178,35 @@ class StageA2BoundaryAuditTests(unittest.TestCase):
             a.baseline("#221", evidence, external, self.ids256, self.ids512,
                        current, self.pred)
 
+    def test_actual_committed_221_legacy_schema_is_supported(self):
+        # #221 was recorded by an earlier Stage-A2 checker that stored
+        # mapped_id_counts but neither reference_identity nor missing pixels.
+        source = a.ROOT / "evidence/segmentation_v2/mask_finetune_001/stage_a2_result.json"
+        historic = json.loads(source.read_text())
+        first, second = historic["measurements"][:2]
+        self.assertNotIn("reference_identity", first)
+        self.assertNotIn("mapped_missing_pixels", first)
+        self.assertEqual(first["mapped_id_counts"]["65517"], 2079)
+        self.assertEqual(second["mapped_id_counts"]["65523"], 2166)
+        self.assertEqual(a.historic_reference_identity(first, 65517, "#221"),
+                         (65517, "DERIVED_FROM_UNAMBIGUOUS_RECORDED_ID_COUNTS"))
+        self.assertEqual(a.historic_reference_identity(second, 65523, "#221")[0], 65523)
+
+    def test_legacy_identity_inference_rejects_ambiguity_or_drift(self):
+        counts = {"mapped_id_counts": {"0": 1, "65517": 4}}
+        self.assertEqual(a.historic_reference_identity(counts, 65517, "#221")[0], 65517)
+        with self.assertRaisesRegex(ValueError, "ambiguous or different"):
+            a.historic_reference_identity(counts, 65523, "#221")
+        with self.assertRaisesRegex(ValueError, "ambiguous or different"):
+            a.historic_reference_identity(
+                {"mapped_id_counts": {"0": 1, "65517": 4, "65523": 1}}, 65517, "#221")
+        with self.assertRaisesRegex(ValueError, "recorded reference identity disagrees"):
+            a.historic_reference_identity(
+                {"mapped_id_counts": {"65517": 4}, "reference_identity": 65523},
+                65517, "#222")
+        with self.assertRaisesRegex(ValueError, "missing archived"):
+            a.historic_reference_identity({}, 65517, "#221")
+
     def test_distance_statistics_empty_and_outlier(self):
         empty = a.histogram(np.array([], dtype=np.float32))
         self.assertEqual(empty["pixels"], 0)

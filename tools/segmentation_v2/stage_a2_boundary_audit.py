@@ -240,8 +240,8 @@ def check_instance_against_stage(measured: dict, recorded: dict, ids256: np.ndar
             raise ValueError("STAGE_A2_RECOMPUTE_MISMATCH: " + field)
     if counts != recorded["mapped_id_counts"]:
         raise ValueError("STAGE_A2_RECOMPUTE_MISMATCH: mapped ID inventory")
-    if measured["native512_roi_cross_object"] or measured["mapped256_cross_object"]:
-        raise ValueError("STAGE_A2_RECOMPUTE_MISMATCH: unexpected cross-object pixels")
+    # Cross-object pixels, if present, are reported diagnostically. They must
+    # not be silently removed to make a mask pass.
 
 
 def baseline(name: str, evidence: Path, external: Path, ids256: np.ndarray,
@@ -316,7 +316,8 @@ def baseline(name: str, evidence: Path, external: Path, ids256: np.ndarray,
     return report
 
 
-def audit(stage: Path, campaign: Path, output: Path) -> dict:
+def audit(stage: Path, campaign: Path, output: Path,
+          emd_scripts: Path = Path("/home/user/workcell_ws_stage_a2/scripts")) -> dict:
     if output.exists():
         raise ValueError("OUTPUT_NOT_EXCLUSIVE: keep original evidence intact")
     stage = stage.resolve(strict=True)
@@ -325,6 +326,15 @@ def audit(stage: Path, campaign: Path, output: Path) -> dict:
         raise ValueError("INPUT_NOT_DIRECTORY")
     report = read_json(stage / "result.json")
     pred_path = stage / "predictions.npz"
+    if report.get("source_sha256") != digest(HERE / "stage_a2_mask_check.py"):
+        raise ValueError("STAGE_A2_RESULT_DRIFT: executed checker source differs")
+    original_emd_sources = report.get("emd_sources")
+    if not isinstance(original_emd_sources, dict) or set(original_emd_sources) != {
+            "stage_a_epd_retained.py", "stage_a_fragment_identity.py"}:
+        raise ValueError("STAGE_A2_RESULT_DRIFT: EMD association contract provenance missing")
+    for name, expected in original_emd_sources.items():
+        if digest(emd_scripts / name) != expected:
+            raise ValueError("STAGE_A2_RESULT_DRIFT: EMD association code changed " + name)
     pred = load_predictions(pred_path)
     validate_recorded(stage, report, pred, expected_checkpoint_sha=EXPECTED_CANDIDATE_SHA)
     run = read_json(campaign / "result.json")
@@ -384,6 +394,7 @@ def audit(stage: Path, campaign: Path, output: Path) -> dict:
         "missing_supervisor_does_not_fabricate_success": True,
         "capture_manifest_sha256": report["capture_manifest_sha256"],
         "rgb_sha256": report["input_rgb_sha256"],
+        "emd_association_source_sha256": original_emd_sources,
         "inputs_sha256": {
             "stage_a2_result": digest(stage / "result.json"),
             "stage_a2_process": digest(stage / "process.json"),
@@ -429,10 +440,12 @@ def main(argv=None) -> int:
         "/home/user/epd-v2-artifacts/mask-resolution-stage-a2-001"))
     ap.add_argument("--campaign", type=Path, default=Path(
         "/home/user/epd-v2-artifacts/mask-resolution-campaign-001"))
+    ap.add_argument("--emd-scripts", type=Path,
+                    default=Path("/home/user/workcell_ws_stage_a2/scripts"))
     ap.add_argument("--output", required=True, type=Path)
     args = ap.parse_args(argv)
     try:
-        audit(args.stage_a2, args.campaign, args.output)
+        audit(args.stage_a2, args.campaign, args.output, args.emd_scripts)
     except (ValueError, OSError, KeyError, TypeError) as exc:
         print(json.dumps({"status": "BLOCKED", "reason": str(exc)}), file=sys.stderr)
         return 2

@@ -75,7 +75,7 @@ class StageA2BoundaryAuditTests(unittest.TestCase):
         self.assertEqual(measured["native512_roi_background"], 0)
         self.assertEqual(measured["native512_background_removed_by_bbox"], 1)
         self.assertFalse(measured["strict_association_authority"])
-        self.assertEqual(float(self.prob[3,4]), .95)
+        self.assertEqual(self.prob[3,4], np.float32(.95))
 
     def test_invalid_probability_fails_closed(self):
         path = self.folder / "invalid.npz"

@@ -150,6 +150,14 @@ def run_worker(args) -> None:
         if sha(EVIDENCE / name) != digest:
             raise ValueError("FEASIBILITY_SOURCE_CHANGED: retained evidence changed after admission")
     binding = json.loads((args.output / "binding.json").read_text())
+    if (binding.get("checkpoint") != INITIAL_SHA or
+            binding.get("dataset") != DATASET_SHA or
+            binding.get("policy") != POLICY or
+            admission.get("checkpoint_sha256") != INITIAL_SHA or
+            admission.get("dataset_sha256") != DATASET_SHA or
+            admission.get("training_updates_authorized") != 300 or
+            admission.get("training_epochs_authorized") != 1):
+        raise ValueError("CAMPAIGN_BINDING_DRIFT: previously admitted recipe or source differs")
     for name, digest in binding["sources"].items():
         if sha(HERE / name) != digest:
             raise ValueError("TRAINING_SOURCE_CHANGED: source file changed after admission")
@@ -157,7 +165,8 @@ def run_worker(args) -> None:
         raise ValueError("TRAINING_INPUT_DRIFT: input changed after preflight")
     for name, expected in (("torch", "2.7.0"), ("torchvision", "0.22.0"),
                            ("numpy", "1.26.4"), ("opencv-python", "4.11.0.86")):
-        if importlib.metadata.version(name).split("+")[0] != expected:
+        actual = importlib.metadata.version(name)
+        if actual.split("+")[0] != expected or binding.get("versions", {}).get(name) != actual:
             raise ValueError("DEPENDENCY_DRIFT: " + name)
     if torch.cuda.is_available():
         raise ValueError("CPU_ONLY: GPU detected; not this admitted experiment")
@@ -232,8 +241,10 @@ def run_worker(args) -> None:
         if count % 50 == 0:
             print(json.dumps({"completed_updates": count, "expected_updates": 300,
                               "elapsed_seconds": time.monotonic() - start}), flush=True)
-    if len(history) != 300 or len(set(row["scene_id"] for row in history)) != 300:
-        raise ValueError("TRAINING_HISTORY_INCOMPLETE: missing or duplicated update")
+    expected_order = [train[index][0]["scene_id"] for index in epoch_order(len(train), SEED, 1)]
+    if ([row["scene_id"] for row in history] != expected_order or
+            [row["step"] for row in history] != list(range(1, 301))):
+        raise ValueError("TRAINING_HISTORY_INCOMPLETE: missing, repeated or out-of-order update")
 
     # Verify non-mask parameters and buffers were never changed, including BN
     # state, before publishing any candidate checkpoint.

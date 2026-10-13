@@ -244,6 +244,30 @@ def check_instance_against_stage(measured: dict, recorded: dict, ids256: np.ndar
     # not be silently removed to make a mask pass.
 
 
+def historic_reference_identity(measurement: dict, expected: int, name: str) -> tuple[int, str]:
+    """Old #221 recorded nonzero mapped renderer counts but omitted reference_identity.
+
+    The fallback is legal only with exactly one nonzero renderer ID in the
+    measurement's original ID inventory and agreement with the same-capture
+    selected object's explicit identity. No model output is modified.
+    """
+    counts = measurement.get("mapped_id_counts")
+    if not isinstance(counts, dict):
+        raise ValueError("REFERENCE_IDENTITY: missing archived " + name + " renderer ID counts")
+    try:
+        foreground = [int(key) for key, value in counts.items()
+                      if int(key) != 0 and type(value) is int and value > 0]
+    except (TypeError, ValueError) as exc:
+        raise ValueError("REFERENCE_IDENTITY: invalid archived ID counts") from exc
+    if len(foreground) != 1 or foreground[0] != expected:
+        raise ValueError("REFERENCE_IDENTITY: ambiguous or different renderer ID in " + name)
+    explicit = measurement.get("reference_identity")
+    if explicit is not None and (type(explicit) is not int or explicit != expected):
+        raise ValueError("REFERENCE_IDENTITY: recorded reference identity disagrees with ID counts")
+    return expected, ("EXPLICIT_AND_COUNTS" if explicit is not None
+                      else "DERIVED_FROM_UNAMBIGUOUS_RECORDED_ID_COUNTS")
+
+
 def baseline(name: str, evidence: Path, external: Path, ids256: np.ndarray,
              ids512: np.ndarray, current: dict, current_predictions: dict) -> dict:
     manifest_path = evidence / "artifact_locations.json"
@@ -259,17 +283,24 @@ def baseline(name: str, evidence: Path, external: Path, ids256: np.ndarray,
             old["capture_manifest_sha256"] != current["capture_manifest_sha256"] or
             old.get("association", {}).get("accepted") != 0):
         raise ValueError("REFERENCE_IDENTITY: incomparable capture or association")
+    if len(old.get("measurements", [])) < 2 or len(current.get("measurements", [])) < 2:
+        raise ValueError("REFERENCE_IDENTITY: incomplete archived cube inventory")
     summaries = []
     for i in (0, 1):
         measurement = old["measurements"][i]
-        if measurement["reference_identity"] != current["measurements"][i]["reference_identity"]:
-            raise ValueError("REFERENCE_IDENTITY: cube order differs")
+        expected_identity = current["measurements"][i]["reference_identity"]
+        identity, authority = historic_reference_identity(measurement, expected_identity, name)
         summaries.append({
-            "prediction_index": i,
+            "prediction_index": i, "reference_identity": identity,
+            "reference_identity_provenance": authority,
             "native512_raw_background": measurement["native512_raw_background"],
             "native512_roi_background": measurement["native512_roi_background"],
             "mapped256_background": int(measurement["mapped_id_counts"].get("0", 0)),
-            "mapped256_missing": measurement["mapped_missing_pixels"],
+            "mapped256_missing": measurement.get("mapped_missing_pixels"),
+            "native512_raw_missing": measurement.get("native512_raw_missing"),
+            "unrecorded_fields_remain_unknown": [key for key in (
+                "mapped_missing_pixels", "native512_raw_missing")
+                if key not in measurement],
         })
     report = {
         "model": name,
@@ -290,11 +321,15 @@ def baseline(name: str, evidence: Path, external: Path, ids256: np.ndarray,
         raise ValueError("REFERENCE_IDENTITY: prediction count mismatch")
     overlap = []
     for i in (0, 1):
-        identity = old["measurements"][i]["reference_identity"]
+        identity = summaries[i]["reference_identity"]
         prior, _ = instance(pred, i, identity, ids256, ids512)
         if (prior["native512_raw_background"] != summaries[i]["native512_raw_background"] or
                 prior["native512_roi_background"] != summaries[i]["native512_roi_background"] or
-                prior["mapped256_background"] != summaries[i]["mapped256_background"]):
+                prior["mapped256_background"] != summaries[i]["mapped256_background"] or
+                (summaries[i]["mapped256_missing"] is not None and
+                 prior["mapped256_missing"] != summaries[i]["mapped256_missing"]) or
+                (summaries[i]["native512_raw_missing"] is not None and
+                 prior["native512_raw_missing"] != summaries[i]["native512_raw_missing"])):
             raise ValueError("REFERENCE_IDENTITY: archived prediction metrics disagree")
         new_roi, new_map = project(current_predictions["masks"][i,0], current_predictions["boxes"][i])
         old_roi, old_map = project(pred["masks"][i,0], pred["boxes"][i])

@@ -163,10 +163,10 @@ class StageA2BoundaryAuditTests(unittest.TestCase):
             "association": {"accepted": 0},
             "measurements": [{"reference_identity": 65517,
                               "native512_raw_background": 0, "native512_roi_background": 0,
-                              "mapped_id_counts": {}, "mapped_missing_pixels": 0},
+                              "mapped_id_counts": {"65517": 4}, "mapped_missing_pixels": 0},
                              {"reference_identity": 65523,
                               "native512_raw_background": 0, "native512_roi_background": 0,
-                              "mapped_id_counts": {}, "mapped_missing_pixels": 0}],
+                              "mapped_id_counts": {"65523": 5}, "mapped_missing_pixels": 0}],
         }
         result = evidence / "stage_a2_result.json"
         result.write_text(json.dumps(old))

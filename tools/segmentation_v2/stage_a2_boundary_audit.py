@@ -230,7 +230,7 @@ def instance(pred: dict, i: int, identity: int, ids256: np.ndarray,
 def check_instance_against_stage(measured: dict, recorded: dict, ids256: np.ndarray,
                                  pred: dict, idx: int) -> None:
     identity = measured["reference_identity"]
-    roi512, mapped256 = project(pred["masks"][idx, 0], pred["boxes"][idx])
+    _, mapped256 = project(pred["masks"][idx, 0], pred["boxes"][idx])
     counts = {str(int(value)): int(n) for value, n in zip(
         *np.unique(ids256[mapped256], return_counts=True))}
     for field in ("native512_raw_background", "native512_roi_background",
@@ -338,10 +338,19 @@ def audit(stage: Path, campaign: Path, output: Path) -> dict:
     if report["checkpoint"] != chosen:
         raise ValueError("TRAINING_IDENTITY: Stage-A2 checkpoint does not match selection")
     hashes = read_json(campaign / "binding.json")
-    if (hashes.get("checkpoint") != run["reference_epoch2"].get("checkpoint_sha256", hashes.get("checkpoint")) and
-            hashes.get("checkpoint") is None):
-        raise ValueError("TRAINING_IDENTITY: no original checkpoint identity")
-    ids256, ids512, capture_hashes = read_capture(stage, report)
+    if (hashes.get("checkpoint") != "f3e7531c25cb20920c04283d205d7241028d7321b1ea34e2f1848415744a3b56" or
+            hashes.get("dataset") != "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11" or
+            hashes.get("policy", {}).get("schema") != "epd_56_grid_one_epoch/v1"):
+        raise ValueError("TRAINING_IDENTITY: original checkpoint, data or policy binding drift")
+    if Path(chosen["path"]).resolve() != (campaign / "epoch_01.pt").resolve():
+        raise ValueError("TRAINING_IDENTITY: candidate is outside recorded campaign directory")
+    history = [json.loads(line) for line in (campaign / "history.jsonl").read_text().splitlines()]
+    if (len(history) != 300 or
+            [entry.get("step") for entry in history] != list(range(1, 301)) or
+            len({entry.get("scene_id") for entry in history}) != 300 or
+            any(entry.get("epoch") != 1 for entry in history)):
+        raise ValueError("TRAINING_IDENTITY: incomplete 300-update history")
+    ids256, ids512, _ = read_capture(stage, report)
     scores = report["association"]["detections"]
     confident = [i for i, row in enumerate(scores) if row["confidence"] >= .8]
     if confident != [0, 1]:

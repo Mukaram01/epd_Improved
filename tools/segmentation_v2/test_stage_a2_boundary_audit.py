@@ -119,12 +119,12 @@ class StageA2BoundaryAuditTests(unittest.TestCase):
             "capture_manifest_sha256": "same manifest",
             "association": {"accepted": 0},
             "measurements": [
-                {"reference_identity": 65517, "native512_raw_background": 10,
+                {"native512_raw_background": 10,
                  "native512_roi_background": 8,
-                 "mapped_id_counts": {"0": 3}, "mapped_missing_pixels": 0},
-                {"reference_identity": 65523, "native512_raw_background": 12,
+                 "mapped_id_counts": {"0": 3, "65517": 4}},
+                {"native512_raw_background": 12,
                  "native512_roi_background": 11,
-                 "mapped_id_counts": {"0": 7}, "mapped_missing_pixels": 0},
+                 "mapped_id_counts": {"0": 7, "65523": 5}},
             ],
         }
         result = evidence / "stage_a2_result.json"
@@ -144,6 +144,12 @@ class StageA2BoundaryAuditTests(unittest.TestCase):
                               current, self.pred)
         self.assertEqual(base["pixelwise_overlap"], "UNAVAILABLE")
         self.assertEqual(base["summaries"][0]["mapped256_background"], 3)
+        self.assertEqual(base["summaries"][0]["reference_identity"], 65517)
+        self.assertEqual(base["summaries"][0]["reference_identity_provenance"],
+                         "DERIVED_FROM_UNAMBIGUOUS_RECORDED_ID_COUNTS")
+        self.assertIsNone(base["summaries"][0]["mapped256_missing"])
+        self.assertIn("mapped_missing_pixels",
+                      base["summaries"][0]["unrecorded_fields_remain_unknown"])
         self.assertIsNone(base["pixelwise_details"])
 
     def test_missing_archive_hash_never_claims_pixel_overlap(self):

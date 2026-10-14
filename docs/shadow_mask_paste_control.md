@@ -178,3 +178,73 @@ python3 tools/segmentation_v2/shadow_mask_paste.py \
 The CLI supervises its audit child for300s/6144MiB, preserving exclusive logs
 and `audit_process.json`. This genuine **audit** process record must never be
 substituted for the missing **training** process record.
+
+## Actual bounded admission result (2026-10-14)
+
+Preregistration and executable source were committed **before admission** in
+`ef6e6f2` (stacked on225 at `10d8e76`). Preregistration SHA256:
+`dada1f4af5c18e3fa7ce7f214c6e0adb4e2c2a24403dd9b49980d63554890d75`.
+Executed diagnostic source SHA256:
+`1b2caf356f42fac0d4e5f13606e97b46f4fa9f4687f1bf9b3991ceabc54f6d46`.
+The source remains unchanged after this run.
+
+One invocation of the documented audit command produced
+**BLOCKED_MISSING_TRAINING_PROVENANCE**, exit**2**, no resource-limit reason.
+Missing authentic record:
+`/home/user/epd-v2-artifacts/mask-resolution-campaign-001/process.json`.
+No retry, alternate provenance or synthetic supervisor was attempted.
+
+| Observed audit resource/use field | Actual value |
+|---|---:|
+| Supervised wall time | 1.753426524999668 seconds |
+| Worker's measured audit time | 1.6087276180005574 seconds |
+| Child peak RSS | 60476 KiB |
+| Sampled process peak RSS | 44388 KiB |
+| Checkpoints deserialized / models loaded | 0 |
+| CPU model inference calls | 0 |
+| Scene pixels / held-out files / Stage-A2 files opened | 0 / 0 / 0 |
+| Real-scene baseline parity | **NOT MEASURED (null)** |
+| Real-scene controlled comparisons | **NOT MEASURED (null)** |
+
+All outputs are new; prior225 reports and predictions are preserved:
+
+- `/home/user/epd-v2-artifacts/mask-paste-shadow-audit-001/admission/admission_report.json`,
+  SHA256 `fc14cd8f1ee25adb8694679ce16608e388c129ed928784f53bcb461005e660f4`.
+- `/home/user/epd-v2-artifacts/mask-paste-shadow-audit-001/audit_process.json`,
+  SHA256 `89bac1467bb36dac4098749fedc2e14dfdee83c318b7a38eaf0e97b0a45090b8`.
+- Exclusive `stdout.log`, empty `stderr.log` and retained `focused_tests.log`
+  in the same directory. The admission report includes exact source/function,
+  installed-library, checkpoint, dataset, campaign result/binding/history hashes
+  and the policy hash. It records planned scene IDs, not measured scene results.
+
+Final bounded focused suite: **35/35 PASS**, **0 failures/errors**, unittest
+runtime**0.379s**; whole process wall**4.68s**, peak RSS**619052KiB**. This is
+13 new synthetic tests plus22 existing retained-boundary regressions. Baseline
+synthetic paste parity is **bitwise exact, max absolute difference0, zero >0.5
+decision differences**. No broader model/training/inference suite was run.
+`git diff --check` passed; focused independent review found no remaining
+issues after identity-validation hardening.
+
+### Evidence conclusion and one next milestone
+
+The installed source and synthetic measurements demonstrate plausible mechanisms:
+expanded-box integer quantization, inclusive endpoints and bilinear sample-grid
+conventions can alter foreground with frozen logits. They **do not quantify any
+share of EPD's real residual spill attributable to those mechanisms**. #225's
+115 all-native-background cells and152 partial-support cells remain retained
+observations; this run did not open/re-score the acceptance capture, compare
+new models, or prove a learned-logit/paste/renderer causal split. No evidence
+here justifies another epoch, a paste replacement or changed projection.
+
+**One next corrective development milestone: provenance-admitted frozen-logit
+capture and exact paste replay on the four preregistered validation scenes.**
+Its prerequisite is recovery and independent binding of the genuine original
+training supervisor record (or an explicitly authorised provenance disposition;
+never a fabricated record). Only after that gate can a separately reviewed
+capture worker be implemented/admitted and the already-preregistered controls
+measured once. Until then real-scene root cause remains unknown.
+
+No training, weight change, threshold adjustment, erosion/dilation, oracle
+trimming, production replacement, ONNX export, ROS/Gazebo, EMD relaxation or
+motion occurred. Stage-A2 remains **0/2**, checkpoint unpromoted, training
+supervision **MISSING_UNRESOLVED**. Keep both PR225 and this stacked PR draft.

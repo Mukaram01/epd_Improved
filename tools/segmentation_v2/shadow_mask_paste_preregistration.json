@@ -1,0 +1,202 @@
+{
+  "automatic_retry": false,
+  "base_commit": "10d8e76bfaa1390f6b73e4837e59643baa149e04",
+  "campaign_files": [
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/result.json",
+      "sha256": "ecc693d2eb5222a63dbeea4c3270d14b9b0e8492b3c80e5266fe2c6feacab133"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/binding.json",
+      "sha256": "bedd3d0c7589b1ac9a85c8b1aadd200d38e958dd89a261ee38f4626388811530"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/history.jsonl",
+      "sha256": "2c10eeb6ef97d0bd34bf9863e759af7d3aed4d9168ed74266b2e4b1afe4deb86"
+    }
+  ],
+  "capture_requirement": "After authentic supervision admission only: at most one frozen CPU forward per scene, retain class logits, predicted class indices, all boxes/scores, pre/post-transform image sizes, actual Torchvision final masks and per-array SHA; no training/export. This revision stops at admission and implements pure reconstruction/measurement only; a real capture worker is intentionally not admitted/implemented while provenance is absent.",
+  "checkpoint": {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/epoch_01.pt",
+    "sha256": "bf3ac58116a3a692806ed20b25fb5414277e76da605cf0f60e2e5a23656bfbfe"
+  },
+  "control_definitions": {
+    "align_corners_true": "Change bilinear resize align_corners=False to True only; integer boxes/extents frozen.",
+    "exclusive_extent": "Change expanded-box inclusive +1 extent and associated upper slice bound to exclusive +0 only.",
+    "round_expanded_box": "Replace truncation with round-to-nearest-even on expanded paste coordinates only; all original boxes frozen."
+  },
+  "controls": [
+    "round_expanded_box",
+    "exclusive_extent",
+    "align_corners_true"
+  ],
+  "dataset": {
+    "path": "/home/user/epd-v2-artifacts/training-expansion-002/integration/dataset.json",
+    "sha256": "04c1306545833921724a6248c0a8f6a85a8dffec1a31e2b3504795eaffbe9f11"
+  },
+  "freeze": {
+    "boxes": "same original float32 boxes; derived shadow paste coordinates only",
+    "confidence_threshold": 0.8,
+    "logits": "same class-selected original float32 56x56 pre-sigmoid logits",
+    "mask_threshold_strict_gt": 0.5,
+    "scores": "same original float32 scores",
+    "upstream_roi_align": "unchanged aligned=False, output28, sampling_ratio2",
+    "weights": "all immutable"
+  },
+  "held_out_access": false,
+  "hypothesis": "Legacy expanded-box quantization, inclusive extent or bilinear pixel-grid convention materially contributes to spill independently of frozen learned logits.",
+  "identity_rule": "Once from baseline best-IoU visible target, fixed across all shadow arms; report unmatched detections and missing targets. Never use ID labels to alter probabilities/masks.",
+  "limits": {
+    "cpu_threads": 2,
+    "max_scenes": 4,
+    "rss_mib": 6144,
+    "wall_seconds": 300
+  },
+  "materiality_rule": "Report every fixed arm. Evidence of material improvement requires >=10% total background reduction in BOTH native512 ROI and mapped256, improvements on >=2 positive scenes, no per-scene IoU decrease or missing/cross-object increase, and no new negative-scene confident detection. Not a promotion/selection gate; fail or inconclusive still report.",
+  "metrics": [
+    "full_native512",
+    "original_roi_native512",
+    "conservative_union256",
+    "IoU",
+    "background_spill",
+    "missing_foreground",
+    "cross_object_spill",
+    "spill_distance_bins",
+    "probability_max_abs_difference",
+    "threshold_added_removed",
+    "union_occupancy",
+    "native512_vs_repeated256_ID_disagreement"
+  ],
+  "parity_gate": {
+    "probability_bitwise_equal": true,
+    "real_capture_required_before_controls": true,
+    "threshold_differences": 0
+  },
+  "production_replacement": false,
+  "scenes": [
+    {
+      "folder": "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_024",
+      "origin": "pilot_001",
+      "scene_id": "scene_024",
+      "seed": 26011024,
+      "sha256": {
+        "capture.json": "306d824d65e844b1d65be3090541257da31e887c3a3ab9df60f0533da96dd7b7",
+        "capture.json.ids.u32": "5d3a11e220d94f4d4994021799064fd999336ae1de111c0908c255593359a2c3",
+        "capture.json.native512.ids.u32": "21d36f4f6eec49d8c2af8f464d19730ce9e95b317b9df9a9eb4567e58452c4ce",
+        "capture.json.native512.rgb8": "d615a46a2e610b0a2f02e0417f88f7a1aeee084dfdd1aa286c241c36b42b2a14",
+        "capture.json.rgb8": "f051360db513451d42ed8a8a9c8f438ad2530e6afb4e7097a23068e101e39ae2",
+        "process.json": "fc883f62e50877f57db2944ae763c0274c0799af80e1bcc8c4871f275e07f8f2",
+        "scene.json": "25328efb2898dff1d2040c291e89decdfb39c0710d3b93cfabac1438ef39ff11",
+        "stderr.log": "e670fbdb9f009dbe820310b6b00f0d0c31f5e006e738bdf8c003eefd9760e8d3",
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world.sdf": "5c1d28920b21f2702e77e97e2a28b36be57ea1de3903c4caee83e124ecca3043"
+      },
+      "split": "validation"
+    },
+    {
+      "folder": "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_025",
+      "origin": "pilot_001",
+      "scene_id": "scene_025",
+      "seed": 26011025,
+      "sha256": {
+        "capture.json": "efd37ea425964bc7f038d212c8c03edc21973e6b42691b952aba6c9bfcb6be26",
+        "capture.json.ids.u32": "7fbbe9e9bf94e9b26d56be96d220f49b53c595354dddd1d3c5400eebcfcd4ed1",
+        "capture.json.native512.ids.u32": "41a2863d10a37d3513d6cb5787fd5114a4691cd5920a703989972f06a6ed1f25",
+        "capture.json.native512.rgb8": "e27867b45bbd835137e2c34ba256863dfcf4e7adad0a6b3c0da5ee154c8d6996",
+        "capture.json.rgb8": "0d3710cf11eb6427424ea1abc5fae7d66a822e0bf76f8150e84384f80f18b54d",
+        "process.json": "1aefd93d287898b7087378ed1a039b7433c06f9210edb4ff89b4e1b652cb79e7",
+        "scene.json": "4db7bd258de6ae2395f704181b8160acc028809df855c2a357148892fc3eb9df",
+        "stderr.log": "e670fbdb9f009dbe820310b6b00f0d0c31f5e006e738bdf8c003eefd9760e8d3",
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world.sdf": "dee726c0711a27f7ebda05ee75c9f675e7b1ba73f4f244a52bddc43cc51d13cc"
+      },
+      "split": "validation"
+    },
+    {
+      "folder": "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_026",
+      "origin": "pilot_001",
+      "scene_id": "scene_026",
+      "seed": 26011026,
+      "sha256": {
+        "capture.json": "216397d1e4882e8d27f034f1c8b25e8b4bb4452ac72bca18aa23854f79e81c17",
+        "capture.json.ids.u32": "9597fe65fe6d48017c49e39f33bc9ca2cd6e81a840813b3082e610e9e2c8531a",
+        "capture.json.native512.ids.u32": "183e9f622beadad7c3646e7247460ad4a72023e816eeb148e92fa89d85bf3017",
+        "capture.json.native512.rgb8": "21c26db0daef52b328a360bc0ee549292fdef465463bb11808a9af4bfcd2f4fe",
+        "capture.json.rgb8": "0c39ec1de5d93e4987529606e7e46ea96ac9d3eae66d07f5ab228a58cdb14aee",
+        "process.json": "c4b25e66eb884b8d8a75bb2f35e9a1d7149ba485ea093e41ecc1e8b6b5eba105",
+        "scene.json": "f710cf35cedd6e79a41534f6782e4f36d534ddf6c446a3595a0d1de7a1486472",
+        "stderr.log": "e670fbdb9f009dbe820310b6b00f0d0c31f5e006e738bdf8c003eefd9760e8d3",
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world.sdf": "4cf974910b840d8e01b2241fda6170cb248518ca97f2a0b642331fef371a2c9c"
+      },
+      "split": "validation"
+    },
+    {
+      "folder": "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_027",
+      "origin": "pilot_001",
+      "scene_id": "scene_027",
+      "seed": 26011027,
+      "sha256": {
+        "capture.json": "c897e6af34ce19b98a37683e156249b12b1997ffd87f84bedb411f833eef0674",
+        "capture.json.ids.u32": "d4f934376da8c1fafe5a5c165b5427981c073c7a5c03f8bf89e0a48201473ccb",
+        "capture.json.native512.ids.u32": "ce3d8ab42c5ed92a27e8b13a5aaa18f33bd557cf40022bd86d5e055767704dae",
+        "capture.json.native512.rgb8": "c26ae8596e4dda1da3b95feb6c39a01fc91fa48dda4ac0aff046e2bd7a537d13",
+        "capture.json.rgb8": "4b1aa0a40e7a38560c5b1699ae326e7b2c0ace969332c7235741da6eb6ee23f4",
+        "process.json": "7093b1322bfa5ad180b33274926f1d8da8630f5054a31b1dea5d9b9c3670db58",
+        "scene.json": "0834f41652ab2eb370de5f86c8d50bc1f25c3e2d8e4c862b10c4dedc0f6f12dd",
+        "stderr.log": "e670fbdb9f009dbe820310b6b00f0d0c31f5e006e738bdf8c003eefd9760e8d3",
+        "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "world.sdf": "26cbea372c38f07c4231bbfcacfd363d2cea1aa0e1ad524b68aa6ecda89b4cc9"
+      },
+      "split": "validation"
+    }
+  ],
+  "schema": "epd_shadow_paste_preregistration/v1",
+  "selection_rule": "First four lexicographic frozen validation scene IDs, scene_024..027; distinct seeds; metadata only. No output/Stage-A2 based selection. scene_024 is a preregistered negative control based on frozen scene_plan i%6==0.",
+  "source_inventory": {
+    "files_sha256": {
+      "/home/user/.local/lib/python3.10/site-packages/torch/lib/libtorch_cpu.so": "dc3f5537257da1435f82c858a92a4d7316dc6ae973f0e66f698ab39d2a70075c",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py": "0c02464c208daff72bcfcb3f0eed09a136e0766d926c08c4bfd0038eb977bc28",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/_C.so": "8cc7323e6ace3cd92531b2458381b00e6aa8f4f98406601f09e3c301a2952370",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/generalized_rcnn.py": "e3e0e9f15c7e4a30c3499ed3b19d75ae692f107df7e9a2ee48e944457890edfb",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/mask_rcnn.py": "5f51904b7d78a8ecb8b820a9ecc3df1fa5b5d88c9d4705beb430a60a70751468",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py": "521f7de74c5950499e8f00f6a514612afa8d5746d8fc6d8e9bcc860b611d0c38",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/transform.py": "31ad020ef2c23259373314b76ac5dc0f1ad2a2c44b69c68ba62f93df82d79b50",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/poolers.py": "cf36211fba683301a56310ef02f09a2fd7a683d5fbb0ce316452c4cb4cefbf9b",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/roi_align.py": "dced6acd2b5c935fe5b62c150725384e026394138febd645a10398a6c9666cd7",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/mask_resolution.py": "ef5c80b341d40b479c16562dad43032e2ec2b90084499a80b8c242df92d5e878",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/shadow_mask_paste.py": "1b2caf356f42fac0d4e5f13606e97b46f4fa9f4687f1bf9b3991ceabc54f6d46",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/stage_a2_mask_check.py": "1b0af6028fb659a97c1f5a0dc776ee8df53314310dbbf87133e8c1b97b48e3a3",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    "functions_sha256": {
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4402:interpolate": "24886b335bbac17ea8424f7761187f337b5c7f43fb5aac7217c9820ad1fea6f8",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4415:interpolate": "e316d118e461b94ad0a3d637201093e7f9273b4322d9d6ef741494f3f8b450b2",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4428:interpolate": "51af62dcfb0a3dfd674a4df44b34b909e2037866186e24545dc25f129371bced",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4441:interpolate": "527b3aaa41ced068170696b9c63cc007f889e594db55640c676b5780c5efd59b",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4453:interpolate": "294bfcce162ea7a81a047636b2568915dbdd2657fc977f1b49676a178f7278e0",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:366:expand_boxes": "3235be3db469d0de5a1df2acc20e39b9e79e3c14b827d710784a91a5f796585e",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:392:expand_masks": "4faf270e37dcf14481bf96ff55bfc50b1e464ae9c2fbffa61600c5e3f98a3e22",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:403:paste_mask_in_image": "63ca6cc6be23642c6798e754be0278973d2177a9bcb8bbe5c462b27fa9feec8c",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:474:paste_masks_in_image": "5d0b41b8e073a44217d6d93d9831b309487337724c49e32ad36e42a89a37e08c",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:52:maskrcnn_inference": "b31dae13dfd2c66c6ee44a8f9b2d9e5f5fe9afe777c3505269bb2b23d99987f1",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/transform.py:306:resize_boxes": "f53d7b1f7569d1a4200edc8894b7283cd358bc6af0e3e31e1ad127679f9da8d9",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/roi_align.py:115:_roi_align": "8c9ec7b60c239f492908d47889cd982e8746c2b0ef07b432c3806e09f99b3138",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/roi_align.py:204:roi_align": "f99daaf6e1edfadf65c7c036cc6f04446fa1956f49c1b60e486ee79c85fcd250"
+    },
+    "versions": {
+      "numpy": "1.26.4",
+      "opencv-python": "4.11.0.86",
+      "torch": "2.7.0",
+      "torchvision": "0.22.0"
+    }
+  },
+  "stage_a2_access": false,
+  "supervisor": {
+    "path": "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/process.json",
+    "rule": "Missing or unpinned authentic parent supervisor blocks inference. No reconstruction, no fallback, no automatic retry. A newly found record requires reviewed provenance binding and a new preregistration before execution.",
+    "sha256": null
+  }
+}

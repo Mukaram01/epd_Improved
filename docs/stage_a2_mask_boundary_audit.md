@@ -171,3 +171,145 @@ Relative to #221, 56-grid reduced mapped spill from 314 to 167 (net -147 = 167 r
 
 **No further training experiment authorised.** Resolve parent training supervisor provenance separately; do not fabricate a missing `process.json`. Keep PR draft and EMD strict association blocked 0/2.
 
+
+## Completed single 2x2 retained-cell diagnostic (2026-10-14)
+
+Clean branch safely fast-forwarded from `1558a7f` to `5f7e325` before work.
+`stage_a2_boundary_cells.py` implements the authorised bounded follow-up.
+It SHA-pins the completed report, verifies its coordinate archive, recomputes
+all retained current measurements/coordinates, verifies original capture bytes
+and prediction/process/result hashes, and checks both historical identities
+and archived metrics. Historical manifest hashes are independently pinned to
+committed base `5f7e325`; present unpinned/corrupt archives block, absent ones
+remain unavailable. It never loads a model or writes an acceptance mask.
+
+Actual command, executed **once**, exit **0** (historical; do not rerun):
+
+```bash
+python3 tools/segmentation_v2/stage_a2_boundary_cells.py \
+  --output /home/user/epd-v2-artifacts/mask-resolution-boundary-cells-001
+```
+
+All output remains exclusively in that new directory:
+
+- `boundary_cells_report.json`: SHA256 `e651ac21fb4eb3d4aa5056a79ee29ac1e9a6fb86e97db7b12f04c409afac98b3`
+- `boundary_cells.npz`: SHA256 `2407e96f1d7195d430bd1e142f4028699352a8877b35a6c1f926180e2fa8a409`
+
+The input retained report SHA256 is
+`4b5a82edf7169a64940f4b410e5680a2c4662dba7d29282006165c3b8a8630d9`.
+The NPZ retains `(y,x)`, four native uint32 IDs, four **unmodified float32**
+probabilities, ROI membership, strict-threshold activity and category indices.
+Sample order is top-left, top-right, bottom-left, bottom-right. Historical
+samples include each archive's own spill cells and its original probabilities,
+ROI/activity at every current spill cell, including historical negative cells.
+
+### Exclusive cell categories
+
+Cross native target/other ID presence with any active native background sample.
+An active sample is inside the original integer-truncated ROI and has `p>0.5`.
+The target-support rows below have no other ID support. Every other-ID category
+is zero; all-background/no-active-background is impossible for a selected cell.
+
+| Category (cells, not native pixels) | Cube1 ID65517 | Cube2 ID65523 |
+|---|---:|---:|
+| Native target support; no active background | 24 | 15 |
+| Native target support AND active background | 9 | 4 |
+| All four native IDs background; active background | 70 | 45 |
+| Any other ID support | 0 | 0 |
+| **Conserved mapped256 spill total** | **103** | **64** |
+
+Thus **39/167** cells are resolution-raster disagreements with exclusively
+target-labelled active samples. Another **13/167** combine native target
+support with actual native background foreground. The remaining **115/167**
+have no native target/other ID support at all. These are observational
+partitions, **not exclusive learned/paste/raster causal labels**.
+
+| Active samples per 2x2 cell | Cube1 | Cube2 |
+|---|---:|---:|
+| 1 | 18 | 7 |
+| 2 | 73 | 47 |
+| 3 | 3 | 4 |
+| 4 | 9 | 6 |
+| Inactive slots selected by union, sum(4-k) | 203 | 119 |
+
+**152/167** mapped spill cells have partial support (k<4). Within the
+all-background category, **68/70** and **41/45** have partial support; **2/4**
+respectively have four active background samples. Union therefore selects
+109 all-background cells with partial support and 6 with full support. The
+322 inactive slots quantify support expansion; they are neither 322 extra
+mapped spill cells nor a uniquely removable causal contribution. No alternate
+mapping or correction is applied.
+
+Inside these mapped-background cells there are 209/137 active native samples:
+target **58/34**, background **151/103**, other **0/0**. All four ID samples
+sum to target **64/35**, background **348/221**, other **0/0**, total **412/256**.
+This cell-restricted diagnostic is not a partition of the entire native spill
+194/242: **43/139** native background spill pixels lie outside mapped256
+background cells. In particular, the prior 13 native spill probabilities >0.9
+are outside this selected cell population; none selected here exceeds 0.9.
+
+### Threshold margins and archived comparisons
+
+Margins are float64 `p-0.5` from original float32 probabilities. Histogram
+intervals are left-inclusive/right-exclusive, final interval right-inclusive.
+Zero-margin samples are inactive; positive tables below contain active samples
+only. No threshold changes were evaluated.
+
+| Positive margin bins | [0,.05) | [.05,.1) | [.1,.25) | [.25,.4) | [.4,.5] |
+|---|---:|---:|---:|---:|---:|
+| Current cube1 active samples | 69 | 54 | 68 | 18 | 0 |
+| Current cube2 active samples | 33 | 31 | 64 | 9 | 0 |
+| Current cube1 maximum active score per cell | 29 | 25 | 39 | 10 | 0 |
+| Current cube2 maximum active score per cell | 12 | 14 | 33 | 5 | 0 |
+
+The report also retains all four sample margin histograms (including negatives)
+and category-specific maximum-margin histograms. Exact samples allow independent
+background-only histograms without treating target-support scores as background.
+
+Both archived predictions are SHA-verified on the same capture. Categories are
+computed on each model's **own** false-background cell population:
+
+| Model | Cube | Target support, no active BG | Target support + active BG | All native BG | Total |
+|---|---:|---:|---:|---:|---:|
+| #221 | 1 | 50 | 11 | 93 | 154 |
+| #221 | 2 | 7 | 12 | 141 | 160 |
+| #222 | 1 | 52 | 10 | 82 | 144 |
+| #222 | 2 | 8 | 11 | 138 | 157 |
+| Current | 1 | 24 | 9 | 70 | 103 |
+| Current | 2 | 15 | 4 | 45 | 64 |
+
+All current target-support cells (24+9 / 15+4) are shared with **both** old
+models. All **19/1 added** cells versus either old model are all-native-background.
+For #221, shared current all-background counts are **51/44**; #222 also **51/44**.
+This does not establish the cause of the new probabilities or imply monotonic
+improvement in every category (cube2 target-only spill increases).
+
+### Verification and evidence limits
+
+Final focused command:
+`python3 -m unittest discover -s tools/segmentation_v2 -p 'test_stage_a2_boundary*.py' -v`:
+**22/22 PASS**, 0 failures/errors, **0.206s**. This includes 12 retained-audit
+regressions plus 10 new tests for conservation, ROI alignment, strict threshold,
+margin bins, identity/corrupt arrays, coordinate drift, archive absence/tamper,
+manifest repinning, synthetic report publication/hash gates and output exclusivity.
+Broader model/training/inference suites were not run under this task's constraints.
+
+The one retained-data execution used diagnostic source SHA256
+`a0e03062cbbfd15999f6a39c8046a5813979ac6c22e7cc5b8328b9f18a8bd1ed`.
+Review then added an independent historical-manifest pin check (no numerical
+logic change). The final committed source therefore differs from the executed
+source. Rather than rerun or overwrite evidence, a separate read-only check
+confirmed that **both manifest and archived-prediction hashes recorded by the
+actual run match the new trusted pins**. The retained report is unchanged;
+do not describe it as an execution of the later hardening revision.
+
+**Smallest follow-up hypothesis:** partial edge support in the post-paste mask
+contributes materially to conservative-union spill even where both renderer
+resolutions agree on background (109 cells), so native-raster disagreement
+alone cannot explain the residual. A single frozen-logit/frozen-box mask-paste
+alignment control would be the narrowest prospective causal test; raw ROI logits
+are not retained here, and this hypothesis remains unproved. **No such control,
+new inference or model experiment is implemented or authorised.** No threshold
+relaxation, erosion, corrected mask, held-out access, export/promotion, ROS,
+Gazebo or EMD motion occurred. Stage-A2 remains **0/2** and training parent
+`process.json` remains **MISSING_UNRESOLVED**. Keep PR #225 draft.

@@ -1,6 +1,6 @@
 # Read-only native Stage-A2 boundary audit: 56-grid vs #221/#222
 
-**Code-only, diagnostic scope. NOT executed on Ubuntu yet. Keep the PR draft.**
+**Ubuntu execution completed: 12/12 focused tests PASS and one retained-input audit completed. Diagnostic only; keep PR draft.**
 
 ## Why this is necessary
 
@@ -32,8 +32,7 @@ python3 -m unittest discover -s tools/segmentation_v2 \
   -p 'test_stage_a2_boundary_audit.py' -v
 ```
 
-After tests PASS, execute this offline-only audit **once**, using a
-**new nonexistent** output directory:
+The following is the **historical completed command**, not a rerun instruction. The output directory already exists; do not repeat this invocation or overwrite its evidence:
 
 ```bash
 python3 tools/segmentation_v2/stage_a2_boundary_audit.py \
@@ -119,8 +118,56 @@ the audit itself successfully completes. The unchanged strict association
 remains **0/2**, the parent supervisor record remains missing, the model
 is not promoted/exported and physical grasp is unqualified.
 
-**Next decision:** inspect native/mapped spill distance distributions,
-the exact pixel-overlap deltas and high-probability spill fractions.
-Then preregister *one* hypothesis-driven training/data/geometry test
-only if the diagnostic distinguishes a meaningful failure mode. Do not
-conduct a sweep, mask erosion, threshold relaxation or automatic retry.
+## Completed Ubuntu boundary audit: observed results (2026-10-14)
+
+Operator ran `python3 -m unittest discover -s tools/segmentation_v2 -p 'test_stage_a2_boundary_audit.py' -v` on commit `1558a7f`. **12/12 PASS**, 0.347s. One previously failing synthetic test was fixed with an unambiguous ID fixture; no model/artifact changed.
+
+The single offline audit already generated:
+`/home/user/epd-v2-artifacts/mask-resolution-boundary-audit-001/boundary_report.json`
+and its retained `boundary_coordinates.npz`. Its reported decision is
+`DIAGNOSTIC_ONLY_BLOCKED_NO_PROMOTION`; strict Stage-A2 **0/2**;
+`training_supervisor_evidence=MISSING_UNRESOLVED`.
+Historical archives #221/#222 both have `pixelwise_overlap=VERIFIED_ARCHIVED_RAW_PREDICTIONS` using their committed SHA256 manifests.
+
+**Current 56-grid two confident detections (native512 distances are to independently retained visible renderer-ID silhouette):**
+
+| Metric | Cube1 ID65517 | Cube2 ID65523 |
+|---|---:|---:|
+| Raw native512 background | 194 | 242 |
+| ROI native512 background | 194 | 242 |
+| Mapped256 background | 103 | 64 |
+| Native spill distance <=1 px | 176 | 175 |
+| Native distance (1,2] px | 18 | 64 |
+| Native distance (2,3] px | 0 | 3 |
+| Native spill >3 px | 0 | 0 |
+| Native maximum distance px | 2 | 3 |
+| Mapped spill distance <=1 px | 103 | 62 |
+| Mapped spill distance (1,2] px | 0 | 2 |
+| Native foreground spill probability >0.9 | 0 | 13 |
+| Median native spill probability | 0.5932828188 | 0.6960796118 |
+| Native spill removed by bbox | 0 | 0 |
+| Native512 vs repeated256 ID disagreement within ROI foreground | 101 | 173 |
+
+All **165/167 mapped false-background cells** are within 1 pixel of the object ID silhouette at 256; the remaining 2 at ~1.414px. At 512, 351/436 false-background pixels are within 1px, 82 are in (1,2]px and 3 in (2,3]px. Those measurements are raster distances, not continuous geometric error. The 101/173 ID disagreements count **native512 versus repeated native256 ID labels under foreground**, not unique causes of background spill; do not subtract them or call them registration errors.
+
+**Exact hash-verified spill overlap (old versus 56-grid, each confident cube):**
+
+| Comparison | Cube | Mapped256 shared | Mapped256 removed | Mapped256 added | Native512 shared | Native512 removed | Native512 added |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| #221 | 1 | 84 | 70 | 19 | 146 | 164 | 48 |
+| #221 | 2 | 63 | 97 | 1 | 230 | 296 | 12 |
+| #222 | 1 | 84 | 60 | 19 | 144 | 126 | 50 |
+| #222 | 2 | 63 | 94 | 1 | 233 | 269 | 9 |
+
+Relative to #221, 56-grid reduced mapped spill from 314 to 167 (net -147 = 167 removed - 20 added). Relative to #222, mapped spill changed from 301 to 167 (net -134 = 154 removed - 20 added). The 56-grid gains are real on this scene but not an overall validation-IoU gain. Native bbox clipping removed zero background pixels in both new cubes. **Persistent near-edge false background plus 20 new mapped false cells** means increased mask resolution alone did not solve strict identity association.
+
+### Interpretation and bounded next hypothesis
+
+**Observed:** every mapped spill pixel lies within ~1.414 px of its same-resolution object silhouette; the unresolved failure is strongly *edge-localized*. No observed far-field blob. Even the 56-grid native spill pixels are <=3 px from visible-ID boundary. There is substantial independent 512-vs-256 ID disagreement within predicted foreground and no current bbox-cropping benefit.
+
+**Not established:** which share is caused by learned mask logits, Torchvision mask paste, floating-point box alignment, conservative 2x2 union mapping or independently rendered resolution-specific rasterization. Neither ID raster is model input or proof of continuous 3D geometry. Do not choose erosion, trim by renderer truth, relax `>0.5`/`>=0.8`, or call the model safe for grasp.
+
+**Smallest next step for Codex: a new read-only retained-artifact 2x2 boundary-cell attribution diagnostic, not training.** On each **mapped256** background cell where the current 56-grid mapped mask is foreground, categorise the four corresponding **native512** renderer ID samples by counts of target ID / other nonzero ID / background; count how many of those four native512 model probabilities exceed 0.5, and distinguish 256-background cells that have any native512 same-object ID support from cells whose native512 labels are all background. Count score-margin buckets above0.5 and compare the already-retained #221/#222 predictions when SHA bound. Ensure mutually exclusive buckets sum to the original 103/64 and are limited to diagnostic reporting with exact source/capture hashes. This may distinguish renderer raster disagreement and conservative 2x2 union sensitivity; it cannot uniquely identify learned-mask/paste causes. Require targeted synthetic tests, no re-inference, and a new exclusive output folder if files are generated.
+
+**No further training experiment authorised.** Resolve parent training supervisor provenance separately; do not fabricate a missing `process.json`. Keep PR draft and EMD strict association blocked 0/2.
+

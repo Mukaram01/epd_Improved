@@ -1,0 +1,220 @@
+{
+  "artifacts": {
+    "UNQUALIFIED_epoch_01.pt": {
+      "bytes": 186750271,
+      "sha256": "38bc0d71a5f11cbf5ef567403f4a18c8aeb1d9361044a05c48cd93eb8cdd73b3"
+    },
+    "admission.json": {
+      "bytes": 213,
+      "sha256": "4c783fff044f1edfb06fa85630535ff29f0e1c84e4231c0b4751cf40d1c7001d"
+    },
+    "completion.json": {
+      "bytes": 346,
+      "sha256": "e258f51d0efffda4cc9a8737164c67508f0c356cf4a9bf710a102697b7ea6ead"
+    },
+    "configuration.json": {
+      "bytes": 26254,
+      "sha256": "d6129e55e9b016b404a2555a95819919993cb81267a83aadb2703b502a1e0040"
+    },
+    "executed_sources/10_verify_gradient.py": {
+      "bytes": 2048,
+      "sha256": "66a2dd212b50e538e1c023b6d130722f4e6c97d32a7ff09cd313e45da0f4a1bb"
+    },
+    "executed_sources/11_campaign.py": {
+      "bytes": 24258,
+      "sha256": "63f3cd8cf57832533d12282fdcffa30454c78ac5d1d4bb048b6a865eb543a7ae"
+    },
+    "executed_sources/12_continuation.py": {
+      "bytes": 7104,
+      "sha256": "074a6725b3ec01fd3cc2caffa48ff7b9a1c6eccc8973475868bc87242d7fcce0"
+    },
+    "executed_sources/13_dataset.py": {
+      "bytes": 1690,
+      "sha256": "11150ea009c917ca722417d485c6729bfa895f7796acbf3d5798cda8e85466ac"
+    },
+    "executed_sources/14_dataset_bindings.py": {
+      "bytes": 2404,
+      "sha256": "1a54dbac21b321b1feda807498b9add2139dfb37433e473901c070143228b3d3"
+    },
+    "executed_sources/15_diagnostic_shadow_capture.py": {
+      "bytes": 26869,
+      "sha256": "12702816829118cb8bac72bda2ec17e3b2e4772bc5a73351b49ab42cc273177f"
+    },
+    "executed_sources/16_expansion.py": {
+      "bytes": 18457,
+      "sha256": "e4e7b36e45611f79cc5959521bf5cd9339b41f350b1440834f65a2a144248443"
+    },
+    "executed_sources/17_mask_resolution.py": {
+      "bytes": 10864,
+      "sha256": "ef5c80b341d40b479c16562dad43032e2ec2b90084499a80b8c242df92d5e878"
+    },
+    "executed_sources/18_native_boundary_aux.py": {
+      "bytes": 10314,
+      "sha256": "0c6873704393ce0a2b2e5102bb7381a44b3fbcf481d26e759937cacd278493e9"
+    },
+    "executed_sources/19_native_boundary_candidate.py": {
+      "bytes": 15173,
+      "sha256": "0b69fcfe23c8d382632de3d6808f0dbe0620fd2d8df9269e8120a95bb513fe37"
+    },
+    "executed_sources/20_native_boundary_validation.py": {
+      "bytes": 4246,
+      "sha256": "c19456fa091cec2ddcb01b64488b0b9e50ae3c332c8863eea343bdc2fce95b18"
+    },
+    "executed_sources/21_original_finetune.py": {
+      "bytes": 11493,
+      "sha256": "eb3eb0efd9b4e056b2a0beb87633d86aa66994191ba8ae3f8cf861481b0e08f9"
+    },
+    "executed_sources/22_pilot.py": {
+      "bytes": 13442,
+      "sha256": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692"
+    },
+    "executed_sources/23_recover_original.py": {
+      "bytes": 15641,
+      "sha256": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db"
+    },
+    "executed_sources/24_shadow_mask_paste.py": {
+      "bytes": 14797,
+      "sha256": "1b2caf356f42fac0d4e5f13606e97b46f4fa9f4687f1bf9b3991ceabc54f6d46"
+    },
+    "executed_sources/25_stage_a2_mask_check.py": {
+      "bytes": 5866,
+      "sha256": "1b0af6028fb659a97c1f5a0dc776ee8df53314310dbbf87133e8c1b97b48e3a3"
+    },
+    "executed_sources/26_test_native_boundary_aux.py": {
+      "bytes": 10928,
+      "sha256": "ddc212ff354618bb641bddb653132bfcb2c2e36268e25c3c083220aee15a07e6"
+    },
+    "executed_sources/27_test_native_boundary_campaign.py": {
+      "bytes": 4588,
+      "sha256": "255f3a82353f7d6b623c2e142dd0f7de5dec3fac2e1b4363d2b02d3bad8f9307"
+    },
+    "executed_sources/28_train.py": {
+      "bytes": 13821,
+      "sha256": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    "executed_sources/2_functional.py": {
+      "bytes": 241540,
+      "sha256": "0c02464c208daff72bcfcb3f0eed09a136e0766d926c08c4bfd0038eb977bc28"
+    },
+    "executed_sources/4_generalized_rcnn.py": {
+      "bytes": 4743,
+      "sha256": "e3e0e9f15c7e4a30c3499ed3b19d75ae692f107df7e9a2ee48e944457890edfb"
+    },
+    "executed_sources/5_mask_rcnn.py": {
+      "bytes": 26713,
+      "sha256": "5f51904b7d78a8ecb8b820a9ecc3df1fa5b5d88c9d4705beb430a60a70751468"
+    },
+    "executed_sources/6_roi_heads.py": {
+      "bytes": 33822,
+      "sha256": "521f7de74c5950499e8f00f6a514612afa8d5746d8fc6d8e9bcc860b611d0c38"
+    },
+    "executed_sources/7_transform.py": {
+      "bytes": 12189,
+      "sha256": "31ad020ef2c23259373314b76ac5dc0f1ad2a2c44b69c68ba62f93df82d79b50"
+    },
+    "executed_sources/8_poolers.py": {
+      "bytes": 11920,
+      "sha256": "cf36211fba683301a56310ef02f09a2fd7a683d5fbb0ce316452c4cb4cefbf9b"
+    },
+    "executed_sources/9_roi_align.py": {
+      "bytes": 11320,
+      "sha256": "dced6acd2b5c935fe5b62c150725384e026394138febd645a10398a6c9666cd7"
+    },
+    "executed_sources/binding.json": {
+      "bytes": 4410,
+      "sha256": "cc9e977b72ad8242427d05bb938ce0d1f0dd2330b0093f6554b92aacd88f4aab"
+    },
+    "history.jsonl": {
+      "bytes": 159100,
+      "sha256": "a55a5fa96f6431fa5d82b783079e4ef419a65f5864672c564ed7de50aa8381f3"
+    },
+    "launch.json": {
+      "bytes": 661,
+      "sha256": "9690e5dd6ef9c1d38955332cd356578fe3c7f7f8fa636d08a2d20eeb3cfb5465"
+    },
+    "process.json": {
+      "bytes": 1251,
+      "sha256": "cc4891ff0f0fcb66288a7e9ebea03ee2fec2133e1ee1fe8bffe04ef2951eb5c4"
+    },
+    "process_started.json": {
+      "bytes": 338,
+      "sha256": "aaf5e85c906b945339910f83f99c98e3eebe2582c5491302f1e4bf02c87b134c"
+    },
+    "result.json": {
+      "bytes": 1375,
+      "sha256": "48b077af2d4fc52388161dd0cf224f54f11bd9db46abf00f7c6ac37e819e6648"
+    },
+    "stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout.log": {
+      "bytes": 203,
+      "sha256": "01ed0622e94814749963488eb795ce4ce4b22a3a68314f05aebc0a37b88900b2"
+    },
+    "supervision.json": {
+      "bytes": 913,
+      "sha256": "6c26680c9b26f6178c42e41580d8aed11b356ac0dd18ea8d6cd2103bb63ac9b7"
+    },
+    "validation.json": {
+      "bytes": 76802,
+      "sha256": "4a40df1a135c09620e92038062daed39913be2b447f8e89f45ad669b98066f71"
+    },
+    "validation/scene_024.npz": {
+      "bytes": 79142,
+      "sha256": "920accdc1799292359a99f22a2a5f4837d0d959002688cc398e858989075411d"
+    },
+    "validation/scene_025.npz": {
+      "bytes": 34948,
+      "sha256": "b6f81fcaaf303b5778abbd111a767bdd095dab47b3230411457191993a53e65a"
+    },
+    "validation/scene_026.npz": {
+      "bytes": 180871,
+      "sha256": "7896bd5cd03b3a1273f1192f631782c1c17737ea9362edf2834094a0f7d8dbee"
+    },
+    "validation/scene_027.npz": {
+      "bytes": 29952,
+      "sha256": "cdfadc8b3cd24d2d7fe28653ebda7cac8dd6d60f99802137936fa727add3fa31"
+    },
+    "validation/scene_028.npz": {
+      "bytes": 101940,
+      "sha256": "d563fa7c717a75c64a072630588cf71c39a013c71868ab7690da370fc2717ccc"
+    },
+    "validation/scene_029.npz": {
+      "bytes": 134016,
+      "sha256": "3ab364728ef70028d07be1f24ac2b2f0de725d54f119a91b7643e8a8ad8aae67"
+    },
+    "validation/scene_030.npz": {
+      "bytes": 765,
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    "validation/scene_031.npz": {
+      "bytes": 131190,
+      "sha256": "13d50a257eed5df7dc01b5fd55d8a6f1cda885e9608632c34907f250b6fbd49d"
+    },
+    "validation/scene_032.npz": {
+      "bytes": 190833,
+      "sha256": "e4eacbc60a6da7e1b74d8e3a9e26ff8b82c232a3484c2b91f47593c44e0ac13b"
+    },
+    "validation/scene_033.npz": {
+      "bytes": 20951,
+      "sha256": "b09b57b0082e867053906e5dac4d19c153ded1df3b54f7b365a78fe006ad09c4"
+    },
+    "validation/scene_034.npz": {
+      "bytes": 23495,
+      "sha256": "73396b6855ce36aaf16262665e2d2e925ff6687331ea858c5b89b05ea7adebae"
+    },
+    "validation/scene_035.npz": {
+      "bytes": 76239,
+      "sha256": "a9dc2e7926975fab75a8e297f8fe9d3e17024b951730fa0770791dbd5f5d232f"
+    },
+    "worker_identity.json": {
+      "bytes": 61,
+      "sha256": "5a8ee8a9e4b5b4d041ba26096b595015e8f2449987cb8e1e4e627bd0d690ec3f"
+    }
+  },
+  "base_commit": "6cbb12b86c4351676eb4822d674f90ba5ac5b33e",
+  "output": "/home/user/epd-v2-artifacts/native-boundary-candidate-001",
+  "parent_cli_exit_code": 2,
+  "parent_cli_exit_semantics": "completed training and validation; candidate rejected; actual exec session54470 observed exit2"
+}

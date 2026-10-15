@@ -1,0 +1,9 @@
+{
+  "decision": "COMPLETE_TRAINING_ONLY",
+  "no_retry": true,
+  "original_training_supervision": "UNKNOWN",
+  "process_sha256": "cc4891ff0f0fcb66288a7e9ebea03ee2fec2133e1ee1fe8bffe04ef2951eb5c4",
+  "production_qualified": false,
+  "result_sha256": "48b077af2d4fc52388161dd0cf224f54f11bd9db46abf00f7c6ac37e819e6648",
+  "stage_a2": "BLOCKED_0/2"
+}

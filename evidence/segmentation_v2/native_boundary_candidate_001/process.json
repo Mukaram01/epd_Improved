@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_candidate.py",
+    "--worker",
+    "--authorise-one-campaign",
+    "--config",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_candidate.json",
+    "--review",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/native_boundary_implementation_001/independent_review.json",
+    "--review-sha256",
+    "fcb9eb79b5f0255d95a006685b71bcb70b0a5f78d41aaa9d80474b6cd6f634c6"
+  ],
+  "exit_code": 0,
+  "exit_code_semantics": "supervised worker OS exit, not supervisor self-observed OS exit",
+  "failure": null,
+  "finished_unix_ns": 1792077373111798012,
+  "pdeathsig": "SIGKILL",
+  "peak_worker_rss_kib": 3676856,
+  "process_group_cleanup": true,
+  "resource_limit_reason": null,
+  "rss_enforcement": "VmRSS/VmHWM polling plus final wait4 high-water check; not kernel cgroup memory.max",
+  "sampling_interval_seconds": 0.02,
+  "schema": "epd_training_supervisor/v1",
+  "started_unix_ns": 1792075212017320246,
+  "status": "WORKER_COMPLETED",
+  "supervision_sha256": "6c26680c9b26f6178c42e41580d8aed11b356ac0dd18ea8d6cd2103bb63ac9b7",
+  "supervisor_pid": 44898,
+  "wall_seconds": 2161.0899834059965
+}

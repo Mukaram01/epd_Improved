@@ -1,0 +1,494 @@
+{
+  "acceptance_failures": [
+    "DETECTION_REGRESSION",
+    "INSTANCE_REGRESSION",
+    "MATERIALITY_mapped",
+    "SENTINEL_MATERIALITY_mapped"
+  ],
+  "checkpoint_sha256": "38bc0d71a5f11cbf5ef567403f4a18c8aeb1d9361044a05c48cd93eb8cdd73b3",
+  "checks": {
+    "all12_archives_bound_finite": true,
+    "all12_frozen_boxes_scores_labels": true,
+    "all_numeric_finite": true,
+    "checkpoint_binding": true,
+    "checkpoint_payload_binding": true,
+    "configuration_binding": true,
+    "dataset_binding": true,
+    "durable_running": true,
+    "evidence_bindings": true,
+    "frozen_state_digest_independent": true,
+    "frozen_tensors_bitwise": true,
+    "history_300_exact_order": true,
+    "history_binding": true,
+    "independent_gate_matches": true,
+    "initializer_binding": true,
+    "logs_complete": true,
+    "no_surviving_worker": true,
+    "process_binding": true,
+    "resources": true,
+    "result_binding": true,
+    "sentinel_baseline_mapped": true,
+    "sentinel_baseline_native": true,
+    "source_bindings": true,
+    "supervision_binding": true,
+    "validation_12_membership": true,
+    "validation_binding": true,
+    "worker_completion": true
+  },
+  "decision": "VERIFIED_REJECTED_CANDIDATE",
+  "documentation_review": {
+    "checks": [
+      "Actual resource and genuine worker/parent receipt distinction",
+      "Fullsplit and sentinel spill, missing, cross-object, mean IoU, recall and negative-scene measurements",
+      "17native/9mapped missing regressions,6native/1mapped IoU regressions",
+      "Correct rejection and no production/StageA2/original-supervision qualification"
+    ],
+    "decision": "ACCURATE",
+    "path": "docs/native_boundary_candidate_001.md",
+    "sha256": "47b0ec4cb1df6b6c21e52107066a47110ffa7500a875fc0759c9224119bcc1f8"
+  },
+  "errors": [],
+  "history_order_contract": "Manifest preserved train-record order, random.Random(seed260110).shuffle300; independently matches all300 scene IDs and sequential steps",
+  "instance_regressions": [
+    {
+      "baseline": {
+        "missing_foreground": 50
+      },
+      "candidate": {
+        "missing_foreground": 78
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65508",
+      "raster": "native",
+      "scene": "scene_025"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 4
+      },
+      "candidate": {
+        "missing_foreground": 9
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65508",
+      "raster": "mapped",
+      "scene": "scene_025"
+    },
+    {
+      "baseline": {
+        "iou": 0.8438552188552189,
+        "missing_foreground": 271
+      },
+      "candidate": {
+        "iou": 0.8378378378378378,
+        "missing_foreground": 292
+      },
+      "fields": [
+        "missing_foreground",
+        "iou"
+      ],
+      "owner": "65496",
+      "raster": "native",
+      "scene": "scene_026"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 16
+      },
+      "candidate": {
+        "missing_foreground": 31
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65501",
+      "raster": "native",
+      "scene": "scene_026"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 42
+      },
+      "candidate": {
+        "missing_foreground": 45
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65496",
+      "raster": "mapped",
+      "scene": "scene_026"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 2
+      },
+      "candidate": {
+        "missing_foreground": 3
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65501",
+      "raster": "mapped",
+      "scene": "scene_026"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 43
+      },
+      "candidate": {
+        "missing_foreground": 58
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65510",
+      "raster": "native",
+      "scene": "scene_027"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 0
+      },
+      "candidate": {
+        "missing_foreground": 3
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65510",
+      "raster": "mapped",
+      "scene": "scene_027"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 106
+      },
+      "candidate": {
+        "missing_foreground": 116
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65503",
+      "raster": "native",
+      "scene": "scene_028"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 52
+      },
+      "candidate": {
+        "missing_foreground": 59
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65508",
+      "raster": "native",
+      "scene": "scene_028"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 14
+      },
+      "candidate": {
+        "missing_foreground": 16
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65503",
+      "raster": "mapped",
+      "scene": "scene_028"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 28
+      },
+      "candidate": {
+        "missing_foreground": 39
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65496",
+      "raster": "native",
+      "scene": "scene_029"
+    },
+    {
+      "baseline": {
+        "iou": 0.8578803522623747,
+        "missing_foreground": 347
+      },
+      "candidate": {
+        "iou": 0.8556638246041413,
+        "missing_foreground": 362
+      },
+      "fields": [
+        "missing_foreground",
+        "iou"
+      ],
+      "owner": "65506",
+      "raster": "native",
+      "scene": "scene_029"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 4
+      },
+      "candidate": {
+        "missing_foreground": 7
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65496",
+      "raster": "mapped",
+      "scene": "scene_029"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 64
+      },
+      "candidate": {
+        "missing_foreground": 66
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65506",
+      "raster": "mapped",
+      "scene": "scene_029"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 156
+      },
+      "candidate": {
+        "missing_foreground": 170
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65508",
+      "raster": "native",
+      "scene": "scene_031"
+    },
+    {
+      "baseline": {
+        "iou": 0.8398637137989778,
+        "missing_foreground": 824
+      },
+      "candidate": {
+        "iou": 0.834754595414061,
+        "missing_foreground": 856
+      },
+      "fields": [
+        "missing_foreground",
+        "iou"
+      ],
+      "owner": "65496",
+      "raster": "native",
+      "scene": "scene_032"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 83
+      },
+      "candidate": {
+        "missing_foreground": 95
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65501",
+      "raster": "native",
+      "scene": "scene_032"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 36
+      },
+      "candidate": {
+        "missing_foreground": 40
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65506",
+      "raster": "native",
+      "scene": "scene_032"
+    },
+    {
+      "baseline": {
+        "iou": 0.8634658664666166,
+        "missing_foreground": 171
+      },
+      "candidate": {
+        "iou": 0.8616541353383459,
+        "missing_foreground": 176
+      },
+      "fields": [
+        "missing_foreground",
+        "iou"
+      ],
+      "owner": "65496",
+      "raster": "mapped",
+      "scene": "scene_032"
+    },
+    {
+      "baseline": {
+        "iou": 0.9811377245508982,
+        "missing_foreground": 33
+      },
+      "candidate": {
+        "iou": 0.9810697115384616,
+        "missing_foreground": 45
+      },
+      "fields": [
+        "missing_foreground",
+        "iou"
+      ],
+      "owner": "65510",
+      "raster": "native",
+      "scene": "scene_033"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 0
+      },
+      "candidate": {
+        "missing_foreground": 1
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65510",
+      "raster": "mapped",
+      "scene": "scene_033"
+    },
+    {
+      "baseline": {
+        "iou": 0.9453551912568307,
+        "missing_foreground": 25
+      },
+      "candidate": {
+        "iou": 0.9436813186813187,
+        "missing_foreground": 30
+      },
+      "fields": [
+        "missing_foreground",
+        "iou"
+      ],
+      "owner": "65503",
+      "raster": "native",
+      "scene": "scene_034"
+    },
+    {
+      "baseline": {
+        "iou": 0.9586877278250304,
+        "missing_foreground": 34
+      },
+      "candidate": {
+        "iou": 0.9577981651376147,
+        "missing_foreground": 46
+      },
+      "fields": [
+        "missing_foreground",
+        "iou"
+      ],
+      "owner": "65508",
+      "raster": "native",
+      "scene": "scene_034"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 17
+      },
+      "candidate": {
+        "missing_foreground": 24
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65501",
+      "raster": "native",
+      "scene": "scene_035"
+    },
+    {
+      "baseline": {
+        "missing_foreground": 33
+      },
+      "candidate": {
+        "missing_foreground": 39
+      },
+      "fields": [
+        "missing_foreground"
+      ],
+      "owner": "65506",
+      "raster": "native",
+      "scene": "scene_035"
+    }
+  ],
+  "live_evidence_observed": {
+    "cpu_environment_threads": 2,
+    "cuda_visible_devices": "",
+    "durable_status": "RUNNING",
+    "parent": 44898,
+    "worker": 44906,
+    "worker_pgid_sid": 44906
+  },
+  "mask_tensors_changed": 12,
+  "method": "Read-only retained metadata/hash/history/scalar-gate/NPZ identity and safe tensor payload verification; no inference, training or tests executed",
+  "negative_scenes": [
+    {
+      "detections": 0,
+      "scene_id": "scene_024"
+    },
+    {
+      "detections": 0,
+      "scene_id": "scene_030"
+    }
+  ],
+  "nonmask_tensors_checked": 295,
+  "original_56_training_supervision": "UNKNOWN",
+  "production_qualified": false,
+  "resource": {
+    "exit_code": 0,
+    "peak_worker_rss_kib": 3676856,
+    "process_group_cleanup": true,
+    "resource_limit_reason": null,
+    "wall_seconds": 2161.0899834059965
+  },
+  "reviewer": "/root/campaign_verification",
+  "schema": "epd_independent_campaign_verification/v1",
+  "stage_a2": "BLOCKED_0/2",
+  "updates": 300,
+  "validation_scenes": 12,
+  "validation_summary": {
+    "mapped": {
+      "baseline_missing": 1183,
+      "baseline_spill": 647,
+      "candidate_missing": 1207,
+      "candidate_spill": 527,
+      "reduction_percent": 18.547140649149917,
+      "sentinel_baseline": 214,
+      "sentinel_candidate": 175
+    },
+    "native": {
+      "baseline_missing": 5620,
+      "baseline_spill": 1193,
+      "candidate_missing": 5846,
+      "candidate_spill": 888,
+      "reduction_percent": 25.565800502933776,
+      "sentinel_baseline": 441,
+      "sentinel_candidate": 328
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_candidate.py",
+    "--worker",
+    "--authorise-one-campaign",
+    "--config",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_candidate.json",
+    "--review",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/native_boundary_implementation_001/independent_review.json",
+    "--review-sha256",
+    "fcb9eb79b5f0255d95a006685b71bcb70b0a5f78d41aaa9d80474b6cd6f634c6"
+  ],
+  "launcher_pid": 44898,
+  "rss_limit_kib": 6291456,
+  "started_unix_ns": 1792075212020196095,
+  "wall_limit_seconds": 10800
+}

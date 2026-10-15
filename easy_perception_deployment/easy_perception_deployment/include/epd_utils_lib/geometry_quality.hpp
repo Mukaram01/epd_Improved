@@ -42,6 +42,12 @@ inline std::string failureNames(uint32_t failures)
     {GeometryFailure::INVALID_ORIENTATION, "degenerate_axis"},
     {GeometryFailure::FRAME_MISMATCH, "frame_mismatch"},
     {GeometryFailure::GEOMETRY_EXCEPTION, "geometry_exception"},
+    {GeometryFailure::OVERLAPPING_OWNERSHIP, "overlapping_ownership"},
+    {GeometryFailure::AMBIGUOUS_SURFACE, "ambiguous_surface"},
+    {GeometryFailure::GEOMETRY_MISMATCH, "visible_geometry_mismatch"},
+    {GeometryFailure::UNSYNCHRONIZED_INPUT, "unsynchronized_input"},
+    {GeometryFailure::INVALID_CONFIGURATION, "invalid_hybrid_configuration"},
+    {GeometryFailure::AMBIGUOUS_ORIENTATION, "ambiguous_axis_no_pose"},
   };
   std::ostringstream out;
   bool first = true;

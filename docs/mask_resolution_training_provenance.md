@@ -221,3 +221,10 @@ without repeating training; it cannot certify missing original supervision.
 If original full supervision is a non-waivable requirement even for diagnostic
 reuse, choose separately authorised Option B instead. Until a decision is made,
 #226 remains blocked, Stage-A2 remains0/2 and no promotion occurs.
+
+### Subsequent explicit Option1 authorisation (2026-10-15)
+
+The user explicitly authorised diagnostic-only qualification after these forensic
+findings. [Separate admission and measured experiment](diagnostic_shadow_capture_results.md)
+completed under independent review. This changes neither this forensic matrix
+nor original supervision UNKNOWN, and leaves the old strict gate blocked.

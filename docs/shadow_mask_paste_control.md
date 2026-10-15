@@ -256,3 +256,13 @@ verify the worker artifact chain and saved frozen tensors, but recover no
 independently authentic parent completion. Admission remains
 `BLOCKED_MISSING_TRAINING_PROVENANCE`; this document's original preregistration
 and executable admission gate are unchanged. No inference or training occurred.
+
+## Separately authorised diagnostic-only path completed (2026-10-15)
+
+The user subsequently explicitly authorised Option1. The **original strict
+admission above remains unchanged and blocked**. A separate, independently
+reviewed qualification admitted exactly one four-scene experiment. It completed
+with exact paste parity; all three fixed controls failed the preregistered
+no-harm rule. [Measured results and review evidence](diagnostic_shadow_capture_results.md)
+record the new path and its limits. Original training supervision remains UNKNOWN,
+Stage-A2 remains BLOCKED0/2, and production qualification is not waived.

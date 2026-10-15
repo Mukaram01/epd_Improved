@@ -87,6 +87,20 @@ class AnalyticContractTests(unittest.TestCase):
         self.assertGreater(result['missing'],0)
         self.assertEqual(result['iou'],0.)
 
+    def test_trace_coordinates_tensor_boundary_serializes_without_mutation(self):
+        box=torch.tensor([32.25,36.75,64.25,64.75],dtype=torch.float32)
+        before=box.clone()
+        x,y=a.canonical56_coordinates(box)
+        np.testing.assert_array_equal(x,32.25+(np.arange(56)+.5)*32/56)
+        np.testing.assert_array_equal(y,36.75+(np.arange(56)+.5)*28/56)
+        torch.testing.assert_close(box,before,rtol=0,atol=0)
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'trace.npz'
+            a.durable_npz(path,{'canonical56_world_x':x,'canonical56_world_y':y})
+            with np.load(path,allow_pickle=False) as saved:
+                np.testing.assert_array_equal(saved['canonical56_world_x'],x)
+                np.testing.assert_array_equal(saved['canonical56_world_y'],y)
+
     def test_exclusive_output_and_resource_failure_preservation(self):
         with tempfile.TemporaryDirectory() as tmp:
             out=Path(tmp);(out/'keep').write_text('original')

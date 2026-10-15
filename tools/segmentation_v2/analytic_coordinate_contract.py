@@ -35,6 +35,14 @@ def require_exact(left,right,label):
         raise ValueError('OPERATOR_PARITY_DRIFT '+label+' maxabs='+str(delta))
 
 
+def canonical56_coordinates(box):
+    """Cross the Torch/NumPy trace boundary explicitly; never mutate ROI boxes."""
+    values=box.detach().cpu().numpy() if isinstance(box,torch.Tensor) else np.asarray(box)
+    x0,y0,x1,y1=map(float,values)
+    centres=(np.arange(56)+.5)/56
+    return x0+centres*(x1-x0),y0+centres*(y1-y0)
+
+
 def numpy_roi(field,box,scale,aligned):
     """Independent NumPy float32 sampling/accumulation, matched to pinned CPU C++.
     Source formula attribution: torchvision v0.22.0 roi_align_common.h/kernel.cpp
@@ -290,14 +298,15 @@ def run(policy_path,output):
                 if case['size']==[32,28] and case['offset']==[.25,.75] and case['placement']=='interior':
                     from torchvision.models.detection.roi_heads import expand_boxes
                     expanded=expand_boxes(roi[None],58./56.)[0];integer=expanded.to(torch.int64)
+                    canonical_x56,canonical_y56=canonical56_coordinates(roi)
                     values={'expanded_box_float':expanded.numpy(),'expanded_box_truncated':integer.numpy(),
                         'inclusive_paste_size_hw':np.array([max(int(integer[3]-integer[1]+1),1),max(int(integer[2]-integer[0]+1),1)]),
                         'synthetic_logits56_unaligned':bridge(pooled[False][None,:1],kind).numpy(),
                         'synthetic_logits56_aligned':bridge(pooled[True][None,:1],kind).numpy(),
                         'bridge_world_coordinates_unaligned':bridge(pooled[False][None,1:],kind).numpy(),
                         'bridge_world_coordinates_aligned':bridge(pooled[True][None,1:],kind).numpy(),
-                        'canonical56_world_x':(roi[0]+(np.arange(56)+.5)*(roi[2]-roi[0])/56),
-                        'canonical56_world_y':(roi[1]+(np.arange(56)+.5)*(roi[3]-roi[1])/56),
+                        'canonical56_world_x':canonical_x56,
+                        'canonical56_world_y':canonical_y56,
                         'feature_field':field,'reference_centre_mask':ref['mask'],'reference_coverage8':ref['coverage'],
                         'roi_box':roi.numpy(),'analytic_box':box,'pooled_unaligned':pooled[False].numpy(),
                         'pooled_aligned':pooled[True].numpy(),'grid_unaligned':grids[False],'grid_aligned':grids[True],

@@ -130,3 +130,135 @@ The new exclusive benchmark output is supervised at300s,2GiB worker RSS and2
 CPU threads, with parent-death signalling, process-group cleanup and durable
 logs. RSS uses20ms polling plus wait4 high-water rejection, not kernel memory.max.
 Partial/failure evidence is preserved; there is no automatic retry.
+
+## Actual single attempt: BLOCKED_FAILURE
+
+The preregistered attempt was launched once from commit
+`51bb1d4a5ac27c288b166923e7d9a22d3345e48a` into the new exclusive directory
+`/home/user/epd-v2-artifacts/analytic-coordinate-contract-001`:
+
+```sh
+python3 tools/segmentation_v2/analytic_coordinate_contract.py \
+  --policy tools/segmentation_v2/analytic_coordinate_preregistration.json \
+  --output /home/user/epd-v2-artifacts/analytic-coordinate-contract-001
+```
+
+**The benchmark did not complete.** Exit1 after13.17655985s, peak worker RSS
+1,039,084KiB; neither300s nor2GiB limit was reached. Process-group cleanup and
+parent-death SIGKILL were configured/recorded. Original logs, partial JSONL,
+launch identity, failure and supervision records remain preserved. No retry.
+
+Before any shadows, the entire original-operator gate completed:
+
+| Bitwise comparison | Checks | Maximum absolute difference |
+|---|---:|---:|
+| Independent NumPy ROIAlign vs compiled Torchvision | 1,944 | 0 |
+| Independent original paste vs Torchvision | 3,888 | 0 |
+| Replication vs unit2×2 stride2 deconvolution | 1,944 | 0 |
+
+Trace serialization then raised
+`TypeError: unsupported operand type(s) for *: 'numpy.ndarray' and 'Tensor'`.
+Only145/1,944 round-trip rows (580 arm measurements) were retained, all circles;
+108 are size12×10 and37 size32×28. All580 conservation checks pass. **Zero trace
+archives and no final results.json exist**. Empty, rotated, sharp-edge,
+rectangle and thin-feature round-trip findings therefore remain unmeasured.
+The final source-recheck/publication stage was not reached. The parity receipt
+is complete, but does not turn this failed attempt into a completed experiment.
+
+The executed source is retained byte-for-byte in
+`evidence/segmentation_v2/analytic_coordinate_benchmark_001/executed_analytic_coordinate_contract.py`
+with SHA256`7c35607cd4ebea5e2a7d676decac6b1c8e60ba81bfce9f5d79f47823088a57c9`.
+The serialization correction now converts immutable tensor endpoints explicitly
+before NumPy arithmetic. A regression checks exact56-bin centres, immutable
+boxes and actual NPZ serialization. **61/61 focused tests PASS**,0 failures/errors,
+unittest1.102s, process4.43s,peak619284KiB. Corrected source SHA256:
+`00fdd8969909be5d091e746cc8eb19796299b145a03a3c6c3c5b917ff47db4f4`.
+The original preregistration remains unchanged: its source binding rejects the
+corrected implementation. Updating/reviewing a future preregistration and a
+separately authorised new attempt are required; no automatic retry was made.
+
+### Partial observations, not full benchmark conclusions
+
+Offline analysis selects the complete size12×10/interior circle subset:
+three offsets×two bridges per origin/scale (six cases, **not independent
+replicates**). Its ramp errors in each coordinate agree with the preregistered
+formula to roughly2e-6px:
+
+| Synthetic feature origin | Scale | Legacy ROI offset(px) | Aligned ROI offset(px) |
+|---|---:|---:|---:|
+| cell_centred | 1 | +0.5 | 0 |
+| cell_centred | .5 | +1 | 0 |
+| cell_centred | .25 | +2 | 0 |
+| fixed_input_centre | 1 | +0.5 | 0 |
+| fixed_input_centre | .5 | +0.5 | −0.5 |
+| fixed_input_centre | .25 | +0.5 | −1.5 |
+
+For cell-centred scale1 circles, paired alignment+continuous paste improves
+mean IoU and reduces measured displacement; at scale.25 significant missing
+area remains even with zero spill. Under the other declared origin, the paired
+arm performs worse at scale.25. Neither origin has been established for trained
+FPN features.
+
+| Origin/scale | Arm | Mean IoU | Spill sum | Missing sum | Mean absolute contour displacement(px) | Errors outside sampling band |
+|---|---|---:|---:|---:|---:|---:|
+| cell/1 | original | .732656 | 44 | 13 | .538357 | 4 |
+| cell/1 | continuous paste only | .739973 | 26 | 25 | .438922 | 0 |
+| cell/1 | aligned ROI only | .875412 | 21 | 3 | .240901 | 0 |
+| cell/1 | paired | .994253 | 1 | 0 | .037208 | 0 |
+| cell/.25 | original | .226602 | 68 | 116 | 1.571222 | 116 |
+| cell/.25 | continuous paste only | .238650 | 56 | 116 | 1.391699 | 106 |
+| cell/.25 | aligned ROI only | .759286 | 0 | 41 | .429409 | 4 |
+| cell/.25 | paired | .670000 | 0 | 58 | .597816 | 8 |
+| fixed/.25 | original | .502563 | 15 | 77 | .745400 | 41 |
+| fixed/.25 | continuous paste only | .490246 | 4 | 85 | .794352 | 40 |
+| fixed/.25 | aligned ROI only | .316427 | 39 | 104 | 1.196728 | 79 |
+| fixed/.25 | paired | .354228 | 22 | 102 | 1.082766 | 62 |
+
+Displacement is the mean of six case means, not a pooled Hausdorff statistic.
+Image-frame edges are omitted; the selected cases are interior. The conservative
+sampling band is±sqrt(.5)px; coverage4/8 are approximate quadratures, not error
+bars. Counts repeat the same geometry under offsets/bridges. This is descriptive
+analysis of a failed prefix, not a selected alternative or production claim.
+
+**Observations:** exact original operator parity; origin-dependent ramp offsets;
+paste convention effects interact with sampling scale, foreground loss and IoU.
+**Competing hypotheses still open:** actual feature-lattice origin, nonlinear
+field interpolation, coarse sampling/28→56 synthetic bridge loss, box rounding
+and inclusive extent, and learned head compensation. The synthetic bridges
+cannot establish learned-head information loss or attribute #226's real-scene
+contamination. The missing shape/trace matrix prevents broader conclusions.
+
+### Retained evidence and independent review
+
+The offline-only script below recomputes partial summaries, conservation checks
+and the complete attempt artifact manifest, without running any operator:
+
+```sh
+python3 evidence/segmentation_v2/analytic_coordinate_benchmark_001/analyse_partial.py \
+  /home/user/epd-v2-artifacts/analytic-coordinate-contract-001
+```
+
+Retained `partial_analysis.json` SHA256:
+`611251b8f93dd3d7e5a073a39fe550f9d115307a88c85a4bb2ed6d1d3aff420e`.
+External measurements SHA256:
+`7512b2ced4b090def6b3ff6d3058eb5a90dab467a500af1810e341d6457f9ccf`.
+Parity receipt SHA256:
+`8361ab9f53ff5801a702359fa7733f1bdb5330054c83c9aeb808a1da8a69aee3`.
+Supervision SHA256:
+`c779221fa175172178cb1aae2d46cf1fd0a67b7f0a154244ca67349062be5410`.
+
+Independent reviewer`/root/diagnostic_admission_review` verified failure evidence,
+parity receipt/counts/code ordering, all partial conservation checks, absent
+traces/results, executed-source retention and correction. They independently
+passed61 tests; they did not rerun the benchmark. Their decision is
+`FAILED_SINGLE_ATTEMPT_PARTIAL_EVIDENCE_ONLY`, with
+`SERIALIZATION_FIX_ACCEPTED_NO_RERUN`. Review SHA256:
+`c04c471959ca0fd28a912b6be8b4b0c74d2c811ddc27b7f2a5243202f2d90d1c`.
+Both reviews, source snapshots, test logs, copied failure receipts and offline
+analysis are committed; original external evidence is unchanged.
+
+**One next milestone:** independently rebind/review the serialization-corrected
+preregistration and separately authorise one new exclusive synthetic run to
+complete the existing matrix. No new arms, model experiment or production
+geometry change is supported by this incomplete attempt. Stage-A2 remains
+BLOCKED0/2; original training supervision remains UNKNOWN.

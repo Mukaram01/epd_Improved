@@ -1,0 +1,74 @@
+{
+  "activities": {
+    "campaign_runs": 0,
+    "optimizer_steps": 0,
+    "real_model_forwards": 0,
+    "real_scene_pixels_opened": 0,
+    "repository_edits_by_reviewer": false,
+    "synthetic_model_forward_backward_only": true,
+    "trained_checkpoint_loads": 0
+  },
+  "checks": [
+    "Stock ROI56 loss tensors remain bitwise equal in synthetic integration; aux separate key, weight zero dispatches original call before any hooks/target processing",
+    "Original native ownership cloned before transform; nearest masks/boxes/labels checked; captured positives reuse default per-proposal matcher with first-GT ties and empty lists",
+    "Original sigmoid/paste differentiable; annotation-only Euclidean2pixel FG/BG bands clipped to integer consumer ROI; separate group means/proposal-per-owner/equal-owner means",
+    "All12 mask parameter tensors finite nonzero gradients on artificial4channel64internal model; every nonmask parameter has no gradient, state bitwise unchanged without optimizer step",
+    "Frozen nonmask buffers protected by eval during aux forward and exact snapshot checks; hook/module flags restored on success and exception",
+    "No global monkeypatch, production inference or deployment geometry changes",
+    "Full12validation plus fixed024-027sentinel materiality and per-instance/detection no-harm including duplicate/unassigned mask collapse; negative confident detections reject",
+    "One fixed proposed config, explicit #221epoch2initializer versus UNKNOWN-supervisor56baseline; source/runtime/metadata/archive hashes; no inherited native resource admission",
+    "Durable prelaunch RUNNING; actual worker completion receipt; Linux parentdeath/group cleanup and strict live launch binding rejects direct worker bypass; historical UNKNOWN remains unresolved"
+  ],
+  "configuration_sha256": "1b753bf1bca3a6466521459375c4d8f3e4cf900a6a905fc8750520a431263e6f",
+  "decision": "APPROVE_IMPLEMENTATION_ONLY",
+  "findings": [],
+  "independent_source_read": [
+    "R4 engineering decision",
+    "installed Torchvision RoIHeads.forward/maskrcnn_loss/paste and Matcher",
+    "installed transform shallow-copy/resize/postprocess",
+    "train.tensors native target/input construction",
+    "EPD RGB01 full-image mask crop and strict threshold",
+    "existing training provenance audit"
+  ],
+  "limits": [
+    "Approval is implementation-only; no authorization to run candidate training/inference/qualification",
+    "Synthetic gradients establish graph integration, not efficacy, budget fit or perception quality",
+    "Probability BCE saturation can yield zero gradient at extreme logits; finite endpoint handling does not repair saturation",
+    "Auxiliary consumer-ROI clipping excludes outside-ROI foreground and cannot fix proposal recall; native-only truth cannot solve all512/256raster disagreement",
+    "RSS enforcement is polling plus wait4 high-water including process lifetime; not cgroup memory.max",
+    "Initializer original training provenance and historical56supervisor missing state cannot silently become production qualified"
+  ],
+  "resolved_findings": [
+    "Added matcher low-quality mode rejection and empty positive rematching handling",
+    "Added per-detection missing/IoU checks; synthetic previous false-pass now rejected",
+    "Added fixed sentinel aggregate gates alongside full split gate",
+    "Added live supervisor binding before hidden worker can open training inputs",
+    "Corrected synthetic supervisor memory cap and shallow-aliased test fixture"
+  ],
+  "reviewed_sha256": {
+    "/home/user/epd-v2-supervised-pilot/docs/native_boundary_auxiliary_loss.md": "3084f773f66362b3aab6bb9db05c53e9a25347553cc752cbdc4e3ec6c46a94b0",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/native_boundary_implementation_001/verify_gradient.py": "66a2dd212b50e538e1c023b6d130722f4e6c97d32a7ff09cd313e45da0f4a1bb",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_aux.py": "0c6873704393ce0a2b2e5102bb7381a44b3fbcf481d26e759937cacd278493e9",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_candidate.json": "1b753bf1bca3a6466521459375c4d8f3e4cf900a6a905fc8750520a431263e6f",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_candidate.py": "0b69fcfe23c8d382632de3d6808f0dbe0620fd2d8df9269e8120a95bb513fe37",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/native_boundary_validation.py": "c19456fa091cec2ddcb01b64488b0b9e50ae3c332c8863eea343bdc2fce95b18",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_native_boundary_aux.py": "ddc212ff354618bb641bddb653132bfcb2c2e36268e25c3c083220aee15a07e6",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_native_boundary_campaign.py": "255f3a82353f7d6b623c2e142dd0f7de5dec3fac2e1b4363d2b02d3bad8f9307"
+  },
+  "reviewer": "/root/native_boundary_review",
+  "schema": "epd_independent_implementation_review/v1",
+  "tests": {
+    "additional_synthetic_live_supervisor_handshake": "WORKER_COMPLETED exit0 no limit; child LIVE_BINDING_PASS",
+    "command": "python3 -m unittest discover -s tools/segmentation_v2 -p 'test_native_boundary*.py' -v",
+    "count": 18,
+    "errors": 0,
+    "failures": 0,
+    "independent_backward_report": "/tmp/native_boundary_independent_gradients.json",
+    "independent_backward_sha256": "4f8de8a485bf0772f65b4d00ef84b065fd9250c5b1419bba7d1c39a6744d417a",
+    "mask_tensors_finite_nonzero": 12,
+    "nonmask_before_after_sha256": "97543ba838472b7eb0de12c3ec57a08a630dd6a3f07fc5b9b2a4f2997bd5c17b",
+    "process_seconds": 3.758009725,
+    "unittest_seconds": 0.562,
+    "weighted_auxiliary_loss": 0.1687006801366806
+  }
+}

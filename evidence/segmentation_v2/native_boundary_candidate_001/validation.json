@@ -1,0 +1,2783 @@
+{
+  "archives": [
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_024.npz",
+      "scene_id": "scene_024",
+      "sha256": "920accdc1799292359a99f22a2a5f4837d0d959002688cc398e858989075411d"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_025.npz",
+      "scene_id": "scene_025",
+      "sha256": "b6f81fcaaf303b5778abbd111a767bdd095dab47b3230411457191993a53e65a"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_026.npz",
+      "scene_id": "scene_026",
+      "sha256": "7896bd5cd03b3a1273f1192f631782c1c17737ea9362edf2834094a0f7d8dbee"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_027.npz",
+      "scene_id": "scene_027",
+      "sha256": "cdfadc8b3cd24d2d7fe28653ebda7cac8dd6d60f99802137936fa727add3fa31"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_028.npz",
+      "scene_id": "scene_028",
+      "sha256": "d563fa7c717a75c64a072630588cf71c39a013c71868ab7690da370fc2717ccc"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_029.npz",
+      "scene_id": "scene_029",
+      "sha256": "3ab364728ef70028d07be1f24ac2b2f0de725d54f119a91b7643e8a8ad8aae67"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_030.npz",
+      "scene_id": "scene_030",
+      "sha256": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_031.npz",
+      "scene_id": "scene_031",
+      "sha256": "13d50a257eed5df7dc01b5fd55d8a6f1cda885e9608632c34907f250b6fbd49d"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_032.npz",
+      "scene_id": "scene_032",
+      "sha256": "e4eacbc60a6da7e1b74d8e3a9e26ff8b82c232a3484c2b91f47593c44e0ac13b"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_033.npz",
+      "scene_id": "scene_033",
+      "sha256": "b09b57b0082e867053906e5dac4d19c153ded1df3b54f7b365a78fe006ad09c4"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_034.npz",
+      "scene_id": "scene_034",
+      "sha256": "73396b6855ce36aaf16262665e2d2e925ff6687331ea858c5b89b05ea7adebae"
+    },
+    {
+      "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_035.npz",
+      "scene_id": "scene_035",
+      "sha256": "a9dc2e7926975fab75a8e297f8fe9d3e17024b951730fa0770791dbd5f5d232f"
+    }
+  ],
+  "gate": {
+    "decision": "REJECTED",
+    "failures": [
+      "DETECTION_REGRESSION",
+      "INSTANCE_REGRESSION",
+      "MATERIALITY_mapped",
+      "SENTINEL_MATERIALITY_mapped"
+    ],
+    "production_qualified": false,
+    "spill_totals": {
+      "baseline": {
+        "mapped": 647,
+        "native": 1193
+      },
+      "candidate": {
+        "mapped": 527,
+        "native": 888
+      }
+    },
+    "stage_a2": "BLOCKED_0/2"
+  },
+  "scenes": [
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        }
+      },
+      "confident_detections": 0,
+      "frozen_assignment": {},
+      "negative": true,
+      "scene_id": "scene_024"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 68,
+          "detection_metrics": [
+            {
+              "background_spill": 45,
+              "cross_object": 68,
+              "iou": 0.8951612903225806,
+              "missing_foreground": 4,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                35,
+                7,
+                3,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 80,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 45,
+              "cross_object": 68,
+              "iou": 0.8951612903225806,
+              "missing_foreground": 4,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                35,
+                7,
+                3,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            }
+          },
+          "recovered": 1,
+          "spill": 45
+        },
+        "native": {
+          "cross_object": 240,
+          "detection_metrics": [
+            {
+              "background_spill": 91,
+              "cross_object": 240,
+              "iou": 0.9122119815668203,
+              "missing_foreground": 50,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                58,
+                19,
+                6,
+                8
+              ],
+              "spill_distance_max": 6.7082037925720215
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 318,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 91,
+              "cross_object": 240,
+              "iou": 0.9122119815668203,
+              "missing_foreground": 50,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                58,
+                19,
+                6,
+                8
+              ],
+              "spill_distance_max": 6.7082037925720215
+            }
+          },
+          "recovered": 1,
+          "spill": 91
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 66,
+          "detection_metrics": [
+            {
+              "background_spill": 32,
+              "cross_object": 66,
+              "iou": 0.9028156221616712,
+              "missing_foreground": 9,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                26,
+                5,
+                1,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 80,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 32,
+              "cross_object": 66,
+              "iou": 0.9028156221616712,
+              "missing_foreground": 9,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                26,
+                5,
+                1,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            }
+          },
+          "recovered": 1,
+          "spill": 32
+        },
+        "native": {
+          "cross_object": 233,
+          "detection_metrics": [
+            {
+              "background_spill": 53,
+              "cross_object": 233,
+              "iou": 0.9152502910360885,
+              "missing_foreground": 78,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                40,
+                9,
+                1,
+                3
+              ],
+              "spill_distance_max": 5.830951690673828
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 318,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 53,
+              "cross_object": 233,
+              "iou": 0.9152502910360885,
+              "missing_foreground": 78,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                40,
+                9,
+                1,
+                3
+              ],
+              "spill_distance_max": 5.830951690673828
+            }
+          },
+          "recovered": 1,
+          "spill": 53
+        }
+      },
+      "confident_detections": 1,
+      "frozen_assignment": {
+        "65508": 0
+      },
+      "negative": false,
+      "scene_id": "scene_025"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 24,
+          "detection_metrics": [
+            {
+              "background_spill": 69,
+              "cross_object": 0,
+              "iou": 0.9273285568065507,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                69,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 18,
+              "cross_object": 8,
+              "iou": 0.8936372269705603,
+              "missing_foreground": 86,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                18,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 32,
+              "cross_object": 16,
+              "iou": 0.8538961038961039,
+              "missing_foreground": 42,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                32,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 32,
+              "cross_object": 16,
+              "iou": 0.8538961038961039,
+              "missing_foreground": 42,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                32,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65501": {
+              "background_spill": 69,
+              "cross_object": 0,
+              "iou": 0.9273285568065507,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                69,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65506": {
+              "background_spill": 18,
+              "cross_object": 8,
+              "iou": 0.8936372269705603,
+              "missing_foreground": 86,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                18,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 119
+        },
+        "native": {
+          "cross_object": 45,
+          "detection_metrics": [
+            {
+              "background_spill": 167,
+              "cross_object": 0,
+              "iou": 0.9515873015873015,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                135,
+                32,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            {
+              "background_spill": 26,
+              "cross_object": 14,
+              "iou": 0.8855552867166707,
+              "missing_foreground": 433,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                26,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 69,
+              "cross_object": 31,
+              "iou": 0.8438552188552189,
+              "missing_foreground": 271,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                63,
+                6,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 69,
+              "cross_object": 31,
+              "iou": 0.8438552188552189,
+              "missing_foreground": 271,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                63,
+                6,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65501": {
+              "background_spill": 167,
+              "cross_object": 0,
+              "iou": 0.9515873015873015,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                135,
+                32,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65506": {
+              "background_spill": 26,
+              "cross_object": 14,
+              "iou": 0.8855552867166707,
+              "missing_foreground": 433,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                26,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 262
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 22,
+          "detection_metrics": [
+            {
+              "background_spill": 65,
+              "cross_object": 0,
+              "iou": 0.9301130524152107,
+              "missing_foreground": 3,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                65,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 12,
+              "cross_object": 6,
+              "iou": 0.9014354066985646,
+              "missing_foreground": 85,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                12,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 27,
+              "cross_object": 16,
+              "iou": 0.855973813420622,
+              "missing_foreground": 45,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                27,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 27,
+              "cross_object": 16,
+              "iou": 0.855973813420622,
+              "missing_foreground": 45,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                27,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65501": {
+              "background_spill": 65,
+              "cross_object": 0,
+              "iou": 0.9301130524152107,
+              "missing_foreground": 3,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                65,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65506": {
+              "background_spill": 12,
+              "cross_object": 6,
+              "iou": 0.9014354066985646,
+              "missing_foreground": 85,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                12,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 104
+        },
+        "native": {
+          "cross_object": 39,
+          "detection_metrics": [
+            {
+              "background_spill": 144,
+              "cross_object": 0,
+              "iou": 0.9534202821400053,
+              "missing_foreground": 31,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                117,
+                27,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            {
+              "background_spill": 19,
+              "cross_object": 8,
+              "iou": 0.8883495145631068,
+              "missing_foreground": 433,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                19,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 61,
+              "cross_object": 31,
+              "iou": 0.8378378378378378,
+              "missing_foreground": 292,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                58,
+                3,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 61,
+              "cross_object": 31,
+              "iou": 0.8378378378378378,
+              "missing_foreground": 292,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                58,
+                3,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65501": {
+              "background_spill": 144,
+              "cross_object": 0,
+              "iou": 0.9534202821400053,
+              "missing_foreground": 31,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                117,
+                27,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65506": {
+              "background_spill": 19,
+              "cross_object": 8,
+              "iou": 0.8883495145631068,
+              "missing_foreground": 433,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                19,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 224
+        }
+      },
+      "confident_detections": 3,
+      "frozen_assignment": {
+        "65496": 2,
+        "65501": 0,
+        "65506": 1
+      },
+      "negative": false,
+      "scene_id": "scene_026"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 50,
+              "cross_object": 0,
+              "iou": 0.9550763701707098,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                50,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 50,
+              "cross_object": 0,
+              "iou": 0.9550763701707098,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                50,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 1,
+          "spill": 50
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 88,
+              "cross_object": 0,
+              "iou": 0.9697808535178778,
+              "missing_foreground": 43,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                77,
+                11,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 88,
+              "cross_object": 0,
+              "iou": 0.9697808535178778,
+              "missing_foreground": 43,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                77,
+                11,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          },
+          "recovered": 1,
+          "spill": 88
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 39,
+              "cross_object": 0,
+              "iou": 0.9618874773139746,
+              "missing_foreground": 3,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                39,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 39,
+              "cross_object": 0,
+              "iou": 0.9618874773139746,
+              "missing_foreground": 3,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                39,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 1,
+          "spill": 39
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 51,
+              "cross_object": 0,
+              "iou": 0.9746393671475104,
+              "missing_foreground": 58,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                49,
+                2,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 51,
+              "cross_object": 0,
+              "iou": 0.9746393671475104,
+              "missing_foreground": 58,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                49,
+                2,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          },
+          "recovered": 1,
+          "spill": 51
+        }
+      },
+      "confident_detections": 1,
+      "frozen_assignment": {
+        "65510": 0
+      },
+      "negative": false,
+      "scene_id": "scene_027"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 2,
+          "detection_metrics": [
+            {
+              "background_spill": 55,
+              "cross_object": 1,
+              "iou": 0.9253731343283582,
+              "missing_foreground": 14,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                54,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            {
+              "background_spill": 30,
+              "cross_object": 1,
+              "iou": 0.9073170731707317,
+              "missing_foreground": 7,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                30,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 55,
+              "cross_object": 1,
+              "iou": 0.9253731343283582,
+              "missing_foreground": 14,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                54,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            "65508": {
+              "background_spill": 30,
+              "cross_object": 1,
+              "iou": 0.9073170731707317,
+              "missing_foreground": 7,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                30,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 85
+        },
+        "native": {
+          "cross_object": 2,
+          "detection_metrics": [
+            {
+              "background_spill": 99,
+              "cross_object": 1,
+              "iou": 0.9433754810335349,
+              "missing_foreground": 106,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                85,
+                14,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            {
+              "background_spill": 51,
+              "cross_object": 1,
+              "iou": 0.9336734693877551,
+              "missing_foreground": 52,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                47,
+                4,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 99,
+              "cross_object": 1,
+              "iou": 0.9433754810335349,
+              "missing_foreground": 106,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                85,
+                14,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65508": {
+              "background_spill": 51,
+              "cross_object": 1,
+              "iou": 0.9336734693877551,
+              "missing_foreground": 52,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                47,
+                4,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          },
+          "recovered": 2,
+          "spill": 150
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 1,
+          "detection_metrics": [
+            {
+              "background_spill": 46,
+              "cross_object": 1,
+              "iou": 0.9321851453175457,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                45,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            {
+              "background_spill": 22,
+              "cross_object": 0,
+              "iou": 0.9276807980049875,
+              "missing_foreground": 7,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                22,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 46,
+              "cross_object": 1,
+              "iou": 0.9321851453175457,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                45,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            "65508": {
+              "background_spill": 22,
+              "cross_object": 0,
+              "iou": 0.9276807980049875,
+              "missing_foreground": 7,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                22,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 68
+        },
+        "native": {
+          "cross_object": 1,
+          "detection_metrics": [
+            {
+              "background_spill": 76,
+              "cross_object": 0,
+              "iou": 0.9468732706142778,
+              "missing_foreground": 116,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                67,
+                9,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            {
+              "background_spill": 33,
+              "cross_object": 1,
+              "iou": 0.94,
+              "missing_foreground": 59,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                33,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 76,
+              "cross_object": 0,
+              "iou": 0.9468732706142778,
+              "missing_foreground": 116,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                67,
+                9,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65508": {
+              "background_spill": 33,
+              "cross_object": 1,
+              "iou": 0.94,
+              "missing_foreground": 59,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                33,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 109
+        }
+      },
+      "confident_detections": 2,
+      "frozen_assignment": {
+        "65503": 0,
+        "65508": 1
+      },
+      "negative": false,
+      "scene_id": "scene_028"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 171,
+          "detection_metrics": [
+            {
+              "background_spill": 26,
+              "cross_object": 36,
+              "iou": 0.8519388954171563,
+              "missing_foreground": 64,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                25,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            {
+              "background_spill": 32,
+              "cross_object": 135,
+              "iou": 0.6679611650485436,
+              "missing_foreground": 4,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                28,
+                1,
+                1,
+                2
+              ],
+              "spill_distance_max": 7.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 32,
+              "cross_object": 135,
+              "iou": 0.6679611650485436,
+              "missing_foreground": 4,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                28,
+                1,
+                1,
+                2
+              ],
+              "spill_distance_max": 7.0
+            },
+            "65501": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 183,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65506": {
+              "background_spill": 26,
+              "cross_object": 36,
+              "iou": 0.8519388954171563,
+              "missing_foreground": 64,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                25,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          },
+          "recovered": 2,
+          "spill": 58
+        },
+        "native": {
+          "cross_object": 516,
+          "detection_metrics": [
+            {
+              "background_spill": 43,
+              "cross_object": 78,
+              "iou": 0.8578803522623747,
+              "missing_foreground": 347,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                34,
+                7,
+                2,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            },
+            {
+              "background_spill": 74,
+              "cross_object": 438,
+              "iou": 0.7148891235480465,
+              "missing_foreground": 28,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                60,
+                7,
+                0,
+                7
+              ],
+              "spill_distance_max": 13.03840446472168
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 74,
+              "cross_object": 438,
+              "iou": 0.7148891235480465,
+              "missing_foreground": 28,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                60,
+                7,
+                0,
+                7
+              ],
+              "spill_distance_max": 13.03840446472168
+            },
+            "65501": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 736,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65506": {
+              "background_spill": 43,
+              "cross_object": 78,
+              "iou": 0.8578803522623747,
+              "missing_foreground": 347,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                34,
+                7,
+                2,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            }
+          },
+          "recovered": 2,
+          "spill": 117
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 162,
+          "detection_metrics": [
+            {
+              "background_spill": 23,
+              "cross_object": 33,
+              "iou": 0.855621301775148,
+              "missing_foreground": 66,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                22,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            {
+              "background_spill": 25,
+              "cross_object": 129,
+              "iou": 0.6792828685258964,
+              "missing_foreground": 7,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                22,
+                0,
+                1,
+                2
+              ],
+              "spill_distance_max": 7.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 25,
+              "cross_object": 129,
+              "iou": 0.6792828685258964,
+              "missing_foreground": 7,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                22,
+                0,
+                1,
+                2
+              ],
+              "spill_distance_max": 7.0
+            },
+            "65501": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 183,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65506": {
+              "background_spill": 23,
+              "cross_object": 33,
+              "iou": 0.855621301775148,
+              "missing_foreground": 66,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                22,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          },
+          "recovered": 2,
+          "spill": 48
+        },
+        "native": {
+          "cross_object": 489,
+          "detection_metrics": [
+            {
+              "background_spill": 39,
+              "cross_object": 73,
+              "iou": 0.8556638246041413,
+              "missing_foreground": 362,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                32,
+                6,
+                1,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            },
+            {
+              "background_spill": 53,
+              "cross_object": 416,
+              "iou": 0.7255537547271745,
+              "missing_foreground": 39,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                47,
+                2,
+                0,
+                4
+              ],
+              "spill_distance_max": 10.049875259399414
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 53,
+              "cross_object": 416,
+              "iou": 0.7255537547271745,
+              "missing_foreground": 39,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                47,
+                2,
+                0,
+                4
+              ],
+              "spill_distance_max": 10.049875259399414
+            },
+            "65501": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 736,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65506": {
+              "background_spill": 39,
+              "cross_object": 73,
+              "iou": 0.8556638246041413,
+              "missing_foreground": 362,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                32,
+                6,
+                1,
+                0
+              ],
+              "spill_distance_max": 2.2360680103302
+            }
+          },
+          "recovered": 2,
+          "spill": 92
+        }
+      },
+      "confident_detections": 2,
+      "frozen_assignment": {
+        "65496": 1,
+        "65506": 0
+      },
+      "negative": false,
+      "scene_id": "scene_029"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [],
+          "instances": {},
+          "recovered": 0,
+          "spill": 0
+        }
+      },
+      "confident_detections": 0,
+      "frozen_assignment": {},
+      "negative": true,
+      "scene_id": "scene_030"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 68,
+              "cross_object": 0,
+              "iou": 0.9622980251346499,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                67,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 348,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 68,
+              "cross_object": 0,
+              "iou": 0.9622980251346499,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                67,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          },
+          "recovered": 1,
+          "spill": 68
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 136,
+              "cross_object": 0,
+              "iou": 0.9667955424152831,
+              "missing_foreground": 156,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                124,
+                12,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 1397,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 136,
+              "cross_object": 0,
+              "iou": 0.9667955424152831,
+              "missing_foreground": 156,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                124,
+                12,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          },
+          "recovered": 1,
+          "spill": 136
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 55,
+              "cross_object": 0,
+              "iou": 0.9679458239277653,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                55,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 348,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 55,
+              "cross_object": 0,
+              "iou": 0.9679458239277653,
+              "missing_foreground": 16,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                55,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 1,
+          "spill": 55
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 96,
+              "cross_object": 0,
+              "iou": 0.9696138907927805,
+              "missing_foreground": 170,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                93,
+                3,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 1397,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65508": {
+              "background_spill": 96,
+              "cross_object": 0,
+              "iou": 0.9696138907927805,
+              "missing_foreground": 170,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                93,
+                3,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            }
+          },
+          "recovered": 1,
+          "spill": 96
+        }
+      },
+      "confident_detections": 1,
+      "frozen_assignment": {
+        "65508": 0
+      },
+      "negative": false,
+      "scene_id": "scene_031"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 264,
+          "detection_metrics": [
+            {
+              "background_spill": 41,
+              "cross_object": 224,
+              "iou": 0.6895761741122566,
+              "missing_foreground": 6,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                41,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 7,
+              "cross_object": 4,
+              "iou": 0.8634658664666166,
+              "missing_foreground": 171,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                7,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 29,
+              "cross_object": 9,
+              "iou": 0.9056603773584906,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                29,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 5,
+              "cross_object": 27,
+              "iou": 0.4150664697193501,
+              "missing_foreground": 760,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                5,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 7,
+              "cross_object": 4,
+              "iou": 0.8634658664666166,
+              "missing_foreground": 171,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                7,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65501": {
+              "background_spill": 41,
+              "cross_object": 224,
+              "iou": 0.6895761741122566,
+              "missing_foreground": 6,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                41,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65506": {
+              "background_spill": 29,
+              "cross_object": 9,
+              "iou": 0.9056603773584906,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                29,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 82
+        },
+        "native": {
+          "cross_object": 892,
+          "detection_metrics": [
+            {
+              "background_spill": 83,
+              "cross_object": 792,
+              "iou": 0.7122258936617603,
+              "missing_foreground": 83,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                75,
+                8,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            {
+              "background_spill": 14,
+              "cross_object": 8,
+              "iou": 0.8398637137989778,
+              "missing_foreground": 824,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                14,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 50,
+              "cross_object": 21,
+              "iou": 0.9336228287841191,
+              "missing_foreground": 36,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                50,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 6,
+              "cross_object": 71,
+              "iou": 0.3990258523791682,
+              "missing_foreground": 3131,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                6,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 14,
+              "cross_object": 8,
+              "iou": 0.8398637137989778,
+              "missing_foreground": 824,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                14,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65501": {
+              "background_spill": 83,
+              "cross_object": 792,
+              "iou": 0.7122258936617603,
+              "missing_foreground": 83,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                75,
+                8,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65506": {
+              "background_spill": 50,
+              "cross_object": 21,
+              "iou": 0.9336228287841191,
+              "missing_foreground": 36,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                50,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 153
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 238,
+          "detection_metrics": [
+            {
+              "background_spill": 37,
+              "cross_object": 210,
+              "iou": 0.704093567251462,
+              "missing_foreground": 6,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                37,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 4,
+              "cross_object": 4,
+              "iou": 0.8616541353383459,
+              "missing_foreground": 176,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                4,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 23,
+              "cross_object": 5,
+              "iou": 0.927536231884058,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                23,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 4,
+              "cross_object": 19,
+              "iou": 0.41561338289962824,
+              "missing_foreground": 763,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                4,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 4,
+              "cross_object": 4,
+              "iou": 0.8616541353383459,
+              "missing_foreground": 176,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                4,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65501": {
+              "background_spill": 37,
+              "cross_object": 210,
+              "iou": 0.704093567251462,
+              "missing_foreground": 6,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                37,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65506": {
+              "background_spill": 23,
+              "cross_object": 5,
+              "iou": 0.927536231884058,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                23,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 68
+        },
+        "native": {
+          "cross_object": 852,
+          "detection_metrics": [
+            {
+              "background_spill": 73,
+              "cross_object": 772,
+              "iou": 0.7150651712640194,
+              "missing_foreground": 95,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                67,
+                6,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            {
+              "background_spill": 10,
+              "cross_object": 6,
+              "iou": 0.834754595414061,
+              "missing_foreground": 856,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                10,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 39,
+              "cross_object": 14,
+              "iou": 0.9416562107904642,
+              "missing_foreground": 40,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                39,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 3,
+              "cross_object": 60,
+              "iou": 0.39800901577761083,
+              "missing_foreground": 3142,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                3,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 10,
+              "cross_object": 6,
+              "iou": 0.834754595414061,
+              "missing_foreground": 856,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                10,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65501": {
+              "background_spill": 73,
+              "cross_object": 772,
+              "iou": 0.7150651712640194,
+              "missing_foreground": 95,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                67,
+                6,
+                0,
+                0
+              ],
+              "spill_distance_max": 2.0
+            },
+            "65506": {
+              "background_spill": 39,
+              "cross_object": 14,
+              "iou": 0.9416562107904642,
+              "missing_foreground": 40,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                39,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 3,
+          "spill": 125
+        }
+      },
+      "confident_detections": 4,
+      "frozen_assignment": {
+        "65496": 1,
+        "65501": 0,
+        "65506": 2
+      },
+      "negative": false,
+      "scene_id": "scene_032"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 35,
+              "cross_object": 0,
+              "iou": 0.959349593495935,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                35,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 35,
+              "cross_object": 0,
+              "iou": 0.959349593495935,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                35,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 1,
+          "spill": 35
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 30,
+              "cross_object": 0,
+              "iou": 0.9811377245508982,
+              "missing_foreground": 33,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                30,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 30,
+              "cross_object": 0,
+              "iou": 0.9811377245508982,
+              "missing_foreground": 33,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                30,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 1,
+          "spill": 30
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 27,
+              "cross_object": 0,
+              "iou": 0.9671746776084408,
+              "missing_foreground": 1,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                27,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 27,
+              "cross_object": 0,
+              "iou": 0.9671746776084408,
+              "missing_foreground": 1,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                27,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 1,
+          "spill": 27
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 18,
+              "cross_object": 0,
+              "iou": 0.9810697115384616,
+              "missing_foreground": 45,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                18,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65510": {
+              "background_spill": 18,
+              "cross_object": 0,
+              "iou": 0.9810697115384616,
+              "missing_foreground": 45,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                18,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 1,
+          "spill": 18
+        }
+      },
+      "confident_detections": 1,
+      "frozen_assignment": {
+        "65510": 0
+      },
+      "negative": false,
+      "scene_id": "scene_033"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 26,
+              "cross_object": 0,
+              "iou": 0.927570093457944,
+              "missing_foreground": 5,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                26,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 10,
+              "cross_object": 0,
+              "iou": 0.9468085106382979,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                10,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 10,
+              "cross_object": 0,
+              "iou": 0.9468085106382979,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                10,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65508": {
+              "background_spill": 26,
+              "cross_object": 0,
+              "iou": 0.927570093457944,
+              "missing_foreground": 5,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                26,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 36
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 34,
+              "cross_object": 0,
+              "iou": 0.9586877278250304,
+              "missing_foreground": 34,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                34,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 15,
+              "cross_object": 0,
+              "iou": 0.9453551912568307,
+              "missing_foreground": 25,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                15,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 15,
+              "cross_object": 0,
+              "iou": 0.9453551912568307,
+              "missing_foreground": 25,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                15,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65508": {
+              "background_spill": 34,
+              "cross_object": 0,
+              "iou": 0.9586877278250304,
+              "missing_foreground": 34,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                34,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 49
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 19,
+              "cross_object": 0,
+              "iou": 0.9429928741092637,
+              "missing_foreground": 5,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                19,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 6,
+              "cross_object": 0,
+              "iou": 0.967391304347826,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                6,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 6,
+              "cross_object": 0,
+              "iou": 0.967391304347826,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                6,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65508": {
+              "background_spill": 19,
+              "cross_object": 0,
+              "iou": 0.9429928741092637,
+              "missing_foreground": 5,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                19,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 25
+        },
+        "native": {
+          "cross_object": 0,
+          "detection_metrics": [
+            {
+              "background_spill": 23,
+              "cross_object": 0,
+              "iou": 0.9577981651376147,
+              "missing_foreground": 46,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                23,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 11,
+              "cross_object": 0,
+              "iou": 0.9436813186813187,
+              "missing_foreground": 30,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                11,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65503": {
+              "background_spill": 11,
+              "cross_object": 0,
+              "iou": 0.9436813186813187,
+              "missing_foreground": 30,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                11,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65508": {
+              "background_spill": 23,
+              "cross_object": 0,
+              "iou": 0.9577981651376147,
+              "missing_foreground": 46,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                23,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 34
+        }
+      },
+      "confident_detections": 2,
+      "frozen_assignment": {
+        "65503": 1,
+        "65508": 0
+      },
+      "negative": false,
+      "scene_id": "scene_034"
+    },
+    {
+      "baseline": {
+        "mapped": {
+          "cross_object": 8,
+          "detection_metrics": [
+            {
+              "background_spill": 32,
+              "cross_object": 8,
+              "iou": 0.930921052631579,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                32,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 37,
+              "cross_object": 0,
+              "iou": 0.9119047619047619,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                37,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 147,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65501": {
+              "background_spill": 37,
+              "cross_object": 0,
+              "iou": 0.9119047619047619,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                37,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65506": {
+              "background_spill": 32,
+              "cross_object": 8,
+              "iou": 0.930921052631579,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                32,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 69
+        },
+        "native": {
+          "cross_object": 16,
+          "detection_metrics": [
+            {
+              "background_spill": 49,
+              "cross_object": 16,
+              "iou": 0.9581732821169441,
+              "missing_foreground": 33,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                45,
+                4,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            {
+              "background_spill": 68,
+              "cross_object": 0,
+              "iou": 0.9467084639498433,
+              "missing_foreground": 17,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                64,
+                4,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 582,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65501": {
+              "background_spill": 68,
+              "cross_object": 0,
+              "iou": 0.9467084639498433,
+              "missing_foreground": 17,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                64,
+                4,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            "65506": {
+              "background_spill": 49,
+              "cross_object": 16,
+              "iou": 0.9581732821169441,
+              "missing_foreground": 33,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                45,
+                4,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          },
+          "recovered": 2,
+          "spill": 117
+        }
+      },
+      "candidate": {
+        "mapped": {
+          "cross_object": 7,
+          "detection_metrics": [
+            {
+              "background_spill": 30,
+              "cross_object": 7,
+              "iou": 0.9355371900826446,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                30,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 31,
+              "cross_object": 0,
+              "iou": 0.9251207729468599,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                31,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 147,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65501": {
+              "background_spill": 31,
+              "cross_object": 0,
+              "iou": 0.9251207729468599,
+              "missing_foreground": 0,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                31,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            "65506": {
+              "background_spill": 30,
+              "cross_object": 7,
+              "iou": 0.9355371900826446,
+              "missing_foreground": 2,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                30,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 61
+        },
+        "native": {
+          "cross_object": 14,
+          "detection_metrics": [
+            {
+              "background_spill": 41,
+              "cross_object": 14,
+              "iou": 0.95970852978997,
+              "missing_foreground": 39,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                41,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            },
+            {
+              "background_spill": 45,
+              "cross_object": 0,
+              "iou": 0.9561068702290076,
+              "missing_foreground": 24,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                44,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            }
+          ],
+          "instances": {
+            "65496": {
+              "background_spill": 0,
+              "cross_object": 0,
+              "iou": 0.0,
+              "missing_foreground": 582,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": null
+            },
+            "65501": {
+              "background_spill": 45,
+              "cross_object": 0,
+              "iou": 0.9561068702290076,
+              "missing_foreground": 24,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                44,
+                1,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.4142135381698608
+            },
+            "65506": {
+              "background_spill": 41,
+              "cross_object": 14,
+              "iou": 0.95970852978997,
+              "missing_foreground": 39,
+              "spill_distance_bins_le1_1to2_2to3_gt3": [
+                41,
+                0,
+                0,
+                0
+              ],
+              "spill_distance_max": 1.0
+            }
+          },
+          "recovered": 2,
+          "spill": 86
+        }
+      },
+      "confident_detections": 2,
+      "frozen_assignment": {
+        "65501": 1,
+        "65506": 0
+      },
+      "negative": false,
+      "scene_id": "scene_035"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "additional_tests_run": false,
+  "checks": [
+    "Final97/97 test result,2.004s timer,5.404458436s worker wall,658896KiB peak and exit0/no-limit match focused_tests_final.log and test_supervision_final.json",
+    "Separate gradient3.428882150s wall/643180KiB/12finite nonzero mask tensors match retained gradient receipts and my independent synthetic reproduction",
+    "Independent18focused tests and live-parent/PDEATHSIG positive handshake accurately attributed",
+    "Implementation-only scope, no campaigns/optimizer steps/trained weights deserialization/real inference, UNKNOWN historical supervision and blocked Stage-A2 remain explicit",
+    "Prospective resource caps distinct from unmeasured native-aux workload overhead; probabilistic BCE saturation, ROI clipping, native256disagreement and frozen proposal limitations remain explicit",
+    "Future command uses genuine reviewed configuration/review hashes and explicitly requires separate human authorization"
+  ],
+  "configuration_sha256": "1b753bf1bca3a6466521459375c4d8f3e4cf900a6a905fc8750520a431263e6f",
+  "decision": "PASS_NO_ACTIONABLE_FACTUAL_FINDINGS",
+  "document": "/home/user/epd-v2-supervised-pilot/docs/native_boundary_auxiliary_loss.md",
+  "document_sha256": "f357799f1d8f1d49666dc9486783328ab1613fedeac46ec88a5c13ca3a9b40d0",
+  "findings": [],
+  "implementation_review_sha256": "fcb9eb79b5f0255d95a006685b71bcb70b0a5f78d41aaa9d80474b6cd6f634c6",
+  "repository_edits_by_reviewer": false,
+  "reviewer": "/root/native_boundary_review",
+  "schema": "epd_independent_document_review/v1"
+}

@@ -1,0 +1,41 @@
+{
+  "checkpoint": {
+    "bytes": 186750271,
+    "epoch": 1,
+    "path": "/home/user/epd-v2-artifacts/native-boundary-candidate-001/UNQUALIFIED_epoch_01.pt",
+    "sha256": "38bc0d71a5f11cbf5ef567403f4a18c8aeb1d9361044a05c48cd93eb8cdd73b3"
+  },
+  "configuration_sha256": "1b753bf1bca3a6466521459375c4d8f3e4cf900a6a905fc8750520a431263e6f",
+  "decision": "REJECTED",
+  "frozen_after_sha256": "ffa1d1d9dda33d728ad8e13c30433d51d5d5ad305ebd2b8aa2c113c39be1d72f",
+  "frozen_before_sha256": "ffa1d1d9dda33d728ad8e13c30433d51d5d5ad305ebd2b8aa2c113c39be1d72f",
+  "gate": {
+    "decision": "REJECTED",
+    "failures": [
+      "DETECTION_REGRESSION",
+      "INSTANCE_REGRESSION",
+      "MATERIALITY_mapped",
+      "SENTINEL_MATERIALITY_mapped"
+    ],
+    "production_qualified": false,
+    "spill_totals": {
+      "baseline": {
+        "mapped": 647,
+        "native": 1193
+      },
+      "candidate": {
+        "mapped": 527,
+        "native": 888
+      }
+    },
+    "stage_a2": "BLOCKED_0/2"
+  },
+  "history_sha256": "a55a5fa96f6431fa5d82b783079e4ef419a65f5864672c564ed7de50aa8381f3",
+  "original_56_training_supervision": "UNKNOWN",
+  "production_qualified": false,
+  "stage_a2": "BLOCKED_0/2",
+  "training_supervision": "AWAITING_PARENT_RECEIPT",
+  "updates": 300,
+  "validation_scenes": 12,
+  "validation_sha256": "4a40df1a135c09620e92038062daed39913be2b447f8e89f45ad669b98066f71"
+}

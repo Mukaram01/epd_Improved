@@ -1,0 +1,35 @@
+{
+  "all_state_unchanged_no_optimizer_step": true,
+  "diagnostics": {
+    "boundary_radius_native_pixels": 2.0,
+    "outside_roi_foreground_samples": 0,
+    "owners": 1,
+    "proposals": 2,
+    "skipped_proposals": 0,
+    "unweighted_loss": 0.6748027205467224
+  },
+  "mask_tensors_with_finite_nonzero_gradient": 12,
+  "non_mask_state_after_sha256": "97543ba838472b7eb0de12c3ec57a08a630dd6a3f07fc5b9b2a4f2997bd5c17b",
+  "non_mask_state_before_sha256": "97543ba838472b7eb0de12c3ec57a08a630dd6a3f07fc5b9b2a4f2997bd5c17b",
+  "original_training_supervision": "UNKNOWN",
+  "parameter_gradient_l1": {
+    "roi_heads.mask_head.0.0.bias": 0.0020542461425065994,
+    "roi_heads.mask_head.0.0.weight": 0.006331329699605703,
+    "roi_heads.mask_head.1.0.bias": 0.0019738199189305305,
+    "roi_heads.mask_head.1.0.weight": 0.008385583758354187,
+    "roi_heads.mask_head.2.0.bias": 0.0019080074271187186,
+    "roi_heads.mask_head.2.0.weight": 0.010359406471252441,
+    "roi_heads.mask_head.3.0.bias": 0.0017666758503764868,
+    "roi_heads.mask_head.3.0.weight": 0.012267407029867172,
+    "roi_heads.mask_predictor.conv5_mask.bias": 0.014722312800586224,
+    "roi_heads.mask_predictor.conv5_mask.weight": 0.014034084975719452,
+    "roi_heads.mask_predictor.mask_fcn_logits.bias": 0.1226857453584671,
+    "roi_heads.mask_predictor.mask_fcn_logits.weight": 0.02875637821853161
+  },
+  "real_training_steps": 0,
+  "scope": "Synthetic4channel model/64internal raster; native512GT; actualROIHeads/TVpaste; backward only",
+  "source_sha256": "66a2dd212b50e538e1c023b6d130722f4e6c97d32a7ff09cd313e45da0f4a1bb",
+  "stage_a2": "BLOCKED_0/2",
+  "trained_checkpoint_loaded": false,
+  "weighted_auxiliary_loss": 0.1687006801366806
+}

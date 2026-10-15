@@ -1,0 +1,46 @@
+{
+  "checks": [
+    "All source and prior documentary evidence hashes independently verified; exact installed source inventory matches.",
+    "Policy_record exactly matches JSON preregistration;972 feature settings and all clipped boxes checked.",
+    "Independent analytic membership and exact Euclidean SDF definitions reviewed, including triangle segment distances and conservative half-cell-diagonal band.",
+    "NumPy float32 ROI sampling arithmetic matches pinned CPU kernel reference; both flags require bitwise parity before alternatives.",
+    "Independent legacy paste requires bitwise compiled Torchvision parity; bilinear and unit-deconvolution bridges explicitly synthetic.",
+    "Four-arm factorial conventions correctly separate ROI-only/paste-only and document joint-arm interaction.",
+    "Signed level0.5 crossing displacement, empty masks, extinguished features and conservation handling reviewed.",
+    "72 traces retain coordinate chain, logits and original/shadow probabilities.",
+    "Shared supervisor limits CPU2/300seconds/2048MiB RSS with polling20ms/wait4 rejection, pdeath and process-group cleanup; exclusive output/no retry reviewed.",
+    "60 focused tests independently passed in1.129seconds; no full benchmark run."
+  ],
+  "decision": "APPROVE_SYNTHETIC_METHODOLOGY_ONLY",
+  "findings": [],
+  "limitations": [
+    "Contour statistics sample level0.5 crossings between image pixel centres and omit image-frame boundary edges; they are not full Hausdorff distance.",
+    "4x4/8x8 coverage estimates and their differences are quadrature/convergence diagnostics, not guaranteed error bars. The analytic SDF sampling band is conservative.",
+    "Both feature origins are synthetic assumptions, not established origins of the trained FPN.",
+    "Synthetic bilinear/unit-deconvolution bridges do not reproduce learned mask-head convolutions, nonlinearities or trained weights.",
+    "Boundary means exclude absent contours; extinguished-feature counts, IoU and missing/area measurements must be inspected together.",
+    "RSS limit is sampled high-water enforcement rather than kernel cgroup memory.max.",
+    "Approval of methodology does not establish actual benchmark results; offline postrun verification remains required."
+  ],
+  "original_training_supervision": "UNKNOWN",
+  "preregistration_sha256": "a2ded7d5082d12ea3612e5d4ef346f01e607b942177c82db688b3872feb0778d",
+  "prior_evidence_sha256": {
+    "/home/user/epd-v2-supervised-pilot/docs/diagnostic_shadow_capture_results.md": "ad5573ba99547dd1046f43f43089e657e066f7ef35250c59022f8da1ccf68043",
+    "/home/user/epd-v2-supervised-pilot/docs/shadow_mask_paste_control.md": "2b595e91144ba7a657784ffcc46113e63ecf2698e19280740d49f892c6f40da6",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/shadow_diagnostic_qualification_001/independent_review.json": "63b4512bcbd1af685e5d7a4407accde96dd730a5dc28478a1065038a3d3b1545"
+  },
+  "resolved_prior_finding": "Explicit contour-frame omission, quadrature uncertainty interpretation and synthetic-origin assumptions now policy-bound and emitted in results.",
+  "review_checkpoints_loaded": 0,
+  "review_full_benchmark_executed": false,
+  "review_real_scene_access": false,
+  "reviewer": "/root/diagnostic_admission_review",
+  "sources_sha256": {
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_sources/LICENSE.torchvision": "6502f676851cfe25f8af75531dfb32375b7325b73c37e7b43741fa422893e71d",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_sources/roi_align_common.h": "1e22a97d9b3c84f6c9782fa4db0cb27d03cfd760fa5aa736413df2bc046e724e",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_sources/roi_align_kernel.cpp": "d3a2f0d909d9a7bb47c30cd82058a4afb02453498e3283f62dbf82a64e65a769",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_contract.py": "7c35607cd4ebea5e2a7d676decac6b1c8e60ba81bfce9f5d79f47823088a57c9",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/diagnostic_shadow_capture.py": "12702816829118cb8bac72bda2ec17e3b2e4772bc5a73351b49ab42cc273177f",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_analytic_coordinate_contract.py": "6f5dd9770253eb4c6ddb1b4b420431a231a8738564ce84f04af76776ded5eb45"
+  },
+  "stage_a2": "BLOCKED_0/2"
+}

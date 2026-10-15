@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_r3.py",
+    "--worker",
+    "--policy",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_preregistration_r3.json",
+    "--review",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_benchmark_002/prerun_review.json",
+    "--review-sha256",
+    "f14fd7a37c447317de9f84f1985e5d4afe7c700f2ffe141c00d04fd45de7dda6"
+  ],
+  "exit_code": 0,
+  "failure": null,
+  "pdeathsig": "SIGKILL",
+  "peak_worker_rss_kib": 1037020,
+  "process_group_cleanup": true,
+  "resource_limit_reason": null,
+  "rss_enforcement": "VmRSS/VmHWM polling plus final wait4 high-water check; not kernel cgroup memory.max",
+  "sampling_interval_seconds": 0.02,
+  "status": "WORKER_COMPLETED",
+  "wall_seconds": 22.288214991996938
+}

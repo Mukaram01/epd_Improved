@@ -1,0 +1,6 @@
+{
+  "decision": "BLOCKED_FAILURE",
+  "no_automatic_retry": true,
+  "results_sha256": null,
+  "supervision_sha256": "c779221fa175172178cb1aae2d46cf1fd0a67b7f0a154244ca67349062be5410"
+}

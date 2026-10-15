@@ -1,0 +1,7 @@
+{
+  "all_originals_before_shadows": true,
+  "max_abs": 0.0,
+  "paste_bitwise_checks": 3888,
+  "replicate_unit_deconv_bitwise_checks": 1944,
+  "roi_numpy_bitwise_checks": 1944
+}

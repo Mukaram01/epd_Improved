@@ -1,0 +1,4 @@
+{
+  "partial_evidence_preserved": true,
+  "reason": "TypeError: unsupported operand type(s) for *: 'numpy.ndarray' and 'Tensor'"
+}

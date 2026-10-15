@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_contract.py",
+    "--worker",
+    "--policy",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_preregistration.json",
+    "--output",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001"
+  ],
+  "launcher_pid": 37178,
+  "rss_limit_kib": 2097152,
+  "started_unix_ns": 1792058678179235205,
+  "wall_limit_seconds": 300
+}

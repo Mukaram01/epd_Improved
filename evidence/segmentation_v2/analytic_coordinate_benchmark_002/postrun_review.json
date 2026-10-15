@@ -1,0 +1,29 @@
+{
+  "checks": [
+    "Read-only complete-result verifier independently passed all1944 unique exact cases,7776 conservation checks,72 hashes/trace identities/array shapes/finite values/box identities/canonical coordinates and probability ranges.",
+    "Original parity receipt1944 ROI/3888 paste/1944 replication checks,maxabs0; all originals precede shadows.",
+    "3776 scalar/array summary checks independently recomputed from raw rows across origin-scale,shape-origin-scale and all marginals; floating aggregates agree within1e-12.",
+    "All sampling positivity-loss counts and interior ramp expected offsets/residual maxima independently reproduced.",
+    "All offline artifact manifest hashes match; nine original failed001 external artifact hashes remain unchanged.",
+    "Supervision shows single worker completion exit0,22.288214991996938sec,1037020KiB peak,no resource-limit reason, parent-death SIGKILL and process-group cleanup.",
+    "Source bindings rechecked offline; original numerical core remains serialization-only correction.",
+    "Additional offline raw-row check: bilinear has16 positive-pooled to nonpositive56 cases per ROI flag; replicate has0, as its exact2x2 replication preserves each sample sign. Cell-centred scale.25 thin subset has27 unique feature settings (54 bridge rows):20 no positive feature sample and23 no positive pooled sample for either flag."
+  ],
+  "decision": "COMPLETE_R3_SYNTHETIC_DIAGNOSTIC_ONLY",
+  "findings": [],
+  "interpretation": [
+    "Coordinate-origin sensitivity is supported for declared synthetic origins; actual trained FPN origin remains unestablished.",
+    "Nonpositive sampled/pooled/synthetic logits document positivity loss in this declared pipeline; they do not prove irrecoverable geometry for an arbitrary learned estimator.",
+    "Boundary edges at image frame omitted; quadrature differences are convergence diagnostics rather than guaranteed error bars; no production winner selected."
+  ],
+  "measurements_sha256": "ed1f14c307f8791feb74b39a967fb85dc6cee882b1045a4f4dd1f6695ac37138",
+  "offline_summary_sha256": "b6b84e5a5c0cbc4f3c836937e22a10c19bca0791109efc463118a33fb83c4276",
+  "original_training_supervision": "UNKNOWN",
+  "preregistration_sha256": "191b1519907dcd066a5c99317b4403161a1db32d2453dcc1ec2e1f74a68c5a23",
+  "results_sha256": "a25f734f45e5cdf2ef9ff05e95e2fb664da70b78e0f5c265aef164cf1687f6ad",
+  "review_checkpoints_loaded": 0,
+  "review_full_benchmark_executed": false,
+  "review_reproduction_script_sha256": "d7f8e196c1ed585589f59a02583b1d671cb53d8ec4a7b25678036050b32abaa9",
+  "reviewer": "/root/r3_review",
+  "stage_a2": "BLOCKED_0/2"
+}

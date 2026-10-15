@@ -1,0 +1,318 @@
+{
+  "artifact_sha256": {
+    "completion.json": "4ecbbe4d90c845763f7c29137c5117b93a7790eb577b84554368e15c72e4a66a",
+    "failure.json": "3501fd92d50ae226fc781377d71ca9413cfcba6c9c90ef04a23f855aded51f8a",
+    "launch.json": "aba9c482daddcca560fc44bdd7c1a277c092fdb49239b21d0f12bb1e387ffb2d",
+    "measurements.jsonl": "7512b2ced4b090def6b3ff6d3058eb5a90dab467a500af1810e341d6457f9ccf",
+    "operator_parity.json": "8361ab9f53ff5801a702359fa7733f1bdb5330054c83c9aeb808a1da8a69aee3",
+    "stderr.log": "87a707ffef8ae34e294c99c54961742991b11e4f192c5b1db704f16f3496face",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "supervision.json": "c779221fa175172178cb1aae2d46cf1fd0a67b7f0a154244ca67349062be5410",
+    "worker_identity.json": "cea20be7d400fd3a9c28c4edf84c73c029e4483d166d453e0c380f98a1b7fbe0"
+  },
+  "conservation_checks": 580,
+  "group_caveat": "Exploratory description of a failed prefix: circle12x10 interior only; offsets/bridges are not independent replicates. No full-matrix or production conclusion.",
+  "groups": [
+    {
+      "arms": {
+        "aligned_and_continuous": {
+          "boundary_abs_mean_of_case_means": 0.037207743483963614,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": 1,
+          "iou_mean": 0.9942528735632185,
+          "missing": 0,
+          "spill": 1
+        },
+        "aligned_roi_only": {
+          "boundary_abs_mean_of_case_means": 0.2409005969821848,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": 18,
+          "iou_mean": 0.8754120079285296,
+          "missing": 3,
+          "spill": 21
+        },
+        "continuous_paste_only": {
+          "boundary_abs_mean_of_case_means": 0.43892231747236715,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": 1,
+          "iou_mean": 0.7399732620320857,
+          "missing": 25,
+          "spill": 26
+        },
+        "legacy": {
+          "boundary_abs_mean_of_case_means": 0.5383571208138206,
+          "error_outside_sampling_band": 4,
+          "foreground_delta": 31,
+          "iou_mean": 0.7326562326562328,
+          "missing": 13,
+          "spill": 44
+        }
+      },
+      "origin": "cell_centred",
+      "ramp_errors": {
+        "False": {
+          "dx_mean": 0.5000012002023707,
+          "dy_mean": 0.5000002303091037
+        },
+        "True": {
+          "dx_mean": 1.1645206786232541e-06,
+          "dy_mean": 1.7192088016847362e-07
+        }
+      },
+      "rows": 6,
+      "scale": 1.0
+    },
+    {
+      "arms": {
+        "aligned_and_continuous": {
+          "boundary_abs_mean_of_case_means": 0.13967280596945528,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": -21,
+          "iou_mean": 0.8869047619047619,
+          "missing": 21,
+          "spill": 0
+        },
+        "aligned_roi_only": {
+          "boundary_abs_mean_of_case_means": 0.1668327784807019,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": 8,
+          "iou_mean": 0.890467482708862,
+          "missing": 6,
+          "spill": 14
+        },
+        "continuous_paste_only": {
+          "boundary_abs_mean_of_case_means": 0.8664430112347684,
+          "error_outside_sampling_band": 35,
+          "foreground_delta": -19,
+          "iou_mean": 0.5138726579903051,
+          "missing": 61,
+          "spill": 42
+        },
+        "legacy": {
+          "boundary_abs_mean_of_case_means": 1.0189653325045014,
+          "error_outside_sampling_band": 42,
+          "foreground_delta": 2,
+          "iou_mean": 0.4974207198212334,
+          "missing": 56,
+          "spill": 58
+        }
+      },
+      "origin": "cell_centred",
+      "ramp_errors": {
+        "False": {
+          "dx_mean": 1.0000012147994264,
+          "dy_mean": 1.000000152458139
+        },
+        "True": {
+          "dx_mean": 1.2147994265970532e-06,
+          "dy_mean": 1.6056761449697066e-07
+        }
+      },
+      "rows": 6,
+      "scale": 0.5
+    },
+    {
+      "arms": {
+        "aligned_and_continuous": {
+          "boundary_abs_mean_of_case_means": 0.5978157087216504,
+          "error_outside_sampling_band": 8,
+          "foreground_delta": -58,
+          "iou_mean": 0.6699999999999999,
+          "missing": 58,
+          "spill": 0
+        },
+        "aligned_roi_only": {
+          "boundary_abs_mean_of_case_means": 0.4294090260772359,
+          "error_outside_sampling_band": 4,
+          "foreground_delta": -41,
+          "iou_mean": 0.7592857142857142,
+          "missing": 41,
+          "spill": 0
+        },
+        "continuous_paste_only": {
+          "boundary_abs_mean_of_case_means": 1.391699084905529,
+          "error_outside_sampling_band": 106,
+          "foreground_delta": -60,
+          "iou_mean": 0.23865004391320185,
+          "missing": 116,
+          "spill": 56
+        },
+        "legacy": {
+          "boundary_abs_mean_of_case_means": 1.5712224238679335,
+          "error_outside_sampling_band": 116,
+          "foreground_delta": -48,
+          "iou_mean": 0.22660166953275293,
+          "missing": 116,
+          "spill": 68
+        }
+      },
+      "origin": "cell_centred",
+      "ramp_errors": {
+        "False": {
+          "dx_mean": 2.000001234262168,
+          "dy_mean": 2.000000129751608
+        },
+        "True": {
+          "dx_mean": 1.1547893080476802e-06,
+          "dy_mean": 6.649769893308885e-08
+        }
+      },
+      "rows": 6,
+      "scale": 0.25
+    },
+    {
+      "arms": {
+        "aligned_and_continuous": {
+          "boundary_abs_mean_of_case_means": 0.037207743483963614,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": 1,
+          "iou_mean": 0.9942528735632185,
+          "missing": 0,
+          "spill": 1
+        },
+        "aligned_roi_only": {
+          "boundary_abs_mean_of_case_means": 0.2409005969821848,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": 18,
+          "iou_mean": 0.8754120079285296,
+          "missing": 3,
+          "spill": 21
+        },
+        "continuous_paste_only": {
+          "boundary_abs_mean_of_case_means": 0.43892231747236715,
+          "error_outside_sampling_band": 0,
+          "foreground_delta": 1,
+          "iou_mean": 0.7399732620320857,
+          "missing": 25,
+          "spill": 26
+        },
+        "legacy": {
+          "boundary_abs_mean_of_case_means": 0.5383571208138206,
+          "error_outside_sampling_band": 4,
+          "foreground_delta": 31,
+          "iou_mean": 0.7326562326562328,
+          "missing": 13,
+          "spill": 44
+        }
+      },
+      "origin": "fixed_input_centre",
+      "ramp_errors": {
+        "False": {
+          "dx_mean": 0.5000012002023707,
+          "dy_mean": 0.5000002303091037
+        },
+        "True": {
+          "dx_mean": 1.1645206786232541e-06,
+          "dy_mean": 1.7192088016847362e-07
+        }
+      },
+      "rows": 6,
+      "scale": 1.0
+    },
+    {
+      "arms": {
+        "aligned_and_continuous": {
+          "boundary_abs_mean_of_case_means": 0.44272563267804693,
+          "error_outside_sampling_band": 4,
+          "foreground_delta": -16,
+          "iou_mean": 0.7232840080448534,
+          "missing": 34,
+          "spill": 18
+        },
+        "aligned_roi_only": {
+          "boundary_abs_mean_of_case_means": 0.5212390776459708,
+          "error_outside_sampling_band": 5,
+          "foreground_delta": 24,
+          "iou_mean": 0.7157565516698644,
+          "missing": 18,
+          "spill": 42
+        },
+        "continuous_paste_only": {
+          "boundary_abs_mean_of_case_means": 0.4418923185967288,
+          "error_outside_sampling_band": 5,
+          "foreground_delta": -16,
+          "iou_mean": 0.7140434166470039,
+          "missing": 35,
+          "spill": 19
+        },
+        "legacy": {
+          "boundary_abs_mean_of_case_means": 0.5229472590984873,
+          "error_outside_sampling_band": 6,
+          "foreground_delta": 26,
+          "iou_mean": 0.71678117204433,
+          "missing": 17,
+          "spill": 43
+        }
+      },
+      "origin": "fixed_input_centre",
+      "ramp_errors": {
+        "False": {
+          "dx_mean": 0.500001222908902,
+          "dy_mean": 0.5000001800303556
+        },
+        "True": {
+          "dx_mean": -0.4999987511407764,
+          "dy_mean": -0.49999982321343445
+        }
+      },
+      "rows": 6,
+      "scale": 0.5
+    },
+    {
+      "arms": {
+        "aligned_and_continuous": {
+          "boundary_abs_mean_of_case_means": 1.082765663111642,
+          "error_outside_sampling_band": 62,
+          "foreground_delta": -80,
+          "iou_mean": 0.3542282430213464,
+          "missing": 102,
+          "spill": 22
+        },
+        "aligned_roi_only": {
+          "boundary_abs_mean_of_case_means": 1.1967280287372535,
+          "error_outside_sampling_band": 79,
+          "foreground_delta": -65,
+          "iou_mean": 0.3164268395530255,
+          "missing": 104,
+          "spill": 39
+        },
+        "continuous_paste_only": {
+          "boundary_abs_mean_of_case_means": 0.7943521170246157,
+          "error_outside_sampling_band": 40,
+          "foreground_delta": -81,
+          "iou_mean": 0.49024646330680816,
+          "missing": 85,
+          "spill": 4
+        },
+        "legacy": {
+          "boundary_abs_mean_of_case_means": 0.7453999583787785,
+          "error_outside_sampling_band": 41,
+          "foreground_delta": -62,
+          "iou_mean": 0.502563008476987,
+          "missing": 77,
+          "spill": 15
+        }
+      },
+      "origin": "fixed_input_centre",
+      "ramp_errors": {
+        "False": {
+          "dx_mean": 0.5000012147994266,
+          "dy_mean": 0.500000100557496
+        },
+        "True": {
+          "dx_mean": -1.4999989871265127,
+          "dy_mean": -1.4999998929549239
+        }
+      },
+      "rows": 6,
+      "scale": 0.25
+    }
+  ],
+  "intended_rows": 1944,
+  "output": "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001",
+  "rows": 145,
+  "shapes": {
+    "circle": 145
+  },
+  "status": "INCOMPLETE_SINGLE_ATTEMPT_NO_RETRY"
+}

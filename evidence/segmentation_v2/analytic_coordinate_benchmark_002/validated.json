@@ -1,0 +1,12 @@
+{
+  "arm_measurements": 7776,
+  "complete_traces": 72,
+  "conservation_checks": 7776,
+  "decision": "COMPLETE_SYNTHETIC_ONLY",
+  "measurements_sha256": "ed1f14c307f8791feb74b39a967fb85dc6cee882b1045a4f4dd1f6695ac37138",
+  "original_training_supervision": "UNKNOWN",
+  "policy_sha256": "191b1519907dcd066a5c99317b4403161a1db32d2453dcc1ec2e1f74a68c5a23",
+  "results_sha256": "a25f734f45e5cdf2ef9ff05e95e2fb664da70b78e0f5c265aef164cf1687f6ad",
+  "roundtrip_cases": 1944,
+  "stage_a2": "BLOCKED_0/2"
+}

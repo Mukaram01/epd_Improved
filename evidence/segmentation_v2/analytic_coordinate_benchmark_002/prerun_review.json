@@ -1,0 +1,31 @@
+{
+  "checks": [
+    "Diff against retained executed source confirms serialization-only helper and trace arrays change; numerical experiment controls unchanged.",
+    "Original old preregistration and nine old external artifact hashes unchanged.",
+    "R3 source bindings verified independently.",
+    "R3 gate requires 1944 unique exact case identities, 7776 arm measurements, 72 exact trace identities, original parity1944/3888/1944 and zero maximum discrepancy.",
+    "Source/runtime binding checked before admission; source checked again after execution.",
+    "Incomplete rows/traces, malformed/nonfinite arrays, conservation failures, hash drift and summary mismatch reject completion.",
+    "Exclusive fixed output and supervised300sec/2048MiB/2CPU-thread controls reviewed.",
+    "17 focused analytic/R3 tests independently passed; no full benchmark executed."
+  ],
+  "decision": "APPROVE_R3_SYNTHETIC_ONLY",
+  "findings": [
+    {
+      "disposition": "Resolved before approval: all trace shapes now checked with scale-dependent feature shape, plus wrong pooled-shape regression.",
+      "finding": "Trace completeness initially checked keys/finite values but omitted most exact array shapes."
+    }
+  ],
+  "limitations": [
+    "RSS enforcement uses polling plus high-water rejection, not kernel cgroup memory.max.",
+    "Synthetic origins and bridges do not establish trained FPN origin or learned-head behavior.",
+    "Approval applies only to this exact policy/source binding and one authorised attempt."
+  ],
+  "original_training_supervision": "UNKNOWN",
+  "preregistration_sha256": "191b1519907dcd066a5c99317b4403161a1db32d2453dcc1ec2e1f74a68c5a23",
+  "review_checkpoints_loaded": 0,
+  "review_full_benchmark_executed": false,
+  "reviewer": "/root/r3_review",
+  "scope": "Exactly one new exclusive synthetic attempt at /home/user/epd-v2-artifacts/analytic-coordinate-contract-002; no automatic retry, real scene/model/checkpoint access or production change.",
+  "stage_a2": "BLOCKED_0/2"
+}

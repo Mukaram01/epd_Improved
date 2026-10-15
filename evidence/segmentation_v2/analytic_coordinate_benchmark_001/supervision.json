@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_contract.py",
+    "--worker",
+    "--policy",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_preregistration.json",
+    "--output",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001"
+  ],
+  "exit_code": 1,
+  "failure": null,
+  "pdeathsig": "SIGKILL",
+  "peak_worker_rss_kib": 1039084,
+  "process_group_cleanup": true,
+  "resource_limit_reason": null,
+  "rss_enforcement": "VmRSS/VmHWM polling plus final wait4 high-water check; not kernel cgroup memory.max",
+  "sampling_interval_seconds": 0.02,
+  "status": "BLOCKED_WORKER_FAILURE",
+  "wall_seconds": 13.176559849998739
+}

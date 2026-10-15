@@ -1,0 +1,81 @@
+{
+  "artifact_sha256": {
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/completion.json": "4ecbbe4d90c845763f7c29137c5117b93a7790eb577b84554368e15c72e4a66a",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/failure.json": "3501fd92d50ae226fc781377d71ca9413cfcba6c9c90ef04a23f855aded51f8a",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/launch.json": "aba9c482daddcca560fc44bdd7c1a277c092fdb49239b21d0f12bb1e387ffb2d",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/measurements.jsonl": "7512b2ced4b090def6b3ff6d3058eb5a90dab467a500af1810e341d6457f9ccf",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/operator_parity.json": "8361ab9f53ff5801a702359fa7733f1bdb5330054c83c9aeb808a1da8a69aee3",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/stderr.log": "87a707ffef8ae34e294c99c54961742991b11e4f192c5b1db704f16f3496face",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/supervision.json": "c779221fa175172178cb1aae2d46cf1fd0a67b7f0a154244ca67349062be5410",
+    "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001/worker_identity.json": "cea20be7d400fd3a9c28c4edf84c73c029e4483d166d453e0c380f98a1b7fbe0"
+  },
+  "correction_review": {
+    "checks": [
+      "Retained executed source hash matches original preregistration.",
+      "canonical56_coordinates converts tensor to CPU NumPy and float endpoints without mutating ROI.",
+      "Regression checks exact coordinates, tensor immutability and NPZ serialization.",
+      "Corrected current source differs from original bound source; old policy SOURCE_DRIFT check rejects corrected-source execution before operators.",
+      "Original failed attempt and partial evidence remain unchanged."
+    ],
+    "decision": "SERIALIZATION_FIX_ACCEPTED_NO_RERUN",
+    "executed_source_sha256": "7c35607cd4ebea5e2a7d676decac6b1c8e60ba81bfce9f5d79f47823088a57c9",
+    "focused_tests": "61 independently passed",
+    "no_retry_authorized": true
+  },
+  "decision": "FAILED_SINGLE_ATTEMPT_PARTIAL_EVIDENCE_ONLY",
+  "findings": [
+    {
+      "disposition": "Fix and regression test permitted separately; no benchmark retry authorised.",
+      "finding": "Trace canonical56 coordinate serialization multiplies NumPy ndarray by Torch scalar tensor; TypeError at line299 terminates the single authorised attempt.",
+      "priority": "P1"
+    }
+  ],
+  "limitations": [
+    "Retained operator parity receipt covers all972 feature settings; review verified receipt/counts and inspected code ordering, not independently rerunning operators.",
+    "145 of1944 planned roundtrip rows retained, only circle cases; first trace serialization failed. No full geometry/arm summaries, complete cross-shape conclusion or winner supported.",
+    "Partial rows are raw diagnostic evidence; absent final publication/source recheck means no completed benchmark claim.",
+    "RSS limit is20ms polling/high-water rejection, not kernel cgroup memory.max.",
+    "No model, checkpoint or real-scene access in review; no benchmark retry."
+  ],
+  "methodology_review_sha256": "45a062f70535d7a243f1d7339b78e8a6a744577cadd93824728286372177114f",
+  "original_training_supervision": "UNKNOWN",
+  "partial_arm_measurements": 580,
+  "partial_conservation_checks_pass": true,
+  "partial_rows": 145,
+  "preregistration_sha256": "a2ded7d5082d12ea3612e5d4ef346f01e607b942177c82db688b3872feb0778d",
+  "results_published": false,
+  "review_checkpoints_loaded": 0,
+  "review_full_benchmark_executed": false,
+  "reviewer": "/root/diagnostic_admission_review",
+  "stage_a2": "BLOCKED_0/2",
+  "supervision": {
+    "command": [
+      "/usr/bin/python3",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_contract.py",
+      "--worker",
+      "--policy",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_preregistration.json",
+      "--output",
+      "/home/user/epd-v2-artifacts/analytic-coordinate-contract-001"
+    ],
+    "exit_code": 1,
+    "failure": null,
+    "pdeathsig": "SIGKILL",
+    "peak_worker_rss_kib": 1039084,
+    "process_group_cleanup": true,
+    "resource_limit_reason": null,
+    "rss_enforcement": "VmRSS/VmHWM polling plus final wait4 high-water check; not kernel cgroup memory.max",
+    "sampling_interval_seconds": 0.02,
+    "status": "BLOCKED_WORKER_FAILURE",
+    "wall_seconds": 13.176559849998739
+  },
+  "trace_archives": 0,
+  "verified_operator_parity": {
+    "all_originals_before_shadows": true,
+    "max_abs": 0.0,
+    "paste_bitwise_checks": 3888,
+    "replicate_unit_deconv_bitwise_checks": 1944,
+    "roi_numpy_bitwise_checks": 1944
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "decision": "DIAGNOSTIC_ONLY_COMPLETED_NO_PROMOTION",
+  "original_training_supervision": "UNKNOWN",
+  "production_qualified": false,
+  "results_sha256": "f78a92515d332d89c3234ab08485e8bbf4325a2bcc928caf0d711c1a2abe8b0c",
+  "stage_a2": "BLOCKED_0/2",
+  "supervision_sha256": "a45527360bcc88c5a789c74f68d92015ea749c322f0fa828167fea63e2f935ab",
+  "total_wall_seconds": 55.66972083099972
+}

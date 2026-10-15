@@ -1,0 +1,89 @@
+{
+  "aggregate_and_materiality_verified": true,
+  "all_controls_fail_no_harm_rule": true,
+  "decision": "POSTRUN_EVIDENCE_VERIFIED_NO_PROMOTION",
+  "findings": [],
+  "limitations": [
+    "Offline verification replayed only the three existing preregistered controls from immutable captured logits.",
+    "RSS evidence is polling/high-water rejection, not kernel cgroup enforcement.",
+    "No promotion, retraining or original-supervisor certification."
+  ],
+  "original_training_supervision": "UNKNOWN",
+  "preinference_review_sha256": "63b4512bcbd1af685e5d7a4407accde96dd730a5dc28478a1065038a3d3b1545",
+  "results_sha256": "f78a92515d332d89c3234ab08485e8bbf4325a2bcc928caf0d711c1a2abe8b0c",
+  "reviewer": "/root/diagnostic_admission_review",
+  "scene_checks": [
+    {
+      "all_existing_arm_pixel_metrics_verified": true,
+      "archive_identity_and_baseline_parity_verified": true,
+      "confident_detections": 0,
+      "scene_id": "scene_024",
+      "targets": [],
+      "unmatched_targets": []
+    },
+    {
+      "all_existing_arm_pixel_metrics_verified": true,
+      "archive_identity_and_baseline_parity_verified": true,
+      "confident_detections": 1,
+      "scene_id": "scene_025",
+      "targets": [
+        65503,
+        65508
+      ],
+      "unmatched_targets": [
+        65503
+      ]
+    },
+    {
+      "all_existing_arm_pixel_metrics_verified": true,
+      "archive_identity_and_baseline_parity_verified": true,
+      "confident_detections": 3,
+      "scene_id": "scene_026",
+      "targets": [
+        65496,
+        65501,
+        65506
+      ],
+      "unmatched_targets": []
+    },
+    {
+      "all_existing_arm_pixel_metrics_verified": true,
+      "archive_identity_and_baseline_parity_verified": true,
+      "confident_detections": 1,
+      "scene_id": "scene_027",
+      "targets": [
+        65510
+      ],
+      "unmatched_targets": []
+    }
+  ],
+  "stage_a2": "BLOCKED_0/2",
+  "supervision": {
+    "command": [
+      "/usr/bin/python3",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/diagnostic_shadow_capture.py",
+      "--worker",
+      "--launcher-pid",
+      "36017",
+      "--qualification",
+      "/home/user/epd-v2-artifacts/mask-paste-diagnostic-qualification-001/qualification.json",
+      "--review",
+      "/home/user/epd-v2-artifacts/mask-paste-diagnostic-qualification-001/independent_review.json",
+      "--review-sha256",
+      "63b4512bcbd1af685e5d7a4407accde96dd730a5dc28478a1065038a3d3b1545"
+    ],
+    "exit_code": 0,
+    "failure": null,
+    "pdeathsig": "SIGKILL",
+    "peak_worker_rss_kib": 1827708,
+    "process_group_cleanup": true,
+    "resource_limit_reason": null,
+    "rss_enforcement": "VmRSS/VmHWM polling plus final wait4 high-water check; not kernel cgroup memory.max",
+    "sampling_interval_seconds": 0.02,
+    "status": "WORKER_COMPLETED",
+    "wall_seconds": 51.60647160199733
+  },
+  "total_wall_seconds": 55.66972083099972,
+  "verification_inference_calls": 0,
+  "verification_model_constructed": false
+}

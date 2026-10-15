@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/foreground_preserving_aux_001/verify_gradient.py",
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/gradient.json"
+  ],
+  "launcher_pid": 46762,
+  "rss_limit_kib": 2097152,
+  "started_unix_ns": 1792079720919456272,
+  "wall_limit_seconds": 120
+}

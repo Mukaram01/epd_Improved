@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/foreground_preserving_aux_001/verify_gradient.py",
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/gradient.json"
+  ],
+  "exit_code": 0,
+  "failure": null,
+  "pdeathsig": "SIGKILL",
+  "peak_worker_rss_kib": 642956,
+  "process_group_cleanup": true,
+  "resource_limit_reason": null,
+  "rss_enforcement": "VmRSS/VmHWM polling plus final wait4 high-water check; not kernel cgroup memory.max",
+  "sampling_interval_seconds": 0.02,
+  "status": "WORKER_COMPLETED",
+  "wall_seconds": 3.8007181330031017
+}

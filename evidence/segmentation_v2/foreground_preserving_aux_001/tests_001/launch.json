@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-m",
+    "unittest",
+    "-v",
+    "test_native_boundary_aux",
+    "test_native_boundary_campaign",
+    "test_source_lattice",
+    "test_analytic_coordinate_r3",
+    "test_analytic_coordinate_contract",
+    "test_diagnostic_shadow_capture",
+    "test_training_provenance_audit",
+    "test_shadow_mask_paste",
+    "test_stage_a2_boundary_audit",
+    "test_stage_a2_boundary_cells",
+    "test_foreground_preserving_aux",
+    "test_foreground_preserving_candidate"
+  ],
+  "launcher_pid": 46658,
+  "rss_limit_kib": 2097152,
+  "started_unix_ns": 1792079665238896801,
+  "wall_limit_seconds": 120
+}

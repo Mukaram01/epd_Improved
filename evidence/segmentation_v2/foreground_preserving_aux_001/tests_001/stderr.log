@@ -1,0 +1,147 @@
+test_balanced_fp_fn_and_no_collapse (test_native_boundary_aux.AuxTests) ... ok
+test_boundary_gradient_signs_and_interior_untouched (test_native_boundary_aux.AuxTests) ... ok
+test_instance_owner_not_union_and_balanced_duplicate_proposals (test_native_boundary_aux.AuxTests) ... ok
+test_invalid_masks_boxes_values_and_extreme_logits (test_native_boundary_aux.AuxTests) ... ok
+test_occluded_thin_and_empty (test_native_boundary_aux.AuxTests) ... ok
+test_real_paste_gradient_and_class_ownership (test_native_boundary_aux.AuxTests) ... ok
+test_zero_weight_exact_legacy_no_hooks_or_targets (test_native_boundary_aux.AuxTests) ... ok
+test_actual_roihead_gradient_legacy_terms_and_frozen_buffers (test_native_boundary_aux.GradientIntegrationTests) ... ok
+test_deterministic_multi_image_empty_and_hook_failure_cleanup (test_native_boundary_aux.GradientIntegrationTests) ... ok
+test_frozen_bn_and_adversarial_transform_reordering (test_native_boundary_aux.GradientIntegrationTests) ... ok
+test_matcher_ties_and_owner_order_validation (test_native_boundary_aux.GradientIntegrationTests) ... ok
+test_direct_hidden_worker_cannot_bypass_supervisor (test_native_boundary_campaign.CandidateTests) ... ok
+test_durable_supervision_completion_and_wall_failure (test_native_boundary_campaign.CandidateTests) ... ok
+test_full_set_cannot_hide_sentinel_materiality_failure (test_native_boundary_campaign.CandidateTests) ... ok
+test_no_training_without_explicit_authorisation (test_native_boundary_campaign.CandidateTests) ... ok
+test_prediction_identity_and_negative_false_positive (test_native_boundary_campaign.CandidateTests) ... ok
+test_synthetic_validation_materiality_and_no_harm (test_native_boundary_campaign.CandidateTests) ... ok
+test_unassigned_detection_cannot_collapse (test_native_boundary_campaign.CandidateTests) ... ok
+test_actual_construction_without_weights_or_forward (test_source_lattice.LatticeTests) ... ok
+test_convolution_kernels_odd_even_and_borders (test_source_lattice.LatticeTests) ... ok
+test_coordinates_receptive_fields_and_invalid_assumptions (test_source_lattice.LatticeTests) ... ok
+test_drift_exclusivity_and_evidence_preservation (test_source_lattice.LatticeTests) ... ok
+test_fpn_exact_nearest_parity_and_phase (test_source_lattice.LatticeTests) ... ok
+test_fractional_checkerboard_phase_and_fixed_zero_border_semantics (test_source_lattice.LatticeTests) ... ok
+test_invalid_numeric_inputs (test_source_lattice.LatticeTests) ... ok
+test_mask_chain_and_union_strict_threshold (test_source_lattice.LatticeTests) ... ok
+test_padding_resize_halfpixel_and_level_assignment (test_source_lattice.LatticeTests) ... ok
+test_partial_result_rejected (test_source_lattice.LatticeTests) ... ok
+test_proposed_full_run_requires_separate_authorisation (test_source_lattice.LatticeTests) ... ok
+test_scalar_backbone_scheduled_operators (test_source_lattice.LatticeTests) ... ok
+test_complete_matrix_and_reject_missing_duplicate_category (test_analytic_coordinate_r3.R3Tests) ... ok
+test_exclusive_output_preserves_previous (test_analytic_coordinate_r3.R3Tests) ... ok
+test_hash_drift_and_independent_review_required (test_analytic_coordinate_r3.R3Tests) ... ok
+test_invalid_numbers_and_conservation_fail_closed (test_analytic_coordinate_r3.R3Tests) ... ok
+test_partial_output_rejected (test_analytic_coordinate_r3.R3Tests) ... ok
+test_trace_shape_rejection (test_analytic_coordinate_r3.R3Tests) ... ok
+test_analytic_shapes_have_independent_reference_membership (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_continuous_paste_matches_independent_grid_reference (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_deterministic_clipped_reference_and_snapshot_immutability (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_empty_strict_threshold_and_conservation (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_exclusive_output_and_resource_failure_preservation (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_invalid_degenerate_boxes_and_numeric_drift_fail (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_missing_contour_reports_extinguished_thin_feature (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_numpy_roi_exact_cpp_parity_fractional_border_and_tiny (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_pixel_centres_half_pixel_offset_and_bridge (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_signed_distance_and_conservative_uncertainty (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_trace_coordinates_tensor_boundary_serializes_without_mutation (test_analytic_coordinate_contract.AnalyticContractTests) ... ok
+test_capture_zero_detections_and_identity_drift (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_diagnostic_scope_never_relaxes_original_gate (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_durable_exclusive_output_and_preserved_failure (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_frozen_baseline_assignment_zero_and_duplicate_predictions (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_negative_and_unmatched_targets_preserved (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_review_missing_rejected_or_self_approved_fails (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_semantic_background_is_class_mapping_not_mask_edit (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_wall_and_memory_termination_preserve_logs (test_diagnostic_shadow_capture.DiagnosticCaptureTests) ... ok
+test_checkpoint_embedded_bindings_not_worker_success (test_training_provenance_audit.ProvenanceAuditTests) ... ok
+test_hash_and_existing_output_fail_before_loading (test_training_provenance_audit.ProvenanceAuditTests) ... ok
+test_history_exact_order_losses_and_sequence (test_training_provenance_audit.ProvenanceAuditTests) ... ok
+test_non_mask_state_comparison_includes_buffers (test_training_provenance_audit.ProvenanceAuditTests) ... ok
+test_present_wrong_process_is_not_parent_proof (test_training_provenance_audit.ProvenanceAuditTests) ... ok
+test_real_bounded_parent_can_die_while_detached_worker_publishes (test_training_provenance_audit.ProvenanceAuditTests) ... ok
+test_worker_evidence_never_synthesizes_supervision (test_training_provenance_audit.ProvenanceAuditTests) ... ok
+test_baseline_drift_blocks_before_geometry (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_blocked_audit_publishes_only_admission_and_never_opens_scenes (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_corrupt_logits_boxes_controls_and_shape_fail (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_deterministic_immutable_inputs_and_nontrivial_controls (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_full512_batch_parity_and_out_of_frame_rejection (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_hash_binding_missing_provenance_and_output_exclusivity (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_inclusive_extent_off_by_one_and_rounding (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_invalid_fixed_renderer_identity_rejected (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_measurements_native_and_mapped_conserve_and_freeze_identity (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_original_paste_bitwise_parity_subpixel_clipped_and_empty (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_preregistration_deny_heldout_acceptance_and_duplicate_scene (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_shadow_comparison_gate_and_fixed_reference (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_strict_threshold_roi_and_union_alignment (test_shadow_mask_paste.ShadowPasteTests) ... ok
+test_actual_committed_221_legacy_schema_is_supported (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_archived_summary_fallback_when_raw_archive_absent (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_crop_change_measured_not_relabelled (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_distance_statistics_empty_and_outlier (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_existing_output_is_never_overwritten (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_invalid_probability_fails_closed (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_legacy_identity_inference_rejects_ambiguity_or_drift (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_missing_archive_hash_never_claims_pixel_overlap (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_native_mapped_background_and_distance (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_result_requires_original_order_and_confidence (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_stage_a2_count_reconciliation_and_tamper (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_strict_threshold_and_conservative_union_no_correction (test_stage_a2_boundary_audit.StageA2BoundaryAuditTests) ... ok
+test_archive_absence_unpinned_and_tamper (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_complete_synthetic_run_and_hash_gates (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_corrupt_arrays_and_absent_identity_fail (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_existing_output_and_symlink_rejected_without_writes (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_manifest_repin_cannot_authorize_changed_probabilities (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_margin_histogram_strict_edges (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_partition_conserves_cells_and_samples (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_retained_coordinate_drift_rejected (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_roi_odd_alignment_preserves_raw_probabilities (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_strict_threshold_and_empty (test_stage_a2_boundary_cells.BoundaryCellsTests) ... ok
+test_all_twelve_gradients_stock_terms_frozen_all_state_and_zero_weight (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_empty_finite_saturation_and_deterministic (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_interior_gets_restorative_gradient_and_fp_unchanged (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_invalid_ownership_probabilities_and_extreme_logits (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_nonincreasing_foreground_cannot_improve_anchor (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_owner_balancing_class_selection_empty_and_interior_only_roi (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_partial_occlusion_owned_visible_pixels_only_and_roi (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_thin_foreground_restoration_doubles_and_no_collapse (test_foreground_preserving_aux.ForegroundAnchorTests) ... ok
+test_actual_roihead_gradient_legacy_terms_and_frozen_buffers (test_foreground_preserving_aux.RevisedIntegrationTests) ... ok
+test_deterministic_multi_image_empty_and_hook_failure_cleanup (test_foreground_preserving_aux.RevisedIntegrationTests) ... ok
+test_frozen_bn_and_adversarial_transform_reordering (test_foreground_preserving_aux.RevisedIntegrationTests) ... ok
+test_matcher_ties_and_owner_order_validation (test_foreground_preserving_aux.RevisedIntegrationTests) ... ok
+test_direct_hidden_worker_cannot_bypass_supervisor (test_foreground_preserving_candidate.RevisedSupervisorTests) ... ok
+test_durable_supervision_completion_and_wall_failure (test_foreground_preserving_candidate.RevisedSupervisorTests) ... ok
+test_full_set_cannot_hide_sentinel_materiality_failure (test_foreground_preserving_candidate.RevisedSupervisorTests) ... ok
+test_no_training_without_explicit_authorisation (test_foreground_preserving_candidate.RevisedSupervisorTests) ... ok
+test_prediction_identity_and_negative_false_positive (test_foreground_preserving_candidate.RevisedSupervisorTests) ... ok
+test_synthetic_validation_materiality_and_no_harm (test_foreground_preserving_candidate.RevisedSupervisorTests) ... ok
+test_unassigned_detection_cannot_collapse (test_foreground_preserving_candidate.RevisedSupervisorTests) ... ok
+test_binding_and_loss_identity_drift (test_foreground_preserving_candidate.ScopeTests) ... ERROR
+test_exact_configuration_and_no_weakened_gates (test_foreground_preserving_candidate.ScopeTests) ... ERROR
+
+======================================================================
+ERROR: test_binding_and_loss_identity_drift (test_foreground_preserving_candidate.ScopeTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_foreground_preserving_candidate.py", line 21, in test_binding_and_loss_identity_drift
+    p=json.loads(Path('tools/segmentation_v2/foreground_preserving_candidate.json').read_text())
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: 'tools/segmentation_v2/foreground_preserving_candidate.json'
+
+======================================================================
+ERROR: test_exact_configuration_and_no_weakened_gates (test_foreground_preserving_candidate.ScopeTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_foreground_preserving_candidate.py", line 14, in test_exact_configuration_and_no_weakened_gates
+    old=json.loads(Path('tools/segmentation_v2/native_boundary_candidate.json').read_text())
+  File "/usr/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: 'tools/segmentation_v2/native_boundary_candidate.json'
+
+----------------------------------------------------------------------
+Ran 118 tests in 4.110s
+
+FAILED (errors=2)

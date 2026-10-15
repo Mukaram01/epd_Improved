@@ -1,0 +1,35 @@
+{
+  "configuration_sha256": "55740d37fcf80d309379ac5c2f35f1c6deb8a344e22cc9ea028c22e98d1e09de",
+  "decision": "APPROVE_DOCUMENTATION_IMPLEMENTATION_ONLY",
+  "documentation_path": "/home/user/epd-v2-supervised-pilot/docs/foreground_preserving_auxiliary_loss.md",
+  "documentation_sha256": "a9dcd93577a0fa512b52f554ea5fd8559db87bbf1501296ae7d90f9c4c2017ea",
+  "findings": [],
+  "implementation_review_sha256": "23bd4936756b5cb46a66f27ff67dba39108d7fffe716c6f78f235c9d4483c8c1",
+  "original_training_supervision": "UNKNOWN",
+  "production_qualified": false,
+  "reviewer": "/root/foreground_revision_review",
+  "schema": "epd_foreground_preserving_documentation_review/v1",
+  "scope": "Read-only retained evidence/log/document review; implementation approval preserved unchanged",
+  "stage_a2": "BLOCKED_0/2",
+  "training_authorised": false,
+  "verification": {
+    "all_rows_match_retained_analysis": true,
+    "artifact_manifest_all_hashes_and_sizes_match": true,
+    "future_output_absent": true,
+    "gradient": "12 finite nonzero mask gradients; all state unchanged; weighted loss0.25304198265075684; wall3.800718133s; peak642956KiB; exit0",
+    "no_tests_rerun_for_documentation_followup": true,
+    "proposed_command_config_and_review_hash_match": true,
+    "retained_table_rows": 18,
+    "retained_totals": {
+      "gained": 20,
+      "lost": 246,
+      "lost_distance_bins": [
+        190,
+        7,
+        49
+      ]
+    },
+    "test_run_001": "118 tests; two FileNotFoundError fixture path errors; failed; logs preserved",
+    "test_run_002": "118 tests in 13.213s; OK; worker exit 0; wall16.960523331s; peak669304KiB; no resource limit"
+  }
+}

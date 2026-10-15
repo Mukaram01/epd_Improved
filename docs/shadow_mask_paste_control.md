@@ -248,3 +248,11 @@ No training, weight change, threshold adjustment, erosion/dilation, oracle
 trimming, production replacement, ONNX export, ROS/Gazebo, EMD relaxation or
 motion occurred. Stage-A2 remains **0/2**, checkpoint unpromoted, training
 supervision **MISSING_UNRESOLVED**. Keep both PR225 and this stacked PR draft.
+
+## Original-supervisor forensic follow-up (2026-10-15)
+
+[Detailed provenance matrix and options](mask_resolution_training_provenance.md)
+verify the worker artifact chain and saved frozen tensors, but recover no
+independently authentic parent completion. Admission remains
+`BLOCKED_MISSING_TRAINING_PROVENANCE`; this document's original preregistration
+and executable admission gate are unchanged. No inference or training occurred.

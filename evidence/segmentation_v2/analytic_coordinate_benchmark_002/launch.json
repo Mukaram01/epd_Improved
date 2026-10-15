@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_r3.py",
+    "--worker",
+    "--policy",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_preregistration_r3.json",
+    "--review",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_benchmark_002/prerun_review.json",
+    "--review-sha256",
+    "f14fd7a37c447317de9f84f1985e5d4afe7c700f2ffe141c00d04fd45de7dda6"
+  ],
+  "launcher_pid": 38516,
+  "rss_limit_kib": 2097152,
+  "started_unix_ns": 1792059650313341932,
+  "wall_limit_seconds": 300
+}

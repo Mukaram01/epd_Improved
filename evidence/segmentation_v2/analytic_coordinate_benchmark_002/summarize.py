@@ -54,6 +54,7 @@ for dim in ['shape','size','offset','placement','bridge']:
 print(json.dumps({'schema':'epd_r3_offline_summary/v1','output':str(root),'cases':len(rows),'arm_measurements':len(rows)*4,
     'origin_scale_nonempty':origin_scale,'shape_origin_scale':shape_origin_scale,'marginals':marginals,
     'interior_ramp_offsets':ramps,'sampling_loss_counts':loss,
+    'positive_roi_to_nonpositive56_cases':{bridge:{flag:sum(r['bridge']==bridge and r['shape']!='empty' and r['roi_positive_bins'][flag]>0 and r['synthetic56_positive_bins'][flag]==0 for r in rows) for flag in ['False','True']} for bridge in ['bilinear','replicate']},
     'uncertainty':{'sampling_band_half_width_px':2**-.5,'coverage4_8_max_abs_area_difference':max(abs(r['reference']['coverage_area4']-r['reference']['coverage_area8']) for r in rows),
         'coverage4_8_mean_abs_area_difference':statistics.mean(abs(r['reference']['coverage_area4']-r['reference']['coverage_area8']) for r in rows),
         'boundary_frame_edges_omitted':True,'quadrature_difference_is_not_error_bound':True},

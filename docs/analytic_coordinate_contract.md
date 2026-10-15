@@ -295,3 +295,10 @@ python3 tools/segmentation_v2/analytic_coordinate_r3.py \
   --review evidence/segmentation_v2/analytic_coordinate_benchmark_002/prerun_review.json \
   --review-sha256 f14fd7a37c447317de9f84f1985e5d4afe7c700f2ffe141c00d04fd45de7dda6
 ```
+
+R3 completed all1,944 cases/7,776 arms/72 traces in22.288214992s, peak1,037,020KiB,
+exit0, with all original parity differences exactly zero. Independent offline
+post-run verification passed. Full quantitative results, hashes, uncertainty,
+geometry/scale comparisons and the next milestone are in
+[the R3 results report](analytic_coordinate_r3_results.md). The001 section above
+is historical failed-attempt evidence, not the disposition of R3.

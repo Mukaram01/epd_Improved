@@ -262,3 +262,36 @@ preregistration and separately authorise one new exclusive synthetic run to
 complete the existing matrix. No new arms, model experiment or production
 geometry change is supported by this incomplete attempt. Stage-A2 remains
 BLOCKED0/2; original training supervision remains UNKNOWN.
+
+## Authorised R3 attempt (new binding)
+
+The user separately authorised one corrected synthetic attempt in exclusive
+`/home/user/epd-v2-artifacts/analytic-coordinate-contract-002`. The001 failure is
+preserved. Numerical core source remains`00fdd8969909be5d091e746cc8eb19796299b145a03a3c6c3c5b917ff47db4f4`;
+only a separate R3 admission/completeness wrapper is added. The immutable new
+preregistration is`tools/segmentation_v2/analytic_coordinate_preregistration_r3.json`,
+SHA256`191b1519907dcd066a5c99317b4403161a1db32d2453dcc1ec2e1f74a68c5a23`.
+It retains the exact geometry matrix/operators/threshold, binds corrected
+source/tests/runtime, and requires1944cases,7776arm measurements,72 fully shaped
+finite trace archives, all original parity checks, exact case identities,
+conservation, recomputed summaries and source integrity. Missing/partial/drifted
+outputs fail closed. The wrapper checks independent source-bound approval
+before creating any output, and supervises numerical work plus validation under
+300seconds,2GiB worker RSS and2CPU threads. No retries.
+
+Independent reviewer`/root/r3_review` verified the correction leaves numerical
+controls unchanged, all nine001 external artifact hashes remain intact, and
+all R3 bindings match. Their finding that every trace field needed exact shape
+validation was fixed and regression-tested before approval. Decision:
+`APPROVE_R3_SYNTHETIC_ONLY`; review SHA256
+`f14fd7a37c447317de9f84f1985e5d4afe7c700f2ffe141c00d04fd45de7dda6`.
+Review/test receipts are in`evidence/segmentation_v2/analytic_coordinate_benchmark_002`.
+Pre-run focused tests:**67/67 PASS**,0failures/errors,unittest1.386s,
+process4.63s,peak621764KiB; reviewer independently ran17analytic/R3 tests.
+
+```sh
+python3 tools/segmentation_v2/analytic_coordinate_r3.py \
+  --policy tools/segmentation_v2/analytic_coordinate_preregistration_r3.json \
+  --review evidence/segmentation_v2/analytic_coordinate_benchmark_002/prerun_review.json \
+  --review-sha256 f14fd7a37c447317de9f84f1985e5d4afe7c700f2ffe141c00d04fd45de7dda6
+```

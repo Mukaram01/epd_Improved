@@ -1,0 +1,18 @@
+{
+  "schema": "epd_independent_document_review/v1",
+  "reviewer": "/root/r4_verification",
+  "decision": "PASS_NO_ACTIONABLE_FACTUAL_FINDINGS",
+  "document": "/home/user/epd-v2-supervised-pilot/docs/source_lattice_r4_results.md",
+  "document_sha256": "93482c49303bc70710047b2432f636e02af5d4504bf8b0a7411705e3ac41c501",
+  "checks": [
+    "Counts/parity receipts vs independent replay distinction accurately stated; no657graph independent rerun claimed.",
+    "Full-frame means distinct from boundary-free maxima; feature-value residuals explicitly not pixel displacement.",
+    "Preprocessing shape table, numerical maxima, full800 counts, aliasing and synthetic foreground totals match independently verified results.",
+    "427/441within2px supported by226 baseline bins359+68;20percent integer gates352and171 correctly floor. No per-instance missing/cross-object/IoU harms required with full validation and independent strict2/2 before production.",
+    "Source inspection confirms native512training masks already supplied, installed maskrcnn_lossprojects to ROI-grid; proposed postpaste symmetric boundary objective differs materially from earlier ROI weighting.",
+    "Candidate explicitly unimplemented, prospective/unproved; acknowledges native512/256 disagreement limitations and genuine initializer/training/supervision provenance. No synthetic audit roadmap or automatic future experiment."
+  ],
+  "benchmark_rerun": false,
+  "repository_edits_by_reviewer": false,
+  "findings": []
+}

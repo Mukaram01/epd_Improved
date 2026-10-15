@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/source_lattice.py",
+    "--worker",
+    "--authorise-full-run",
+    "--policy",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/source_lattice_preregistration.json",
+    "--review",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/source_lattice_proposed_001/independent_methodology_review.json",
+    "--review-sha256",
+    "e27ba46e7ce4622ff6bddd34464453334be08b446fd2cc2056cecd9d8b1f5af8"
+  ],
+  "launcher_pid": 41110,
+  "rss_limit_kib": 2097152,
+  "started_unix_ns": 1792063616307465142,
+  "wall_limit_seconds": 300
+}

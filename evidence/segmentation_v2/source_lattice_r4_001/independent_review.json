@@ -1,0 +1,370 @@
+{
+  "schema": "epd_independent_postrun_review/v1",
+  "reviewer": "/root/r4_verification",
+  "decision": "VERIFIED_COMPLETE_SYNTHETIC_ONLY",
+  "independence": "Independently read prerun methodology, preregistration and all numerical implementation. Independently parsed raw results and trace arrays and recomputed summaries offline with a separate verifier. No benchmark rerun, model/checkpoint/scenes access or repository edits.",
+  "artifacts_sha256": {
+    "admission.json": "7bed8d36926b73443a48d52cdc4a48b32e18a2a8177da6cffce8c31b257fbef2",
+    "architecture.json": "856e3357f8b60fc5442c864c9b3824f9eaa82203a387a264a0dd58cd82f7284e",
+    "completion.json": "c7c6698dd1c94bfc9fc4f3d0c8e015cf22ac67278820daa82c12ae2cb6c46c6e",
+    "launch.json": "2f2b2505c7b841e20a9e7f3c957cc3ead267daf210cdc118c6fcdf67ee3bc8f6",
+    "results.json": "e4fd0da052a0a9051dbbfff584731375a24e4fb0060ba3be433153008ed84e7b",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "supervision.json": "aaf7f377741f10411a294580a734307fa0b65fdef4f53ae88012edb0648e4076",
+    "traces/level2.npz": "07016086e27f4ed858a0828d3dbea91dd2503398e32ca74643557378eab53bd4",
+    "traces/level3.npz": "7fe7420acd17d925651ebf32ddc8e795d4e531f8f926be89845a6c3a774a3a42",
+    "traces/level4.npz": "eff804fdf80eba16d79792ea293d1b7f13a163d7a0480e52cddb0565bc1035f6",
+    "traces/level5.npz": "2c354173c7466f36c4d2912d122ba5f555b25ffcdce32d628ce93e7a32f53eca",
+    "worker_identity.json": "cfcf878dda2b80c10cd9188ae04275f4ed8d324d684f16e35512a8f03abea7e7"
+  },
+  "preregistration_sha256": "f21e4277b74908228003b58ba3134de459b28948b6eeeb542b7b5dd3eb3870c1",
+  "reviewed_numerical_source_sha256": "4398e1a9dd3754d7bd31cfefff01c6db53907833034bc2bf6a48a94112d4f4fe",
+  "independent_verifier_sha256": "c50fa292f3608d48eaded02c3dd5f6258c3a25d767c0c9de30ba25e9ca57820a",
+  "independent_summary_sha256": "d1a9f6e31ec9b6b0656469b870bded227f8dd90e3c4ef45b282e3cede2eb3a70",
+  "independent_summary": {
+    "geometry_cases": 219,
+    "graph_evaluations": 657,
+    "mask_chains": 876,
+    "scalar_invariants_checked": 5256,
+    "max_backbone_abs": 2.384185791015625e-07,
+    "max_fpn_abs": 4.76837158203125e-07,
+    "max_head_abs": 4.76837158203125e-07,
+    "preprocessing_max_abs": 4.76837158203125e-07,
+    "opencv_max_lsb": 0.25,
+    "native_foreground_sum": 15887023,
+    "mapped_foreground_sum": 4009545,
+    "inactive_slots_sum": 151157,
+    "full800": [
+      {
+        "kernel": "centre",
+        "movement": 0,
+        "level": 2,
+        "n": 7921,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "centre",
+        "movement": 0,
+        "level": 3,
+        "n": 1849,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "centre",
+        "movement": 0,
+        "level": 4,
+        "n": 361,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "centre",
+        "movement": 0,
+        "level": 5,
+        "n": 64,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "centre",
+        "movement": 1,
+        "level": 2,
+        "n": 7921,
+        "maximum": 0.00499415397644043,
+        "mean": 0.004993743728846312
+      },
+      {
+        "kernel": "centre",
+        "movement": 1,
+        "level": 3,
+        "n": 1849,
+        "maximum": 0.003745555877685547,
+        "mean": 0.003745310241356492
+      },
+      {
+        "kernel": "centre",
+        "movement": 1,
+        "level": 4,
+        "n": 361,
+        "maximum": 0.002496957778930664,
+        "mean": 0.0024968781508505344
+      },
+      {
+        "kernel": "centre",
+        "movement": 1,
+        "level": 5,
+        "n": 64,
+        "maximum": 0.001248478889465332,
+        "mean": 0.0012484390754252672
+      },
+      {
+        "kernel": "centre",
+        "movement": 32,
+        "level": 2,
+        "n": 6561,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "centre",
+        "movement": 32,
+        "level": 3,
+        "n": 1521,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "centre",
+        "movement": 32,
+        "level": 4,
+        "n": 289,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "centre",
+        "movement": 32,
+        "level": 5,
+        "n": 49,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 0,
+        "level": 2,
+        "n": 7921,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 0,
+        "level": 3,
+        "n": 1849,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 0,
+        "level": 4,
+        "n": 361,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 0,
+        "level": 5,
+        "n": 64,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 1,
+        "level": 2,
+        "n": 7921,
+        "maximum": 0.00499415397644043,
+        "mean": 0.0052443603053689
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 1,
+        "level": 3,
+        "n": 1849,
+        "maximum": 0.003745555877685547,
+        "mean": 0.003844873048365116
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 1,
+        "level": 4,
+        "n": 361,
+        "maximum": 0.002496957778930664,
+        "mean": 0.0024819010868668556
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 1,
+        "level": 5,
+        "n": 64,
+        "maximum": 0.001248478889465332,
+        "mean": 0.0011976339155808091
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 32,
+        "level": 2,
+        "n": 6561,
+        "maximum": 0.0,
+        "mean": 0.05400867760181427
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 32,
+        "level": 3,
+        "n": 1521,
+        "maximum": 0.0,
+        "mean": 0.052421703934669495
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 32,
+        "level": 4,
+        "n": 289,
+        "maximum": 0.0,
+        "mean": 0.0462055541574955
+      },
+      {
+        "kernel": "symmetric",
+        "movement": 32,
+        "level": 5,
+        "n": 49,
+        "maximum": 0.0,
+        "mean": 0.027157757431268692
+      },
+      {
+        "kernel": "right",
+        "movement": 0,
+        "level": 2,
+        "n": 7921,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "right",
+        "movement": 0,
+        "level": 3,
+        "n": 1849,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "right",
+        "movement": 0,
+        "level": 4,
+        "n": 361,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "right",
+        "movement": 0,
+        "level": 5,
+        "n": 64,
+        "maximum": 0.0,
+        "mean": 0.0
+      },
+      {
+        "kernel": "right",
+        "movement": 1,
+        "level": 2,
+        "n": 7921,
+        "maximum": 0.00499415397644043,
+        "mean": 0.004700387362390757
+      },
+      {
+        "kernel": "right",
+        "movement": 1,
+        "level": 3,
+        "n": 1849,
+        "maximum": 0.003745555877685547,
+        "mean": 0.003448821371421218
+      },
+      {
+        "kernel": "right",
+        "movement": 1,
+        "level": 4,
+        "n": 361,
+        "maximum": 0.002496957778930664,
+        "mean": 0.0022159861400723457
+      },
+      {
+        "kernel": "right",
+        "movement": 1,
+        "level": 5,
+        "n": 64,
+        "maximum": 0.001248478889465332,
+        "mean": 0.001058055437169969
+      },
+      {
+        "kernel": "right",
+        "movement": 32,
+        "level": 2,
+        "n": 6561,
+        "maximum": 0.0,
+        "mean": 0.1177782490849495
+      },
+      {
+        "kernel": "right",
+        "movement": 32,
+        "level": 3,
+        "n": 1521,
+        "maximum": 0.0,
+        "mean": 0.1110401600599289
+      },
+      {
+        "kernel": "right",
+        "movement": 32,
+        "level": 4,
+        "n": 289,
+        "maximum": 0.0,
+        "mean": 0.08230823278427124
+      },
+      {
+        "kernel": "right",
+        "movement": 32,
+        "level": 5,
+        "n": 49,
+        "maximum": 0.0,
+        "mean": 0.04278651252388954
+      }
+    ]
+  },
+  "prior_attempt_preservation": [
+    {
+      "manifest": "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_benchmark_001/partial_analysis.json",
+      "manifest_sha256": "611251b8f93dd3d7e5a073a39fe550f9d115307a88c85a4bb2ed6d1d3aff420e",
+      "verified_files": 9,
+      "mismatches": []
+    },
+    {
+      "manifest": "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_benchmark_002/offline_summary.json",
+      "manifest_sha256": "b6b84e5a5c0cbc4f3c836937e22a10c19bca0791109efc463118a33fb83c4276",
+      "verified_files": 84,
+      "mismatches": []
+    }
+  ],
+  "findings": [],
+  "verified": [
+    "Exact ordered case identities:216 small plus3 full800;657 translated graphs;876 complete mask chains. All raw numbers finite; level shapes/strides/anchors, box rescaling, conservation and parity flags verified.",
+    "All36 preregistered source-file hashes matched current bytes. Four NPZ archives hash-bound, exact fields and shapes, all finite. Independent trace energy/nonzero/centroid, strict native ROI foreground and ANY2x2 mapped counts match raw records.",
+    "Bitwise ROIAlign, unit deconvolution, paste, ANY2x2 and actual MultiScaleROIAlign selection gates passed in reviewed worker; float maxima independently reproduced from raw rows and within3e-6. Nearest/padding/box gates enforced in reviewed source before results publication.",
+    "Supervisor exit0;20.644817491003778s;peak658396KiB below300s/2GiB;no limit reason;cleanup true;empty stdout/stderr;completion supervision hash matches.",
+    "All9 prior failed001 artifacts and84 prior completed002 artifacts match previously committed manifests.",
+    "All12 full800 32-pixel boundary-free comparisons exactly zero; all12 1-pixel comparisons nonzero. Nominal structural origin does not establish learned response origin."
+  ],
+  "limitations": [
+    "Per-operation exact flags are execution evidence bound to reviewed code, not independent re-execution of every operator. Raw summaries and four trace arrays were independently recomputed; no full benchmark repeated.",
+    "Scalar artificial kernels and one-channel FPN cannot justify trained feature origin, real quality improvement or physical qualification. Full800 uses only ramp_x at phase.25.",
+    "Stage-A2 remains BLOCKED0/2; original training supervision remains UNKNOWN."
+  ],
+  "corrective_candidate_review": {
+    "recommendation": "ONE training-only mask-head candidate: symmetric native512 postpaste boundary FP/FN auxiliary supervision, with unchanged production coordinate path, frozen backbone/box classifier and unchanged confidence/mask/mapping gates. Native512-only loss is a hypothesis, not an established fix.",
+    "evidence": "R3 continuous paste alone reduces fixed-input-origin IoU at all3 scales and increases overall missing; #226 real geometry controls fail no-harm. #225/#226 retained native spill is edge-localized and persistent under resolution increase. A postpaste loss addresses consumer-visible probability errors beyond ROI-grid weighting.",
+    "important_limitation": "39/167 mapped spill cells contain target-labelled active native512 samples only. Native512-only supervision cannot directly penalize this resolution disagreement; reaching strict2/2 may be impossible under faithful native512 target fitting. Do not present the candidate as a demonstrated solution.",
+    "validation_criteria": [
+      "Use only existing training split for fitting; no Stage-A2 renderer labels in training or tuning. Predeclare one recipe/budget before any training. Genuine launch/supervision/history/source/checkpoint receipts required.",
+      "Frozen validation: recall>=18/22,mean IoU>=0.739693,false positives<=1,spill<=1238,cross-object contamination0; missing no worse than recorded56-grid baseline; negative scenes remain negative. Also report per-instance missing and thin-object recall to expose contraction.",
+      "Stage-A2 original fixed gates: strict association2/2,zero mapped background/cross-object spill,zero mapped missing; native missing cannot increase versus pinned baseline; boxes/labels/scores bitwise identical to frozen baseline.",
+      "Reject if any gate fails or provenance missing; reduced spill alone, loss reduction or average IoU gain cannot override missing/recall/strict failure. No deployment/physical qualification follows."
+    ],
+    "not_implemented_or_authorised_by_review": true
+  },
+  "full_benchmark_rerun": false
+}

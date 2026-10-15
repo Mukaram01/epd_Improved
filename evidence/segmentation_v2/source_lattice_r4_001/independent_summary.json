@@ -1,0 +1,304 @@
+{
+  "geometry_cases": 219,
+  "graph_evaluations": 657,
+  "mask_chains": 876,
+  "scalar_invariants_checked": 5256,
+  "max_backbone_abs": 2.384185791015625e-07,
+  "max_fpn_abs": 4.76837158203125e-07,
+  "max_head_abs": 4.76837158203125e-07,
+  "preprocessing_max_abs": 4.76837158203125e-07,
+  "opencv_max_lsb": 0.25,
+  "native_foreground_sum": 15887023,
+  "mapped_foreground_sum": 4009545,
+  "inactive_slots_sum": 151157,
+  "full800": [
+    {
+      "kernel": "centre",
+      "movement": 0,
+      "level": 2,
+      "n": 7921,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "centre",
+      "movement": 0,
+      "level": 3,
+      "n": 1849,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "centre",
+      "movement": 0,
+      "level": 4,
+      "n": 361,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "centre",
+      "movement": 0,
+      "level": 5,
+      "n": 64,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "centre",
+      "movement": 1,
+      "level": 2,
+      "n": 7921,
+      "maximum": 0.00499415397644043,
+      "mean": 0.004993743728846312
+    },
+    {
+      "kernel": "centre",
+      "movement": 1,
+      "level": 3,
+      "n": 1849,
+      "maximum": 0.003745555877685547,
+      "mean": 0.003745310241356492
+    },
+    {
+      "kernel": "centre",
+      "movement": 1,
+      "level": 4,
+      "n": 361,
+      "maximum": 0.002496957778930664,
+      "mean": 0.0024968781508505344
+    },
+    {
+      "kernel": "centre",
+      "movement": 1,
+      "level": 5,
+      "n": 64,
+      "maximum": 0.001248478889465332,
+      "mean": 0.0012484390754252672
+    },
+    {
+      "kernel": "centre",
+      "movement": 32,
+      "level": 2,
+      "n": 6561,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "centre",
+      "movement": 32,
+      "level": 3,
+      "n": 1521,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "centre",
+      "movement": 32,
+      "level": 4,
+      "n": 289,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "centre",
+      "movement": 32,
+      "level": 5,
+      "n": 49,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 0,
+      "level": 2,
+      "n": 7921,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 0,
+      "level": 3,
+      "n": 1849,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 0,
+      "level": 4,
+      "n": 361,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 0,
+      "level": 5,
+      "n": 64,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 1,
+      "level": 2,
+      "n": 7921,
+      "maximum": 0.00499415397644043,
+      "mean": 0.0052443603053689
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 1,
+      "level": 3,
+      "n": 1849,
+      "maximum": 0.003745555877685547,
+      "mean": 0.003844873048365116
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 1,
+      "level": 4,
+      "n": 361,
+      "maximum": 0.002496957778930664,
+      "mean": 0.0024819010868668556
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 1,
+      "level": 5,
+      "n": 64,
+      "maximum": 0.001248478889465332,
+      "mean": 0.0011976339155808091
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 32,
+      "level": 2,
+      "n": 6561,
+      "maximum": 0.0,
+      "mean": 0.05400867760181427
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 32,
+      "level": 3,
+      "n": 1521,
+      "maximum": 0.0,
+      "mean": 0.052421703934669495
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 32,
+      "level": 4,
+      "n": 289,
+      "maximum": 0.0,
+      "mean": 0.0462055541574955
+    },
+    {
+      "kernel": "symmetric",
+      "movement": 32,
+      "level": 5,
+      "n": 49,
+      "maximum": 0.0,
+      "mean": 0.027157757431268692
+    },
+    {
+      "kernel": "right",
+      "movement": 0,
+      "level": 2,
+      "n": 7921,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "right",
+      "movement": 0,
+      "level": 3,
+      "n": 1849,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "right",
+      "movement": 0,
+      "level": 4,
+      "n": 361,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "right",
+      "movement": 0,
+      "level": 5,
+      "n": 64,
+      "maximum": 0.0,
+      "mean": 0.0
+    },
+    {
+      "kernel": "right",
+      "movement": 1,
+      "level": 2,
+      "n": 7921,
+      "maximum": 0.00499415397644043,
+      "mean": 0.004700387362390757
+    },
+    {
+      "kernel": "right",
+      "movement": 1,
+      "level": 3,
+      "n": 1849,
+      "maximum": 0.003745555877685547,
+      "mean": 0.003448821371421218
+    },
+    {
+      "kernel": "right",
+      "movement": 1,
+      "level": 4,
+      "n": 361,
+      "maximum": 0.002496957778930664,
+      "mean": 0.0022159861400723457
+    },
+    {
+      "kernel": "right",
+      "movement": 1,
+      "level": 5,
+      "n": 64,
+      "maximum": 0.001248478889465332,
+      "mean": 0.001058055437169969
+    },
+    {
+      "kernel": "right",
+      "movement": 32,
+      "level": 2,
+      "n": 6561,
+      "maximum": 0.0,
+      "mean": 0.1177782490849495
+    },
+    {
+      "kernel": "right",
+      "movement": 32,
+      "level": 3,
+      "n": 1521,
+      "maximum": 0.0,
+      "mean": 0.1110401600599289
+    },
+    {
+      "kernel": "right",
+      "movement": 32,
+      "level": 4,
+      "n": 289,
+      "maximum": 0.0,
+      "mean": 0.08230823278427124
+    },
+    {
+      "kernel": "right",
+      "movement": 32,
+      "level": 5,
+      "n": 49,
+      "maximum": 0.0,
+      "mean": 0.04278651252388954
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "actual_meta_architecture": {
+    "blocks": [
+      3,
+      4,
+      6,
+      3
+    ],
+    "construction": "actual EPD make_model/configure56 on meta device; no forward/state load",
+    "feature_names": [
+      "0",
+      "1",
+      "2",
+      "3"
+    ],
+    "mask_pool": [
+      28,
+      28
+    ],
+    "max_size": 1333,
+    "min_size": 800,
+    "padding_divisor": 32,
+    "sampling_ratio": 2,
+    "strides": [
+      4,
+      8,
+      16,
+      32
+    ],
+    "trained_response_origin": "UNKNOWN"
+  },
+  "backbone": {
+    "edge_anchor": 0.5,
+    "stages": [
+      {
+        "deepest_rf": 35,
+        "edge_anchor": 0.5,
+        "level": 2,
+        "stride": 4
+      },
+      {
+        "deepest_rf": 91,
+        "edge_anchor": 0.5,
+        "level": 3,
+        "stride": 8
+      },
+      {
+        "deepest_rf": 267,
+        "edge_anchor": 0.5,
+        "level": 4,
+        "stride": 16
+      },
+      {
+        "deepest_rf": 427,
+        "edge_anchor": 0.5,
+        "level": 5,
+        "stride": 32
+      }
+    ]
+  },
+  "baseline_pr227_commit": "e0851e081e74192b0929d71d2956830e202b4cbb",
+  "fpn_phase_support": {
+    "2": [
+      {
+        "phase": 0,
+        "support_edges": [
+          -245.0,
+          214.0
+        ],
+        "width": 459.0
+      },
+      {
+        "phase": 1,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 2,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 3,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 4,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 5,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 6,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 7,
+        "support_edges": [
+          -213.0,
+          246.0
+        ],
+        "width": 459.0
+      }
+    ],
+    "3": [
+      {
+        "phase": 0,
+        "support_edges": [
+          -245.0,
+          214.0
+        ],
+        "width": 459.0
+      },
+      {
+        "phase": 1,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 2,
+        "support_edges": [
+          -213.0,
+          214.0
+        ],
+        "width": 427.0
+      },
+      {
+        "phase": 3,
+        "support_edges": [
+          -213.0,
+          246.0
+        ],
+        "width": 459.0
+      }
+    ],
+    "4": [
+      {
+        "phase": 0,
+        "support_edges": [
+          -245.0,
+          214.0
+        ],
+        "width": 459.0
+      },
+      {
+        "phase": 1,
+        "support_edges": [
+          -213.0,
+          246.0
+        ],
+        "width": 459.0
+      }
+    ],
+    "5": [
+      {
+        "phase": 0,
+        "support_edges": [
+          -245.0,
+          246.0
+        ],
+        "width": 491.0
+      }
+    ]
+  },
+  "original_training_supervision": "UNKNOWN",
+  "prior_artifacts_verified_unchanged": true,
+  "prior_results_sha256": "a25f734f45e5cdf2ef9ff05e95e2fb664da70b78e0f5c265aef164cf1687f6ad",
+  "schema": "epd_source_coordinate_ledger/v1",
+  "scope": "Source-defined geometry only; learned response centres UNKNOWN; scalar controlled kernels are not actual channel weights.",
+  "source_versions": {
+    "numpy": "1.26.4",
+    "opencv-python": "4.11.0.86",
+    "torch": "2.7.0",
+    "torchvision": "0.22.0"
+  },
+  "stage_a2": "BLOCKED_0/2"
+}

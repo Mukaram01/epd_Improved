@@ -1,0 +1,48 @@
+{
+  "decision": "APPROVE_PROPOSED_METHODOLOGY_ONLY",
+  "evidence": {
+    "full_benchmark_executed_by_reviewer": false,
+    "full_output_exists": false,
+    "implementer_suite_log_reviewed": "/tmp/epd-lattice-tests.log: 79 tests OK; no full matrix",
+    "independent_binding_check": {
+      "files": 36,
+      "mismatches": []
+    },
+    "independent_focused_tests": {
+      "command": "OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2 PYTHONPATH=tools/segmentation_v2 python3 -m unittest -v test_source_lattice",
+      "reported_test_seconds": 0.178,
+      "result": "OK",
+      "tests": 12
+    },
+    "weights_scenes_training_inference_used": false
+  },
+  "execution_authorised": false,
+  "findings": [
+    "ResNet V1.5 deepest support RF35/91/267/427, stride4/8/16/32 and edge anchor0.5 independently confirmed.",
+    "FPN pre-output recursion, nearest floor ancestry and phase-dependent support widths427/459/491 correctly distinguish nominal and effective response origins.",
+    "Actual ROIAlign defaults alignedFalse and sampling2, configure56 pool28, four padded head convolutions and stride2 transpose schedule correctly represented.",
+    "Earlier paste128 versus512 and missing transformed-to-native box rescaling issues resolved; full800 interior probes and forced-level versus actual multiscale checks now explicit.",
+    "Independent NumPy scalar reference and predefined numerical/bitwise gates are appropriate for declared artificial operators.",
+    "Exclusive output, source/runtime drift gates, completeness receipts, bounded no-retry supervision and separate human-authorisation boundary are appropriate.",
+    "Final added17x19 schedule test independently passes NumPy-versus-Torch stem/maxpool/all-bottleneck parity for each of three fixed kernels."
+  ],
+  "independence": "Reviewer independently read actual EPD construction and installed ResNet/FPN/poolers/transform/paste sources and derived backbone RF and FPN support phases before inspecting final proposal. Reviewer made no implementation edits.",
+  "limitations": [
+    "Approval addresses proposed methodology only; no full-run outcomes or runtime feasibility are established.",
+    "Scalar fixed kernels, identity channel/BN analogues, artificial logits and unit deconvolution cannot recover learned semantic centres or qualify production inference.",
+    "Small padded rasters are boundary stress cases; deep boundary-free measurements can be null. Full800 anchors cover only declared x-ramp phase0.25 and three kernels.",
+    "Border and empty phase cases are deliberately repeated controls; checkerboard fractional translation has its natural periodic symmetries.",
+    "Operator acknowledgement flag does not itself establish genuine user permission; human authorisation remains required before full execution.",
+    "Stage-A2 remains BLOCKED0/2 and original training supervision remains UNKNOWN."
+  ],
+  "preregistration_sha256": "f21e4277b74908228003b58ba3134de459b28948b6eeeb542b7b5dd3eb3870c1",
+  "reviewed_files": [
+    "tools/segmentation_v2/source_lattice.py",
+    "tools/segmentation_v2/test_source_lattice.py",
+    "tools/segmentation_v2/source_lattice_preregistration.json",
+    "docs/source_lattice_coordinate_contract.md",
+    "evidence/segmentation_v2/source_lattice_proposed_001/coordinate_ledger.json"
+  ],
+  "reviewer": "/root/lattice_review",
+  "schema": "epd_independent_methodology_review/v1"
+}

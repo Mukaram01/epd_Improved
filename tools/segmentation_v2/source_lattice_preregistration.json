@@ -1,0 +1,167 @@
+{
+  "completion": "Exact219case identities,3translations4levels each,876maskchains,4finite correctlyshaped traces; reject partial/nonfinite/drift/parity failures; no retry.",
+  "experiment_identity": "epd_source_lattice_proposed_001",
+  "full800_anchor": {
+    "kernels": [
+      "centre",
+      "symmetric",
+      "right"
+    ],
+    "pattern": "ramp_x",
+    "phase": 0.25,
+    "size": [
+      800,
+      800
+    ]
+  },
+  "full800_anchors": 3,
+  "geometry_cases": 219,
+  "graph_evaluations": 657,
+  "kernels": [
+    "centre",
+    "symmetric",
+    "right"
+  ],
+  "learned_response_origin": "UNKNOWN",
+  "limits": {
+    "cpu_threads": 2,
+    "rss_mib": 2048,
+    "wall_seconds": 300
+  },
+  "mask_chains": 876,
+  "original_training_supervision": "UNKNOWN",
+  "output_path": "/home/user/epd-v2-artifacts/source-lattice-contract-001",
+  "parity": {
+    "bitwise": [
+      "nearest",
+      "ROIAlign",
+      "unit_deconv",
+      "paste",
+      "box_resize",
+      "ANY2x2",
+      "padding",
+      "MultiScaleROIAlign_selection"
+    ],
+    "float_operator_absolute_tolerance": 3e-06,
+    "uint8_cv_bilinear_max_lsb": 1
+  },
+  "patterns": [
+    "impulse",
+    "ramp_x",
+    "ramp_y",
+    "checkerboard",
+    "border",
+    "empty"
+  ],
+  "phase_semantics": "Tent impulse centre shift; ramp argument offset; infinite checkerboard bilinear fractional translation; border/empty repeated controls, not independent phase replicates.",
+  "phases": [
+    0,
+    0.25,
+    0.5,
+    0.75
+  ],
+  "required_authorisation": "PROPOSED_ONLY: independent methodology approval plus separate explicit user authorisation BEFORE full execution.",
+  "runtime_inventory": {
+    "files_sha256": {
+      "/home/user/.local/lib/python3.10/site-packages/torch/lib/libtorch_cpu.so": "dc3f5537257da1435f82c858a92a4d7316dc6ae973f0e66f698ab39d2a70075c",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py": "0c02464c208daff72bcfcb3f0eed09a136e0766d926c08c4bfd0038eb977bc28",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/_C.so": "8cc7323e6ace3cd92531b2458381b00e6aa8f4f98406601f09e3c301a2952370",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/generalized_rcnn.py": "e3e0e9f15c7e4a30c3499ed3b19d75ae692f107df7e9a2ee48e944457890edfb",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/mask_rcnn.py": "5f51904b7d78a8ecb8b820a9ecc3df1fa5b5d88c9d4705beb430a60a70751468",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py": "521f7de74c5950499e8f00f6a514612afa8d5746d8fc6d8e9bcc860b611d0c38",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/transform.py": "31ad020ef2c23259373314b76ac5dc0f1ad2a2c44b69c68ba62f93df82d79b50",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/poolers.py": "cf36211fba683301a56310ef02f09a2fd7a683d5fbb0ce316452c4cb4cefbf9b",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/roi_align.py": "dced6acd2b5c935fe5b62c150725384e026394138febd645a10398a6c9666cd7",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/mask_resolution.py": "ef5c80b341d40b479c16562dad43032e2ec2b90084499a80b8c242df92d5e878",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/shadow_mask_paste.py": "1b2caf356f42fac0d4e5f13606e97b46f4fa9f4687f1bf9b3991ceabc54f6d46",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/stage_a2_mask_check.py": "1b0af6028fb659a97c1f5a0dc776ee8df53314310dbbf87133e8c1b97b48e3a3",
+      "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53"
+    },
+    "functions_sha256": {
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4402:interpolate": "24886b335bbac17ea8424f7761187f337b5c7f43fb5aac7217c9820ad1fea6f8",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4415:interpolate": "e316d118e461b94ad0a3d637201093e7f9273b4322d9d6ef741494f3f8b450b2",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4428:interpolate": "51af62dcfb0a3dfd674a4df44b34b909e2037866186e24545dc25f129371bced",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4441:interpolate": "527b3aaa41ced068170696b9c63cc007f889e594db55640c676b5780c5efd59b",
+      "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py:4453:interpolate": "294bfcce162ea7a81a047636b2568915dbdd2657fc977f1b49676a178f7278e0",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:366:expand_boxes": "3235be3db469d0de5a1df2acc20e39b9e79e3c14b827d710784a91a5f796585e",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:392:expand_masks": "4faf270e37dcf14481bf96ff55bfc50b1e464ae9c2fbffa61600c5e3f98a3e22",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:403:paste_mask_in_image": "63ca6cc6be23642c6798e754be0278973d2177a9bcb8bbe5c462b27fa9feec8c",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:474:paste_masks_in_image": "5d0b41b8e073a44217d6d93d9831b309487337724c49e32ad36e42a89a37e08c",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py:52:maskrcnn_inference": "b31dae13dfd2c66c6ee44a8f9b2d9e5f5fe9afe777c3505269bb2b23d99987f1",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/transform.py:306:resize_boxes": "f53d7b1f7569d1a4200edc8894b7283cd358bc6af0e3e31e1ad127679f9da8d9",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/roi_align.py:115:_roi_align": "8c9ec7b60c239f492908d47889cd982e8746c2b0ef07b432c3806e09f99b3138",
+      "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/roi_align.py:204:roi_align": "f99daaf6e1edfadf65c7c036cc6f04446fa1956f49c1b60e486ee79c85fcd250"
+    },
+    "versions": {
+      "numpy": "1.26.4",
+      "opencv-python": "4.11.0.86",
+      "torch": "2.7.0",
+      "torchvision": "0.22.0"
+    }
+  },
+  "schema": "epd_source_lattice_proposal/v1",
+  "sizes": [
+    [
+      64,
+      64
+    ],
+    [
+      65,
+      67
+    ],
+    [
+      95,
+      96
+    ]
+  ],
+  "small_cases": 216,
+  "source_ledger_sha256": "61525856b2cb30e5082cdbfb0546c88eeb3246c75d47780959208256fb4c413d",
+  "sources_sha256": {
+    "/home/user/.local/lib/python3.10/site-packages/cv2/cv2.abi3.so": "188d38ace4716a74534ddf4dd4f7d77a06641bd0908bf12eb218a3c2fef35f38",
+    "/home/user/.local/lib/python3.10/site-packages/torch/lib/libtorch_cpu.so": "dc3f5537257da1435f82c858a92a4d7316dc6ae973f0e66f698ab39d2a70075c",
+    "/home/user/.local/lib/python3.10/site-packages/torch/nn/functional.py": "0c02464c208daff72bcfcb3f0eed09a136e0766d926c08c4bfd0038eb977bc28",
+    "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/conv.py": "a5a0f988686fb033ec61c29755b1a6d0c9c0d924b3b440eebbbd4af16d023407",
+    "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/pooling.py": "dccc5a49d87b09db1ac05bada0232bd656ff8a39d854c429b91aaaf7add4670d",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/_C.so": "8cc7323e6ace3cd92531b2458381b00e6aa8f4f98406601f09e3c301a2952370",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/backbone_utils.py": "e05cb3a1c47a612edc1b92094cc4700b8e2dba96d740303f46effcaaa6a3bb62",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/generalized_rcnn.py": "e3e0e9f15c7e4a30c3499ed3b19d75ae692f107df7e9a2ee48e944457890edfb",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/mask_rcnn.py": "5f51904b7d78a8ecb8b820a9ecc3df1fa5b5d88c9d4705beb430a60a70751468",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/roi_heads.py": "521f7de74c5950499e8f00f6a514612afa8d5746d8fc6d8e9bcc860b611d0c38",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/models/detection/transform.py": "31ad020ef2c23259373314b76ac5dc0f1ad2a2c44b69c68ba62f93df82d79b50",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/models/resnet.py": "7499a5059ad7b1a1f8f7543c04b4a13795140fad837c38530b48ff5d9610bf6e",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/feature_pyramid_network.py": "99f91aca0c51cfed1301d4ccab67c200bf84d16c654674df75bfacfc9e6a3c4e",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/poolers.py": "cf36211fba683301a56310ef02f09a2fd7a683d5fbb0ce316452c4cb4cefbf9b",
+    "/home/user/.local/lib/python3.10/site-packages/torchvision/ops/roi_align.py": "dced6acd2b5c935fe5b62c150725384e026394138febd645a10398a6c9666cd7",
+    "/home/user/epd-v2-artifacts/mask-resolution-stage-a2-001/capture/executed_sources/scripts/stage_a_epd_retained.py": "fb23991be23f4b6c8d17d9d785edad75a336930fa1e8a2218c42864579e9b20f",
+    "/home/user/epd-v2-supervised-pilot/easy_perception_deployment/easy_perception_deployment/include/ort_cpp_lib/p3_model_adapter.hpp": "024fea5c2dc1a0bfd61618c178d9a2b5f343ed9046c4589ba1680f37c100cd58",
+    "/home/user/epd-v2-supervised-pilot/easy_perception_deployment/easy_perception_deployment/src/p3_ort_base.cpp": "3ab392d3f81e329c919b5dc3c74a23773673b6c50401a18aea4ce3ccfdfe4f2c",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_sources/LICENSE.torchvision": "6502f676851cfe25f8af75531dfb32375b7325b73c37e7b43741fa422893e71d",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_sources/roi_align_common.h": "1e22a97d9b3c84f6c9782fa4db0cb27d03cfd760fa5aa736413df2bc046e724e",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/analytic_coordinate_sources/roi_align_kernel.cpp": "d3a2f0d909d9a7bb47c30cd82058a4afb02453498e3283f62dbf82a64e65a769",
+    "/home/user/epd-v2-supervised-pilot/evidence/segmentation_v2/source_lattice_proposed_001/coordinate_ledger.json": "61525856b2cb30e5082cdbfb0546c88eeb3246c75d47780959208256fb4c413d",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_contract.py": "00fdd8969909be5d091e746cc8eb19796299b145a03a3c6c3c5b917ff47db4f4",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/analytic_coordinate_r3.py": "e83ddfa93451f7aace19f1e0e0c68063c5855362e8b08b34aa8f13f738814a06",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/diagnostic_shadow_capture.py": "12702816829118cb8bac72bda2ec17e3b2e4772bc5a73351b49ab42cc273177f",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/mask_resolution.py": "ef5c80b341d40b479c16562dad43032e2ec2b90084499a80b8c242df92d5e878",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/pilot.py": "3966c9d84ae23a13a3c52582a7091eebbd5da6122444cda830522f5398893692",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/recover_original.py": "bfcfad5a39e19892d91b8333883d3f054b68b0ca594ca287c7242701e1e603db",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/shadow_mask_paste.py": "1b2caf356f42fac0d4e5f13606e97b46f4fa9f4687f1bf9b3991ceabc54f6d46",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/source_lattice.py": "4398e1a9dd3754d7bd31cfefff01c6db53907833034bc2bf6a48a94112d4f4fe",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/stage_a2_mask_check.py": "1b0af6028fb659a97c1f5a0dc776ee8df53314310dbbf87133e8c1b97b48e3a3",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_analytic_coordinate_contract.py": "839f2b2b127fe91ebf1ba7a6f7afd4cfa05ade3db950efc9bdc8186c6fc20f58",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_analytic_coordinate_r3.py": "0ff39e810b7c328a49765e1554285d5bf0ee95d974d825a193248aa2eac36549",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/test_source_lattice.py": "4b72b987a6e0e0b7def9c85ad4b490303203bdd56f5604ce32ddbf1fea7ba2b8",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/train.py": "b1473d4025733b32977a7a3d0bf5272db5f54f7fb34a00e0a5cb52d0f0314f53",
+    "/home/user/epd-v2-supervised-pilot/tools/segmentation_v2/verify_adapter.py": "562ab9da1a5fa543e06e141eedb4a4805056815bd97c7ba6c88d04e9368bf697"
+  },
+  "stage_a2": "BLOCKED_0/2",
+  "synthetic_graph": "Scalar source-geometric schedule only; identity1x1/BN, .5main+.5skip; nonnegative ReLU identity. ActualFPN1channel allparameters overwritten. Not full trained network.",
+  "trace_archives": 4,
+  "translations": [
+    0,
+    1,
+    32
+  ]
+}

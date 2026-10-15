@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/usr/bin/python3",
+    "-m",
+    "unittest",
+    "-v",
+    "test_native_boundary_aux",
+    "test_native_boundary_campaign",
+    "test_source_lattice",
+    "test_analytic_coordinate_r3",
+    "test_analytic_coordinate_contract",
+    "test_diagnostic_shadow_capture",
+    "test_training_provenance_audit",
+    "test_shadow_mask_paste",
+    "test_stage_a2_boundary_audit",
+    "test_stage_a2_boundary_cells",
+    "test_foreground_preserving_aux",
+    "test_foreground_preserving_candidate"
+  ],
+  "exit_code": 0,
+  "failure": null,
+  "pdeathsig": "SIGKILL",
+  "peak_worker_rss_kib": 669304,
+  "process_group_cleanup": true,
+  "resource_limit_reason": null,
+  "rss_enforcement": "VmRSS/VmHWM polling plus final wait4 high-water check; not kernel cgroup memory.max",
+  "sampling_interval_seconds": 0.02,
+  "status": "WORKER_COMPLETED",
+  "wall_seconds": 16.960523330999422
+}

@@ -1,0 +1,365 @@
+{
+  "bindings_sha256": {
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_024.npz": "f866bd979184b499274d15dc981d4282677295fcfc6cd14cdbbb175f74948d7c",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_025.npz": "e0302de8bd8bf08befd8175f09bc70762e35ecb46f92319b3c6671e0385c24da",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_026.npz": "0061e44c2cf66ec64deb7acfae22442510f624457cdabf336325c18e85f6d124",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_027.npz": "de7ba0143f740417648324a225dbb88992cac0a598bb07e07ce3d28a11d4556d",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_028.npz": "1d106195a3bb7d33f7e7b8a1cc1c55d931867f0fae1526f1e6ba863ddc3bce84",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_029.npz": "f9e0fb1de0de4ad3c001277ddcb08021a62d13851d21647e9d45351aa2e53e6d",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_030.npz": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_031.npz": "8a082e224839694fff79f70abddbe2f326a26bdac05ded45bf18792b78c62549",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_032.npz": "4348686b93315f2f18793f59e0fb50e0f0d71e0f365cb3b4ff4069f4c6226cbc",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_033.npz": "3f2e4717baa8a3fc64c194f23beb833fb744c56cdf7245254db379562ba646a5",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_034.npz": "cd7a63b0ce5cb39138c5709fb4bd973c3a7b880d7dbb8635b4425d23ffbd7bc9",
+    "/home/user/epd-v2-artifacts/mask-resolution-campaign-001/validation_01/scene_035.npz": "9c22a3970404ce53d3f644649ecc70265395b3038c9d063e40419dea1e2cfbb9",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation.json": "4a40df1a135c09620e92038062daed39913be2b447f8e89f45ad669b98066f71",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_024.npz": "920accdc1799292359a99f22a2a5f4837d0d959002688cc398e858989075411d",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_025.npz": "b6f81fcaaf303b5778abbd111a767bdd095dab47b3230411457191993a53e65a",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_026.npz": "7896bd5cd03b3a1273f1192f631782c1c17737ea9362edf2834094a0f7d8dbee",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_027.npz": "cdfadc8b3cd24d2d7fe28653ebda7cac8dd6d60f99802137936fa727add3fa31",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_028.npz": "d563fa7c717a75c64a072630588cf71c39a013c71868ab7690da370fc2717ccc",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_029.npz": "3ab364728ef70028d07be1f24ac2b2f0de725d54f119a91b7643e8a8ad8aae67",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_030.npz": "93d82fd81a446e34ba5cea02f6ff2a60d0c4f518a4cccfce123aa67d52cef8b3",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_031.npz": "13d50a257eed5df7dc01b5fd55d8a6f1cda885e9608632c34907f250b6fbd49d",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_032.npz": "e4eacbc60a6da7e1b74d8e3a9e26ff8b82c232a3484c2b91f47593c44e0ac13b",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_033.npz": "b09b57b0082e867053906e5dac4d19c153ded1df3b54f7b365a78fe006ad09c4",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_034.npz": "73396b6855ce36aaf16262665e2d2e925ff6687331ea858c5b89b05ea7adebae",
+    "/home/user/epd-v2-artifacts/native-boundary-candidate-001/validation/scene_035.npz": "a9dc2e7926975fab75a8e297f8fe9d3e17024b951730fa0770791dbd5f5d232f",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_024/capture.json.native512.ids.u32": "21d36f4f6eec49d8c2af8f464d19730ce9e95b317b9df9a9eb4567e58452c4ce",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_025/capture.json.native512.ids.u32": "41a2863d10a37d3513d6cb5787fd5114a4691cd5920a703989972f06a6ed1f25",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_026/capture.json.native512.ids.u32": "183e9f622beadad7c3646e7247460ad4a72023e816eeb148e92fa89d85bf3017",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_027/capture.json.native512.ids.u32": "ce3d8ab42c5ed92a27e8b13a5aaa18f33bd557cf40022bd86d5e055767704dae",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_028/capture.json.native512.ids.u32": "8974f601d656443b73d0edf1e61955318cbb4cec6a3f9ce6757c71edf8f2137d",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_029/capture.json.native512.ids.u32": "d1d4dc38495cf983b6edf488830dabea8cf891356a3597001b638d45d5451a4a",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_030/capture.json.native512.ids.u32": "21d36f4f6eec49d8c2af8f464d19730ce9e95b317b9df9a9eb4567e58452c4ce",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_031/capture.json.native512.ids.u32": "1e18ac565e7cd5247de5ccf2909fc12346dea7b720fe6b28a6da8fc04b32d1ee",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_032/capture.json.native512.ids.u32": "c6639831172fae7d4e1ea871cd2d608e22fc797c29c66e81a12b5d6627817afb",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_033/capture.json.native512.ids.u32": "2ad5e89c2ed28429a41828c910d0cefa10d3d3ac569c491c5818ebe377b3671b",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_034/capture.json.native512.ids.u32": "1e26f614d07af694e442e5574e36767473223bf2fbe3645169eec3ace3b0ba3b",
+    "/home/user/epd-v2-artifacts/pilot-001/dataset/scene_035/capture.json.native512.ids.u32": "d5f82a1bffc84fe05d5c0bb7b2aa0df177cb66feb3ca29638e3cb17a1e54f598"
+  },
+  "instances": [
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        26,
+        2,
+        0
+      ],
+      "lost_foreground": 28,
+      "owner": "65508",
+      "scene_id": "scene_025",
+      "visible_foreground": 4009
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        1,
+        0,
+        2
+      ],
+      "gained_foreground": 3,
+      "lost_distance_bins_le2_2to4_gt4": [
+        11,
+        1,
+        12
+      ],
+      "lost_foreground": 24,
+      "owner": "65496",
+      "scene_id": "scene_026",
+      "visible_foreground": 2276
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        6,
+        2,
+        7
+      ],
+      "lost_foreground": 15,
+      "owner": "65501",
+      "scene_id": "scene_026",
+      "visible_foreground": 3613
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        4,
+        11
+      ],
+      "gained_foreground": 15,
+      "lost_distance_bins_le2_2to4_gt4": [
+        13,
+        1,
+        1
+      ],
+      "lost_foreground": 15,
+      "owner": "65506",
+      "scene_id": "scene_026",
+      "visible_foreground": 4093
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        15,
+        0,
+        0
+      ],
+      "lost_foreground": 15,
+      "owner": "65510",
+      "scene_id": "scene_027",
+      "visible_foreground": 4247
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        1,
+        0,
+        0
+      ],
+      "gained_foreground": 1,
+      "lost_distance_bins_le2_2to4_gt4": [
+        11,
+        0,
+        0
+      ],
+      "lost_foreground": 11,
+      "owner": "65503",
+      "scene_id": "scene_028",
+      "visible_foreground": 3538
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        7,
+        0,
+        0
+      ],
+      "lost_foreground": 7,
+      "owner": "65508",
+      "scene_id": "scene_028",
+      "visible_foreground": 1516
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        10,
+        1,
+        0
+      ],
+      "lost_foreground": 11,
+      "owner": "65496",
+      "scene_id": "scene_029",
+      "visible_foreground": 1382
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        1
+      ],
+      "gained_foreground": 1,
+      "lost_distance_bins_le2_2to4_gt4": [
+        11,
+        0,
+        5
+      ],
+      "lost_foreground": 16,
+      "owner": "65506",
+      "scene_id": "scene_029",
+      "visible_foreground": 3172
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        14,
+        0,
+        0
+      ],
+      "lost_foreground": 14,
+      "owner": "65508",
+      "scene_id": "scene_031",
+      "visible_foreground": 8658
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        8,
+        0,
+        24
+      ],
+      "lost_foreground": 32,
+      "owner": "65496",
+      "scene_id": "scene_032",
+      "visible_foreground": 5261
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        12,
+        0,
+        0
+      ],
+      "lost_foreground": 12,
+      "owner": "65501",
+      "scene_id": "scene_032",
+      "visible_foreground": 2454
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        4,
+        0,
+        0
+      ],
+      "lost_foreground": 4,
+      "owner": "65506",
+      "scene_id": "scene_032",
+      "visible_foreground": 1541
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        12,
+        0,
+        0
+      ],
+      "lost_foreground": 12,
+      "owner": "65510",
+      "scene_id": "scene_033",
+      "visible_foreground": 3310
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        5,
+        0,
+        0
+      ],
+      "lost_foreground": 5,
+      "owner": "65503",
+      "scene_id": "scene_034",
+      "visible_foreground": 717
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        12,
+        0,
+        0
+      ],
+      "lost_foreground": 12,
+      "owner": "65508",
+      "scene_id": "scene_034",
+      "visible_foreground": 1612
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        7,
+        0,
+        0
+      ],
+      "lost_foreground": 7,
+      "owner": "65501",
+      "scene_id": "scene_035",
+      "visible_foreground": 1527
+    },
+    {
+      "gained_distance_bins_le2_2to4_gt4": [
+        0,
+        0,
+        0
+      ],
+      "gained_foreground": 0,
+      "lost_distance_bins_le2_2to4_gt4": [
+        6,
+        0,
+        0
+      ],
+      "lost_foreground": 6,
+      "owner": "65506",
+      "scene_id": "scene_035",
+      "visible_foreground": 2278
+    }
+  ],
+  "lost_distance_bins_le2_2to4_gt4": [
+    190,
+    7,
+    49
+  ],
+  "method": "retained masks only; baseline frozen assignment/consumer ROI/strict threshold unchanged; distance to visible annotation background, not amodal edge or thickness",
+  "model_inference_runs": 0,
+  "occlusion_attribution": "UNKNOWN: visible renderer IDs do not isolate occlusion edges from outer silhouette",
+  "source_sha256": "2945063d9bcc8a72116ab306f9b47da94074839e5b0572fbe04f2a048acdc9b5",
+  "stage_a2_used": false,
+  "thin_feature_attribution": "UNKNOWN: local distance to background does not identify thickness",
+  "totals": {
+    "gained_foreground": 20,
+    "lost_foreground": 246
+  },
+  "training_updates": 0
+}

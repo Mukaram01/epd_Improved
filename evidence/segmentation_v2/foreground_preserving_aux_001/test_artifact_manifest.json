@@ -1,0 +1,70 @@
+{
+  "files": {
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-001/launch.json": {
+      "bytes": 638,
+      "sha256": "3e086ff452fbd8638a8990ef9fb3d63e838eaa9e326e25f95e83a464017e0c0b"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-001/stderr.log": {
+      "bytes": 14559,
+      "sha256": "b258ee04515c3b071211165e91ea2fb545bc598a0e9e32bd5bb9d965d00ae324"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-001/stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-001/supervision.json": {
+      "bytes": 896,
+      "sha256": "e3820f54a5a2314b1bddad25fc0f933715637ea8ba8ea7a02e24ea111dff830b"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-001/worker_identity.json": {
+      "bytes": 61,
+      "sha256": "e86622d773aba18026dbe3607f73be29386e2415d90304210726cc024ba98678"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/gradient.json": {
+      "bytes": 1789,
+      "sha256": "7d3337fbc6efc6c805a6d79a1789bb79a382ba4e15de3cfa10c1e2b435f5c80f"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/launch.json": {
+      "bytes": 391,
+      "sha256": "44b024a910f53a484494b2124eb3ba9289399eb1449168025c7b226affd03c85"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/stderr.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/supervision.json": {
+      "bytes": 644,
+      "sha256": "e0ee40bffc2e5e74245789d11981e2d74c1b61a93476b4b01e5c2c3ac819642e"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/gradient/worker_identity.json": {
+      "bytes": 61,
+      "sha256": "587f481fa2f1f991bda2a1004d617f17d869fd9d0b115ae24ea133299a9b272a"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/launch.json": {
+      "bytes": 638,
+      "sha256": "17363f615493ff4ee6887e21e43e1a9e882fde95f5b80d8145a251ea3230386f"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/stderr.log": {
+      "bytes": 12713,
+      "sha256": "5ff4831c545e8ec4b3cf67db6e420c815f526c6fa05014b93f1ed09e48ef3cc4"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/stdout.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/supervision.json": {
+      "bytes": 891,
+      "sha256": "c59a880de35e6efbcba07aea0acb08609dbbb389c04efb6320ed668ddbbb19db"
+    },
+    "/home/user/epd-v2-artifacts/foreground-preserving-implementation-tests-002/worker_identity.json": {
+      "bytes": 61,
+      "sha256": "8374b21b1ec56e70e1194d440d42d976f8ba06c1ad858ea85e363fcaf8d131ef"
+    }
+  },
+  "final_run": "118PASS,0failures/errors",
+  "first_run": "118tests;2testfixturecwd errors; preserved; repaired paths only"
+}

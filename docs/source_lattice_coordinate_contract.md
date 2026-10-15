@@ -263,3 +263,11 @@ No full results, wall/peak benchmark measurements or synthetic full-matrix
 findings are claimed. The next decision is separate user authorisation for
 exactly one reviewed bounded synthetic run. Stage-A2 and provenance remain
 unchanged, regardless of whether that future diagnostic completes.
+
+## Subsequent separately authorised R4 execution
+
+The user subsequently authorised exactly one execution. R4 completed219cases,
+657graphs and876chains with independently verified parity and preserved evidence.
+The proposal/approval above is historical and unchanged. See
+[R4 measured results and the concrete engineering decision](source_lattice_r4_results.md).
+No further synthetic-only coordinate audit is proposed.

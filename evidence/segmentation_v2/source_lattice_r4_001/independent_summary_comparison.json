@@ -1,0 +1,7 @@
+{
+  "decision": "MATCH",
+  "implementer_summary_sha256": "7fb62622c203ec1a116b8d96ba8078a5f982ed6891291ec9fe6cc511cc8b8bdb",
+  "exact_summary_field_comparisons": 291,
+  "reviewer": "/root/r4_verification",
+  "benchmark_rerun": false
+}

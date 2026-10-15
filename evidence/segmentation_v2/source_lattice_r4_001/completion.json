@@ -1,0 +1,5 @@
+{
+  "decision": "COMPLETE_SYNTHETIC_ONLY",
+  "no_retry": true,
+  "supervision_sha256": "aaf7f377741f10411a294580a734307fa0b65fdef4f53ae88012edb0648e4076"
+}

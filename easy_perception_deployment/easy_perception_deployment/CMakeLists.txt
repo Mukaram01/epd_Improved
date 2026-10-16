@@ -280,6 +280,12 @@ if(BUILD_TESTING)
   ament_target_dependencies(epd_test_geometry_quality geometry_msgs sensor_msgs)
   target_link_libraries(epd_test_geometry_quality ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
 
+  ament_add_gtest(epd_test_ros_message_transport test/test_ros_message_transport.cpp)
+  target_include_directories(epd_test_ros_message_transport PRIVATE include)
+  ament_target_dependencies(
+    epd_test_ros_message_transport cv_bridge sensor_msgs std_msgs)
+  target_link_libraries(epd_test_ros_message_transport ${OpenCV_LIBRARIES})
+
   ament_add_gtest(epd_test_time_utils test/test_time_utils.cpp)
   target_include_directories(epd_test_time_utils PRIVATE include)
   ament_target_dependencies(epd_test_time_utils rclcpp builtin_interfaces)

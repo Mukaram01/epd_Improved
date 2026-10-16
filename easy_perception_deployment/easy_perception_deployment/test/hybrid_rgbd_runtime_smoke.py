@@ -90,10 +90,14 @@ def run(binary, image, mode, log_dir):
                 raise RuntimeError(f'{mode}: no valid object geometry')
             signatures = []
             for obj in message.objects:
+                # Transport correctness applies equally to legacy and hybrid.
+                mask = obj.segmented_binary_mask
+                assert mask.encoding == 'mono8', 'actual uint8 mask encoding'
+                assert mask.step == mask.width, 'packed uint8 row stride'
+                assert len(mask.data) == mask.step * mask.height, 'packed payload'
+                assert mask.header == message.header, 'source mask header'
+                assert obj.segmented_pcl.header == message.header, 'source cloud header'
                 if mode in ('enabled', 'float', 'tracking'):
-                    assert obj.segmented_binary_mask.encoding == 'mono8'
-                    assert obj.segmented_pcl.header == message.header
-                    assert obj.segmented_binary_mask.header == message.header
                     assert obj.centroid.z > 0.49
                 signatures.append([obj.name, obj.roi.x_offset, obj.roi.y_offset,
                                    obj.roi.width, obj.roi.height,

@@ -29,6 +29,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
+#include <array>
 
 #include <Eigen/Dense>
 
@@ -76,6 +77,7 @@
 #include "epd_utils_lib/inference_scheduler.hpp"
 #include "epd_utils_lib/geometry_quality.hpp"
 #include "epd_utils_lib/hybrid_rgbd.hpp"
+#include "epd_utils_lib/perception_readiness.hpp"
 #include "epd_utils_lib/time_utils.hpp"
 #include "epd_utils_lib/temporal_tracker.hpp"
 
@@ -170,6 +172,8 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::PoseArray>::SharedPtr pose_pub;
   rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr
     inference_diagnostics_pub_;
+  // Per-detection readiness (hybrid mode only): identity survives pose rejection.
+  rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr readiness_pub_;
 
   rclcpp::Service<epd_msgs::srv::Perception>::SharedPtr srv_;
   /*! \brief A singular EPDContainer object that deploys a user-defined
@@ -279,6 +283,10 @@ private:
   bool hybrid_refinement_enabled_{false};
   EPD::HybridRgbdOptions hybrid_options_;
   void report_geometry(const EPD::LocalizedObject & object, const cv::Mat & depth);
+  void publish_readiness(
+    const std::vector<EPD::ReadinessRecord> & records, const std_msgs::msg::Header & header,
+    uint64_t observation_id);
+  std::array<std::atomic<uint64_t>, 5> readiness_state_totals_{};
   std::atomic<uint64_t> detections_total_{0};
   std::atomic<uint64_t> geometry_valid_total_{0};
   std::atomic<uint64_t> geometry_degraded_total_{0};
@@ -555,6 +563,10 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   inference_diagnostics_pub_ =
     this->create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
     "/easy_perception_deployment/inference_diagnostics", rclcpp::QoS(1));
+  if (hybrid_refinement_enabled_) {
+    readiness_pub_ = this->create_publisher<diagnostic_msgs::msg::DiagnosticArray>(
+      "/easy_perception_deployment/detection_readiness", rclcpp::QoS(10).reliable());
+  }
   inference_diagnostics_timer_ = this->create_wall_timer(
     std::chrono::seconds(1),
     std::bind(&EasyPerceptionDeployment::inference_diagnostics_callback, this),
@@ -1298,6 +1310,16 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
   add("geometry_valid_total", geometry_valid_total_.load());
   add("geometry_degraded_total", geometry_degraded_total_.load());
   add("geometry_invalid_total", geometry_invalid_total_.load());
+  if (hybrid_refinement_enabled_) {
+    for (const auto state : {EPD::PerceptionState::REJECTED, EPD::PerceptionState::DETECTED,
+        EPD::PerceptionState::LOCALISED, EPD::PerceptionState::POSE_VALID,
+        EPD::PerceptionState::GRASP_CANDIDATE})
+    {
+      std::string key = std::string("readiness_") + EPD::stateName(state) + "_total";
+      std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+      add(key, readiness_state_totals_[static_cast<size_t>(state)].load());
+    }
+  }
   add("invalid_intrinsics_total", invalid_intrinsics_total_.load());
   add("empty_mask_total", invalid_mask_total_.load());
   add("insufficient_depth_total", insufficient_depth_total_.load());
@@ -1527,6 +1549,21 @@ void EasyPerceptionDeployment::report_geometry(
   if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_ORIENTATION)) ++invalid_orientation_total_;
 }
 
+void EasyPerceptionDeployment::publish_readiness(
+  const std::vector<EPD::ReadinessRecord> & records, const std_msgs::msg::Header & header,
+  uint64_t observation_id)
+{
+  if (!readiness_pub_) {return;}
+  auto ordered = records;
+  std::sort(ordered.begin(), ordered.end(), [](const auto & a, const auto & b) {
+      return a.detection_index < b.detection_index;
+    });
+  for (const auto & record : ordered) {
+    readiness_state_totals_[static_cast<size_t>(record.state)].fetch_add(1);
+  }
+  readiness_pub_->publish(EPD::makeReadinessReport(ordered, header, observation_id, camera_id_));
+}
+
 void EasyPerceptionDeployment::process_localize_work(
   const EPD::Observation::ConstSharedPtr & observation)
 {
@@ -1607,10 +1644,17 @@ void EasyPerceptionDeployment::process_localize_work(
   }();
 
   // Apply max_detections limit.
+  std::vector<EPD::ReadinessRecord> readiness;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
     const int max_det = ortAgent_.max_detections;
     if (max_det > 0 && static_cast<int>(result.size()) > max_det) {
+      if (hybrid_refinement_enabled_) {
+        for (size_t i = max_det; i < result.size(); ++i) {
+          readiness.push_back(EPD::makeReadinessRecord(
+            i, result.objects[i], false, "max_detections_cap"));
+        }
+      }
       result.objects.resize(max_det);
     }
   }
@@ -1618,7 +1662,8 @@ void EasyPerceptionDeployment::process_localize_work(
   detections_total_.fetch_add(result.size());
   std::vector<EPD::LocalizedObject> valid_objects;
   valid_objects.reserve(result.size());
-  for (auto & object : result.objects) {
+  for (size_t index = 0; index < result.size(); ++index) {
+    auto & object = result.objects[index];
     object.source_observation_id = observation->observation_id();
     object.source_sensor_stamp = observation->sensor_stamp();
     object.source_frame = observation->frame_id();
@@ -1627,6 +1672,10 @@ void EasyPerceptionDeployment::process_localize_work(
       camera_info->k.at(0), camera_info->k.at(4), camera_info->k.at(2), camera_info->k.at(5),
       geometry_thresholds_);
     report_geometry(object, depth_img);
+    if (hybrid_refinement_enabled_) {
+      readiness.push_back(EPD::makeReadinessRecord(
+        index, object, quality == EPD::GeometryQuality::VALID));
+    }
     if (quality == EPD::GeometryQuality::VALID) {
       geometry_valid_total_.fetch_add(1);
       latest_valid_geometry_stamp_ns_.store(rclcpp::Time(observation->sensor_stamp()).nanoseconds());
@@ -1732,6 +1781,7 @@ void EasyPerceptionDeployment::process_localize_work(
   output_msg.process_time = ms;
   localize_pub->publish(output_msg);
   pose_pub->publish(pose_array);
+  publish_readiness(readiness, msg->header, observation->observation_id());
 
   EPD::PerceptionResult completed_result;
   completed_result.source_observation_id = observation->observation_id();
@@ -1829,10 +1879,17 @@ void EasyPerceptionDeployment::process_tracking_work(
   }();
 
   // Apply max_detections limit.
+  std::vector<EPD::ReadinessRecord> readiness;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
     const int max_det = ortAgent_.max_detections;
     if (max_det > 0 && static_cast<int>(result.size()) > max_det) {
+      if (hybrid_refinement_enabled_) {
+        for (size_t i = max_det; i < result.size(); ++i) {
+          readiness.push_back(EPD::makeReadinessRecord(
+            i, result.objects[i], false, "max_detections_cap"));
+        }
+      }
       result.objects.resize(max_det);
       result.object_ids.resize(max_det);
     }
@@ -1873,6 +1930,18 @@ void EasyPerceptionDeployment::process_tracking_work(
     track_assignments = temporal_tracker_->update(
       observation->observation_id(), observation->sensor_stamp(), tracking_detections);
     lost_track_ids = temporal_tracker_->metrics().lost_track_ids;
+  }
+  if (hybrid_refinement_enabled_) {
+    // 2D-only detections keep their track; only VALID + tracked objects are published.
+    for (size_t i = 0; i < result.size(); ++i) {
+      const uint64_t track_id = i < track_assignments.size() ? track_assignments[i].track_id : 0;
+      const bool valid = result.objects[i].quality == EPD::GeometryQuality::VALID;
+      auto record = EPD::makeReadinessRecord(
+        i, result.objects[i], valid && track_id != 0,
+        valid && track_id == 0 ? "no_track_assignment" : "");
+      record.track_id = track_id;
+      readiness.push_back(std::move(record));
+    }
   }
   std::vector<EPD::LocalizedObject> valid_tracking_objects;
   std::vector<std::string> valid_tracking_ids;
@@ -1981,6 +2050,7 @@ void EasyPerceptionDeployment::process_tracking_work(
   output_msg.process_time = ms;
   tracking_pub->publish(output_msg);
   pose_pub->publish(pose_array);
+  publish_readiness(readiness, msg->header, observation->observation_id());
 
   EPD::PerceptionResult completed_result;
   completed_result.source_observation_id = observation->observation_id();

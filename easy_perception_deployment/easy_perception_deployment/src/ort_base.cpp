@@ -28,6 +28,7 @@
 
 #include "ort_cpp_lib/ort_base.hpp"
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "ort_cpp_lib/ort_name_compat.hpp"
 
 #ifndef EPD_ENABLE_TENSORRT
 #define EPD_ENABLE_TENSORRT 0
@@ -441,9 +442,8 @@ void OrtBase::OrtBaseImpl::initModelInfo()
         1,
         std::multiplies<int64_t>()));
 
-    char * inputName = m_session.GetInputName(i, m_ortAllocator);
-    m_inputNodeNames.emplace_back(strdup(inputName));
-    m_ortAllocator.Free(inputName);
+    const std::string inputName = Ort::compat::inputName(m_session, i, m_ortAllocator);
+    m_inputNodeNames.emplace_back(strdup(inputName.c_str()));
   }
 
   for (int i = 0; i < m_numOutputs; ++i) {
@@ -452,9 +452,8 @@ void OrtBase::OrtBaseImpl::initModelInfo()
 
     m_outputShapes.emplace_back(tensorInfo.GetShape());
 
-    char * outputName = m_session.GetOutputName(i, m_ortAllocator);
-    m_outputNodeNames.emplace_back(strdup(outputName));
-    m_ortAllocator.Free(outputName);
+    const std::string outputName = Ort::compat::outputName(m_session, i, m_ortAllocator);
+    m_outputNodeNames.emplace_back(strdup(outputName.c_str()));
   }
 
   #if PRINT_MODEL_INFO

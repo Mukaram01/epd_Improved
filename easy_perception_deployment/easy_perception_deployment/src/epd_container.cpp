@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "ort_cpp_lib/ort_name_compat.hpp"
 #include "epd_utils_lib/class_selection.hpp"
 #include "epd_utils_lib/epd_container.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
@@ -254,11 +255,8 @@ ModelInputInfo inspectModelInputInfo(
     throw std::runtime_error("Model has no inputs: " + model_path);
   }
 
-  char * input_name = session.GetInputName(0, allocator);
-  std::string resolved_input_name = input_name == nullptr ? std::string("<unknown>") : input_name;
-  if (input_name != nullptr) {
-    allocator.Free(input_name);
-  }
+  const std::string input_name = Ort::compat::inputName(session, 0, allocator);
+  std::string resolved_input_name = input_name.empty() ? std::string("<unknown>") : input_name;
 
   // TensorTypeAndShapeInfo is a borrowed view. Keep its owning TypeInfo alive
   // until all shape queries have completed; a chained temporary leaves the

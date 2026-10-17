@@ -470,7 +470,7 @@ class DeployWindow(QWidget):
                 self.useCPU = True
             else:
                 self.useCPU = False
-        except (KeyError, TypeError) as e:
+        except (KeyError, TypeError):
             self.deploy_logger.exception("[ session_config.json ] - " +
                                          "KeyError or TypeError detected" +
                                          "Assigning default values")

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import glob
 import sys
 import threading
 import subprocess
@@ -441,7 +440,7 @@ class TrainWindow(QWidget):
         if ok:
             # Check if input is a valid tuple
             try:
-                local_steps = make_tuple(steps)
+                make_tuple(steps)
             except (ValueError, SyntaxError):
                 self.train_logger.exception(
                     "Invalid tuple given. " +

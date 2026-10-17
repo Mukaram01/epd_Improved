@@ -99,7 +99,7 @@ class P2Trainer:
         dict['SOLVER']['STEPS'] = self.steps
 
         with open(self.path_to_training_config, 'w') as file:
-            documents = yaml.dump(dict, file)
+            yaml.dump(dict, file)
 
         dict.clear()
         with open(self.path_to_export_config) as file:
@@ -108,7 +108,7 @@ class P2Trainer:
         dict['MODEL']['ROI_BOX_HEAD']['NUM_CLASSES'] = custom_class_no
 
         with open(self.path_to_export_config, 'w') as file:
-            documents = yaml.dump(dict, file)
+            yaml.dump(dict, file)
 
     def updateTrainVerification(self):
         _PATH_TO_P2_TRAIN_VERIFICATION = "../config/p2_train_verification.json"

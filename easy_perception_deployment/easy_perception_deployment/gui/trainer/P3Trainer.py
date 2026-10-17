@@ -99,7 +99,7 @@ class P3Trainer:
         dict['SOLVER']['STEPS'] = self.steps
 
         with open(self.path_to_training_config, 'w') as file:
-            documents = yaml.dump(dict, file)
+            yaml.dump(dict, file)
 
         dict.clear()
         with open(self.path_to_export_config) as file:
@@ -108,7 +108,7 @@ class P3Trainer:
         dict['MODEL']['ROI_BOX_HEAD']['NUM_CLASSES'] = custom_class_no
 
         with open(self.path_to_export_config, 'w') as file:
-            documents = yaml.dump(dict, file)
+            yaml.dump(dict, file)
 
     def updateTrainVerification(self):
         _PATH_TO_P3_TRAIN_VERIFICATION = "../config/p3_train_verification.json"
@@ -504,7 +504,7 @@ class P3Trainer:
                 "true"]
             self.docker_construct_process = subprocess.Popen(cmd)
             self.docker_construct_process.communicate()
-            docker_inspect_process_returncode = (
+            docker_construct_process_returncode = (
                 self.docker_construct_process.returncode)
         else:
             self.p3_train_logger.info(self._EXPORT_DOCKER_CONTAINER +

@@ -180,9 +180,13 @@ def validate_session_config(config, require_model_file=False, require_label_file
     if normalized["execution_backend_gpu_index"] < 0:
         raise _error("execution_backend_gpu_index", "must be >= 0")
 
-    normalized["intra_op_num_threads"] = int(normalized.get("intra_op_num_threads", 0))
-    if normalized["intra_op_num_threads"] < 0:
-        raise _error("intra_op_num_threads", "must be >= 0")
+    threads = normalized.get("intra_op_num_threads", 0)
+    if threads != "auto":  # "auto": hardware threads - 2, capped at 6 (EPD thread_policy.hpp)
+        normalized["intra_op_num_threads"] = int(threads)
+        if normalized["intra_op_num_threads"] < 0:
+            raise _error("intra_op_num_threads", 'must be >= 0 or "auto"')
+    if not isinstance(normalized.get("intra_op_allow_spinning", True), bool):
+        raise _error("intra_op_allow_spinning", "must be a boolean")
 
     normalized["image_transport"] = str(normalized.get("image_transport", "raw")).lower()
     if normalized["image_transport"] not in IMAGE_TRANSPORT_CHOICES:

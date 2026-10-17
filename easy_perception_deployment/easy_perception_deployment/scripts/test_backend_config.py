@@ -48,3 +48,25 @@ def test_gpu_index_must_be_non_negative():
         validate_session_config(
             _session(execution_backend="cuda", execution_backend_gpu_index=-1)
         )
+
+
+def test_auto_intra_op_threads_and_spinning_flag_are_accepted():
+    normalized = validate_session_config(_session(intra_op_num_threads="auto", intra_op_allow_spinning=False))
+    assert normalized["intra_op_num_threads"] == "auto"
+    assert normalized["intra_op_allow_spinning"] is False
+    assert validate_session_config(_session(intra_op_num_threads=4))["intra_op_num_threads"] == 4
+
+
+def test_invalid_thread_and_spinning_values_fail():
+    with pytest.raises(ConfigSchemaError):
+        validate_session_config(_session(intra_op_num_threads=-1))
+    with pytest.raises(ConfigSchemaError):
+        validate_session_config(_session(intra_op_allow_spinning="no"))
+
+
+def test_shipped_session_config_validates():
+    import json
+    from pathlib import Path
+    shipped = json.loads((Path(__file__).resolve().parents[1] / "config/session_config.json").read_text())
+    normalized = validate_session_config(shipped)
+    assert normalized["intra_op_num_threads"] == "auto" and normalized["intra_op_allow_spinning"] is False

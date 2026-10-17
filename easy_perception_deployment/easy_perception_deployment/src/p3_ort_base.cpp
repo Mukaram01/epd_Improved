@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <opencv2/tracking.hpp>
 #include <opencv2/core/ocl.hpp>
 
@@ -175,6 +176,8 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   float confThresh,
   const cv::Scalar & meanVal)
 {
+  using Clock = std::chrono::steady_clock;
+  const auto t0 = Clock::now();
   cv::Mat tmpImg;
   cv::resize(inputImg, tmpImg, cv::Size(newW, newH));
 
@@ -189,7 +192,19 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   this->preprocess(dst, paddedImg, paddedW, paddedH, 3);
 
   // boxes, labels, scores, masks
+  const auto t1 = Clock::now();
   auto inferenceOutput = (*this)({dst});
+  const auto t2 = Clock::now();
+  const auto ms = [](Clock::time_point a, Clock::time_point b) {
+      return std::chrono::duration<double, std::milli>(b - a).count();
+    };
+  last_timing_.preprocess_ms = ms(t0, t1);
+  last_timing_.session_ms = ms(t1, t2);
+  struct PostTimer
+  {
+    InferenceTiming & timing; Clock::time_point start;
+    ~PostTimer() {timing.postprocess_ms = std::chrono::duration<double, std::milli>(Clock::now() - start).count();}
+  } post_timer{last_timing_, t2};
 
   if (inferenceOutput[1].second.size() != 1) {
     throw std::runtime_error(

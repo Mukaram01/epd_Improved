@@ -32,7 +32,10 @@ jobs:
           sudo rosdep init || true
           rosdep update
           rosdep install --from-paths . --ignore-src -r -y --rosdistro $ROS_DISTRO
-          pip install empy==3.3.4 catkin-pkg
+          # setup-python's interpreter comes first on PATH, so rosidl's Python
+          # generators run under it rather than the system Python that
+          # rosdep provisions; give it the modules they import.
+          pip install empy==3.3.4 catkin-pkg numpy lark
 
       - name: Build workspace
         run: |

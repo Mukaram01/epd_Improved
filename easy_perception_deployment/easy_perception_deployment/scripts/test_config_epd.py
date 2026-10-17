@@ -14,35 +14,53 @@
 # limitations under the License.
 
 import json
+import shutil
 import pytest
 from pathlib import Path
 
 from cli.config_epd import EPDConfigurator, EPDConfigError
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+_TRACKED_PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+# Rebound per test by package_root_sandbox; test bodies read these globals at
+# call time, so every write lands in a throwaway copy.
+PACKAGE_ROOT = _TRACKED_PACKAGE_ROOT
 REQUIRED_START_DIR = str(PACKAGE_ROOT)
 
-# Reset session_config.json and usecase_config.json to default.
-if ((PACKAGE_ROOT / "config/session_config.json").exists() and
-   (PACKAGE_ROOT / "config/usecase_config.json").exists()):
-    (PACKAGE_ROOT / "config/session_config.json").unlink(missing_ok=True)
-    (PACKAGE_ROOT / "config/usecase_config.json").unlink(missing_ok=True)
 
-    dict = {
+@pytest.fixture(autouse=True)
+def package_root_sandbox(tmp_path, monkeypatch):
+    """Run each test in a copy of the package, never the tracked config/.
+
+    The configurator only requires scripts/, launch/ and data/ to exist under
+    its start directory. config/ starts from the default session and
+    Classification use case, and the tracked config/*.json (for example the
+    shipped session_config.json checked by test_backend_config.py) is never
+    rewritten.
+    """
+    root = tmp_path / 'epd_package_root'
+    root.mkdir()
+    (root / 'scripts').mkdir()
+    (root / 'launch').mkdir()
+    shutil.copytree(_TRACKED_PACKAGE_ROOT / 'data', root / 'data')
+    shutil.copytree(_TRACKED_PACKAGE_ROOT / 'config', root / 'config')
+
+    session_config = {
         "schema_version": 2,
         "path_to_model": './data/model/squeezenet1.1-7.onnx',
         "path_to_label_list": './data/label_list/imagenet_classes.txt',
         "visualizeFlag": 'visualize',
         "useCPU": 'CPU'
         }
-    json_object = json.dumps(dict, indent=4)
-    with open(PACKAGE_ROOT / 'config/session_config.json', 'w') as outfile:
-        outfile.write(json_object)
+    with open(root / 'config/session_config.json', 'w') as outfile:
+        outfile.write(json.dumps(session_config, indent=4))
 
-    dict = {"schema_version": 2, "usecase_mode": 0}
-    json_object = json.dumps(dict, indent=4)
-    with open(PACKAGE_ROOT / 'config/usecase_config.json', 'w') as outfile:
-        outfile.write(json_object)
+    usecase_config = {"schema_version": 2, "usecase_mode": 0}
+    with open(root / 'config/usecase_config.json', 'w') as outfile:
+        outfile.write(json.dumps(usecase_config, indent=4))
+
+    monkeypatch.setitem(globals(), 'PACKAGE_ROOT', root)
+    monkeypatch.setitem(globals(), 'REQUIRED_START_DIR', str(root))
+    return root
 
 
 def test_invalid_ExeDirectory():

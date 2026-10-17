@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <thread>
 #include <jsoncpp/json/json.h>
 
+#include <thread>
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -44,14 +44,15 @@ Ort::SessionExecutionMode parseExecutionMode(
   const Json::Value & execution_mode = obj["execution_mode"];
   if (!execution_mode.isString()) {
     throw std::runtime_error(
-      "Config 'execution_mode' must be a string in: " + config_path +
-      ". Expected 'sequential' or 'parallel'.");
+            "Config 'execution_mode' must be a string in: " + config_path +
+            ". Expected 'sequential' or 'parallel'.");
   }
 
   std::string mode = execution_mode.asString();
-  std::transform(mode.begin(), mode.end(), mode.begin(), [](unsigned char c) {
-    return static_cast<char>(std::tolower(c));
-  });
+  std::transform(
+    mode.begin(), mode.end(), mode.begin(), [](unsigned char c) {
+      return static_cast<char>(std::tolower(c));
+    });
 
   if (mode == "sequential") {
     return Ort::SessionExecutionMode::SEQUENTIAL;
@@ -61,11 +62,13 @@ Ort::SessionExecutionMode parseExecutionMode(
   }
 
   throw std::runtime_error(
-    "Config 'execution_mode' must be 'sequential' or 'parallel' in: " +
-    config_path);
+          "Config 'execution_mode' must be 'sequential' or 'parallel' in: " +
+          config_path);
 }
 
-unsigned int parseColorHistogramMetric(const Json::Value & obj, const std::string & usecase_config_path)
+unsigned int parseColorHistogramMetric(
+  const Json::Value & obj,
+  const std::string & usecase_config_path)
 {
   if (!obj.isMember("color_match_histogram_metric")) {
     return EPD::COLOR_HISTOGRAM_CORRELATION;
@@ -76,8 +79,8 @@ unsigned int parseColorHistogramMetric(const Json::Value & obj, const std::strin
     const int metric = metric_value.asInt();
     if (metric < 0 || metric > 3) {
       throw std::runtime_error(
-        "Invalid color_match_histogram_metric in use case config file: " +
-        usecase_config_path + ". Expected 0-3."
+              "Invalid color_match_histogram_metric in use case config file: " +
+              usecase_config_path + ". Expected 0-3."
       );
     }
     return static_cast<unsigned int>(metric);
@@ -85,15 +88,16 @@ unsigned int parseColorHistogramMetric(const Json::Value & obj, const std::strin
 
   if (!metric_value.isString()) {
     throw std::runtime_error(
-      "Invalid color_match_histogram_metric type in use case config file: " +
-      usecase_config_path + ". Expected string or integer."
+            "Invalid color_match_histogram_metric type in use case config file: " +
+            usecase_config_path + ". Expected string or integer."
     );
   }
 
   std::string metric = metric_value.asString();
-  std::transform(metric.begin(), metric.end(), metric.begin(), [](unsigned char c) {
-    return static_cast<char>(std::tolower(c));
-  });
+  std::transform(
+    metric.begin(), metric.end(), metric.begin(), [](unsigned char c) {
+      return static_cast<char>(std::tolower(c));
+    });
 
   if (metric == "correlation") {
     return EPD::COLOR_HISTOGRAM_CORRELATION;
@@ -109,9 +113,9 @@ unsigned int parseColorHistogramMetric(const Json::Value & obj, const std::strin
   }
 
   throw std::runtime_error(
-    "Invalid color_match_histogram_metric in use case config file: " +
-    usecase_config_path +
-    ". Expected Correlation, Chi-square, Intersection, or Bhattacharyya."
+          "Invalid color_match_histogram_metric in use case config file: " +
+          usecase_config_path +
+          ". Expected Correlation, Chi-square, Intersection, or Bhattacharyya."
   );
 }
 
@@ -147,14 +151,15 @@ std::string parseImageTransport(const Json::Value & obj, const std::string & con
   const Json::Value & transport_value = obj["image_transport"];
   if (!transport_value.isString()) {
     throw std::runtime_error(
-      "Invalid image_transport type in config file: " +
-      config_path + ". Expected string.");
+            "Invalid image_transport type in config file: " +
+            config_path + ". Expected string.");
   }
 
   std::string transport = transport_value.asString();
-  std::transform(transport.begin(), transport.end(), transport.begin(), [](unsigned char c) {
-    return static_cast<char>(std::tolower(c));
-  });
+  std::transform(
+    transport.begin(), transport.end(), transport.begin(), [](unsigned char c) {
+      return static_cast<char>(std::tolower(c));
+    });
 
   if (transport.empty()) {
     return "raw";
@@ -165,8 +170,8 @@ std::string parseImageTransport(const Json::Value & obj, const std::string & con
   }
 
   throw std::runtime_error(
-    "Invalid image_transport in config file: " + config_path +
-    ". Expected raw, compressed, or compressedDepth.");
+          "Invalid image_transport in config file: " + config_path +
+          ". Expected raw, compressed, or compressedDepth.");
 }
 
 bool parseBooleanField(
@@ -188,9 +193,10 @@ bool parseBooleanField(
   }
   if (value.isString()) {
     std::string text = value.asString();
-    std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) {
-      return static_cast<char>(std::tolower(c));
-    });
+    std::transform(
+      text.begin(), text.end(), text.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+      });
     if (text == "true" || text == "1" || text == "yes" || text == "on") {
       return true;
     }
@@ -200,8 +206,8 @@ bool parseBooleanField(
   }
 
   throw std::runtime_error(
-    "Invalid " + key + " value in config file: " + config_path +
-    ". Expected boolean.");
+          "Invalid " + key + " value in config file: " + config_path +
+          ". Expected boolean.");
 }
 
 struct ModelInputInfo
@@ -616,14 +622,14 @@ void EPDContainer::setUseCaseConfigFile()
   std::string parse_errors;
   if (!Json::parseFromStream(reader_builder, ifs_1, &obj, &parse_errors)) {
     throw std::runtime_error(
-      "Failed to parse use case config file: " + usecase_config_path + ". " +
-      parse_errors
+            "Failed to parse use case config file: " + usecase_config_path + ". " +
+            parse_errors
     );
   }
 
   if (!obj.isMember("usecase_mode")) {
     throw std::runtime_error(
-      "Missing required key 'usecase_mode' in use case config file: " + usecase_config_path
+            "Missing required key 'usecase_mode' in use case config file: " + usecase_config_path
     );
   }
 
@@ -639,14 +645,14 @@ void EPDContainer::setUseCaseConfigFile()
   if (useCaseMode == EPD::COUNTING_MODE) {
     if (!obj.isMember("class_list") || obj["class_list"].isNull()) {
       throw std::runtime_error(
-        "Missing required key 'class_list' for Counting Mode in use case config file: " +
-        usecase_config_path);
+              "Missing required key 'class_list' for Counting Mode in use case config file: " +
+              usecase_config_path);
     }
     Json::Value class_list = obj["class_list"];
     if (!class_list.isArray() || class_list.empty()) {
       throw std::runtime_error(
-        "'class_list' must be a non-empty array for Counting Mode in use case config file: " +
-        usecase_config_path);
+              "'class_list' must be a non-empty array for Counting Mode in use case config file: " +
+              usecase_config_path);
     }
     for (size_t index = 0; index < class_list.size(); ++index) {
       countClassNames.emplace_back(class_list[static_cast<Json::ArrayIndex>(index)].asString());
@@ -656,26 +662,26 @@ void EPDContainer::setUseCaseConfigFile()
   if (useCaseMode == EPD::COLOR_MATCHING_MODE) {
     if (!obj.isMember("path_to_color_template") || obj["path_to_color_template"].isNull()) {
       throw std::runtime_error(
-        "Missing required key 'path_to_color_template' for Color Matching Mode in "
-        "use case config file: " + usecase_config_path);
+              "Missing required key 'path_to_color_template' for Color Matching Mode in "
+              "use case config file: " + usecase_config_path);
     }
     template_color_path = obj["path_to_color_template"].asString();
     if (template_color_path.empty()) {
       throw std::runtime_error(
-        "'path_to_color_template' must not be empty in use case config file: " +
-        usecase_config_path);
+              "'path_to_color_template' must not be empty in use case config file: " +
+              usecase_config_path);
     }
     color_match_histogram_metric = parseColorHistogramMetric(obj, usecase_config_path);
     if (obj.isMember("color_match_threshold")) {
       const Json::Value & cmt = obj["color_match_threshold"];
       if (!cmt.isNumeric()) {
         throw std::runtime_error(
-          "Config 'color_match_threshold' must be a number in: " + usecase_config_path);
+                "Config 'color_match_threshold' must be a number in: " + usecase_config_path);
       }
       const float cmt_val = cmt.asFloat();
       if (cmt_val < 0.0f || cmt_val > 1.0f) {
         throw std::runtime_error(
-          "Config 'color_match_threshold' must be in [0.0, 1.0] in: " + usecase_config_path);
+                "Config 'color_match_threshold' must be in [0.0, 1.0] in: " + usecase_config_path);
       }
       color_match_threshold = cmt_val;
     }
@@ -699,7 +705,7 @@ void EPDContainer::setUseCaseConfigFile()
     }
     if (!obj.isMember("track_type")) {
       throw std::runtime_error(
-        "Missing required key 'track_type' in use case config file: " + usecase_config_path
+              "Missing required key 'track_type' in use case config file: " + usecase_config_path
       );
     }
     tracker_type = obj["track_type"].asString();
@@ -713,14 +719,14 @@ void EPDContainer::setUseCaseConfigFile()
     const Json::Value & class_list = obj["class_list"];
     if (!class_list.isArray()) {
       throw std::runtime_error(
-        "'class_list' must be an array of class names in use case config file: " +
-        usecase_config_path);
+              "'class_list' must be an array of class names in use case config file: " +
+              usecase_config_path);
     }
     for (Json::ArrayIndex index = 0; index < class_list.size(); ++index) {
       if (!class_list[index].isString() || class_list[index].asString().empty()) {
         throw std::runtime_error(
-          "'class_list' entries must be non-empty class names in use case config file: " +
-          usecase_config_path);
+                "'class_list' entries must be non-empty class names in use case config file: " +
+                usecase_config_path);
       }
       selectedClassNames.emplace_back(class_list[index].asString());
     }
@@ -731,7 +737,7 @@ void EPDContainer::setUseCaseConfigFile()
         joined += (joined.empty() ? "" : ", ") + name;
       }
       throw std::runtime_error(
-        "'class_list' names not in the label list (" + class_label_path + "): " + joined);
+              "'class_list' names not in the label list (" + class_label_path + "): " + joined);
     }
   }
 
@@ -783,7 +789,7 @@ void EPDContainer::setLabelList()
 
   if (classNames.empty()) {
     throw std::runtime_error(
-      "Label list is empty. Please provide at least one class label in: " + class_label_path);
+            "Label list is empty. Please provide at least one class label in: " + class_label_path);
   }
 }
 

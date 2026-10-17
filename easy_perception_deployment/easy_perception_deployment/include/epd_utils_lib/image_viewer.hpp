@@ -97,9 +97,8 @@ ImageViewer::ImageViewer()
     qos, std::bind(&ImageViewer::image_callback, this, std::placeholders::_1));
 
   // Drive the OpenCV GUI at ~30 Hz independently of the subscription rate.
-  using namespace std::chrono_literals;
   display_timer_ = this->create_wall_timer(
-    33ms, std::bind(&ImageViewer::display_callback, this));
+    std::chrono::milliseconds(33), std::bind(&ImageViewer::display_callback, this));
 }
 
 int ImageViewer::encoding2mat_type(const std::string & encoding) const

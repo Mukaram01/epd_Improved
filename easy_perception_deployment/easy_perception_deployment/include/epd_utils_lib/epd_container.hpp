@@ -16,14 +16,13 @@
 #ifndef EPD_UTILS_LIB__EPD_CONTAINER_HPP_
 #define EPD_UTILS_LIB__EPD_CONTAINER_HPP_
 
-#include <opencv2/tracking.hpp>
-#include <opencv2/core/ocl.hpp>
 #include <memory>
 #include <string>
 #include <vector>
 
+#include <opencv2/tracking.hpp>
+#include <opencv2/core/ocl.hpp>
 #include "boost/optional.hpp"
-
 #include "ort_cpp_lib/ort_base.hpp"
 #include "ort_cpp_lib/p2_ort_base.hpp"
 #include "ort_cpp_lib/p3_ort_base.hpp"

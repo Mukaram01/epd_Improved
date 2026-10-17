@@ -70,3 +70,17 @@ def test_shipped_session_config_validates():
     shipped = json.loads((Path(__file__).resolve().parents[1] / "config/session_config.json").read_text())
     normalized = validate_session_config(shipped)
     assert normalized["intra_op_num_threads"] == "auto" and normalized["intra_op_allow_spinning"] is False
+
+
+def test_target_class_list_for_localization_and_tracking():
+    from cli.config_schema import validate_usecase_config
+    loc = validate_usecase_config(
+        {"usecase_mode": 3, "class_list": ["banana", " apple ", "banana"]})
+    assert loc["class_list"] == ["banana", "apple"]
+    # Empty means "all classes", unlike Counting where it is an error.
+    assert validate_usecase_config({"usecase_mode": 4, "class_list": []})["class_list"] == []
+    assert "class_list" not in validate_usecase_config({"usecase_mode": 3})
+    with pytest.raises(ConfigSchemaError):
+        validate_usecase_config({"usecase_mode": 3, "class_list": "banana"})
+    with pytest.raises(ConfigSchemaError):
+        validate_usecase_config({"usecase_mode": 3, "class_list": ["banana", ""]})

@@ -279,6 +279,9 @@ if(BUILD_TESTING)
   ament_add_gtest(epd_test_thread_policy test/test_thread_policy.cpp)
   target_include_directories(epd_test_thread_policy PRIVATE include)
 
+  ament_add_gtest(epd_test_class_selection test/test_class_selection.cpp)
+  target_include_directories(epd_test_class_selection PRIVATE include)
+
   ament_add_gtest(epd_test_hybrid_rgbd test/test_hybrid_rgbd.cpp src/hybrid_rgbd.cpp)
   target_include_directories(epd_test_hybrid_rgbd PRIVATE include ${PCL_INCLUDE_DIRS})
   ament_target_dependencies(epd_test_hybrid_rgbd geometry_msgs sensor_msgs)

@@ -208,6 +208,12 @@ class _DeployUiController(QObject):
         perception_layout.addLayout(
             self._form_row("Mode", w.usecase_config_button)
         )
+        if hasattr(w, "target_objects_button"):
+            w.target_objects_button.setMinimumHeight(38)
+            w.target_objects_button.setMinimumWidth(220)
+            perception_layout.addLayout(
+                self._form_row("Objects", w.target_objects_button)
+            )
         toggles = QHBoxLayout()
         toggles.setSpacing(8)
         toggles.addWidget(w.visualize_button)
@@ -227,6 +233,7 @@ class _DeployUiController(QObject):
 
         transport_row = QHBoxLayout()
         transport_row.setSpacing(10)
+        w.transport_label.setObjectName("fieldLabel")
         transport_row.addWidget(w.transport_label)
         transport_row.addStretch(1)
         transport_row.addWidget(w.transport_combo)
@@ -662,6 +669,12 @@ class _DeployUiController(QObject):
             QPushButton#runButton:hover {
                 background-color: #6275e2;
                 border-color: #8796ee;
+            }
+
+            QPushButton#runButton:disabled {
+                color: #8a94a6;
+                background-color: #262c37;
+                border-color: #343c4a;
             }
             """
         )

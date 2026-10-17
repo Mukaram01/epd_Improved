@@ -29,7 +29,7 @@ class TrackingWindow(QWidget):
     DeployWindow class in order to configure a custom Tracking
     use-case and write to usecase_config.json.
     '''
-    def __init__(self, _path_to_usecase_config):
+    def __init__(self, _path_to_usecase_config, target_classes=None):
         '''
         The constructor.
         Sets the size of the window and configurations for usecase_config.
@@ -49,6 +49,8 @@ class TrackingWindow(QWidget):
         self._label_list = []
         self._select_list = []
         self._path_to_usecase_config = _path_to_usecase_config
+        # Deploy's target objects; written so Tracking keeps the selection.
+        self._target_classes = list(target_classes or [])
 
         self._selected_tracker_index = 0
         self._tracker_label_list = ['KCF', 'MEDIANFLOW', 'CSRT']
@@ -105,6 +107,8 @@ class TrackingWindow(QWidget):
             "track_type": (self._tracker_label_list[
                 self._selected_tracker_index])
             }
+        if self._target_classes:
+            dict["class_list"] = list(self._target_classes)
         json_object = json.dumps(dict, indent=4)
         tmp_path = self._path_to_usecase_config + '.tmp'
         try:

@@ -39,7 +39,7 @@ def _install_launcher_help(main_window):
     if root is None:
         return
 
-    button = QPushButton("Help & Guides   F1", main_window)
+    button = QPushButton("Help && Guides   F1", main_window)
     button.setObjectName("epd0HelpButton")
     button.setCursor(Qt.PointingHandCursor)
     button.setMinimumHeight(36)
@@ -247,8 +247,8 @@ def _add_deploy_help_button(main_window, deploy):
 def _improve_section_copy(deploy):
     replacements = {
         "Select the use case and runtime output options.": (
-            "Choose the perception task and optional human/mask outputs. "
-            "Hover controls for guidance."
+            "Choose the perception task, the target objects (e.g. banana, "
+            "apple) and optional mask outputs. Hover controls for guidance."
         ),
         "Select an image topic from ROS 2 or type one manually.": (
             "Choose the RGB stream. RealSense default: "

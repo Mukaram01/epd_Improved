@@ -24,6 +24,8 @@
 #include <vector>
 
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "ort_cpp_lib/ort_name_compat.hpp"
+#include "epd_utils_lib/class_selection.hpp"
 #include "epd_utils_lib/epd_container.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 #include "epd_utils_lib/thread_policy.hpp"
@@ -253,11 +255,8 @@ ModelInputInfo inspectModelInputInfo(
     throw std::runtime_error("Model has no inputs: " + model_path);
   }
 
-  char * input_name = session.GetInputName(0, allocator);
-  std::string resolved_input_name = input_name == nullptr ? std::string("<unknown>") : input_name;
-  if (input_name != nullptr) {
-    allocator.Free(input_name);
-  }
+  const std::string input_name = Ort::compat::inputName(session, 0, allocator);
+  std::string resolved_input_name = input_name.empty() ? std::string("<unknown>") : input_name;
 
   // TensorTypeAndShapeInfo is a borrowed view. Keep its owning TypeInfo alive
   // until all shape queries have completed; a chained temporary leaves the
@@ -704,6 +703,36 @@ void EPDContainer::setUseCaseConfigFile()
       );
     }
     tracker_type = obj["track_type"].asString();
+  }
+
+  // Optional target-object selection for Localization/Tracking. Counting
+  // already consumes class_list as its count filter above.
+  if ((useCaseMode == EPD::LOCALISATION_MODE || useCaseMode == EPD::TRACKING_MODE) &&
+    obj.isMember("class_list") && !obj["class_list"].isNull())
+  {
+    const Json::Value & class_list = obj["class_list"];
+    if (!class_list.isArray()) {
+      throw std::runtime_error(
+        "'class_list' must be an array of class names in use case config file: " +
+        usecase_config_path);
+    }
+    for (Json::ArrayIndex index = 0; index < class_list.size(); ++index) {
+      if (!class_list[index].isString() || class_list[index].asString().empty()) {
+        throw std::runtime_error(
+          "'class_list' entries must be non-empty class names in use case config file: " +
+          usecase_config_path);
+      }
+      selectedClassNames.emplace_back(class_list[index].asString());
+    }
+    const auto unknown = EPD::unknownSelectedClasses(selectedClassNames, classNames);
+    if (!unknown.empty()) {
+      std::string joined;
+      for (const auto & name : unknown) {
+        joined += (joined.empty() ? "" : ", ") + name;
+      }
+      throw std::runtime_error(
+        "'class_list' names not in the label list (" + class_label_path + "): " + joined);
+    }
   }
 
   ifs_1.close();

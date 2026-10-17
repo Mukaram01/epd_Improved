@@ -397,6 +397,11 @@ def inspect_deployment_model(model_path, label_path, usecase_mode, package_root)
 
     if not str(model_path) or not model_path.is_file():
         blockers.append(f"ONNX model file does not exist: {model_path or '(not set)'}")
+        name = model_path.name if str(model_path) else "(not set)"
+        result["summary"] = (
+            f"Model file not found: {name}. Add it with Model Manager "
+            "or choose another with Change model."
+        )
         return result
     if model_path.suffix.lower() != ".onnx":
         blockers.append("EPD deployment requires a .onnx model file.")

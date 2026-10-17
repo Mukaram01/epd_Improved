@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import queue
 import re
 import shutil
@@ -37,7 +36,10 @@ _ITER_RE = re.compile(r"\biter(?:ation)?\s*:\s*(\d+)", re.IGNORECASE)
 _LOSS_RE = re.compile(r"\bloss\s*:\s*([0-9.eE+\-]+)", re.IGNORECASE)
 _LR_RE = re.compile(r"\blr\s*:\s*([0-9.eE+\-]+)", re.IGNORECASE)
 _ETA_RE = re.compile(r"\beta\s*:\s*([^\s]+)", re.IGNORECASE)
-_AP_RE = re.compile(r"Average Precision.*?=\s*([0-9.]+)", re.IGNORECASE)
+# The value follows the closing bracket of the COCO summary, e.g.
+# "Average Precision (AP) @[ IoU=0.50:0.95 | area= all | maxDets=100 ] = 0.372";
+# matching the first "=" would report the IoU threshold instead.
+_AP_RE = re.compile(r"Average Precision.*\]\s*=\s*([0-9.]+)", re.IGNORECASE)
 _ITER_FROM_CHECKPOINT_RE = re.compile(r"model_(\d+)\.pth$")
 
 
@@ -191,7 +193,7 @@ def training_guidance(history, max_iteration=0):
         )
 
     first = sum(losses[: min(5, len(losses))]) / min(5, len(losses))
-    last = sum(losses[-min(5, len(losses)) :]) / min(5, len(losses))
+    last = sum(losses[-min(5, len(losses)):]) / min(5, len(losses))
     iteration = max(
         (item.get("iteration", 0) for item in history),
         default=0,

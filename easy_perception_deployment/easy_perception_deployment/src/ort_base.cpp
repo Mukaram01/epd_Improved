@@ -325,6 +325,11 @@ void OrtBase::OrtBaseImpl::initSession()
   const bool is_parallel_execution = execution_mode == SessionExecutionMode::PARALLEL;
 
   sessionOptions.SetIntraOpNumThreads(intra_op_threads);
+  // Idle intra-op workers busy-wait by default. EPD runs one inference at a time, so
+  // spinning only burns cores between frames; EPD_ORT_INTRA_OP_SPINNING=0 disables it.
+  const char * spinning = std::getenv("EPD_ORT_INTRA_OP_SPINNING");
+  const bool allow_spinning = spinning == nullptr || std::string(spinning) != "0";
+  sessionOptions.AddConfigEntry("session.intra_op.allow_spinning", allow_spinning ? "1" : "0");
   sessionOptions.SetInterOpNumThreads(inter_op_threads);
   sessionOptions.SetExecutionMode(
     is_parallel_execution ? ExecutionMode::ORT_PARALLEL : ExecutionMode::ORT_SEQUENTIAL);
@@ -400,6 +405,7 @@ void OrtBase::OrtBaseImpl::initSession()
             << (is_parallel_execution ? "parallel" : "sequential")
             << ", intra_op_num_threads=" << intra_op_threads
             << ", inter_op_num_threads=" << inter_op_threads
+            << ", intra_op_spinning=" << (allow_spinning ? "on" : "off")
             << std::endl;
 
   sessionOptions.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);

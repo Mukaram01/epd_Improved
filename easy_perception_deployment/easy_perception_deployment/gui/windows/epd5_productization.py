@@ -452,7 +452,8 @@ class EPD5Controller(QObject):
         deploy._path_to_label_list = str(session["path_to_label_list"])
         deploy.visualizeFlag = session.get("visualizeFlag", "robot") == "visualize"
         deploy.useCPU = session.get("useCPU", "CPU") == "CPU"
-        deploy._intra_op_num_threads = int(session.get("intra_op_num_threads", 0))
+        threads = session.get("intra_op_num_threads", 0)
+        deploy._intra_op_num_threads = threads if threads == "auto" else int(threads)
         deploy._image_transport = str(session.get("image_transport", "raw"))
         deploy.publish_detection_segmentation = bool(
             session.get("publish_detection_segmentation", True)

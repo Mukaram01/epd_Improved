@@ -6,9 +6,10 @@
     "useCPU": "CPU",
     "execution_backend": "auto",
     "execution_backend_gpu_index": 0,
-    "intra_op_num_threads": 2,
+    "intra_op_num_threads": "auto",
     "image_transport": "raw",
     "publish_detection_segmentation": true,
     "confidence_threshold": 0.5,
-    "max_detections": 100
+    "max_detections": 100,
+    "intra_op_allow_spinning": false
 }

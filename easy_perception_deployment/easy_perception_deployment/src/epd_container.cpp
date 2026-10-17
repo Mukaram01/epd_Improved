@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <thread>
 #include <jsoncpp/json/json.h>
 
 #include <algorithm>
@@ -25,6 +26,7 @@
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
 #include "epd_utils_lib/epd_container.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
+#include "epd_utils_lib/thread_policy.hpp"
 
 namespace
 {
@@ -481,7 +483,14 @@ void EPDContainer::setModelConfigFile()
     onlyVisualize = false;
   }
 
-  if (obj.isMember("intra_op_num_threads")) {
+  if (obj.isMember("intra_op_num_threads") && obj["intra_op_num_threads"].isString()) {
+    if (obj["intra_op_num_threads"].asString() != "auto") {
+      throw std::runtime_error(
+              "Config 'intra_op_num_threads' must be an integer or \"auto\" in: " +
+              PATH_TO_SESSION_CONFIG);
+    }
+    intra_op_num_threads = EPD::autoIntraOpThreads(std::thread::hardware_concurrency());
+  } else if (obj.isMember("intra_op_num_threads")) {
     if (!obj["intra_op_num_threads"].isInt()) {
       throw std::runtime_error(
               "Config 'intra_op_num_threads' must be an integer in: " +
@@ -495,6 +504,15 @@ void EPDContainer::setModelConfigFile()
               "Config 'intra_op_num_threads' must be >= 0 in: " +
               PATH_TO_SESSION_CONFIG);
     }
+  }
+
+  if (obj.isMember("intra_op_allow_spinning")) {
+    if (!obj["intra_op_allow_spinning"].isBool()) {
+      throw std::runtime_error(
+              "Config 'intra_op_allow_spinning' must be a boolean in: " + PATH_TO_SESSION_CONFIG);
+    }
+    // Read by OrtBase when the session is created; an explicit environment value wins.
+    setenv("EPD_ORT_INTRA_OP_SPINNING", obj["intra_op_allow_spinning"].asBool() ? "1" : "0", 0);
   }
 
   if (obj.isMember("inter_op_num_threads")) {

@@ -33,12 +33,13 @@ except ImportError:
     _RCLPY_AVAILABLE = False
 from PySide6.QtCore import QObject, QSize, Qt, QThread, QTimer, QElapsedTimer, Signal, Slot
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
+from PySide6.QtWidgets import (QComboBox, QDialog, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget,
                                QDoubleSpinBox, QSpinBox)
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
+from windows.target_objects import TargetObjectsDialog, target_objects_summary
 from windows.job_controller import JobController, JobState
 
 _SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2] / 'scripts')
@@ -497,6 +498,10 @@ class DeployWindow(QWidget):
                 "Assigning default Use Case MODE : " +
                 "[CLASSIFICATION] ")
             self.usecase_mode = 0
+        # Localization/Tracking target objects ("class_list"); empty = all classes.
+        self._target_classes = (
+            list(usecase_config.get('class_list') or [])
+            if self.usecase_mode in (3, 4) else [])
 
         image_topic_data = self._load_json_config(
             self._path_to_input_image_json_file,
@@ -585,6 +590,9 @@ class DeployWindow(QWidget):
         else:
             self.list_button.setStyleSheet(
                 'background-color: rgba(200,10,0,255);')
+
+        self.target_objects_button = QPushButton(self)
+        self._update_target_objects_button()
 
         # UseCase Config Dropdown to select usecase mode
         self.usecase_config_button = QComboBox(self)
@@ -715,6 +723,7 @@ class DeployWindow(QWidget):
         self.model_button.clicked.connect(self.setModel)
         self.list_button.clicked.connect(self.setLabelList)
         self.usecase_config_button.activated.connect(self.setUseCase)
+        self.target_objects_button.clicked.connect(self.chooseTargetObjects)
         self.run_button.clicked.connect(self.deployPackage)
 #         self.register_topic_button.clicked.connect(self.setImageInput)
         self.transport_combo.activated.connect(self.setImageTransport)
@@ -1360,7 +1369,8 @@ class DeployWindow(QWidget):
             self.counting_window.show()
             self._commit_selected_mode(1)
         elif selected_usecase == 'Localization':
-            dict = {"schema_version": SCHEMA_VERSION, "usecase_mode": 3}
+            dict = self._with_target_classes(
+                {"schema_version": SCHEMA_VERSION, "usecase_mode": 3})
             try:
                 dict = validate_usecase_config(dict, require_mode_specific=True)
             except ConfigSchemaError as exc:
@@ -1370,7 +1380,8 @@ class DeployWindow(QWidget):
             self._write_json_atomic(self._path_to_usecase_config, json_object)
             self._commit_selected_mode(3)
         elif selected_usecase == 'Tracking':
-            self.tracking_window = TrackingWindow(self._path_to_usecase_config)
+            self.tracking_window = TrackingWindow(
+                self._path_to_usecase_config, target_classes=self._target_classes)
             self.tracking_window.show()
             self._commit_selected_mode(4)
         elif selected_usecase == 'Color-Matching':
@@ -1426,6 +1437,93 @@ class DeployWindow(QWidget):
         else:
             self.deploy_logger.warning('Invalid Use Case')
             sys.exit()
+
+    def _label_names(self):
+        '''Class names from the active label list, or [] if it cannot be read.'''
+        path = self.resolveFilePath(self._path_to_label_list)
+        try:
+            with open(path, encoding='utf-8') as label_file:
+                return [line.strip() for line in label_file if line.strip()]
+        except (OSError, UnicodeDecodeError):
+            return []
+
+    def _update_target_objects_button(self):
+        # The row is labelled "Objects"; the button shows the selection.
+        self.target_objects_button.setText(
+            target_objects_summary(self._target_classes) + '  ▾')
+        self.target_objects_button.setToolTip(
+            'Pick targets for Localization and Tracking, e.g. banana and apple. '
+            'Unselected objects are still detected and shown in readiness '
+            'diagnostics, but are never published as pick targets.')
+
+    def _with_target_classes(self, config):
+        '''Add (or drop) class_list on a Localization/Tracking config.'''
+        if config.get('usecase_mode') in (3, 4):
+            if self._target_classes:
+                config['class_list'] = list(self._target_classes)
+            else:
+                config.pop('class_list', None)
+        return config
+
+    def chooseTargetObjects(self):
+        '''Open the target-object picker for the active label list.'''
+        labels = self._label_names()
+        if not labels:
+            self._show_blocking_config_error(
+                'Cannot list objects: the label list could not be read at '
+                f'{self.resolveFilePath(self._path_to_label_list)}. '
+                'Choose a label list first (Change labels).')
+            return
+        dialog = TargetObjectsDialog(labels, self._target_classes, self)
+        if dialog.exec() == QDialog.Accepted:
+            self.setTargetClasses(dialog.selected())
+
+    def setTargetClasses(self, names):
+        '''Set target objects and persist them if Localization/Tracking is active.'''
+        labels = self._label_names()
+        cleaned = []
+        for name in names:
+            name = str(name).strip()
+            if name and name not in cleaned:
+                cleaned.append(name)
+        unknown = [name for name in cleaned if labels and name not in labels]
+        if unknown:
+            self._show_blocking_config_error(
+                'Not in the active label list: ' + ', '.join(unknown) + '.')
+            return False
+        previous = list(self._target_classes)
+        self._target_classes = cleaned
+        if self.usecase_mode in (3, 4) and not self._rewrite_usecase_targets():
+            self._target_classes = previous
+            return False
+        self._update_target_objects_button()
+        self.deploy_logger.info(
+            'Target objects: ' + target_objects_summary(self._target_classes, limit=10))
+        return True
+
+    def _rewrite_usecase_targets(self):
+        try:
+            with open(self._path_to_usecase_config, encoding='utf-8') as config_file:
+                config = json.load(config_file)
+            config = validate_usecase_config(self._with_target_classes(config))
+        except (OSError, ValueError, ConfigSchemaError) as exc:
+            self._show_blocking_config_error(
+                f'Could not save target objects to usecase_config.json: {exc}')
+            return False
+        self._write_json_atomic(
+            self._path_to_usecase_config, json.dumps(config, indent=4))
+        return True
+
+    def _prune_target_classes(self):
+        '''Drop targets missing from a newly chosen label list (runtime rejects them).'''
+        labels = self._label_names()
+        kept = [name for name in self._target_classes if name in labels]
+        if kept != self._target_classes:
+            removed = [name for name in self._target_classes if name not in labels]
+            self.deploy_logger.warning(
+                'Target objects not in the new label list were removed: ' +
+                ', '.join(removed))
+            self.setTargetClasses(kept)
 
     def setImageTransport(self, index):
         '''A function triggered by the Image Transport dropdown.'''
@@ -1545,6 +1643,7 @@ class DeployWindow(QWidget):
 
         self.list_button.setStyleSheet('background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
+        self._prune_target_classes()
         self.validateDeployInputs()
 
     def _validate_label_list_file(self, filepath):

@@ -45,7 +45,16 @@ def install_ros_executor_stability():
     if _PATCHED:
         return
 
-    from rclpy.executors import SingleThreadedExecutor
+    try:
+        from rclpy.executors import SingleThreadedExecutor
+    except ImportError:
+        # ROS 2 not sourced: no ROS worker can start, and the unpatched
+        # workers already report "ROS unavailable". The GUI must still open
+        # so the user can configure and is told how to fix the environment.
+        logging.getLogger('deploy').warning(
+            'rclpy not found; ROS features are disabled. '
+            'Run: source /opt/ros/humble/setup.bash')
+        return
 
     from windows import Deploy as deploy_module
     from windows import epd2_productization as preview_module

@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       ROS_DISTRO: humble
-    defaults:
-      run:
-        working-directory: easy_perception_deployment
+    # Build from the repository root: easy_perception_deployment depends on
+    # epd_onnxruntime_vendor, which lives at the root next to it. Building only
+    # the easy_perception_deployment/ folder hides the vendor from colcon.
     steps:
       - uses: actions/checkout@v4
 

@@ -297,7 +297,7 @@ class EPD5Controller(QObject):
         self.refresh_profiles()
 
     def _install_button(self):
-        button = QPushButton("Profiles & Replay", self.deploy)
+        button = QPushButton("Profiles && Replay", self.deploy)
         button.setToolTip(
             "Save or restore reproducible perception profiles and replay recorded inputs."
         )
@@ -462,6 +462,11 @@ class EPD5Controller(QObject):
         deploy._max_detections = int(session.get("max_detections", 100))
         deploy._input_image_topic = str(input_topic["input_image_topic"])
         deploy.usecase_mode = int(usecase["usecase_mode"])
+        if hasattr(deploy, "_update_target_objects_button"):
+            deploy._target_classes = (
+                list(usecase.get("class_list") or [])
+                if deploy.usecase_mode in (3, 4) else [])
+            deploy._update_target_objects_button()
 
         deploy.topic_button.blockSignals(True)
         deploy.topic_button.setEditText(deploy._input_image_topic)

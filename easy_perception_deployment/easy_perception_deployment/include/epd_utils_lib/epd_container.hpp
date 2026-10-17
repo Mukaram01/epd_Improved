@@ -105,6 +105,10 @@ public:
   * for Counting use-case filter.
   */
   std::vector<std::string> countClassNames;
+  /*! \brief Target classes for Localization/Tracking ("class_list"). Empty
+  * means every class may be published. See class_selection.hpp.
+  */
+  std::vector<std::string> selectedClassNames;
   /*! \brief A string name for user-selected OpenCV tracker, used
   * for Tracking use-case filter.
   */

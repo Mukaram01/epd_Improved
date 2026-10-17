@@ -77,6 +77,7 @@
 #include "epd_utils_lib/inference_scheduler.hpp"
 #include "epd_utils_lib/geometry_quality.hpp"
 #include "epd_utils_lib/hybrid_rgbd.hpp"
+#include "epd_utils_lib/class_selection.hpp"
 #include "epd_utils_lib/perception_readiness.hpp"
 #include "epd_utils_lib/time_utils.hpp"
 #include "epd_utils_lib/temporal_tracker.hpp"
@@ -1645,8 +1646,10 @@ void EasyPerceptionDeployment::process_localize_work(
 
   // Apply max_detections limit.
   std::vector<EPD::ReadinessRecord> readiness;
+  std::vector<std::string> selected_classes;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    selected_classes = ortAgent_.selectedClassNames;
     const int max_det = ortAgent_.max_detections;
     if (max_det > 0 && static_cast<int>(result.size()) > max_det) {
       if (hybrid_refinement_enabled_) {
@@ -1672,14 +1675,18 @@ void EasyPerceptionDeployment::process_localize_work(
       camera_info->k.at(0), camera_info->k.at(4), camera_info->k.at(2), camera_info->k.at(5),
       geometry_thresholds_);
     report_geometry(object, depth_img);
+    const bool selected = EPD::isClassSelected(selected_classes, object.name);
     if (hybrid_refinement_enabled_) {
       readiness.push_back(EPD::makeReadinessRecord(
-        index, object, quality == EPD::GeometryQuality::VALID));
+        index, object, quality == EPD::GeometryQuality::VALID && selected,
+        selected ? "" : EPD::kNotSelectedNote));
     }
     if (quality == EPD::GeometryQuality::VALID) {
       geometry_valid_total_.fetch_add(1);
       latest_valid_geometry_stamp_ns_.store(rclcpp::Time(observation->sensor_stamp()).nanoseconds());
-      valid_objects.push_back(std::move(object));
+      if (selected) {
+        valid_objects.push_back(std::move(object));
+      }
       continue;
     }
     if (quality == EPD::GeometryQuality::DEGRADED) {
@@ -1894,6 +1901,11 @@ void EasyPerceptionDeployment::process_tracking_work(
       result.object_ids.resize(max_det);
     }
   }
+  std::vector<std::string> selected_classes;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    selected_classes = ortAgent_.selectedClassNames;
+  }
 
   detections_total_.fetch_add(result.size());
   std::vector<EPD::TrackingDetection> tracking_detections;
@@ -1936,9 +1948,12 @@ void EasyPerceptionDeployment::process_tracking_work(
     for (size_t i = 0; i < result.size(); ++i) {
       const uint64_t track_id = i < track_assignments.size() ? track_assignments[i].track_id : 0;
       const bool valid = result.objects[i].quality == EPD::GeometryQuality::VALID;
+      // Unselected objects keep their track (stable identity) but are never published.
+      const bool selected = EPD::isClassSelected(selected_classes, result.objects[i].name);
       auto record = EPD::makeReadinessRecord(
-        i, result.objects[i], valid && track_id != 0,
-        valid && track_id == 0 ? "no_track_assignment" : "");
+        i, result.objects[i], valid && track_id != 0 && selected,
+        !selected ? EPD::kNotSelectedNote :
+        (valid && track_id == 0 ? "no_track_assignment" : ""));
       record.track_id = track_id;
       readiness.push_back(std::move(record));
     }
@@ -1949,7 +1964,8 @@ void EasyPerceptionDeployment::process_tracking_work(
   valid_tracking_ids.reserve(result.size());
   for (size_t i = 0; i < result.size(); ++i) {
     if (result.objects[i].quality != EPD::GeometryQuality::VALID ||
-      i >= track_assignments.size() || track_assignments[i].track_id == 0)
+      i >= track_assignments.size() || track_assignments[i].track_id == 0 ||
+      !EPD::isClassSelected(selected_classes, result.objects[i].name))
     {
       continue;
     }

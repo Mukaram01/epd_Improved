@@ -670,9 +670,17 @@ class _DeployUiController(QObject):
         self.window.run_button.style().polish(self.window.run_button)
 
     def eventFilter(self, obj, event):
-        if obj is self.window and event.type() in (QEvent.Hide, QEvent.Close):
-            if not self.window.isMaximized():
-                self.settings.setValue(self.SETTINGS_KEY, self.window.size())
+        # The controller and its window reference each other. When Python's
+        # cyclic GC tears that cycle down it clears this wrapper's __dict__
+        # before Qt deletes the window, and Qt still delivers the window's
+        # final events here. Read state defensively instead of raising.
+        window = self.__dict__.get('window')
+        settings = self.__dict__.get('settings')
+        if window is None or settings is None:
+            return False
+        if obj is window and event.type() in (QEvent.Hide, QEvent.Close):
+            if not window.isMaximized():
+                settings.setValue(self.SETTINGS_KEY, window.size())
         return super().eventFilter(obj, event)
 
 

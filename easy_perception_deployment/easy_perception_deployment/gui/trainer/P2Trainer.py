@@ -205,26 +205,29 @@ class P2Trainer:
             outfile.write(json_object)
         file.close()
 
+    @staticmethod
+    def _command_succeeds(cmd):
+        # A missing executable means the tool is unavailable, not a crash.
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        except OSError:
+            return False
+        process.communicate()
+        return process.returncode == 0
+
     def checkGPUAvailability(self):
         # Checks whether there is available GPU device.
-        inspect_gpu_process = subprocess.Popen(
-            ["nvidia-smi"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        inspect_gpu_process.communicate()
-        if inspect_gpu_process.returncode != 0:
+        if not self._command_succeeds(["nvidia-smi"]):
             self.p2_train_logger.warning(
                 "[ nvidia-smi ] command not found, failed, or no GPU "
                 "hardware detected. Please install nvidia-driver.")
             self.isGPUAvailableFlag = False
             return
         # Checks if CUDA has been installed.
-        inspect_cuda_process = subprocess.Popen(
-            ["nvcc", "--version"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        inspect_cuda_process.communicate()
-        if inspect_cuda_process.returncode != 0:
+        if not self._command_succeeds(["nvcc", "--version"]):
             self.p2_train_logger.warning(
                 "[ nvcc ] command not found or failed. " +
                 "Please install CUDA toolkit.")

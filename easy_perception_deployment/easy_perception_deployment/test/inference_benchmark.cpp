@@ -3,13 +3,15 @@
 // so configurations can be compared for both speed and identical/equivalent outputs.
 #include <sys/resource.h>
 #include <jsoncpp/json/json.h>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
+
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 #include "ort_cpp_lib/p3_ort_base.hpp"
 
 namespace
@@ -40,12 +42,15 @@ double peak_rss_mib()
 int main(int argc, char ** argv)
 {
   if (argc < 11) {
-    std::cerr << "usage: model labels output.json threads newW newH paddedW paddedH repeats image...\n";
+    std::cerr <<
+      "usage: model labels output.json threads newW newH paddedW paddedH repeats image...\n";
     return 2;
   }
   std::vector<std::string> names;
   std::ifstream labels(argv[2]);
-  for (std::string name; std::getline(labels, name); ) {names.push_back(name);}
+  for (std::string name; std::getline(labels, name); ) {
+    names.push_back(name);
+  }
   const int threads = std::stoi(argv[4]);
   const int newW = std::stoi(argv[5]), newH = std::stoi(argv[6]);
   const int paddedW = std::stoi(argv[7]), paddedH = std::stoi(argv[8]);
@@ -59,7 +64,9 @@ int main(int argc, char ** argv)
   Json::Value report;
   report["threads"] = threads;
   report["input"] = Json::Value(Json::arrayValue);
-  for (int v : {newW, newH, paddedW, paddedH}) {report["input"].append(v);}
+  for (int v : {newW, newH, paddedW, paddedH}) {
+    report["input"].append(v);
+  }
   report["session_load_ms"] = std::chrono::duration<double, std::milli>(
     std::chrono::steady_clock::now() - load_start).count();
   report["images"] = Json::Value(Json::arrayValue);
@@ -93,9 +100,13 @@ int main(int argc, char ** argv)
           Json::Value d;
           d["class"] = out.classIndices[i] < names.size() ? names[out.classIndices[i]] : "?";
           d["score"] = out.scores[i];
-          for (int v : b) {d["bbox"].append(v);}
+          for (int v : b) {
+            d["bbox"].append(v);
+          }
           cv::Mat resized;
-          cv::resize(out.masks[i], resized, cv::Size(std::max(1, b[2] - b[0]), std::max(1, b[3] - b[1])));
+          cv::resize(
+            out.masks[i], resized,
+            cv::Size(std::max(1, b[2] - b[0]), std::max(1, b[3] - b[1])));
           d["mask_pixels"] = cv::countNonZero(resized > 0.5F);
           row["detections"].append(d);
         }
@@ -103,7 +114,8 @@ int main(int argc, char ** argv)
     }
     report["images"].append(row);
   }
-  const double wall = std::chrono::duration<double>(std::chrono::steady_clock::now() - wall0).count();
+  const double wall =
+    std::chrono::duration<double>(std::chrono::steady_clock::now() - wall0).count();
   report["measured_inferences"] = measured;
   report["cpu_cores_mean"] = (cpu_seconds() - cpu0) / wall;
   report["peak_rss_mib"] = peak_rss_mib();

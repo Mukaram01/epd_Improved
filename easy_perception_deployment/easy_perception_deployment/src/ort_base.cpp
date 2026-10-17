@@ -89,7 +89,7 @@ size_t resolvedGpuIndex(const boost::optional<size_t> & legacy_index)
   const char * env_index = std::getenv("EPD_GPU_INDEX");
   if (env_index != nullptr && env_index[0] != '\0') {
     try {
-      const long long parsed = std::stoll(env_index);
+      const long long parsed = std::stoll(env_index);  // NOLINT(runtime/int)
       if (parsed < 0) {
         throw std::runtime_error("negative GPU index");
       }
@@ -294,10 +294,10 @@ bool OrtBase::hasSsdDetectionOutputs() const
 bool OrtBase::OrtBaseImpl::hasSsdDetectionOutputs() const
 {
   return m_outputNodeNames.size() == 4 &&
-    std::string(m_outputNodeNames[0]) == "detection_boxes" &&
-    std::string(m_outputNodeNames[1]) == "detection_classes" &&
-    std::string(m_outputNodeNames[2]) == "detection_scores" &&
-    std::string(m_outputNodeNames[3]) == "num_detections";
+         std::string(m_outputNodeNames[0]) == "detection_boxes" &&
+         std::string(m_outputNodeNames[1]) == "detection_classes" &&
+         std::string(m_outputNodeNames[2]) == "detection_scores" &&
+         std::string(m_outputNodeNames[3]) == "num_detections";
 }
 
 bool OrtBase::OrtBaseImpl::isInputUint8(int inputIdx) const
@@ -529,9 +529,9 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
 
   if (m_outputTensors.size() != m_numOutputs) {
     throw std::runtime_error(
-      "Output tensor count mismatch: expected " +
-      std::to_string(m_numOutputs) + ", got " +
-      std::to_string(m_outputTensors.size()));
+            "Output tensor count mismatch: expected " +
+            std::to_string(m_numOutputs) + ", got " +
+            std::to_string(m_outputTensors.size()));
   }
 
   std::vector<DataOutputType> outputData;

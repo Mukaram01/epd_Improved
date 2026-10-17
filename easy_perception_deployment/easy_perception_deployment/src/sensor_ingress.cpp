@@ -7,6 +7,7 @@
 #include <string>
 
 #include "diagnostic_msgs/msg/diagnostic_array.hpp"
+#include "epd_utils_lib/log_format.hpp"
 #include "diagnostic_msgs/msg/diagnostic_status.hpp"
 #include "diagnostic_msgs/msg/key_value.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -128,9 +129,9 @@ private:
 
     RCLCPP_DEBUG(
       get_logger(), "Ingress counts: RGB=%llu depth=%llu info=%llu",
-      static_cast<unsigned long long>(rgb_count_),
-      static_cast<unsigned long long>(depth_count_),
-      static_cast<unsigned long long>(info_count_));
+      static_cast<EPD::LogULongLong>(rgb_count_),
+      static_cast<EPD::LogULongLong>(depth_count_),
+      static_cast<EPD::LogULongLong>(info_count_));
   }
 
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr rgb_pub_;

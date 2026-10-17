@@ -16,14 +16,14 @@
 #ifndef ORT_CPP_LIB__P3_ORT_BASE_HPP_
 #define ORT_CPP_LIB__P3_ORT_BASE_HPP_
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/tracking.hpp>
-#include <opencv2/core/ocl.hpp>
 #include <optional>
 #include <string>
 #include <mutex>
 #include <vector>
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/tracking.hpp>
+#include <opencv2/core/ocl.hpp>
 #include "ort_cpp_lib/ort_base.hpp"
 #include "epd_utils_lib/message_utils.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"

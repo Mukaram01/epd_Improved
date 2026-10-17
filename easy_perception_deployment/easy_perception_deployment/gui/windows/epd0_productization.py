@@ -5,11 +5,10 @@ from __future__ import annotations
 import time
 from types import MethodType
 
-from PySide6.QtCore import QThread, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QFrame, QLabel, QPushButton
 
-from windows.Deploy import ImageTopicsWorker
 from windows.help_window import HelpWindow
 
 
@@ -178,36 +177,12 @@ def _replace_topic_refresh(w):
 
         self.refresh_topics_button.setEnabled(False)
         self.validation_label.setText("Checking ROS 2 image topics…")
-        self._topics_worker = ImageTopicsWorker(
-            timeout_sec=_IMAGE_TOPIC_TIMEOUT_SEC
+        self._start_topics_worker(
+            timeout_sec=_IMAGE_TOPIC_TIMEOUT_SEC,
+            current_topic=current,
+            on_success=self._epd0_topic_success,
+            on_error=self._epd0_topic_error,
         )
-        self._topics_worker_thread = QThread(self)
-        self._topics_worker.moveToThread(self._topics_worker_thread)
-
-        self._topics_worker_thread.started.connect(self._topics_worker.run)
-        self._topics_worker.signals.success.connect(
-            lambda topics, selected=current: self._epd0_topic_success(
-                topics,
-                selected,
-            )
-        )
-        self._topics_worker.signals.error.connect(self._epd0_topic_error)
-        self._topics_worker.signals.finished.connect(
-            self._on_topics_refresh_finished
-        )
-        self._topics_worker.signals.finished.connect(
-            self._topics_worker_thread.quit
-        )
-        self._topics_worker_thread.finished.connect(
-            self._topics_worker.deleteLater
-        )
-        self._topics_worker_thread.finished.connect(
-            self._topics_worker_thread.deleteLater
-        )
-        self._topics_worker_thread.finished.connect(
-            self._clear_topics_worker_refs
-        )
-        self._topics_worker_thread.start()
 
     def on_success(self, topics, current):
         self._image_topics_cache = topics

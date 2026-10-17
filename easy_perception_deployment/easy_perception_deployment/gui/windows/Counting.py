@@ -51,15 +51,18 @@ class CountingWindow(QWidget):
         self._select_list = []
         self._path_to_usecase_config = _path_to_usecase_config
 
-        gui_base_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), '..'))
+        # Relative label-list paths are package-root relative, matching the
+        # session_config.json convention used by DeployWindow (for example
+        # ./data/label_list/coco_classes.txt).
+        package_root = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', '..'))
         expanded_path = os.path.expandvars(
             os.path.expanduser(path_to_label_list))
         if os.path.isabs(expanded_path):
             path_to_label_list = os.path.abspath(expanded_path)
         else:
             path_to_label_list = os.path.abspath(
-                os.path.join(gui_base_path, expanded_path))
+                os.path.join(package_root, expanded_path))
 
         # Check if label-list file exits.
         if not os.path.exists(path_to_label_list):

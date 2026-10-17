@@ -63,6 +63,19 @@ def _install_stub_modules(monkeypatch):
     monkeypatch.setitem(sys.modules, "trainer.P3Trainer", p3_trainer)
 
 
+def _forget_modules(monkeypatch, names):
+    # Re-import from scratch for this test only. delitem/setattr (rather than
+    # sys.modules.pop) restore the real modules, and the parent package
+    # attribute that "windows.Deploy"-style lookups resolve through, so later
+    # tests do not see the stub-backed re-import.
+    for name in names:
+        parent_name, _, leaf = name.rpartition('.')
+        parent = sys.modules.get(parent_name) if parent_name else None
+        if parent is not None and hasattr(parent, leaf):
+            monkeypatch.setattr(parent, leaf, getattr(parent, leaf))
+        monkeypatch.delitem(sys.modules, name, raising=False)
+
+
 def test_deploy_import_uses_local_cli_despite_shadowing_scripts(monkeypatch):
     gui_dir = Path(__file__).resolve().parent
     package_root = gui_dir.parent
@@ -79,8 +92,7 @@ def test_deploy_import_uses_local_cli_despite_shadowing_scripts(monkeypatch):
     shadow = types.ModuleType("scripts")
     shadow.__path__ = [str(gui_dir / "scripts")]
     monkeypatch.setitem(sys.modules, "scripts", shadow)
-    for name in ("windows.Deploy", "cli", "cli.config_schema"):
-        sys.modules.pop(name, None)
+    _forget_modules(monkeypatch, ("windows.Deploy", "cli", "cli.config_schema"))
 
     deploy_module = importlib.import_module("windows.Deploy")
     schema_module = importlib.import_module("cli.config_schema")
@@ -102,8 +114,7 @@ def test_train_import_uses_local_cli_despite_shadowing_scripts(monkeypatch):
     shadow = types.ModuleType("scripts")
     shadow.__path__ = [str(gui_dir / "scripts")]
     monkeypatch.setitem(sys.modules, "scripts", shadow)
-    for name in ("windows.Train", "cli", "cli.config_schema"):
-        sys.modules.pop(name, None)
+    _forget_modules(monkeypatch, ("windows.Train", "cli", "cli.config_schema"))
 
     train_module = importlib.import_module("windows.Train")
     schema_module = importlib.import_module("cli.config_schema")

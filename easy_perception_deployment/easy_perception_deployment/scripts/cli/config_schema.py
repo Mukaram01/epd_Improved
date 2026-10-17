@@ -1,4 +1,18 @@
 #!/usr/bin/env python3
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 
 """Shared EPD config schema, validation and migration helpers."""
 
@@ -142,6 +156,20 @@ def normalize_class_list(class_list):
     return normalized
 
 
+def normalize_target_class_list(class_list):
+    """Localization/Tracking target objects; an empty list means every class."""
+    if not isinstance(class_list, list):
+        raise _error("class_list", "must be a list of class names")
+    normalized = []
+    for class_name in class_list:
+        class_name_str = str(class_name).strip()
+        if not class_name_str:
+            raise _error("class_list", "class names must not be empty")
+        if class_name_str not in normalized:
+            normalized.append(class_name_str)
+    return normalized
+
+
 def validate_existing_file_path(filepath, field_name):
     candidate_path = str(filepath or "").strip()
     if not candidate_path:
@@ -259,6 +287,9 @@ def validate_usecase_config(config, require_mode_specific=False):
     elif mode == 4:
         if require_mode_specific or "track_type" in normalized:
             normalized["track_type"] = normalize_track_type(normalized.get("track_type", ""))
+
+    if mode in (3, 4) and "class_list" in normalized:
+        normalized["class_list"] = normalize_target_class_list(normalized["class_list"])
 
     return normalized
 

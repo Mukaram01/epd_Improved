@@ -1,3 +1,17 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import hashlib
 import json
 from pathlib import Path
@@ -302,3 +316,18 @@ def test_unknown_custom_model_requires_runtime_inspector(monkeypatch, tmp_path):
 
     assert result["status"] == "blocked"
     assert any("could not be inspected" in item for item in result["blockers"])
+
+
+def test_missing_model_summary_names_file_and_next_step(tmp_path):
+    label_path = _write_labels(tmp_path)
+
+    result = model_manager.inspect_deployment_model(
+        tmp_path / "MaskRCNN-10.onnx",
+        label_path,
+        usecase_mode=3,
+        package_root=tmp_path,
+    )
+
+    assert result["status"] == "blocked"
+    assert "MaskRCNN-10.onnx" in result["summary"]
+    assert "Model Manager" in result["summary"]

@@ -972,3 +972,100 @@ def test_conform_dataset_overwrite_missing_directory_continues(
     assert len(run_calls) == 2
     for call_args, _ in run_calls:
         assert call_args[0][0] == os.sys.executable
+
+
+# ---------------------------------------------------------------------------
+# Target objects (class_list) for Localization / Tracking
+# ---------------------------------------------------------------------------
+
+def _usecase_file():
+    with open('../config/usecase_config.json') as f:
+        return json.load(f)
+
+
+def test_target_objects_saved_and_reopened_for_localization(qtbot):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+
+    assert widget.target_objects_button.text().startswith('All classes')
+    assert widget.setTargetClasses(['banana', 'apple', 'banana']) is True
+    assert _usecase_file()['class_list'] == ['banana', 'apple']
+    assert widget.target_objects_button.text().startswith('banana, apple')
+
+    reopened = DeployWindow(True)
+    qtbot.addWidget(reopened)
+    assert reopened.usecase_mode == 3
+    assert reopened._target_classes == ['banana', 'apple']
+
+    # Clearing the selection publishes every class again.
+    assert reopened.setTargetClasses([]) is True
+    assert 'class_list' not in _usecase_file()
+
+
+def test_target_objects_survive_mode_switches(qtbot):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    # Chosen before a 3D mode is active: kept in memory, not written yet.
+    assert widget.setTargetClasses(['banana', 'apple']) is True
+    assert 'class_list' not in _usecase_file()
+
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+    assert _usecase_file()['class_list'] == ['banana', 'apple']
+
+    widget.setUseCase(widget.usecase_list.index('Classification'))
+    assert 'class_list' not in _usecase_file()
+
+    widget.setUseCase(widget.usecase_list.index('Tracking'))
+    qtbot.addWidget(widget.tracking_window)
+    widget.tracking_window.writeToUseCaseConfig()
+    data = _usecase_file()
+    assert data['usecase_mode'] == 4
+    assert data['class_list'] == ['banana', 'apple']
+
+
+def test_unknown_target_object_is_rejected_with_message(qtbot, message_boxes):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+
+    assert widget.setTargetClasses(['bannana']) is False
+    assert widget._target_classes == []
+    assert 'class_list' not in _usecase_file()
+
+
+def test_label_list_change_prunes_missing_targets(qtbot, monkeypatch, tmp_path):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+    assert widget.setTargetClasses(['banana', 'apple']) is True
+
+    fruit = tmp_path / 'fruit.txt'
+    fruit.write_text('banana\npear\n', encoding='utf-8')
+    monkeypatch.setattr(
+        'windows.Deploy.QFileDialog.getOpenFileName',
+        lambda *args, **kwargs: (str(fruit), 'Text'))
+    widget.debug = False
+    widget.setLabelList()
+
+    assert widget._target_classes == ['banana']
+    assert _usecase_file()['class_list'] == ['banana']
+
+
+def test_gui_starts_without_ros(monkeypatch):
+    # A beginner launching EPD without sourcing ROS 2 must get the window,
+    # not an ImportError from the executor patch.
+    import builtins
+    from windows import acceptance_stability
+
+    real_import = builtins.__import__
+
+    def no_rclpy(name, *args, **kwargs):
+        if name == 'rclpy' or name.startswith('rclpy.'):
+            raise ImportError('No module named rclpy')
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, '__import__', no_rclpy)
+    monkeypatch.setattr(acceptance_stability, '_PATCHED', False)
+    acceptance_stability.install_ros_executor_stability()
+    assert acceptance_stability._PATCHED is False

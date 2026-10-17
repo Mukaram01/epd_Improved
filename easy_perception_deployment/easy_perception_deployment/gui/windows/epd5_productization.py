@@ -1,3 +1,17 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """EPD-5 productization: reusable perception profiles and replay workflows."""
 
 from __future__ import annotations
@@ -297,7 +311,7 @@ class EPD5Controller(QObject):
         self.refresh_profiles()
 
     def _install_button(self):
-        button = QPushButton("Profiles & Replay", self.deploy)
+        button = QPushButton("Profiles && Replay", self.deploy)
         button.setToolTip(
             "Save or restore reproducible perception profiles and replay recorded inputs."
         )
@@ -462,6 +476,11 @@ class EPD5Controller(QObject):
         deploy._max_detections = int(session.get("max_detections", 100))
         deploy._input_image_topic = str(input_topic["input_image_topic"])
         deploy.usecase_mode = int(usecase["usecase_mode"])
+        if hasattr(deploy, "_update_target_objects_button"):
+            deploy._target_classes = (
+                list(usecase.get("class_list") or [])
+                if deploy.usecase_mode in (3, 4) else [])
+            deploy._update_target_objects_button()
 
         deploy.topic_button.blockSignals(True)
         deploy.topic_button.setEditText(deploy._input_image_topic)

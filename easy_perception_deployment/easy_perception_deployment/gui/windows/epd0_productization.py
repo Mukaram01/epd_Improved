@@ -1,3 +1,17 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """EPD-0 productization: camera truth, clearer controls and in-app help."""
 
 from __future__ import annotations
@@ -39,7 +53,7 @@ def _install_launcher_help(main_window):
     if root is None:
         return
 
-    button = QPushButton("Help & Guides   F1", main_window)
+    button = QPushButton("Help && Guides   F1", main_window)
     button.setObjectName("epd0HelpButton")
     button.setCursor(Qt.PointingHandCursor)
     button.setMinimumHeight(36)
@@ -247,8 +261,8 @@ def _add_deploy_help_button(main_window, deploy):
 def _improve_section_copy(deploy):
     replacements = {
         "Select the use case and runtime output options.": (
-            "Choose the perception task and optional human/mask outputs. "
-            "Hover controls for guidance."
+            "Choose the perception task, the target objects (e.g. banana, "
+            "apple) and optional mask outputs. Hover controls for guidance."
         ),
         "Select an image topic from ROS 2 or type one manually.": (
             "Choose the RGB stream. RealSense default: "

@@ -4,7 +4,13 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-// http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <cstdlib>
 #include <iostream>
@@ -13,6 +19,7 @@
 #include <vector>
 
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "ort_cpp_lib/ort_name_compat.hpp"
 
 namespace
 {
@@ -68,13 +75,10 @@ std::string tensorInfoJson(
   const size_t index,
   const bool input)
 {
-  char * raw_name = input ?
-    session.GetInputName(index, allocator) :
-    session.GetOutputName(index, allocator);
-  const std::string name = raw_name == nullptr ? "<unknown>" : raw_name;
-  if (raw_name != nullptr) {
-    allocator.Free(raw_name);
-  }
+  const std::string raw_name = input ?
+    Ort::compat::inputName(session, index, allocator) :
+    Ort::compat::outputName(session, index, allocator);
+  const std::string name = raw_name.empty() ? "<unknown>" : raw_name;
 
   try {
     Ort::TypeInfo type_info = input ?

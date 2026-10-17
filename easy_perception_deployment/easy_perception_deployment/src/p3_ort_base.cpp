@@ -14,9 +14,6 @@
 // limitations under the License.
 
 #include <chrono>
-#include <opencv2/tracking.hpp>
-#include <opencv2/core/ocl.hpp>
-
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -24,15 +21,14 @@
 #include <string>
 #include <vector>
 
+#include <opencv2/tracking.hpp>
+#include <opencv2/core/ocl.hpp>
 #include "pcl/point_cloud.h"
 #include "pcl/point_types.h"
 #include "pcl/common/centroid.h"
 #include "pcl/common/eigen.h"
-
 #include "opencv2/opencv.hpp"
-
 #include "tf2/LinearMath/Quaternion.h"
-
 #include "ort_cpp_lib/p3_ort_base.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 
@@ -203,13 +199,17 @@ EPD::EPDObjectDetection P3OrtBase::infer(
   struct PostTimer
   {
     InferenceTiming & timing; Clock::time_point start;
-    ~PostTimer() {timing.postprocess_ms = std::chrono::duration<double, std::milli>(Clock::now() - start).count();}
+    ~PostTimer()
+    {
+      timing.postprocess_ms =
+        std::chrono::duration<double, std::milli>(Clock::now() - start).count();
+    }
   } post_timer{last_timing_, t2};
 
   if (inferenceOutput[1].second.size() != 1) {
     throw std::runtime_error(
-      "Unexpected inference output shape: expected 1 dimension for box count, got " +
-      std::to_string(inferenceOutput[1].second.size()));
+            "Unexpected inference output shape: expected 1 dimension for box count, got " +
+            std::to_string(inferenceOutput[1].second.size()));
   }
   size_t nBoxes = inferenceOutput[1].second[0];
 
@@ -395,12 +395,12 @@ bool P3OrtBase::populateObjectGeometry(
     obj.centroid.x = 0.0;
     obj.centroid.y = 0.0;
     obj.centroid.z = 0.0;
-    obj.length  = 0.0f;
+    obj.length = 0.0f;
     obj.breadth = 0.0f;
-    obj.height  = 0.0f;
-    obj.axis.x  = 0.0f;
-    obj.axis.y  = 0.0f;
-    obj.axis.z  = 1.0f;
+    obj.height = 0.0f;
+    obj.axis.x = 0.0f;
+    obj.axis.y = 0.0f;
+    obj.axis.z = 1.0f;
     return false;
   }
 
@@ -446,14 +446,14 @@ bool P3OrtBase::populateObjectGeometry(
 
   // Object real-world size: longer side → length, shorter side → breadth
   if (cv::norm(rect_points[0] - rect_points[1]) > cv::norm(rect_points[1] - rect_points[2])) {
-    obj.length  = obj_surface_depth * std::sqrt(
+    obj.length = obj_surface_depth * std::sqrt(
       std::pow((pt_a.x - pt_b.x) / fx, 2) + std::pow((pt_a.y - pt_b.y) / fy, 2));
     obj.breadth = obj_surface_depth * std::sqrt(
       std::pow((pt_c.x - pt_d.x) / fx, 2) + std::pow((pt_c.y - pt_d.y) / fy, 2));
   } else {
     obj.breadth = obj_surface_depth * std::sqrt(
       std::pow((pt_a.x - pt_b.x) / fx, 2) + std::pow((pt_a.y - pt_b.y) / fy, 2));
-    obj.length  = obj_surface_depth * std::sqrt(
+    obj.length = obj_surface_depth * std::sqrt(
       std::pow((pt_c.x - pt_d.x) / fx, 2) + std::pow((pt_c.y - pt_d.y) / fy, 2));
   }
   obj.height = table_depth - obj_surface_depth;
@@ -561,8 +561,8 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
 
   if (inferenceOutput[1].second.size() != 1) {
     throw std::runtime_error(
-      "Unexpected inference output shape: expected 1 dimension for box count, got " +
-      std::to_string(inferenceOutput[1].second.size()));
+            "Unexpected inference output shape: expected 1 dimension for box count, got " +
+            std::to_string(inferenceOutput[1].second.size()));
   }
   size_t nBoxes = inferenceOutput[1].second[0];
 
@@ -624,7 +624,7 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
 
   if (bboxes.size() != classIndices.size()) {
     throw std::runtime_error(
-      "Mismatch between bboxes and classIndices sizes in inference output");
+            "Mismatch between bboxes and classIndices sizes in inference output");
   }
   // if (!allClassNames.empty()) {
   //   assert(
@@ -650,9 +650,9 @@ EPD::EPDObjectLocalization P3OrtBase::infer(
   float table_depth = this->findMedian(depthImg, max_depth_mm) * 0.001;
 
   const float ppx = camera_info.k.at(2);
-  const float fx  = camera_info.k.at(0);
+  const float fx = camera_info.k.at(0);
   const float ppy = camera_info.k.at(5);
-  const float fy  = camera_info.k.at(4);
+  const float fy = camera_info.k.at(4);
 
   /* START of Populating EPDObjectLocalization object */
   for (size_t i = 0; i < bboxes.size(); ++i) {
@@ -718,8 +718,8 @@ EPD::EPDObjectTracking P3OrtBase::infer(
 
   if (inferenceOutput[1].second.size() != 1) {
     throw std::runtime_error(
-      "Unexpected inference output shape: expected 1 dimension for box count, got " +
-      std::to_string(inferenceOutput[1].second.size()));
+            "Unexpected inference output shape: expected 1 dimension for box count, got " +
+            std::to_string(inferenceOutput[1].second.size()));
   }
   size_t nBoxes = inferenceOutput[1].second[0];
 
@@ -807,9 +807,9 @@ EPD::EPDObjectTracking P3OrtBase::infer(
   float table_depth = this->findMedian(depthImg, max_depth_mm) * 0.001;
 
   const float ppx = camera_info.k.at(2);
-  const float fx  = camera_info.k.at(0);
+  const float fx = camera_info.k.at(0);
   const float ppy = camera_info.k.at(5);
-  const float fy  = camera_info.k.at(4);
+  const float fy = camera_info.k.at(4);
 
   // No. of objects will be equal to number of bboxes
   /* START of Populating EPDObjectTracking object */
@@ -867,7 +867,7 @@ void P3OrtBase::tracking_evaluate(
   }
 
   if (bboxes.empty()) {
-    for (size_t i = tracker_results.size(); i-- > 0;) {
+    for (size_t i = tracker_results.size(); i-- > 0; ) {
       tracker_results[i].missed_frames += 1;
       if (tracker_results[i].missed_frames > kMaxMissedFrames) {
         trackers.erase(trackers.begin() + i);
@@ -950,12 +950,13 @@ void P3OrtBase::tracking_evaluate(
     }
     detection_matched[candidate.detection_idx] = true;
     tracker_matched[candidate.tracker_idx] = true;
-    tracker_results[candidate.tracker_idx].obj_bounding_box = detected_boxes[candidate.detection_idx];
+    tracker_results[candidate.tracker_idx].obj_bounding_box =
+      detected_boxes[candidate.detection_idx];
     tracker_results[candidate.tracker_idx].missed_frames = 0;
     detection_to_tracker[candidate.detection_idx] = candidate.tracker_idx;
   }
 
-  for (size_t tracker_idx = n_trackers; tracker_idx-- > 0;) {
+  for (size_t tracker_idx = n_trackers; tracker_idx-- > 0; ) {
     if (tracker_matched[tracker_idx]) {
       continue;
     }

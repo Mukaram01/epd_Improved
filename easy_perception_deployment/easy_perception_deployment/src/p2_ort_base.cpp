@@ -144,12 +144,12 @@ EPD::EPDObjectDetection P2OrtBase::infer(
   }
   if (!ssd && inferenceOutput[1].second.size() != 1) {
     throw std::runtime_error(
-      "Unexpected inference output shape: expected 1 dimension for box count, got " +
-      std::to_string(inferenceOutput[1].second.size()));
+            "Unexpected inference output shape: expected 1 dimension for box count, got " +
+            std::to_string(inferenceOutput[1].second.size()));
   }
   size_t nBoxes = ssd ? static_cast<size_t>(std::clamp(
-    inferenceOutput[3].first[0], 0.0f,
-    static_cast<float>(inferenceOutput[0].second[1]))) :
+      inferenceOutput[3].first[0], 0.0f,
+      static_cast<float>(inferenceOutput[0].second[1]))) :
     static_cast<size_t>(inferenceOutput[1].second[0]);
 
   const float scale_x = inputImg.cols > 0 ? static_cast<float>(newW) / inputImg.cols : ratio;
@@ -179,7 +179,8 @@ EPD::EPDObjectDetection P2OrtBase::infer(
       ymax = std::min<int>(ymax, inputImg.rows);
 
       bboxes.emplace_back(std::array<int, 4>{xmin, ymin, xmax, ymax});
-      classIndices.emplace_back(ssd ? static_cast<uint64_t>(inferenceOutput[1].first[i]) :
+      classIndices.emplace_back(
+        ssd ? static_cast<uint64_t>(inferenceOutput[1].first[i]) :
         reinterpret_cast<int64_t *>(inferenceOutput[1].first)[i]);
       scores.emplace_back(inferenceOutput[2].first[i]);
     }

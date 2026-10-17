@@ -28,6 +28,7 @@
 
 #include "ort_cpp_lib/ort_base.hpp"
 #include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "ort_cpp_lib/ort_name_compat.hpp"
 
 #ifndef EPD_ENABLE_TENSORRT
 #define EPD_ENABLE_TENSORRT 0
@@ -88,7 +89,7 @@ size_t resolvedGpuIndex(const boost::optional<size_t> & legacy_index)
   const char * env_index = std::getenv("EPD_GPU_INDEX");
   if (env_index != nullptr && env_index[0] != '\0') {
     try {
-      const long long parsed = std::stoll(env_index);
+      const long long parsed = std::stoll(env_index);  // NOLINT(runtime/int)
       if (parsed < 0) {
         throw std::runtime_error("negative GPU index");
       }
@@ -293,10 +294,10 @@ bool OrtBase::hasSsdDetectionOutputs() const
 bool OrtBase::OrtBaseImpl::hasSsdDetectionOutputs() const
 {
   return m_outputNodeNames.size() == 4 &&
-    std::string(m_outputNodeNames[0]) == "detection_boxes" &&
-    std::string(m_outputNodeNames[1]) == "detection_classes" &&
-    std::string(m_outputNodeNames[2]) == "detection_scores" &&
-    std::string(m_outputNodeNames[3]) == "num_detections";
+         std::string(m_outputNodeNames[0]) == "detection_boxes" &&
+         std::string(m_outputNodeNames[1]) == "detection_classes" &&
+         std::string(m_outputNodeNames[2]) == "detection_scores" &&
+         std::string(m_outputNodeNames[3]) == "num_detections";
 }
 
 bool OrtBase::OrtBaseImpl::isInputUint8(int inputIdx) const
@@ -441,9 +442,8 @@ void OrtBase::OrtBaseImpl::initModelInfo()
         1,
         std::multiplies<int64_t>()));
 
-    char * inputName = m_session.GetInputName(i, m_ortAllocator);
-    m_inputNodeNames.emplace_back(strdup(inputName));
-    m_ortAllocator.Free(inputName);
+    const std::string inputName = Ort::compat::inputName(m_session, i, m_ortAllocator);
+    m_inputNodeNames.emplace_back(strdup(inputName.c_str()));
   }
 
   for (int i = 0; i < m_numOutputs; ++i) {
@@ -452,9 +452,8 @@ void OrtBase::OrtBaseImpl::initModelInfo()
 
     m_outputShapes.emplace_back(tensorInfo.GetShape());
 
-    char * outputName = m_session.GetOutputName(i, m_ortAllocator);
-    m_outputNodeNames.emplace_back(strdup(outputName));
-    m_ortAllocator.Free(outputName);
+    const std::string outputName = Ort::compat::outputName(m_session, i, m_ortAllocator);
+    m_outputNodeNames.emplace_back(strdup(outputName.c_str()));
   }
 
   #if PRINT_MODEL_INFO
@@ -530,9 +529,9 @@ std::vector<OrtBase::DataOutputType> OrtBase::OrtBaseImpl::operator()(
 
   if (m_outputTensors.size() != m_numOutputs) {
     throw std::runtime_error(
-      "Output tensor count mismatch: expected " +
-      std::to_string(m_numOutputs) + ", got " +
-      std::to_string(m_outputTensors.size()));
+            "Output tensor count mismatch: expected " +
+            std::to_string(m_numOutputs) + ", got " +
+            std::to_string(m_outputTensors.size()));
   }
 
   std::vector<DataOutputType> outputData;

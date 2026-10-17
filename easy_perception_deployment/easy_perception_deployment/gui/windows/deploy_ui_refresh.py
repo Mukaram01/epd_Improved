@@ -1,3 +1,17 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from pathlib import Path
 
 from PySide6.QtCore import QEvent, QObject, QSettings, QSize, Qt, QTimer
@@ -208,6 +222,12 @@ class _DeployUiController(QObject):
         perception_layout.addLayout(
             self._form_row("Mode", w.usecase_config_button)
         )
+        if hasattr(w, "target_objects_button"):
+            w.target_objects_button.setMinimumHeight(38)
+            w.target_objects_button.setMinimumWidth(220)
+            perception_layout.addLayout(
+                self._form_row("Objects", w.target_objects_button)
+            )
         toggles = QHBoxLayout()
         toggles.setSpacing(8)
         toggles.addWidget(w.visualize_button)
@@ -227,6 +247,7 @@ class _DeployUiController(QObject):
 
         transport_row = QHBoxLayout()
         transport_row.setSpacing(10)
+        w.transport_label.setObjectName("fieldLabel")
         transport_row.addWidget(w.transport_label)
         transport_row.addStretch(1)
         transport_row.addWidget(w.transport_combo)
@@ -662,6 +683,12 @@ class _DeployUiController(QObject):
             QPushButton#runButton:hover {
                 background-color: #6275e2;
                 border-color: #8796ee;
+            }
+
+            QPushButton#runButton:disabled {
+                color: #8a94a6;
+                background-color: #262c37;
+                border-color: #343c4a;
             }
             """
         )

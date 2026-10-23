@@ -1,3 +1,17 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Acceptance-run stability fixes for the EPD GUI.
 
 This module is intentionally narrow. It keeps the current EPD-0..9 behaviour
@@ -45,7 +59,16 @@ def install_ros_executor_stability():
     if _PATCHED:
         return
 
-    from rclpy.executors import SingleThreadedExecutor
+    try:
+        from rclpy.executors import SingleThreadedExecutor
+    except ImportError:
+        # ROS 2 not sourced: no ROS worker can start, and the unpatched
+        # workers already report "ROS unavailable". The GUI must still open
+        # so the user can configure and is told how to fix the environment.
+        logging.getLogger('deploy').warning(
+            'rclpy not found; ROS features are disabled. '
+            'Run: source /opt/ros/humble/setup.bash')
+        return
 
     from windows import Deploy as deploy_module
     from windows import epd2_productization as preview_module

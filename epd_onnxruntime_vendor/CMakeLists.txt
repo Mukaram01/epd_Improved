@@ -47,6 +47,13 @@ ExternalProject_Add(onnxruntime
     ${CMAKE_COMMAND} -E copy_directory
       <SOURCE_DIR>
       ${CMAKE_CURRENT_BINARY_DIR}/onnxruntime_install
+  # Release archives ship flat headers, but EPD includes the source-tree path
+  # "onnxruntime/core/session/onnxruntime_cxx_api.h". Mirror the headers there
+  # (they include each other by bare name) so both include styles resolve.
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_directory
+      <SOURCE_DIR>/include
+      ${CMAKE_CURRENT_BINARY_DIR}/onnxruntime_install/include/onnxruntime/core/session
 )
 
 install(

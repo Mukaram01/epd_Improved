@@ -1,3 +1,17 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Model truth and compatibility helpers for the EPD-3 Smart Model Manager."""
 
 from __future__ import annotations
@@ -397,6 +411,11 @@ def inspect_deployment_model(model_path, label_path, usecase_mode, package_root)
 
     if not str(model_path) or not model_path.is_file():
         blockers.append(f"ONNX model file does not exist: {model_path or '(not set)'}")
+        name = model_path.name if str(model_path) else "(not set)"
+        result["summary"] = (
+            f"Model file not found: {name}. Add it with Model Manager "
+            "or choose another with Change model."
+        )
         return result
     if model_path.suffix.lower() != ".onnx":
         blockers.append("EPD deployment requires a .onnx model file.")

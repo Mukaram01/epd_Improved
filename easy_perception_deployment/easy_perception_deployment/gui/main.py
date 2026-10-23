@@ -36,6 +36,7 @@ from windows.epd6_productization import apply_epd6_productization
 from windows.epd8_productization import apply_epd8_productization
 from windows.epd9_productization import apply_epd9_productization
 from windows.model_output_contract import apply_model_output_contract
+from windows.perception_monitor import apply_perception_monitor
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 myapp = QApplication(sys.argv)
@@ -68,6 +69,8 @@ def main():
     apply_epd6_productization(window1)
     apply_epd8_productization(window1)
     apply_epd9_productization(window1)
+    # Last: reorganises the finished Deploy UI into the monitor workspace.
+    apply_perception_monitor(window1)
     window1.help_window.setWindowFlag(Qt.Window, True)
     window1.show()
 

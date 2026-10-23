@@ -1,0 +1,50 @@
+{
+ "schema": "epd.perception_session",
+ "schema_version": 1,
+ "name": "Synthetic recording without readiness (test fixture)",
+ "provenance": {
+  "kind": "synthetic",
+  "summary": "SYNTHETIC TEST DATA. Drawn shapes and hand-written readiness reports in the EPD::makeReadinessReport format. Not camera data and not a perception measurement.",
+  "generator": "fixtures/perception_sessions/make_synthetic_sessions.py"
+ },
+ "readiness_topic": "/easy_perception_deployment/detection_readiness",
+ "image_topic": "/synthetic/color/image_raw",
+ "frames": [
+  {
+   "label": "Readiness topic not recorded",
+   "image": {
+    "path": "frames/000.png",
+    "sha256": "de7cde7b4befa88627732e676a200f33cc57dd637758baee04c2cb05883760e8",
+    "header": {
+     "stamp": {
+      "sec": 1000,
+      "nanosec": 0
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "width": 640,
+    "height": 360,
+    "encoding": "rgb8"
+   },
+   "readiness": null
+  },
+  {
+   "label": "Readiness topic not recorded",
+   "image": {
+    "path": "frames/001.png",
+    "sha256": "de7cde7b4befa88627732e676a200f33cc57dd637758baee04c2cb05883760e8",
+    "header": {
+     "stamp": {
+      "sec": 1000,
+      "nanosec": 500000000
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "width": 640,
+    "height": 360,
+    "encoding": "rgb8"
+   },
+   "readiness": null
+  }
+ ]
+}

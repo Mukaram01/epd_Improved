@@ -71,7 +71,8 @@ TEST(EPD_TestSuite, Test_SSDMobileNet_Rank4Input_Smoke)
   EXPECT_NO_THROW(ortAgent.initORTSessionHandler());
 
   ASSERT_EQ(!ortAgent.p2_ort_session, false);
-  EXPECT_NO_THROW({
+  EXPECT_NO_THROW(
+  {
     EPD::EPDObjectDetection result = ortAgent.p2_ort_session->infer(frame);
     ASSERT_FALSE(result.bboxes.empty());
     EXPECT_EQ(result.bboxes.size(), result.classIndices.size());

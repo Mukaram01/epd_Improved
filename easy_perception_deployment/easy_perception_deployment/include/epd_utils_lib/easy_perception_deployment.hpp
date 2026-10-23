@@ -16,6 +16,8 @@
 #ifndef EPD_UTILS_LIB__EASY_PERCEPTION_DEPLOYMENT_HPP_
 #define EPD_UTILS_LIB__EASY_PERCEPTION_DEPLOYMENT_HPP_
 
+#include <Eigen/Dense>
+
 #include <chrono>
 #include <algorithm>
 #include <cctype>
@@ -30,8 +32,9 @@
 #include <condition_variable>
 #include <atomic>
 #include <array>
-
-#include <Eigen/Dense>
+#include <map>
+#include <utility>
+#include <vector>
 
 // OpenCV LIB
 #include "opencv2/opencv.hpp"
@@ -42,7 +45,6 @@
 #else
 #include "cv_bridge/cv_bridge.h"
 #endif
-#include <map>
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "sensor_msgs/msg/image.hpp"
@@ -77,6 +79,8 @@
 #include "epd_utils_lib/inference_scheduler.hpp"
 #include "epd_utils_lib/geometry_quality.hpp"
 #include "epd_utils_lib/hybrid_rgbd.hpp"
+#include "epd_utils_lib/class_selection.hpp"
+#include "epd_utils_lib/log_format.hpp"
 #include "epd_utils_lib/perception_readiness.hpp"
 #include "epd_utils_lib/time_utils.hpp"
 #include "epd_utils_lib/temporal_tracker.hpp"
@@ -341,7 +345,9 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
 
   this->declare_parameter<double>("camera_to_plane_distance_mm", 1000.0);
   this->declare_parameter<std::string>("rgb_topic", "/camera/camera/color/image_raw");
-  this->declare_parameter<std::string>("depth_topic", "/camera/camera/aligned_depth_to_color/image_raw");
+  this->declare_parameter<std::string>(
+    "depth_topic",
+    "/camera/camera/aligned_depth_to_color/image_raw");
   this->declare_parameter<std::string>("camera_info_topic", "/camera/camera/color/camera_info");
   this->declare_parameter<std::string>("camera_id", "camera");
   this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
@@ -505,7 +511,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   // consumer is slower than the camera rate. Users can override reliability
   // and depth through ROS parameters for visualization tools that require
   // RELIABLE delivery.
-  auto image_output_qos = rclcpp::QoS(rclcpp::KeepLast(static_cast<size_t>(image_output_qos_depth)));
+  auto image_output_qos =
+    rclcpp::QoS(rclcpp::KeepLast(static_cast<size_t>(image_output_qos_depth)));
   if (image_output_qos_reliability == "reliable") {
     image_output_qos.reliable();
   } else {
@@ -661,7 +668,7 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
         RCLCPP_INFO(
           this->get_logger(),
           "Waiting for observation_id newer than %llu",
-          static_cast<unsigned long long>(request_baseline));
+          static_cast<EPD::LogULongLong>(request_baseline));
       }
 
       if (!(use_case_mode == EPD::LOCALISATION_MODE ||
@@ -712,8 +719,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
       RCLCPP_INFO(
         this->get_logger(),
         "Accepted fresh observation_id %llu (baseline %llu)",
-        static_cast<unsigned long long>(result->source_observation_id),
-        static_cast<unsigned long long>(request_baseline));
+        static_cast<EPD::LogULongLong>(result->source_observation_id),
+        static_cast<EPD::LogULongLong>(request_baseline));
       {
         std::lock_guard<std::mutex> data_guard(data_mutex_);
         service_request_active_ = false;
@@ -860,7 +867,6 @@ void EasyPerceptionDeployment::tryDispatchLocalizedTriplet(const int64_t key)
   } else if (sync_callback_mode_ == static_cast<int>(EPD::TRACKING_MODE)) {
     tracking_callback(rgb, depth, info);
   }
-
 }
 
 void EasyPerceptionDeployment::subscribeLocalizeInputs()
@@ -1128,8 +1134,8 @@ void EasyPerceptionDeployment::process_localize_callback(
   RCLCPP_INFO_THROTTLE(
     this->get_logger(), *this->get_clock(), 10000,
     "Observation advanced %llu -> %llu (RGB stamp %d.%09u)",
-    static_cast<unsigned long long>(previous_observation_id),
-    static_cast<unsigned long long>(current_observation_id),
+    static_cast<EPD::LogULongLong>(previous_observation_id),
+    static_cast<EPD::LogULongLong>(current_observation_id),
     msg->header.stamp.sec, msg->header.stamp.nanosec);
 }
 
@@ -1166,8 +1172,8 @@ void EasyPerceptionDeployment::process_tracking_callback(
   RCLCPP_INFO_THROTTLE(
     this->get_logger(), *this->get_clock(), 10000,
     "Observation advanced %llu -> %llu (RGB stamp %d.%09u)",
-    static_cast<unsigned long long>(previous_observation_id),
-    static_cast<unsigned long long>(current_observation_id),
+    static_cast<EPD::LogULongLong>(previous_observation_id),
+    static_cast<EPD::LogULongLong>(current_observation_id),
     msg->header.stamp.sec, msg->header.stamp.nanosec);
 }
 
@@ -1228,10 +1234,10 @@ void EasyPerceptionDeployment::process_image_callback(
       "Dropped frames in last %.1f s: overwritten_latest=%llu, rate_limited=%llu "
       "(totals: overwritten=%llu, rate_limited=%llu)",
       dropped_frame_log_period_s_,
-      static_cast<unsigned long long>(overwritten_delta),
-      static_cast<unsigned long long>(rate_limited_delta),
-      static_cast<unsigned long long>(logged_dropped_frames_overwritten_),
-      static_cast<unsigned long long>(logged_dropped_frames_rate_limited_));
+      static_cast<EPD::LogULongLong>(overwritten_delta),
+      static_cast<EPD::LogULongLong>(rate_limited_delta),
+      static_cast<EPD::LogULongLong>(logged_dropped_frames_overwritten_),
+      static_cast<EPD::LogULongLong>(logged_dropped_frames_rate_limited_));
   }
   data_cv_.notify_one();
 }
@@ -1280,7 +1286,8 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
   add("inference_latency_ms", metrics.last_latency_ms);
   const uint64_t finished = metrics.inference_completed + metrics.inference_failed;
   add("inference_latency_min_ms", metrics.minimum_latency_ms);
-  add("inference_latency_avg_ms", finished == 0 ? 0.0 :
+  add(
+    "inference_latency_avg_ms", finished == 0 ? 0.0 :
     static_cast<double>(metrics.total_latency_ms) / static_cast<double>(finished));
   add("inference_latency_max_ms", metrics.maximum_latency_ms);
   add("inference_rate_hz", metrics.inference_completed / elapsed_s);
@@ -1293,7 +1300,8 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
   add("duplicate_processing_attempts", metrics.duplicate_processing_attempts);
   const auto result_store_metrics = perception_result_store_.metrics();
   const auto latest_result = perception_result_store_.latest();
-  add("latest_completed_result_observation_id",
+  add(
+    "latest_completed_result_observation_id",
     result_store_metrics.latest_completed_result_observation_id);
   add("results_completed", result_store_metrics.results_completed);
   add("service_requests", service_requests_.load());
@@ -1329,7 +1337,8 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
   add("invalid_dimensions_total", invalid_dimensions_total_.load());
   add("invalid_orientation_total", invalid_orientation_total_.load());
   const int64_t valid_geometry_stamp_ns = latest_valid_geometry_stamp_ns_.load();
-  add("latest_valid_geometry_age_ms", valid_geometry_stamp_ns == 0 ? -1.0 :
+  add(
+    "latest_valid_geometry_age_ms", valid_geometry_stamp_ns == 0 ? -1.0 :
     EPD::safeAgeMilliseconds(
       now, rclcpp::Time(valid_geometry_stamp_ns, now.get_clock_type())));
   if (temporal_tracker_) {
@@ -1362,7 +1371,8 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
     add("tracker_out_of_order_observations", tracking.out_of_order_observations);
     add("tracker_processing_latency_us", tracking.last_processing_latency_us);
     add("latest_track_observation_id", tracking.latest_track_observation_id);
-    add("latest_track_observation_age_ms",
+    add(
+      "latest_track_observation_age_ms",
       EPD::sensorStampAgeMilliseconds(now, tracking.latest_track_stamp));
     add("geometry_valid_tracks", tracking.geometry_valid_tracks);
     add("two_d_only_tracks", tracking.two_d_only_tracks);
@@ -1377,14 +1387,14 @@ void EasyPerceptionDeployment::inference_diagnostics_callback()
     this->get_logger(), *this->get_clock(), 10000,
     "Inference health: observations=%llu latest=%llu started=%llu completed=%llu "
     "failed=%llu skipped=%llu backlog=%zu busy=%s latency_ms=%lld",
-    static_cast<unsigned long long>(metrics.observations_published),
-    static_cast<unsigned long long>(metrics.last_submitted_observation_id),
-    static_cast<unsigned long long>(metrics.inference_started),
-    static_cast<unsigned long long>(metrics.inference_completed),
-    static_cast<unsigned long long>(metrics.inference_failed),
-    static_cast<unsigned long long>(metrics.observations_skipped_before_inference),
+    static_cast<EPD::LogULongLong>(metrics.observations_published),
+    static_cast<EPD::LogULongLong>(metrics.last_submitted_observation_id),
+    static_cast<EPD::LogULongLong>(metrics.inference_started),
+    static_cast<EPD::LogULongLong>(metrics.inference_completed),
+    static_cast<EPD::LogULongLong>(metrics.inference_failed),
+    static_cast<EPD::LogULongLong>(metrics.observations_skipped_before_inference),
     metrics.backlog_size, metrics.worker_busy ? "true" : "false",
-    static_cast<long long>(metrics.last_latency_ms));
+    static_cast<EPD::LogLongLong>(metrics.last_latency_ms));
 }
 
 void EasyPerceptionDeployment::rgb_input_watchdog_callback()
@@ -1410,7 +1420,7 @@ void EasyPerceptionDeployment::rgb_input_watchdog_callback()
         this->get_logger(), *this->get_clock(), 5000,
         "Synchronized observation has not advanced for %.1f seconds while localization "
         "inputs are active (generation %llu).",
-        stalled_for_s, static_cast<unsigned long long>(observation_id));
+        stalled_for_s, static_cast<EPD::LogULongLong>(observation_id));
 
       uint64_t rgb_count = 0;
       uint64_t depth_count = 0;
@@ -1442,17 +1452,16 @@ void EasyPerceptionDeployment::rgb_input_watchdog_callback()
         "Exact-sync diagnostics: callbacks rgb=%llu depth=%llu info=%llu; "
         "dispatched=%llu; cache rgb=%zu depth=%zu info=%zu; "
         "last_keys rgb=%lld depth=%lld info=%lld",
-        static_cast<unsigned long long>(rgb_count),
-        static_cast<unsigned long long>(depth_count),
-        static_cast<unsigned long long>(info_count),
-        static_cast<unsigned long long>(dispatch_count),
+        static_cast<EPD::LogULongLong>(rgb_count),
+        static_cast<EPD::LogULongLong>(depth_count),
+        static_cast<EPD::LogULongLong>(info_count),
+        static_cast<EPD::LogULongLong>(dispatch_count),
         rgb_cache_size,
         depth_cache_size,
         info_cache_size,
-        static_cast<long long>(rgb_key),
-        static_cast<long long>(depth_key),
-        static_cast<long long>(info_key));
-
+        static_cast<EPD::LogLongLong>(rgb_key),
+        static_cast<EPD::LogLongLong>(depth_key),
+        static_cast<EPD::LogLongLong>(info_key));
     }
     return;
   }
@@ -1539,14 +1548,24 @@ void EasyPerceptionDeployment::report_geometry(
   }
   RCLCPP_WARN(this->get_logger(), "EPD geometry %s", message.c_str());
   const auto reasons = object.failure_reasons;
-  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_INTRINSICS)) ++invalid_intrinsics_total_;
-  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_MASK)) ++invalid_mask_total_;
-  if (reasons & EPD::reason(EPD::GeometryFailure::INSUFFICIENT_DEPTH)) ++insufficient_depth_total_;
-  if (reasons & EPD::reason(EPD::GeometryFailure::EMPTY_CLOUD)) ++empty_cloud_total_;
-  if (reasons & EPD::reason(EPD::GeometryFailure::NONFINITE_GEOMETRY)) ++nonfinite_geometry_total_;
-  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_ROI)) ++invalid_roi_total_;
-  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_DIMENSIONS)) ++invalid_dimensions_total_;
-  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_ORIENTATION)) ++invalid_orientation_total_;
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_INTRINSICS)) {
+    ++invalid_intrinsics_total_;
+  }
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_MASK)) {++invalid_mask_total_;}
+  if (reasons & EPD::reason(EPD::GeometryFailure::INSUFFICIENT_DEPTH)) {
+    ++insufficient_depth_total_;
+  }
+  if (reasons & EPD::reason(EPD::GeometryFailure::EMPTY_CLOUD)) {++empty_cloud_total_;}
+  if (reasons & EPD::reason(EPD::GeometryFailure::NONFINITE_GEOMETRY)) {
+    ++nonfinite_geometry_total_;
+  }
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_ROI)) {++invalid_roi_total_;}
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_DIMENSIONS)) {
+    ++invalid_dimensions_total_;
+  }
+  if (reasons & EPD::reason(EPD::GeometryFailure::INVALID_ORIENTATION)) {
+    ++invalid_orientation_total_;
+  }
 }
 
 void EasyPerceptionDeployment::publish_readiness(
@@ -1555,7 +1574,8 @@ void EasyPerceptionDeployment::publish_readiness(
 {
   if (!readiness_pub_) {return;}
   auto ordered = records;
-  std::sort(ordered.begin(), ordered.end(), [](const auto & a, const auto & b) {
+  std::sort(
+    ordered.begin(), ordered.end(), [](const auto & a, const auto & b) {
       return a.detection_index < b.detection_index;
     });
   for (const auto & record : ordered) {
@@ -1625,34 +1645,38 @@ void EasyPerceptionDeployment::process_localize_work(
   auto begin = std::chrono::high_resolution_clock::now();
 
   EPD::EPDObjectLocalization result = [&]() {
-    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    if (hybrid_refinement_enabled_) {
-      const auto raw = ortAgent_.p3_ort_session->infer(img);
-      // Consider all confidence-qualified owners before applying the output cap.
-      const auto detections = applyDetectionFilters(raw, ortAgent_.confidence_threshold, 0);
-      auto options = hybrid_options_;
-      options.maximum_depth_m = camera_to_plane_distance_mm * 0.001;
-      return EPD::refineRgbd(detections, depth_img, *observation,
-        ortAgent_.p3_ort_session->getClassNames(), options, geometry_thresholds_);
-    }
-    return ortAgent_.p3_ort_session->infer(
-      img,
-      depth_img,
-      *camera_info,
-      camera_to_plane_distance_mm,
-      ortAgent_.confidence_threshold);
-  }();
+      std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+      if (hybrid_refinement_enabled_) {
+        const auto raw = ortAgent_.p3_ort_session->infer(img);
+        // Consider all confidence-qualified owners before applying the output cap.
+        const auto detections = applyDetectionFilters(raw, ortAgent_.confidence_threshold, 0);
+        auto options = hybrid_options_;
+        options.maximum_depth_m = camera_to_plane_distance_mm * 0.001;
+        return EPD::refineRgbd(
+          detections, depth_img, *observation,
+          ortAgent_.p3_ort_session->getClassNames(), options, geometry_thresholds_);
+      }
+      return ortAgent_.p3_ort_session->infer(
+        img,
+        depth_img,
+        *camera_info,
+        camera_to_plane_distance_mm,
+        ortAgent_.confidence_threshold);
+    }();
 
   // Apply max_detections limit.
   std::vector<EPD::ReadinessRecord> readiness;
+  std::vector<std::string> selected_classes;
   {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    selected_classes = ortAgent_.selectedClassNames;
     const int max_det = ortAgent_.max_detections;
     if (max_det > 0 && static_cast<int>(result.size()) > max_det) {
       if (hybrid_refinement_enabled_) {
         for (size_t i = max_det; i < result.size(); ++i) {
-          readiness.push_back(EPD::makeReadinessRecord(
-            i, result.objects[i], false, "max_detections_cap"));
+          readiness.push_back(
+            EPD::makeReadinessRecord(
+              i, result.objects[i], false, "max_detections_cap"));
         }
       }
       result.objects.resize(max_det);
@@ -1672,14 +1696,20 @@ void EasyPerceptionDeployment::process_localize_work(
       camera_info->k.at(0), camera_info->k.at(4), camera_info->k.at(2), camera_info->k.at(5),
       geometry_thresholds_);
     report_geometry(object, depth_img);
+    const bool selected = EPD::isClassSelected(selected_classes, object.name);
     if (hybrid_refinement_enabled_) {
-      readiness.push_back(EPD::makeReadinessRecord(
-        index, object, quality == EPD::GeometryQuality::VALID));
+      readiness.push_back(
+        EPD::makeReadinessRecord(
+          index, object, quality == EPD::GeometryQuality::VALID && selected,
+          selected ? "" : EPD::kNotSelectedNote));
     }
     if (quality == EPD::GeometryQuality::VALID) {
       geometry_valid_total_.fetch_add(1);
-      latest_valid_geometry_stamp_ns_.store(rclcpp::Time(observation->sensor_stamp()).nanoseconds());
-      valid_objects.push_back(std::move(object));
+      latest_valid_geometry_stamp_ns_.store(
+        rclcpp::Time(observation->sensor_stamp()).nanoseconds());
+      if (selected) {
+        valid_objects.push_back(std::move(object));
+      }
       continue;
     }
     if (quality == EPD::GeometryQuality::DEGRADED) {
@@ -1728,9 +1758,9 @@ void EasyPerceptionDeployment::process_localize_work(
   }
 
   output_msg.ppx = camera_info->k.at(2);
-  output_msg.fx  = camera_info->k.at(0);
+  output_msg.fx = camera_info->k.at(0);
   output_msg.ppy = camera_info->k.at(5);
-  output_msg.fy  = camera_info->k.at(4);
+  output_msg.fy = camera_info->k.at(4);
 
   output_msg.objects.reserve(result.size());
 
@@ -1748,10 +1778,10 @@ void EasyPerceptionDeployment::process_localize_work(
     object.segmented_binary_mask = *mask_ptr;
 
     object.centroid = result.objects[i].centroid;
-    object.length   = result.objects[i].length;
-    object.breadth  = result.objects[i].breadth;
-    object.height   = result.objects[i].height;
-    object.axis     = result.objects[i].axis;
+    object.length = result.objects[i].length;
+    object.breadth = result.objects[i].breadth;
+    object.height = result.objects[i].height;
+    object.axis = result.objects[i].axis;
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
@@ -1776,7 +1806,7 @@ void EasyPerceptionDeployment::process_localize_work(
     2000,
     "[-FPS-]= %.2f (dt_ms=%lld)",
     fps,
-    static_cast<long long>(ms));
+    static_cast<EPD::LogLongLong>(ms));
 
   output_msg.process_time = ms;
   localize_pub->publish(output_msg);
@@ -1790,7 +1820,6 @@ void EasyPerceptionDeployment::process_localize_work(
   completed_result.success = true;
   completed_result.localization = output_msg;
   perception_result_store_.publish(std::move(completed_result));
-
 }
 
 void EasyPerceptionDeployment::process_tracking_work(
@@ -1854,29 +1883,30 @@ void EasyPerceptionDeployment::process_tracking_work(
   auto begin = std::chrono::high_resolution_clock::now();
 
   EPD::EPDObjectTracking result = [&]() {
-    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
-    if (hybrid_refinement_enabled_) {
-      const auto raw = ortAgent_.p3_ort_session->infer(img);
-      const auto detections = applyDetectionFilters(raw, ortAgent_.confidence_threshold, 0);
-      auto options = hybrid_options_;
-      options.maximum_depth_m = camera_to_plane_distance_mm * 0.001;
-      auto localized = EPD::refineRgbd(detections, depth_img, *observation,
-        ortAgent_.p3_ort_session->getClassNames(), options, geometry_thresholds_);
-      EPD::EPDObjectTracking tracked(localized.size());
-      tracked.objects = std::move(localized.objects);
-      return tracked;  // existing temporal_tracker_ owns persistent association below
-    }
-    return ortAgent_.p3_ort_session->infer(
-      img,
-      depth_img,
-      *camera_info,
-      camera_to_plane_distance_mm,
-      ortAgent_.tracker_type,
-      ortAgent_.trackers,
-      ortAgent_.tracker_logs,
-      ortAgent_.tracker_results,
-      ortAgent_.confidence_threshold);
-  }();
+      std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+      if (hybrid_refinement_enabled_) {
+        const auto raw = ortAgent_.p3_ort_session->infer(img);
+        const auto detections = applyDetectionFilters(raw, ortAgent_.confidence_threshold, 0);
+        auto options = hybrid_options_;
+        options.maximum_depth_m = camera_to_plane_distance_mm * 0.001;
+        auto localized = EPD::refineRgbd(
+          detections, depth_img, *observation,
+          ortAgent_.p3_ort_session->getClassNames(), options, geometry_thresholds_);
+        EPD::EPDObjectTracking tracked(localized.size());
+        tracked.objects = std::move(localized.objects);
+        return tracked;  // existing temporal_tracker_ owns persistent association below
+      }
+      return ortAgent_.p3_ort_session->infer(
+        img,
+        depth_img,
+        *camera_info,
+        camera_to_plane_distance_mm,
+        ortAgent_.tracker_type,
+        ortAgent_.trackers,
+        ortAgent_.tracker_logs,
+        ortAgent_.tracker_results,
+        ortAgent_.confidence_threshold);
+    }();
 
   // Apply max_detections limit.
   std::vector<EPD::ReadinessRecord> readiness;
@@ -1886,13 +1916,19 @@ void EasyPerceptionDeployment::process_tracking_work(
     if (max_det > 0 && static_cast<int>(result.size()) > max_det) {
       if (hybrid_refinement_enabled_) {
         for (size_t i = max_det; i < result.size(); ++i) {
-          readiness.push_back(EPD::makeReadinessRecord(
-            i, result.objects[i], false, "max_detections_cap"));
+          readiness.push_back(
+            EPD::makeReadinessRecord(
+              i, result.objects[i], false, "max_detections_cap"));
         }
       }
       result.objects.resize(max_det);
       result.object_ids.resize(max_det);
     }
+  }
+  std::vector<std::string> selected_classes;
+  {
+    std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    selected_classes = ortAgent_.selectedClassNames;
   }
 
   detections_total_.fetch_add(result.size());
@@ -1915,7 +1951,8 @@ void EasyPerceptionDeployment::process_tracking_work(
     tracking_detections.push_back(std::move(detection));
     if (quality == EPD::GeometryQuality::VALID) {
       geometry_valid_total_.fetch_add(1);
-      latest_valid_geometry_stamp_ns_.store(rclcpp::Time(observation->sensor_stamp()).nanoseconds());
+      latest_valid_geometry_stamp_ns_.store(
+        rclcpp::Time(observation->sensor_stamp()).nanoseconds());
     } else if (quality == EPD::GeometryQuality::DEGRADED) {
       geometry_degraded_total_.fetch_add(1);
     } else {
@@ -1936,9 +1973,12 @@ void EasyPerceptionDeployment::process_tracking_work(
     for (size_t i = 0; i < result.size(); ++i) {
       const uint64_t track_id = i < track_assignments.size() ? track_assignments[i].track_id : 0;
       const bool valid = result.objects[i].quality == EPD::GeometryQuality::VALID;
+      // Unselected objects keep their track (stable identity) but are never published.
+      const bool selected = EPD::isClassSelected(selected_classes, result.objects[i].name);
       auto record = EPD::makeReadinessRecord(
-        i, result.objects[i], valid && track_id != 0,
-        valid && track_id == 0 ? "no_track_assignment" : "");
+        i, result.objects[i], valid && track_id != 0 && selected,
+        !selected ? EPD::kNotSelectedNote :
+        (valid && track_id == 0 ? "no_track_assignment" : ""));
       record.track_id = track_id;
       readiness.push_back(std::move(record));
     }
@@ -1949,7 +1989,8 @@ void EasyPerceptionDeployment::process_tracking_work(
   valid_tracking_ids.reserve(result.size());
   for (size_t i = 0; i < result.size(); ++i) {
     if (result.objects[i].quality != EPD::GeometryQuality::VALID ||
-      i >= track_assignments.size() || track_assignments[i].track_id == 0)
+      i >= track_assignments.size() || track_assignments[i].track_id == 0 ||
+      !EPD::isClassSelected(selected_classes, result.objects[i].name))
     {
       continue;
     }
@@ -1991,9 +2032,9 @@ void EasyPerceptionDeployment::process_tracking_work(
   }
 
   output_msg.ppx = camera_info->k.at(2);
-  output_msg.fx  = camera_info->k.at(0);
+  output_msg.fx = camera_info->k.at(0);
   output_msg.ppy = camera_info->k.at(5);
-  output_msg.fy  = camera_info->k.at(4);
+  output_msg.fy = camera_info->k.at(4);
 
   output_msg.object_ids.reserve(result.size());
   output_msg.objects.reserve(result.size());
@@ -2016,10 +2057,10 @@ void EasyPerceptionDeployment::process_tracking_work(
     object.segmented_binary_mask = *mask_ptr;
 
     object.centroid = result.objects[i].centroid;
-    object.length   = result.objects[i].length;
-    object.breadth  = result.objects[i].breadth;
-    object.height   = result.objects[i].height;
-    object.axis     = result.objects[i].axis;
+    object.length = result.objects[i].length;
+    object.breadth = result.objects[i].breadth;
+    object.height = result.objects[i].height;
+    object.axis = result.objects[i].axis;
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
@@ -2045,7 +2086,7 @@ void EasyPerceptionDeployment::process_tracking_work(
     2000,
     "[-FPS-]= %.2f (dt_ms=%lld)",
     fps,
-    static_cast<long long>(ms));
+    static_cast<EPD::LogLongLong>(ms));
 
   output_msg.process_time = ms;
   tracking_pub->publish(output_msg);
@@ -2059,7 +2100,6 @@ void EasyPerceptionDeployment::process_tracking_work(
   completed_result.success = true;
   completed_result.tracking = output_msg;
   perception_result_store_.publish(std::move(completed_result));
-
 }
 
 geometry_msgs::msg::Pose EasyPerceptionDeployment::buildObjectPose(
@@ -2143,9 +2183,9 @@ EPD::EPDObjectDetection EasyPerceptionDeployment::applyDetectionFilters(
   // Verify mask vector is consistent: either empty (no masks) or same size as bboxes.
   if (has_masks && raw.masks.size() != raw.size()) {
     throw std::runtime_error(
-      "applyDetectionFilters: masks.size() (" + std::to_string(raw.masks.size()) +
-      ") != bboxes.size() (" + std::to_string(raw.size()) +
-      "). Inference output is inconsistent.");
+            "applyDetectionFilters: masks.size() (" + std::to_string(raw.masks.size()) +
+            ") != bboxes.size() (" + std::to_string(raw.size()) +
+            "). Inference output is inconsistent.");
   }
 
   for (size_t i = 0; i < raw.size(); i++) {
@@ -2341,7 +2381,8 @@ void EasyPerceptionDeployment::process_image_work(
             this->get_logger(),
             *this->get_clock(),
             2000,
-            "Depth image size (%dx%d) does not match RGB image size (%dx%d). Skipping segmentation.",
+            "Depth image size (%dx%d) does not match RGB image size (%dx%d). "
+            "Skipping segmentation.",
             depth_img.cols,
             depth_img.rows,
             img.cols,
@@ -2466,9 +2507,9 @@ void EasyPerceptionDeployment::process_image_work(
             if (publish_segmentation) {
               sensor_msgs::msg::Image::SharedPtr mask =
                 cv_bridge::CvImage(
-                  std_msgs::msg::Header(),
-                  "32FC1",
-                  output_obj.masks[i]).toImageMsg();
+                std_msgs::msg::Header(),
+                "32FC1",
+                output_obj.masks[i]).toImageMsg();
               mask->header.stamp = msg->header.stamp;
               mask->header.frame_id = msg->header.frame_id;
               output_msg.masks.push_back(*mask);
@@ -2503,14 +2544,14 @@ void EasyPerceptionDeployment::process_image_work(
     2000,
     "[-FPS-]= %.2f (dt_ms=%lld)",
     fps,
-    static_cast<long long>(ms));
-  if (slow_frame_warn_ms_ > 0 && ms > static_cast<long long>(slow_frame_warn_ms_)) {
+    static_cast<EPD::LogLongLong>(ms));
+  if (slow_frame_warn_ms_ > 0 && ms > static_cast<EPD::LogLongLong>(slow_frame_warn_ms_)) {
     RCLCPP_WARN_THROTTLE(
       this->get_logger(),
       *this->get_clock(),
       5000,
       "Slow inference frame detected: %lld ms (threshold: %d ms).",
-      static_cast<long long>(ms),
+      static_cast<EPD::LogLongLong>(ms),
       slow_frame_warn_ms_);
   }
 }
@@ -2554,14 +2595,14 @@ void EasyPerceptionDeployment::worker_loop()
         inference_scheduler_.fail(*observation, latency);
         RCLCPP_ERROR(
           this->get_logger(), "Inference failed for observation_id=%llu: %s",
-          static_cast<unsigned long long>(observation->observation_id()), e.what());
+          static_cast<EPD::LogULongLong>(observation->observation_id()), e.what());
       } catch (...) {
         const auto latency = std::chrono::duration_cast<std::chrono::milliseconds>(
           std::chrono::steady_clock::now() - started_at).count();
         inference_scheduler_.fail(*observation, latency);
         RCLCPP_ERROR(
           this->get_logger(), "Unknown inference failure for observation_id=%llu",
-          static_cast<unsigned long long>(observation->observation_id()));
+          static_cast<EPD::LogULongLong>(observation->observation_id()));
       }
       continue;
     }

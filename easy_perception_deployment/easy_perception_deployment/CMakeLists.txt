@@ -456,6 +456,7 @@ install(TARGETS
 install(PROGRAMS
   scripts/epd_soak_probe.py
   scripts/epd_replay.py
+  scripts/epd_perception_session_export.py
   scripts/epd_backend_benchmark.py
   scripts/build_accelerated_backend.sh
   scripts/epd_diagnostics_bundle.py

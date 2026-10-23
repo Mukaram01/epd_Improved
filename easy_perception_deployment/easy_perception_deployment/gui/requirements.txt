@@ -1,4 +1,5 @@
-PySide6>=6.6.0,<7
+# 6.12.0 aborts on Python 3.10 ("none_dealloc: deallocating None").
+PySide6>=6.6.0,<7,!=6.12.0
 dateutils==0.6.12
 pycocotools>=2.0.6,<3
 labelme==5.0.1

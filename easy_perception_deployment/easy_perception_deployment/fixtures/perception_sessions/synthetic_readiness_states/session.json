@@ -1,0 +1,1438 @@
+{
+ "schema": "epd.perception_session",
+ "schema_version": 1,
+ "name": "Synthetic readiness states (test fixture)",
+ "provenance": {
+  "kind": "synthetic",
+  "summary": "SYNTHETIC TEST DATA. Drawn shapes and hand-written readiness reports in the EPD::makeReadinessReport format. Not camera data and not a perception measurement.",
+  "generator": "fixtures/perception_sessions/make_synthetic_sessions.py"
+ },
+ "readiness_topic": "/easy_perception_deployment/detection_readiness",
+ "image_topic": "/synthetic/color/image_raw",
+ "frames": [
+  {
+   "label": "All five readiness states",
+   "image": {
+    "path": "frames/000.png",
+    "sha256": "cba5c10207ead9837516be53ed2eda4a54dd9f1ebe95f111c9ea3019005dfcd9",
+    "header": {
+     "stamp": {
+      "sec": 1000,
+      "nanosec": 0
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "width": 640,
+    "height": 360,
+    "encoding": "rgb8"
+   },
+   "readiness": {
+    "header": {
+     "stamp": {
+      "sec": 1000,
+      "nanosec": 0
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "status": [
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/0",
+      "message": "GRASP_CANDIDATE",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "GRASP_CANDIDATE"
+       },
+       {
+        "key": "class",
+        "value": "apple"
+       },
+       {
+        "key": "confidence",
+        "value": "0.954210"
+       },
+       {
+        "key": "roi",
+        "value": "90,170,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3810"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3702"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.081200,-0.032100,0.512300"
+       },
+       {
+        "key": "axis",
+        "value": "0.120000,0.990000,0.070000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "1"
+       },
+       {
+        "key": "observation_id",
+        "value": "1"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/1",
+      "message": "LOCALISED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "LOCALISED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.883104"
+       },
+       {
+        "key": "roi",
+        "value": "200,180,110,50"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "4310"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "4122"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": "-0.010400,0.021700,0.498800"
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "degenerate_axis,ambiguous_axis_no_pose"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "2"
+       },
+       {
+        "key": "observation_id",
+        "value": "1"
+       }
+      ]
+     },
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/2",
+      "message": "POSE_VALID",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "POSE_VALID"
+       },
+       {
+        "key": "class",
+        "value": "bottle"
+       },
+       {
+        "key": "confidence",
+        "value": "0.702551"
+       },
+       {
+        "key": "roi",
+        "value": "360,120,50,130"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "5120"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "5004"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.090300,0.180600,0.522100"
+       },
+       {
+        "key": "axis",
+        "value": "0.010000,0.999000,0.040000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": "not_selected"
+       },
+       {
+        "key": "track_id",
+        "value": "3"
+       },
+       {
+        "key": "observation_id",
+        "value": "1"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/3",
+      "message": "DETECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "DETECTED"
+       },
+       {
+        "key": "class",
+        "value": "cup"
+       },
+       {
+        "key": "confidence",
+        "value": "0.611872"
+       },
+       {
+        "key": "roi",
+        "value": "460,190,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3900"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "41"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "insufficient_depth"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "4"
+       },
+       {
+        "key": "observation_id",
+        "value": "1"
+       }
+      ]
+     },
+     {
+      "level": 2,
+      "name": "easy_perception_deployment/detection/4",
+      "message": "REJECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "REJECTED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.574390"
+       },
+       {
+        "key": "roi",
+        "value": "250,190,100,45"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3320"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3100"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "overlapping_ownership"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "5"
+       },
+       {
+        "key": "observation_id",
+        "value": "1"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "label": "Same tracks, objects moved",
+   "image": {
+    "path": "frames/001.png",
+    "sha256": "22fb70609d6d819d803a86b7d0c3040162629b0b8eaac05d690dbfed274a00a8",
+    "header": {
+     "stamp": {
+      "sec": 1000,
+      "nanosec": 500000000
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "width": 640,
+    "height": 360,
+    "encoding": "rgb8"
+   },
+   "readiness": {
+    "header": {
+     "stamp": {
+      "sec": 1000,
+      "nanosec": 500000000
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "status": [
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/0",
+      "message": "GRASP_CANDIDATE",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "GRASP_CANDIDATE"
+       },
+       {
+        "key": "class",
+        "value": "apple"
+       },
+       {
+        "key": "confidence",
+        "value": "0.954210"
+       },
+       {
+        "key": "roi",
+        "value": "102,170,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3810"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3702"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.081200,-0.032100,0.512300"
+       },
+       {
+        "key": "axis",
+        "value": "0.120000,0.990000,0.070000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "1"
+       },
+       {
+        "key": "observation_id",
+        "value": "2"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/1",
+      "message": "LOCALISED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "LOCALISED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.883104"
+       },
+       {
+        "key": "roi",
+        "value": "212,180,110,50"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "4310"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "4122"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": "-0.010400,0.021700,0.498800"
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "degenerate_axis,ambiguous_axis_no_pose"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "2"
+       },
+       {
+        "key": "observation_id",
+        "value": "2"
+       }
+      ]
+     },
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/2",
+      "message": "POSE_VALID",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "POSE_VALID"
+       },
+       {
+        "key": "class",
+        "value": "bottle"
+       },
+       {
+        "key": "confidence",
+        "value": "0.702551"
+       },
+       {
+        "key": "roi",
+        "value": "372,120,50,130"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "5120"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "5004"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.090300,0.180600,0.522100"
+       },
+       {
+        "key": "axis",
+        "value": "0.010000,0.999000,0.040000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": "not_selected"
+       },
+       {
+        "key": "track_id",
+        "value": "3"
+       },
+       {
+        "key": "observation_id",
+        "value": "2"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/3",
+      "message": "DETECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "DETECTED"
+       },
+       {
+        "key": "class",
+        "value": "cup"
+       },
+       {
+        "key": "confidence",
+        "value": "0.611872"
+       },
+       {
+        "key": "roi",
+        "value": "472,190,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3900"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "41"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "insufficient_depth"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "4"
+       },
+       {
+        "key": "observation_id",
+        "value": "2"
+       }
+      ]
+     },
+     {
+      "level": 2,
+      "name": "easy_perception_deployment/detection/4",
+      "message": "REJECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "REJECTED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.574390"
+       },
+       {
+        "key": "roi",
+        "value": "262,190,100,45"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3320"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3100"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "overlapping_ownership"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "5"
+       },
+       {
+        "key": "observation_id",
+        "value": "2"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "label": "Readiness report missing",
+   "image": {
+    "path": "frames/002.png",
+    "sha256": "0d66877ba20a98e835eda230fb91e3a488046181b45a5b1593fa3144912345d9",
+    "header": {
+     "stamp": {
+      "sec": 1001,
+      "nanosec": 0
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "width": 640,
+    "height": 360,
+    "encoding": "rgb8"
+   },
+   "readiness": null
+  },
+  {
+   "label": "Deliberately mismatched pairing",
+   "image": {
+    "path": "frames/003.png",
+    "sha256": "f1fd90f2795dd07f628889002dfb707fc4fd827343907a53a066db9f966092f0",
+    "header": {
+     "stamp": {
+      "sec": 1001,
+      "nanosec": 500000000
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "width": 640,
+    "height": 360,
+    "encoding": "rgb8"
+   },
+   "readiness": {
+    "header": {
+     "stamp": {
+      "sec": 1001,
+      "nanosec": 0
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "status": [
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/0",
+      "message": "GRASP_CANDIDATE",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "GRASP_CANDIDATE"
+       },
+       {
+        "key": "class",
+        "value": "apple"
+       },
+       {
+        "key": "confidence",
+        "value": "0.954210"
+       },
+       {
+        "key": "roi",
+        "value": "102,170,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3810"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3702"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.081200,-0.032100,0.512300"
+       },
+       {
+        "key": "axis",
+        "value": "0.120000,0.990000,0.070000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "1"
+       },
+       {
+        "key": "observation_id",
+        "value": "3"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/1",
+      "message": "LOCALISED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "LOCALISED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.883104"
+       },
+       {
+        "key": "roi",
+        "value": "212,180,110,50"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "4310"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "4122"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": "-0.010400,0.021700,0.498800"
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "degenerate_axis,ambiguous_axis_no_pose"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "2"
+       },
+       {
+        "key": "observation_id",
+        "value": "3"
+       }
+      ]
+     },
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/2",
+      "message": "POSE_VALID",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "POSE_VALID"
+       },
+       {
+        "key": "class",
+        "value": "bottle"
+       },
+       {
+        "key": "confidence",
+        "value": "0.702551"
+       },
+       {
+        "key": "roi",
+        "value": "372,120,50,130"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "5120"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "5004"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.090300,0.180600,0.522100"
+       },
+       {
+        "key": "axis",
+        "value": "0.010000,0.999000,0.040000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": "not_selected"
+       },
+       {
+        "key": "track_id",
+        "value": "3"
+       },
+       {
+        "key": "observation_id",
+        "value": "3"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/3",
+      "message": "DETECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "DETECTED"
+       },
+       {
+        "key": "class",
+        "value": "cup"
+       },
+       {
+        "key": "confidence",
+        "value": "0.611872"
+       },
+       {
+        "key": "roi",
+        "value": "472,190,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3900"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "41"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "insufficient_depth"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "4"
+       },
+       {
+        "key": "observation_id",
+        "value": "3"
+       }
+      ]
+     },
+     {
+      "level": 2,
+      "name": "easy_perception_deployment/detection/4",
+      "message": "REJECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "REJECTED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.574390"
+       },
+       {
+        "key": "roi",
+        "value": "262,190,100,45"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3320"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3100"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "overlapping_ownership"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "5"
+       },
+       {
+        "key": "observation_id",
+        "value": "3"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "label": "RGB frame missing",
+   "image": null,
+   "readiness": {
+    "header": {
+     "stamp": {
+      "sec": 1002,
+      "nanosec": 0
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "status": [
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/0",
+      "message": "GRASP_CANDIDATE",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "GRASP_CANDIDATE"
+       },
+       {
+        "key": "class",
+        "value": "apple"
+       },
+       {
+        "key": "confidence",
+        "value": "0.954210"
+       },
+       {
+        "key": "roi",
+        "value": "114,170,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3810"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3702"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.081200,-0.032100,0.512300"
+       },
+       {
+        "key": "axis",
+        "value": "0.120000,0.990000,0.070000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "1"
+       },
+       {
+        "key": "observation_id",
+        "value": "4"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/1",
+      "message": "LOCALISED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "LOCALISED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.883104"
+       },
+       {
+        "key": "roi",
+        "value": "224,180,110,50"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "4310"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "4122"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": "-0.010400,0.021700,0.498800"
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "degenerate_axis,ambiguous_axis_no_pose"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "2"
+       },
+       {
+        "key": "observation_id",
+        "value": "4"
+       }
+      ]
+     },
+     {
+      "level": 0,
+      "name": "easy_perception_deployment/detection/2",
+      "message": "POSE_VALID",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "POSE_VALID"
+       },
+       {
+        "key": "class",
+        "value": "bottle"
+       },
+       {
+        "key": "confidence",
+        "value": "0.702551"
+       },
+       {
+        "key": "roi",
+        "value": "384,120,50,130"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "5120"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "5004"
+       },
+       {
+        "key": "position_valid",
+        "value": "true"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "true"
+       },
+       {
+        "key": "centroid_m",
+        "value": "0.090300,0.180600,0.522100"
+       },
+       {
+        "key": "axis",
+        "value": "0.010000,0.999000,0.040000"
+       },
+       {
+        "key": "reasons",
+        "value": "none"
+       },
+       {
+        "key": "note",
+        "value": "not_selected"
+       },
+       {
+        "key": "track_id",
+        "value": "3"
+       },
+       {
+        "key": "observation_id",
+        "value": "4"
+       }
+      ]
+     },
+     {
+      "level": 1,
+      "name": "easy_perception_deployment/detection/3",
+      "message": "DETECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "DETECTED"
+       },
+       {
+        "key": "class",
+        "value": "cup"
+       },
+       {
+        "key": "confidence",
+        "value": "0.611872"
+       },
+       {
+        "key": "roi",
+        "value": "484,190,70,70"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3900"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "41"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "insufficient_depth"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "4"
+       },
+       {
+        "key": "observation_id",
+        "value": "4"
+       }
+      ]
+     },
+     {
+      "level": 2,
+      "name": "easy_perception_deployment/detection/4",
+      "message": "REJECTED",
+      "hardware_id": "synthetic_camera",
+      "values": [
+       {
+        "key": "state",
+        "value": "REJECTED"
+       },
+       {
+        "key": "class",
+        "value": "banana"
+       },
+       {
+        "key": "confidence",
+        "value": "0.574390"
+       },
+       {
+        "key": "roi",
+        "value": "274,190,100,45"
+       },
+       {
+        "key": "mask_pixels",
+        "value": "3320"
+       },
+       {
+        "key": "valid_depth_pixels",
+        "value": "3100"
+       },
+       {
+        "key": "position_valid",
+        "value": "false"
+       },
+       {
+        "key": "orientation_valid",
+        "value": "false"
+       },
+       {
+        "key": "centroid_m",
+        "value": ""
+       },
+       {
+        "key": "axis",
+        "value": ""
+       },
+       {
+        "key": "reasons",
+        "value": "overlapping_ownership"
+       },
+       {
+        "key": "note",
+        "value": ""
+       },
+       {
+        "key": "track_id",
+        "value": "5"
+       },
+       {
+        "key": "observation_id",
+        "value": "4"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "label": "Report with zero detections",
+   "image": {
+    "path": "frames/005.png",
+    "sha256": "2de085724cde7b42f98457efa6288abb4a86732fae34092b3a140d993d8a8bc7",
+    "header": {
+     "stamp": {
+      "sec": 1002,
+      "nanosec": 500000000
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "width": 640,
+    "height": 360,
+    "encoding": "rgb8"
+   },
+   "readiness": {
+    "header": {
+     "stamp": {
+      "sec": 1002,
+      "nanosec": 500000000
+     },
+     "frame_id": "synthetic_color_optical_frame"
+    },
+    "status": []
+   }
+  }
+ ]
+}

@@ -32,7 +32,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pycodestyle==2.15.0
           python -m pip install ruff==0.17.1
-          python -m pip install PySide6==6.12.0
+          # PySide6 6.12.0 on Python 3.10 drops a reference to None on every
+          # void Qt call (QLabel.setText, processEvents, ...) and aborts with
+          # "none_dealloc: deallocating None" once enough calls are made.
+          # 6.11.2 is the newest release without it.
+          python -m pip install PySide6==6.11.2
           python -m pip install dateutils==0.6.12
           python -m pip install pycocotools==2.0.7
           python -m pip install labelme==5.0.1
@@ -50,6 +54,11 @@ jobs:
             easy_perception_deployment/easy_perception_deployment/gui/main.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_live_perception_view.py \
             easy_perception_deployment/easy_perception_deployment/gui/windows/epd2_productization.py \
+            easy_perception_deployment/easy_perception_deployment/gui/windows/perception_monitor.py \
+            easy_perception_deployment/easy_perception_deployment/gui/windows/perception_readiness.py \
+            easy_perception_deployment/easy_perception_deployment/gui/test_perception_monitor.py \
+            easy_perception_deployment/easy_perception_deployment/gui/perception_monitor_acceptance.py \
+            easy_perception_deployment/easy_perception_deployment/fixtures/perception_sessions/make_synthetic_sessions.py \
             --count
           pycodestyle --show-source \
             --ignore=E121,E123,E126,E226,E24,E704,W503,W504,E501 \
@@ -87,4 +96,5 @@ jobs:
             test_profiles_replay.py \
             test_3d_diagnostics.py \
             test_performance_backends.py \
-            test_acceptance_stability.py
+            test_acceptance_stability.py \
+            test_perception_monitor.py

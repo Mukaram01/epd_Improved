@@ -29,6 +29,7 @@ jobs:
           pycodestyle --show-source \
             easy_perception_deployment/easy_perception_deployment/scripts/test_config_epd.py \
             easy_perception_deployment/easy_perception_deployment/scripts/cli/config_epd.py \
+            easy_perception_deployment/easy_perception_deployment/scripts/epd_perception_session_export.py \
             --count
           # An explicit --ignore replaces pycodestyle's default ignore list,
           # so the defaults are listed alongside the E501 baseline.

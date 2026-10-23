@@ -30,6 +30,7 @@ from windows.Main import MainWindow
 from windows.Train import TrainWindow
 
 from datetime import date
+import shiboken6
 from PySide6 import QtCore
 from PySide6.QtWidgets import QMessageBox
 
@@ -121,6 +122,25 @@ def test_closeAll_MainWindow(qtbot):
     assert widget.isVisible() is False
     assert widget.train_window.isVisible() is False
     assert widget.deploy_window.isVisible() is False
+
+
+def test_MainWindow_deletes_Train_and_Deploy_windows(qtbot):
+    """Train/Deploy are parentless windows held by MainWindow attributes.
+
+    They must be deleted on the GUI thread with MainWindow. Left to Python's
+    cyclic GC they could be destroyed on a worker thread with live timers,
+    which crashed GUI CI ("Timers cannot be stopped from another thread").
+    """
+    widget = MainWindow()
+    train_window = widget.train_window
+    deploy_window = widget.deploy_window
+    widget.deleteLater()
+    for _ in range(3):
+        QtCore.QCoreApplication.sendPostedEvents(
+            None, QtCore.QEvent.DeferredDelete)
+
+    assert not shiboken6.isValid(train_window)
+    assert not shiboken6.isValid(deploy_window)
 
 
 def test_emptySession_emptyUseCase_DeployWindow(qtbot):

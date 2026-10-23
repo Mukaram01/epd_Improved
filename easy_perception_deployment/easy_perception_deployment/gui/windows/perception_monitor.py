@@ -833,7 +833,7 @@ class PerceptionMonitorController(QObject):
         self.main_window = main_window
         self.deploy = main_window.deploy_window
         self._clock = clock
-        self.settings = QSettings(SETTINGS_ORG, SETTINGS_APP)
+        self.settings = QSettings(SETTINGS_ORG, SETTINGS_APP, self)
         self.mode = self.MODE_LIVE
         self.session = None
         self.load_error = ""
@@ -864,6 +864,10 @@ class PerceptionMonitorController(QObject):
 
         self._build_workspace()
         self._append_style()
+        # The ROS worker is plain Python: stop it even if Deploy is deleted
+        # without a close event. The callback must not reference self.
+        live_monitor = self.live_monitor
+        self.destroyed.connect(lambda *_: live_monitor.stop())
         self.deploy._job_controller.state_changed.connect(self._on_job_state)
         self.deploy.installEventFilter(self)
         self._set_mode(self.MODE_LIVE)

@@ -27,7 +27,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-from PySide6.QtCore import QSize
+import shiboken6
+from PySide6.QtCore import QCoreApplication, QEvent, QSize
 from PySide6.QtWidgets import QApplication, QPushButton
 
 from windows.perception_readiness import (
@@ -318,11 +319,14 @@ def epd_app(qapp, tmp_path_factory):
         deploy.perception_monitor.shutdown()
         for top in QApplication.topLevelWidgets():
             top.close()
-        qapp.processEvents()
-        # Collect the window's wrappers here, on the GUI thread.
+        # Delete on the GUI thread; MainWindow then deletes Train/Deploy.
+        window.deleteLater()
+        for _ in range(3):
+            QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+            qapp.processEvents()
+        assert not shiboken6.isValid(deploy)
         del window, deploy
         gc.collect()
-        qapp.processEvents()
 
 
 @pytest.fixture
@@ -565,7 +569,7 @@ def test_switching_session_or_mode_clears_stale_details(epd):
     assert monitor.table_model.rowCount() == 0
 
 
-def test_repeated_replay_cycles_release_resources(epd):
+def test_repeated_replay_cycles_release_resources(epd, qtbot):
     monitor = epd.monitor
     baseline = threading.active_count()
     for _ in range(20):
@@ -581,7 +585,8 @@ def test_repeated_replay_cycles_release_resources(epd):
     assert len(monitor.cache) == 0
     assert not monitor.replay_timer.isActive()
     monitor.replay_button.click()
-    assert not monitor.live_subscribed()
+    # The worker drops the subscription on its next loop (<= 0.1 s).
+    qtbot.waitUntil(lambda: not monitor.live_subscribed(), timeout=2000)
     assert len(monitor.cache._images) <= monitor.cache._capacity
     assert threading.active_count() <= baseline + 1
     epd.deploy.close()

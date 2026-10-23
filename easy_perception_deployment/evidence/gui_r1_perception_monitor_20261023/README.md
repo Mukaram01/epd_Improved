@@ -80,9 +80,35 @@ Screenshots were grabbed from the running windows:
 - **Existing Run button:** the legacy job-state handler reset its icon to 100 px, which clipped it. Restored.
 - **Inspector:** wrapped values were clipped when a scrollbar appeared. Fixed.
 - **ROS context churn:** switching modes created and destroyed a ROS context each time. The context now persists while Deploy is open, and only the subscription toggles.
-- **Pre-existing, not fixed:** with ROS sourced, the base GUI pytest suite segfaults in roughly 1 in 3 runs, in PySide deferred wrapper deletion. This branch's runs did not crash after the fixes above (0/12).
+- **Ghost Train/Deploy windows (pre-existing in #235; fixed in the follow-up commit):** with ROS sourced, the base GUI pytest suite segfaults in roughly 1 in 3 runs, in PySide deferred wrapper deletion. See "GUI CI segfault" below.
 
 **Open:** one SIGSEGV in a real-app run, on an earlier revision, during the transition into the start/stop cycles. It did not reproduce in 36 later full runs (plus 6 under gdb) or 2,100 stress cycles. Its cause is unknown.
+
+## GUI CI segfault (follow-up commit)
+
+GitHub GUI CI failed twice with SIGSEGV (exit 139) inside existing `test_gui.py` tests, after `QObject::killTimer: Timers cannot be stopped from another thread`.
+
+**Root cause, proven.** `MainWindow` creates its Train and Deploy windows as parentless top-level widgets that only Python attributes hold. After a test deletes `MainWindow`, both windows stay alive in a Python reference cycle, still running their UI timers. Nothing destroys them except Python's cyclic GC. That can run on any thread that executes Python, such as Deploy's topic-discovery `QThread` or ROS threads, so Qt objects are torn down off the GUI thread.
+
+PySide6 6.12.0 defers such deletions to the main thread and masked the problem; #240's pin to 6.11.2 exposed it.
+
+**Reproducer.** Run the CI test list with CI's pins, and after each test run `gc.collect()` on a worker thread:
+
+| Tree | Result |
+|---|---|
+| Base #235 | 3/3 segfault, with `killTimer` |
+| #240 before the fix | 3/3 segfault |
+| #240 with the fix | 6/6 clean, 132 passed, 2 skipped |
+
+A forced main-thread GC after each test segfaulted 4/4 on base and is clean with the fix.
+
+**Fix.** `MainWindow` deletes its Train and Deploy windows on the GUI thread when it is destroyed, via `destroyed` → `deleteLater`. The monitor also stops its ROS worker when its controller is destroyed. A new `test_gui.py` regression test fails without the fix.
+
+**After the fix:**
+- Exact CI command with CI pins: 10/10 clean, 133 passed, 2 skipped, no cross-thread timer warnings.
+- Forced off-thread GC, 5 runs: no cross-thread destruction.
+- ROS-sourced workstation runs: 0/8 crashed (base: 3/8).
+- Real-app acceptance: 3/3 runs exit 0, 23/23 checks each.
 
 ## Not covered
 

@@ -92,10 +92,14 @@ EPDObjectLocalization refineRgbd(
     object.source_sensor_stamp = observation.sensor_stamp();
     object.source_frame = observation.frame_id();
     object.failure_reasons = input_failures;
+    // Identity is independent of geometry: keep class and confidence even when
+    // the RGB-D input cannot support refinement.
+    if (i < detections.scores.size() && i < detections.classIndices.size()) {
+      object.confidence = detections.scores[i];
+      const auto label = detections.classIndices[i];
+      object.name = label < class_names.size() ? class_names[label] : std::to_string(label);
+    }
     if (input_failures) {continue;}
-    object.confidence = detections.scores[i];
-    const auto label = detections.classIndices[i];
-    object.name = label < class_names.size() ? class_names[label] : std::to_string(label);
     const auto & b = detections.bboxes[i];
     if (b[0] < 0 || b[1] < 0 || b[2] <= b[0] || b[3] <= b[1] ||
       b[2] > depth.cols || b[3] > depth.rows)

@@ -275,6 +275,13 @@ if(BUILD_TESTING)
   ament_target_dependencies(epd_test_hybrid_rgbd geometry_msgs sensor_msgs)
   target_link_libraries(epd_test_hybrid_rgbd ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
 
+  ament_add_gtest(epd_test_perception_readiness
+    test/test_perception_readiness.cpp src/hybrid_rgbd.cpp)
+  target_include_directories(epd_test_perception_readiness PRIVATE include ${PCL_INCLUDE_DIRS})
+  ament_target_dependencies(epd_test_perception_readiness
+    builtin_interfaces diagnostic_msgs geometry_msgs sensor_msgs std_msgs)
+  target_link_libraries(epd_test_perception_readiness ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
+
   ament_add_gtest(epd_test_geometry_quality test/test_geometry_quality.cpp)
   target_include_directories(epd_test_geometry_quality PRIVATE include ${PCL_INCLUDE_DIRS})
   ament_target_dependencies(epd_test_geometry_quality geometry_msgs sensor_msgs)

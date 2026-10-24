@@ -71,6 +71,7 @@
 #include "epd_msgs/srv/perception.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 #include "epd_utils_lib/message_utils.hpp"
+#include "epd_utils_lib/ros_message_transport.hpp"
 #include "epd_utils_lib/observation.hpp"
 #include "epd_utils_lib/inference_scheduler.hpp"
 #include "epd_utils_lib/geometry_quality.hpp"
@@ -1656,10 +1657,8 @@ void EasyPerceptionDeployment::process_localize_work(
     object.name = result.objects[i].name;
     object.roi = result.objects[i].roi;
 
-    sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
-      std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
-    mask_ptr->header.stamp = msg->header.stamp;
-    mask_ptr->header.frame_id = msg->header.frame_id;
+    sensor_msgs::msg::Image::SharedPtr mask_ptr =
+      EPD::makeSegmentedMaskImage(result.objects[i].mask, msg->header);
     object.segmented_binary_mask = *mask_ptr;
 
     object.centroid = result.objects[i].centroid;
@@ -1670,6 +1669,7 @@ void EasyPerceptionDeployment::process_localize_work(
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
+    EPD::setSegmentedCloudHeader(output_segmented_pcl, msg->header);
     object.segmented_pcl = output_segmented_pcl;
     object.pose = buildObjectPose(
       object.centroid,
@@ -1883,10 +1883,8 @@ void EasyPerceptionDeployment::process_tracking_work(
     object.name = result.objects[i].name;
     object.roi = result.objects[i].roi;
 
-    sensor_msgs::msg::Image::SharedPtr mask_ptr = cv_bridge::CvImage(
-      std_msgs::msg::Header(), "mono16", result.objects[i].mask).toImageMsg();
-    mask_ptr->header.stamp = msg->header.stamp;
-    mask_ptr->header.frame_id = msg->header.frame_id;
+    sensor_msgs::msg::Image::SharedPtr mask_ptr =
+      EPD::makeSegmentedMaskImage(result.objects[i].mask, msg->header);
     object.segmented_binary_mask = *mask_ptr;
 
     object.centroid = result.objects[i].centroid;
@@ -1897,6 +1895,7 @@ void EasyPerceptionDeployment::process_tracking_work(
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
+    EPD::setSegmentedCloudHeader(output_segmented_pcl, msg->header);
     object.segmented_pcl = output_segmented_pcl;
     object.pose = buildObjectPose(
       object.centroid,

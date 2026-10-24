@@ -1,0 +1,443 @@
+{
+  "integration": "PASS",
+  "scope": "12 newly captured D435i frames; native RGB-D messages replayed identically in both modes. No sustained direct-camera EPD rate qualification. No frozen Stage-A2 payload access.",
+  "stage_a2": "BLOCKED 0/2",
+  "source_heads": {
+    "231": "208a44dbb76a86085eb059f233f82451ceabd77d",
+    "232": "62fb324c1dee372e8a25339f82a2ec7f22a770bf"
+  },
+  "camera": {
+    "device": "Intel RealSense D435i",
+    "serial": "841612070219",
+    "SDK_USB_descriptor": "3.2",
+    "USB_link_Mbps": 5000,
+    "SDK_depth_scale_m_per_unit": 0.0010000000474974513,
+    "RGB_encoding": "rgb8",
+    "aligned_depth_encoding": "16UC1",
+    "RGB_aligned_dimensions": [
+      1280,
+      720
+    ],
+    "raw_depth_dimensions": [
+      848,
+      480
+    ],
+    "frame": "camera_color_optical_frame",
+    "intrinsics_K": [
+      915.6057739257812,
+      0.0,
+      645.0274658203125,
+      0.0,
+      915.3804931640625,
+      356.7813415527344,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "all_12_exact_sensor_stamps": true,
+    "all_12_calibration_matches": true,
+    "all_input_seals_verified": true,
+    "valid_depth_fraction_min": 0.9691796875,
+    "valid_depth_fraction_max": 0.9734787326388888,
+    "viewer_conflict": false
+  },
+  "model": {
+    "path": "MaskRCNN-10.onnx",
+    "sha256": "a519d8102cb162e78cbf123615aa5a8f3bf9d0fa1dec61a2fbbb42fa3f0e0757",
+    "COCO_list_indices": {
+      "banana": 47,
+      "apple": 48,
+      "mouse": 65
+    },
+    "confidence_source": "Production C++ P3OrtBase::infer using same built implementation, ONNX asset, CPU backend, 2 threads, BGR/CHW preprocessing and native padded 1280x736 input; threshold 0.5",
+    "binary_sha256": "40b567b29ba692fe2e9252b10d4ac78833fd4961324806c807e6d670d2a75bf6"
+  },
+  "tests": {
+    "build": "PASS",
+    "focused_CPP_targets": 7,
+    "focused_CPP_cases": 96,
+    "focused_Python_cases": 56,
+    "ROS_smoke_modes": [
+      "default",
+      "disabled",
+      "enabled_uint16",
+      "enabled_float",
+      "hybrid_tracking"
+    ],
+    "old_PR231_runtime_assertion": "expected FAIL at incorrect mono16 encoding; RED regression evidence",
+    "integrated_runtime_assertion": "PASS",
+    "default_OFF_vs_disabled_A": "exact object parity, 4/4 frames",
+    "default_OFF_vs_original_PR232_A": "exact object parity, 4/4 frames",
+    "all_12_correct_mask_encoding_stride_payload_headers": "PASS",
+    "all_12_hybrid_no_shared_pixels": "PASS",
+    "static_review": "No blockers; legacy inference/geometry source unchanged; ROS/EMD schema unchanged",
+    "full_object_CDR_parity_default_disabled_PR232": "PASS on 4/4 A frames: masks/cloud bytes, poses, source headers exactly equal"
+  },
+  "scenarios": {
+    "A": {
+      "captured_frames": 4,
+      "arrangement": "Separated, including a second banana-shaped item",
+      "detection_confidence": {
+        "banana": {
+          "instances": 8,
+          "frames_detected": 4,
+          "minimum": 0.7307069897651672,
+          "maximum": 0.9873931407928467
+        },
+        "apple": {
+          "instances": 4,
+          "frames_detected": 4,
+          "minimum": 0.9773030281066895,
+          "maximum": 0.980269730091095
+        },
+        "mouse": {
+          "instances": 3,
+          "frames_detected": 3,
+          "minimum": 0.6837534308433533,
+          "maximum": 0.799218475818634
+        },
+        "bicycle": {
+          "instances": 1,
+          "frames_detected": 1,
+          "minimum": 0.591989278793335,
+          "maximum": 0.591989278793335
+        },
+        "bottle": {
+          "instances": 0,
+          "frames_detected": 0,
+          "minimum": null,
+          "maximum": null
+        }
+      },
+      "raw_shared_pixels_sum": 0,
+      "legacy_valid_instances": 16,
+      "hybrid_valid_instances": 16,
+      "legacy_shared_mask_pixels_sum": 0,
+      "hybrid_shared_mask_pixels_sum": 0
+    },
+    "B": {
+      "captured_frames": 4,
+      "arrangement": "Closer with visible contact",
+      "detection_confidence": {
+        "banana": {
+          "instances": 6,
+          "frames_detected": 4,
+          "minimum": 0.5859380960464478,
+          "maximum": 0.9525045156478882
+        },
+        "apple": {
+          "instances": 4,
+          "frames_detected": 4,
+          "minimum": 0.8792858123779297,
+          "maximum": 0.9545373916625977
+        },
+        "mouse": {
+          "instances": 0,
+          "frames_detected": 0,
+          "minimum": null,
+          "maximum": null
+        },
+        "bicycle": {
+          "instances": 0,
+          "frames_detected": 0,
+          "minimum": null,
+          "maximum": null
+        },
+        "bottle": {
+          "instances": 1,
+          "frames_detected": 1,
+          "minimum": 0.6250627040863037,
+          "maximum": 0.6250627040863037
+        }
+      },
+      "raw_shared_pixels_sum": 16604,
+      "legacy_valid_instances": 11,
+      "hybrid_valid_instances": 5,
+      "legacy_shared_mask_pixels_sum": 16841,
+      "hybrid_shared_mask_pixels_sum": 0
+    },
+    "C": {
+      "captured_frames": 4,
+      "arrangement": "Banana partly overlaps mouse; apple touching",
+      "detection_confidence": {
+        "banana": {
+          "instances": 4,
+          "frames_detected": 4,
+          "minimum": 0.5015277862548828,
+          "maximum": 0.7576051950454712
+        },
+        "apple": {
+          "instances": 7,
+          "frames_detected": 4,
+          "minimum": 0.5310277938842773,
+          "maximum": 0.9774406552314758
+        },
+        "mouse": {
+          "instances": 0,
+          "frames_detected": 0,
+          "minimum": null,
+          "maximum": null
+        },
+        "bicycle": {
+          "instances": 0,
+          "frames_detected": 0,
+          "minimum": null,
+          "maximum": null
+        },
+        "bottle": {
+          "instances": 2,
+          "frames_detected": 2,
+          "minimum": 0.570864737033844,
+          "maximum": 0.7607400417327881
+        }
+      },
+      "raw_shared_pixels_sum": 49428,
+      "legacy_valid_instances": 13,
+      "hybrid_valid_instances": 7,
+      "legacy_shared_mask_pixels_sum": 50100,
+      "hybrid_shared_mask_pixels_sum": 0
+    }
+  },
+  "performance": {
+    "default": {
+      "mean_process_ms": 3987.3333333333335,
+      "median_process_ms": 3832.5,
+      "min_process_ms": 3441,
+      "max_process_ms": 4717,
+      "peak_rss_mib": 1484.90234375,
+      "mean_cpu_core_equivalent_roundtrip": 1.728217530077757,
+      "input_republications": 5,
+      "diagnostic_snapshots": [
+        {
+          "inference_started": "4",
+          "inference_completed": "4",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "16",
+          "geometry_valid_total": "16",
+          "geometry_degraded_total": "0",
+          "geometry_invalid_total": "0",
+          "tracks_created": "0",
+          "tracks_confirmed": "0",
+          "tracks_lost": "0",
+          "tracks_expired": "0",
+          "id_switches": "0"
+        },
+        {
+          "inference_started": "8",
+          "inference_completed": "8",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "24",
+          "geometry_valid_total": "24",
+          "geometry_degraded_total": "0",
+          "geometry_invalid_total": "0",
+          "tracks_created": "0",
+          "tracks_confirmed": "0",
+          "tracks_lost": "0",
+          "tracks_expired": "0",
+          "id_switches": "0"
+        }
+      ]
+    },
+    "hybrid": {
+      "mean_process_ms": 3697.75,
+      "median_process_ms": 3707.5,
+      "min_process_ms": 3397,
+      "max_process_ms": 4088,
+      "peak_rss_mib": 1386.12890625,
+      "mean_cpu_core_equivalent_roundtrip": 1.5687004259007526,
+      "input_republications": 11,
+      "diagnostic_snapshots": [
+        {
+          "inference_started": "4",
+          "inference_completed": "4",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "16",
+          "geometry_valid_total": "16",
+          "geometry_degraded_total": "0",
+          "geometry_invalid_total": "0",
+          "tracks_created": "0",
+          "tracks_confirmed": "0",
+          "tracks_lost": "0",
+          "tracks_expired": "0",
+          "id_switches": "0"
+        },
+        {
+          "inference_started": "8",
+          "inference_completed": "8",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "24",
+          "geometry_valid_total": "12",
+          "geometry_degraded_total": "12",
+          "geometry_invalid_total": "0",
+          "tracks_created": "0",
+          "tracks_confirmed": "0",
+          "tracks_lost": "0",
+          "tracks_expired": "0",
+          "id_switches": "0"
+        }
+      ]
+    },
+    "legacy_tracking": {
+      "mean_process_ms": 3709.8333333333335,
+      "median_process_ms": 3700.0,
+      "min_process_ms": 3402,
+      "max_process_ms": 4006,
+      "peak_rss_mib": 1520.1484375,
+      "mean_cpu_core_equivalent_roundtrip": 1.6405414972757255,
+      "input_republications": 7,
+      "diagnostic_snapshots": [
+        {
+          "inference_started": "8",
+          "inference_completed": "8",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "24",
+          "geometry_valid_total": "24",
+          "geometry_degraded_total": "0",
+          "geometry_invalid_total": "0",
+          "tracks_created": "5",
+          "tracks_confirmed": "5",
+          "tracks_lost": "3",
+          "tracks_expired": "1",
+          "id_switches": "0"
+        },
+        {
+          "inference_started": "4",
+          "inference_completed": "4",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "16",
+          "geometry_valid_total": "16",
+          "geometry_degraded_total": "0",
+          "geometry_invalid_total": "0",
+          "tracks_created": "5",
+          "tracks_confirmed": "4",
+          "tracks_lost": "1",
+          "tracks_expired": "0",
+          "id_switches": "0"
+        }
+      ]
+    },
+    "hybrid_tracking": {
+      "mean_process_ms": 3698.8333333333335,
+      "median_process_ms": 3639.0,
+      "min_process_ms": 3430,
+      "max_process_ms": 4325,
+      "peak_rss_mib": 1529.59375,
+      "mean_cpu_core_equivalent_roundtrip": 1.5570955150289991,
+      "input_republications": 12,
+      "diagnostic_snapshots": [
+        {
+          "inference_started": "8",
+          "inference_completed": "8",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "24",
+          "geometry_valid_total": "12",
+          "geometry_degraded_total": "12",
+          "geometry_invalid_total": "0",
+          "tracks_created": "5",
+          "tracks_confirmed": "5",
+          "tracks_lost": "3",
+          "tracks_expired": "1",
+          "id_switches": "0"
+        },
+        {
+          "inference_started": "4",
+          "inference_completed": "4",
+          "inference_failed": "0",
+          "observations_skipped_before_inference": "0",
+          "backlog_high_water_mark": "1",
+          "detections_total": "16",
+          "geometry_valid_total": "16",
+          "geometry_degraded_total": "0",
+          "geometry_invalid_total": "0",
+          "tracks_created": "5",
+          "tracks_confirmed": "4",
+          "tracks_lost": "1",
+          "tracks_expired": "0",
+          "id_switches": "0"
+        }
+      ]
+    }
+  },
+  "tracking": {
+    "legacy_tracking": {
+      "A_known_object_ids": {
+        "apple": [
+          1
+        ],
+        "banana": [
+          2,
+          3
+        ],
+        "mouse": [
+          4
+        ]
+      },
+      "GT_ID_switch_accuracy": "UNKNOWN; no independently labelled identities"
+    },
+    "hybrid_tracking": {
+      "A_known_object_ids": {
+        "apple": [
+          1
+        ],
+        "banana": [
+          2,
+          3
+        ],
+        "mouse": [
+          4
+        ]
+      },
+      "GT_ID_switch_accuracy": "UNKNOWN; no independently labelled identities"
+    }
+  },
+  "accuracy_metrics": {
+    "precision": "UNKNOWN without independently labelled ground truth",
+    "recall": "UNKNOWN without independently labelled ground truth",
+    "IoU": "UNKNOWN without independently labelled ground truth",
+    "semantic_instance_ownership": "UNKNOWN without independently labelled ground truth",
+    "centroid_error_m": "UNKNOWN without independently labelled ground truth",
+    "dimension_error_m": "UNKNOWN without independently labelled ground truth",
+    "pose_error": "UNKNOWN without independently labelled ground truth",
+    "ID_switch_accuracy": "UNKNOWN without independently labelled ground truth"
+  },
+  "limitations": [
+    "Mouse detected in 3/4 separated frames and absent above 0.5 threshold in closer/overlapping scenes.",
+    "A contains two banana-shaped items; one extra bicycle proposal, B/C extra class proposals. Class confidence and geometry gates do not establish correctness.",
+    "Legacy and hybrid reported dimensions use different conventions; hybrid is visible camera-axis extent, not completed physical size or CAD pose.",
+    "Native replay initially failed in Cyclone DDS before inference; Fast DDS with reliable output override completed. Input republications are recorded; timings are processing latency, not live FPS.",
+    "First legacy tracking attempt omitted required tracker type; rerun with KCF override passed.",
+    "No EPD direct-camera sustained throughput qualification; live acquisition works, comparison is on captured real frames."
+  ],
+  "evidence_root": "/home/user/epd-v2-artifacts/rgbd-integration-20261016",
+  "parameters": {
+    "hybrid_default_enabled": false,
+    "camera_to_plane_distance_mm": 1000.0,
+    "confidence_threshold": 0.5,
+    "max_detections": 100,
+    "hybrid_maximum_neighbor_distance_m": 0.015,
+    "hybrid_minimum_component_fraction": 0.6,
+    "hybrid_maximum_overlap_fraction": 0.25,
+    "hybrid_maximum_visible_extent_m": 0.0,
+    "tracker_type_override": "KCF",
+    "backend": "cpu",
+    "intra_op_num_threads": 2,
+    "replay_RMW": "rmw_fastrtps_cpp",
+    "replay_output_reliability_override": "reliable"
+  },
+  "per_frame_results": "frames.jsonl",
+  "full_local_results": "/home/user/epd-v2-artifacts/rgbd-integration-20261016/results.json"
+}

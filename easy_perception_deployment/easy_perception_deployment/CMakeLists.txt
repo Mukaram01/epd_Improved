@@ -60,6 +60,7 @@ include_directories(
 
 # Add all custom library sources for compilation.
 set(EPD_UTILS
+  src/hybrid_rgbd.cpp
   src/epd_container.cpp
   src/ort_base.cpp
   src/p3_ort_base.cpp
@@ -264,6 +265,15 @@ if(BUILD_TESTING)
   ament_add_gtest(epd_test_inference_scheduler test/test_inference_scheduler.cpp)
   target_include_directories(epd_test_inference_scheduler PRIVATE include)
   ament_target_dependencies(epd_test_inference_scheduler sensor_msgs epd_msgs)
+
+  add_executable(epd_hybrid_rgbd_replay test/hybrid_rgbd_replay.cpp src/hybrid_rgbd.cpp)
+  ament_target_dependencies(epd_hybrid_rgbd_replay geometry_msgs sensor_msgs)
+  target_link_libraries(epd_hybrid_rgbd_replay ${OpenCV_LIBRARIES} ${PCL_LIBRARIES} jsoncpp::jsoncpp)
+
+  ament_add_gtest(epd_test_hybrid_rgbd test/test_hybrid_rgbd.cpp src/hybrid_rgbd.cpp)
+  target_include_directories(epd_test_hybrid_rgbd PRIVATE include ${PCL_INCLUDE_DIRS})
+  ament_target_dependencies(epd_test_hybrid_rgbd geometry_msgs sensor_msgs)
+  target_link_libraries(epd_test_hybrid_rgbd ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
 
   ament_add_gtest(epd_test_geometry_quality test/test_geometry_quality.cpp)
   target_include_directories(epd_test_geometry_quality PRIVATE include ${PCL_INCLUDE_DIRS})

@@ -75,6 +75,7 @@
 #include "epd_utils_lib/observation.hpp"
 #include "epd_utils_lib/inference_scheduler.hpp"
 #include "epd_utils_lib/geometry_quality.hpp"
+#include "epd_utils_lib/hybrid_rgbd.hpp"
 #include "epd_utils_lib/time_utils.hpp"
 #include "epd_utils_lib/temporal_tracker.hpp"
 
@@ -275,6 +276,8 @@ private:
   rclcpp::TimerBase::SharedPtr inference_diagnostics_timer_;
   rclcpp::Time metrics_start_time_;
   EPD::GeometryThresholds geometry_thresholds_;
+  bool hybrid_refinement_enabled_{false};
+  EPD::HybridRgbdOptions hybrid_options_;
   void report_geometry(const EPD::LocalizedObject & object, const cv::Mat & depth);
   std::atomic<uint64_t> detections_total_{0};
   std::atomic<uint64_t> geometry_valid_total_{0};
@@ -341,6 +344,11 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<double>("rgb_input_watchdog_timeout_s", 5.0);
   this->declare_parameter<int>("slow_frame_warn_ms", 1000);
   this->declare_parameter<double>("max_processing_fps", 0.0);
+  this->declare_parameter<bool>("hybrid_refinement_enabled", false);
+  this->declare_parameter<double>("hybrid_maximum_neighbor_distance_m", 0.015);
+  this->declare_parameter<double>("hybrid_minimum_component_fraction", 0.60);
+  this->declare_parameter<double>("hybrid_maximum_overlap_fraction", 0.25);
+  this->declare_parameter<double>("hybrid_maximum_visible_extent_m", 0.0);
   this->declare_parameter<int>("geometry_minimum_mask_pixels", 16);
   this->declare_parameter<int>("geometry_minimum_depth_pixels", 12);
   this->declare_parameter<double>("geometry_minimum_valid_depth_ratio", 0.20);
@@ -374,6 +382,15 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
     this->get_parameter("image_output_qos_reliability").as_string();
   int image_output_qos_depth = this->get_parameter("image_output_qos_depth").as_int();
   use_depth_ = this->get_parameter("use_depth").as_bool();
+  hybrid_refinement_enabled_ = this->get_parameter("hybrid_refinement_enabled").as_bool();
+  hybrid_options_.maximum_neighbor_distance_m =
+    this->get_parameter("hybrid_maximum_neighbor_distance_m").as_double();
+  hybrid_options_.minimum_component_fraction =
+    this->get_parameter("hybrid_minimum_component_fraction").as_double();
+  hybrid_options_.maximum_overlap_fraction =
+    this->get_parameter("hybrid_maximum_overlap_fraction").as_double();
+  hybrid_options_.maximum_visible_extent_m =
+    this->get_parameter("hybrid_maximum_visible_extent_m").as_double();
   rgb_input_watchdog_timeout_s_ = this->get_parameter("rgb_input_watchdog_timeout_s").as_double();
   slow_frame_warn_ms_ = this->get_parameter("slow_frame_warn_ms").as_int();
   max_processing_fps_ = this->get_parameter("max_processing_fps").as_double();
@@ -1542,12 +1559,23 @@ void EasyPerceptionDeployment::process_localize_work(
   cv::Mat depth_img;
   if (depth_msg) {
     cv_bridge::CvImageConstPtr depth_imageptr;
-    if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-      depth_imageptr = cv_bridge::toCvShare(depth_msg);
+    if (hybrid_refinement_enabled_) {
+      // Preserve units: 16UC1 is millimetres, 32FC1 is metres. Unsupported
+      // encodings remain empty and are rejected by refinement.
+      if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1 ||
+        depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+      {
+        depth_imageptr = cv_bridge::toCvShare(depth_msg);
+        depth_img = depth_imageptr->image;
+      }
     } else {
-      depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+      if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
+        depth_imageptr = cv_bridge::toCvShare(depth_msg);
+      } else {
+        depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+      }
+      depth_img = depth_imageptr->image;
     }
-    depth_img = depth_imageptr->image;
   } else {
     depth_img = cv::Mat::zeros(img.rows, img.cols, CV_16UC1);
   }
@@ -1561,6 +1589,15 @@ void EasyPerceptionDeployment::process_localize_work(
 
   EPD::EPDObjectLocalization result = [&]() {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    if (hybrid_refinement_enabled_) {
+      const auto raw = ortAgent_.p3_ort_session->infer(img);
+      // Consider all confidence-qualified owners before applying the output cap.
+      const auto detections = applyDetectionFilters(raw, ortAgent_.confidence_threshold, 0);
+      auto options = hybrid_options_;
+      options.maximum_depth_m = camera_to_plane_distance_mm * 0.001;
+      return EPD::refineRgbd(detections, depth_img, *observation,
+        ortAgent_.p3_ort_session->getClassNames(), options, geometry_thresholds_);
+    }
     return ortAgent_.p3_ort_session->infer(
       img,
       depth_img,
@@ -1585,7 +1622,7 @@ void EasyPerceptionDeployment::process_localize_work(
     object.source_observation_id = observation->observation_id();
     object.source_sensor_stamp = observation->sensor_stamp();
     object.source_frame = observation->frame_id();
-    const auto quality = EPD::validateLocalizedObject(
+    const auto quality = hybrid_refinement_enabled_ ? object.quality : EPD::validateLocalizedObject(
       object, static_cast<uint32_t>(img.cols), static_cast<uint32_t>(img.rows),
       camera_info->k.at(0), camera_info->k.at(4), camera_info->k.at(2), camera_info->k.at(5),
       geometry_thresholds_);
@@ -1738,12 +1775,23 @@ void EasyPerceptionDeployment::process_tracking_work(
   cv::Mat depth_img;
   if (depth_msg) {
     cv_bridge::CvImageConstPtr depth_imageptr;
-    if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
-      depth_imageptr = cv_bridge::toCvShare(depth_msg);
+    if (hybrid_refinement_enabled_) {
+      // Preserve units: 16UC1 is millimetres, 32FC1 is metres. Unsupported
+      // encodings remain empty and are rejected by refinement.
+      if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1 ||
+        depth_msg->encoding == sensor_msgs::image_encodings::TYPE_32FC1)
+      {
+        depth_imageptr = cv_bridge::toCvShare(depth_msg);
+        depth_img = depth_imageptr->image;
+      }
     } else {
-      depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+      if (depth_msg->encoding == sensor_msgs::image_encodings::TYPE_16UC1) {
+        depth_imageptr = cv_bridge::toCvShare(depth_msg);
+      } else {
+        depth_imageptr = cv_bridge::toCvCopy(depth_msg, sensor_msgs::image_encodings::TYPE_16UC1);
+      }
+      depth_img = depth_imageptr->image;
     }
-    depth_img = depth_imageptr->image;
   } else {
     depth_img = cv::Mat::zeros(img.rows, img.cols, CV_16UC1);
   }
@@ -1757,6 +1805,17 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   EPD::EPDObjectTracking result = [&]() {
     std::lock_guard<std::mutex> ort_guard(ort_mutex_);
+    if (hybrid_refinement_enabled_) {
+      const auto raw = ortAgent_.p3_ort_session->infer(img);
+      const auto detections = applyDetectionFilters(raw, ortAgent_.confidence_threshold, 0);
+      auto options = hybrid_options_;
+      options.maximum_depth_m = camera_to_plane_distance_mm * 0.001;
+      auto localized = EPD::refineRgbd(detections, depth_img, *observation,
+        ortAgent_.p3_ort_session->getClassNames(), options, geometry_thresholds_);
+      EPD::EPDObjectTracking tracked(localized.size());
+      tracked.objects = std::move(localized.objects);
+      return tracked;  // existing temporal_tracker_ owns persistent association below
+    }
     return ortAgent_.p3_ort_session->infer(
       img,
       depth_img,
@@ -1786,7 +1845,7 @@ void EasyPerceptionDeployment::process_tracking_work(
     object.source_observation_id = observation->observation_id();
     object.source_sensor_stamp = observation->sensor_stamp();
     object.source_frame = observation->frame_id();
-    const auto quality = EPD::validateLocalizedObject(
+    const auto quality = hybrid_refinement_enabled_ ? object.quality : EPD::validateLocalizedObject(
       object, static_cast<uint32_t>(img.cols), static_cast<uint32_t>(img.rows),
       camera_info->k.at(0), camera_info->k.at(4), camera_info->k.at(2), camera_info->k.at(5),
       geometry_thresholds_);

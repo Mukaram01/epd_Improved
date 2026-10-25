@@ -426,6 +426,13 @@ def build_snapshot(
     return snapshot, errors, warnings
 
 
+def _diagnostic_level(level):
+    """DiagnosticStatus.level: rclpy delivers the uint8 as a 1-byte bytes object."""
+    if isinstance(level, (bytes, bytearray)):
+        return level[0] if level else 0
+    return int(level or 0)
+
+
 def diagnostics_payload(message):
     """Extract EPD inference-worker health without changing backend semantics."""
     for status in getattr(message, "status", []) or []:
@@ -437,7 +444,7 @@ def diagnostics_payload(message):
         }
         return {
             "available": True,
-            "level": int(getattr(status, "level", 0) or 0),
+            "level": _diagnostic_level(getattr(status, "level", 0)),
             "message": str(getattr(status, "message", "") or ""),
             "hardware_id": str(getattr(status, "hardware_id", "") or ""),
             "values": values,

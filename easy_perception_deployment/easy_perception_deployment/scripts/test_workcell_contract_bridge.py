@@ -249,3 +249,11 @@ def test_reported_confidence_depth_support_and_rejections_are_carried_not_invent
         _localization_message(), source_kind="localization", scene_id="cell", camera_id="d435i")
     assert "confidence" not in legacy["objects"][0] and legacy["rejected_objects"] == []
     assert legacy["provenance"]["confidence_available"] is False
+
+
+def test_live_diagnostic_levels_arrive_as_bytes_and_are_decoded():
+    status = SimpleNamespace(name="easy_perception_deployment/inference_worker", level=b"\x02", message="backend error", values=[])
+    payload = BRIDGE.diagnostics_payload(SimpleNamespace(status=[status]))
+    assert payload["level"] == 2 and payload["available"] is True
+    assert BRIDGE.diagnostics_payload(SimpleNamespace(status=[SimpleNamespace(
+        name="easy_perception_deployment/inference_worker", level=0, message="ok", values=[])]))["level"] == 0

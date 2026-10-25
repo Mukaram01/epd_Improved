@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "onnxruntime_cxx_api.h"
 
 namespace
 {
@@ -68,13 +68,10 @@ std::string tensorInfoJson(
   const size_t index,
   const bool input)
 {
-  char * raw_name = input ?
-    session.GetInputName(index, allocator) :
-    session.GetOutputName(index, allocator);
-  const std::string name = raw_name == nullptr ? "<unknown>" : raw_name;
-  if (raw_name != nullptr) {
-    allocator.Free(raw_name);
-  }
+  auto raw_name = input ?
+    session.GetInputNameAllocated(index, allocator) :
+    session.GetOutputNameAllocated(index, allocator);
+  const std::string name = raw_name ? raw_name.get() : "<unknown>";
 
   try {
     Ort::TypeInfo type_info = input ?

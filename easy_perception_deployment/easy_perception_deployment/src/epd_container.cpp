@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "onnxruntime/core/session/onnxruntime_cxx_api.h"
+#include "onnxruntime_cxx_api.h"
 #include "epd_utils_lib/epd_container.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 
@@ -251,11 +251,9 @@ ModelInputInfo inspectModelInputInfo(
     throw std::runtime_error("Model has no inputs: " + model_path);
   }
 
-  char * input_name = session.GetInputName(0, allocator);
-  std::string resolved_input_name = input_name == nullptr ? std::string("<unknown>") : input_name;
-  if (input_name != nullptr) {
-    allocator.Free(input_name);
-  }
+  auto input_name = session.GetInputNameAllocated(0, allocator);
+  std::string resolved_input_name =
+    input_name ? input_name.get() : "<unknown>";
 
   // TensorTypeAndShapeInfo is a borrowed view. Keep its owning TypeInfo alive
   // until all shape queries have completed; a chained temporary leaves the

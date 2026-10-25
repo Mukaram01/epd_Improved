@@ -1,3 +1,17 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """EPD-0 productization: camera truth, clearer controls and in-app help."""
 
 from __future__ import annotations
@@ -5,11 +19,10 @@ from __future__ import annotations
 import time
 from types import MethodType
 
-from PySide6.QtCore import QThread, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import QFrame, QLabel, QPushButton
 
-from windows.Deploy import ImageTopicsWorker
 from windows.help_window import HelpWindow
 
 
@@ -40,7 +53,7 @@ def _install_launcher_help(main_window):
     if root is None:
         return
 
-    button = QPushButton("Help & Guides   F1", main_window)
+    button = QPushButton("Help && Guides   F1", main_window)
     button.setObjectName("epd0HelpButton")
     button.setCursor(Qt.PointingHandCursor)
     button.setMinimumHeight(36)
@@ -178,36 +191,12 @@ def _replace_topic_refresh(w):
 
         self.refresh_topics_button.setEnabled(False)
         self.validation_label.setText("Checking ROS 2 image topics…")
-        self._topics_worker = ImageTopicsWorker(
-            timeout_sec=_IMAGE_TOPIC_TIMEOUT_SEC
+        self._start_topics_worker(
+            timeout_sec=_IMAGE_TOPIC_TIMEOUT_SEC,
+            current_topic=current,
+            on_success=self._epd0_topic_success,
+            on_error=self._epd0_topic_error,
         )
-        self._topics_worker_thread = QThread(self)
-        self._topics_worker.moveToThread(self._topics_worker_thread)
-
-        self._topics_worker_thread.started.connect(self._topics_worker.run)
-        self._topics_worker.signals.success.connect(
-            lambda topics, selected=current: self._epd0_topic_success(
-                topics,
-                selected,
-            )
-        )
-        self._topics_worker.signals.error.connect(self._epd0_topic_error)
-        self._topics_worker.signals.finished.connect(
-            self._on_topics_refresh_finished
-        )
-        self._topics_worker.signals.finished.connect(
-            self._topics_worker_thread.quit
-        )
-        self._topics_worker_thread.finished.connect(
-            self._topics_worker.deleteLater
-        )
-        self._topics_worker_thread.finished.connect(
-            self._topics_worker_thread.deleteLater
-        )
-        self._topics_worker_thread.finished.connect(
-            self._clear_topics_worker_refs
-        )
-        self._topics_worker_thread.start()
 
     def on_success(self, topics, current):
         self._image_topics_cache = topics
@@ -272,8 +261,8 @@ def _add_deploy_help_button(main_window, deploy):
 def _improve_section_copy(deploy):
     replacements = {
         "Select the use case and runtime output options.": (
-            "Choose the perception task and optional human/mask outputs. "
-            "Hover controls for guidance."
+            "Choose the perception task, the target objects (e.g. banana, "
+            "apple) and optional mask outputs. Hover controls for guidance."
         ),
         "Select an image topic from ROS 2 or type one manually.": (
             "Choose the RGB stream. RealSense default: "

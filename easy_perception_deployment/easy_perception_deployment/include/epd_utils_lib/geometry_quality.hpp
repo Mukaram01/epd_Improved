@@ -1,5 +1,16 @@
 // Copyright 2026 Advanced Remanufacturing and Technology Centre
-// Licensed under the Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef EPD_UTILS_LIB__GEOMETRY_QUALITY_HPP_
 #define EPD_UTILS_LIB__GEOMETRY_QUALITY_HPP_
@@ -52,8 +63,8 @@ inline std::string failureNames(uint32_t failures)
   std::ostringstream out;
   bool first = true;
   for (const auto & entry : entries) {
-    if ((failures & reason(entry.flag)) == 0) continue;
-    if (!first) out << ',';
+    if ((failures & reason(entry.flag)) == 0) {continue;}
+    if (!first) {out << ',';}
     out << entry.name;
     first = false;
   }
@@ -72,8 +83,10 @@ inline std::string geometryDiagnostic(const LocalizedObject & object, const cv::
       << " valid_depth_pixels=" << object.valid_depth_pixel_count
       << " valid_depth_ratio=" << object.valid_depth_ratio;
   const bool inside = object.roi.width > 0 && object.roi.height > 0 &&
-    static_cast<uint64_t>(object.roi.x_offset) + object.roi.width <= static_cast<uint64_t>(depth.cols) &&
-    static_cast<uint64_t>(object.roi.y_offset) + object.roi.height <= static_cast<uint64_t>(depth.rows);
+    static_cast<uint64_t>(object.roi.x_offset) + object.roi.width <=
+    static_cast<uint64_t>(depth.cols) &&
+    static_cast<uint64_t>(object.roi.y_offset) + object.roi.height <=
+    static_cast<uint64_t>(depth.rows);
   if (!depth.empty() && inside && object.mask.type() == CV_8UC1 &&
     object.mask.cols == static_cast<int>(object.roi.width) &&
     object.mask.rows == static_cast<int>(object.roi.height) &&
@@ -83,14 +96,15 @@ inline std::string geometryDiagnostic(const LocalizedObject & object, const cv::
     size_t zero = 0, nonfinite = 0, negative = 0;
     for (int y = 0; y < object.mask.rows; ++y) {
       for (int x = 0; x < object.mask.cols; ++x) {
-        if (!object.mask.at<uint8_t>(y, x)) continue;
+        if (!object.mask.at<uint8_t>(y, x)) {continue;}
         const int u = static_cast<int>(object.roi.x_offset) + x;
         const int v = static_cast<int>(object.roi.y_offset) + y;
-        const float z = depth.type() == CV_16UC1 ? depth.at<uint16_t>(v,u)*0.001F : depth.at<float>(v,u);
-        if (!std::isfinite(z)) ++nonfinite;
-        else if (z == 0) ++zero;
-        else if (z < 0) ++negative;
-        else values.push_back(z);
+        const float z = depth.type() == CV_16UC1 ? depth.at<uint16_t>(
+          v,
+          u) * 0.001F : depth.at<float>(v, u);
+        if (!std::isfinite(z)) {++nonfinite;} else if (z == 0) {++zero;} else if (z < 0) {
+          ++negative;
+        } else {values.push_back(z);}
       }
     }
     out << " depth_encoding=" << (depth.type() == CV_16UC1 ? "16UC1_mm" : "32FC1_m")
@@ -99,8 +113,9 @@ inline std::string geometryDiagnostic(const LocalizedObject & object, const cv::
     if (!values.empty()) {
       const auto bounds = std::minmax_element(values.begin(), values.end());
       const float low = *bounds.first, high = *bounds.second;
-      std::nth_element(values.begin(), values.begin()+values.size()/2, values.end());
-      out << " min/median/max_depth_m=<" << low << ',' << values[values.size()/2] << ',' << high << '>';
+      std::nth_element(values.begin(), values.begin() + values.size() / 2, values.end());
+      out << " min/median/max_depth_m=<" << low << ',' << values[values.size() / 2] << ',' <<
+        high << '>';
     } else {
       out << " depth_statistics=unavailable_no_positive_depth";
     }
@@ -113,7 +128,8 @@ inline std::string geometryDiagnostic(const LocalizedObject & object, const cv::
       << "> axis=<" << object.axis.x << ',' << object.axis.y << ',' << object.axis.z
       << "> geometry_status=" << (object.quality == GeometryQuality::VALID ? "PASS" : "FAIL")
       << " reject_reason=" << failureNames(object.failure_reasons)
-      << " source_frame=" << object.source_frame << " observation_id=" << object.source_observation_id;
+      << " source_frame=" << object.source_frame << " observation_id=" <<
+    object.source_observation_id;
   return out.str();
 }
 

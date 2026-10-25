@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import atexit
 import os
 import sys
 import json
@@ -30,14 +31,15 @@ try:
     _RCLPY_AVAILABLE = True
 except ImportError:
     _RCLPY_AVAILABLE = False
-from PySide6.QtCore import QObject, QSize, QThread, QTimer, QElapsedTimer, Signal, Slot
+from PySide6.QtCore import QObject, QSize, Qt, QThread, QTimer, QElapsedTimer, Signal, Slot
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (QComboBox, QFileDialog, QGridLayout, QLabel,
+from PySide6.QtWidgets import (QComboBox, QDialog, QFileDialog, QGridLayout, QLabel,
                                QMessageBox, QPushButton, QWidget,
                                QDoubleSpinBox, QSpinBox)
 
 from windows.Counting import CountingWindow
 from windows.Tracking import TrackingWindow
+from windows.target_objects import TargetObjectsDialog, target_objects_summary
 from windows.job_controller import JobController, JobState
 
 _SCHEMA_IMPORT_ROOT = str(Path(__file__).resolve().parents[2] / 'scripts')
@@ -65,52 +67,104 @@ class _ImageTopicsWorkerSignals(QObject):
 
 
 class ImageTopicsWorker(QObject):
-    """Runs `ros2 topic list -t` in a Python thread managed by QThread."""
+    """Runs `ros2 topic list -t` on a QThread started by DeployWindow.
+
+    Ownership contract (see DeployWindow._start_topics_worker): the worker is
+    never moved to the thread and never deleteLater()'d. Python owns both the
+    worker and its QThread, so no Qt deferred delete can race Python
+    finalisation of the same object.
+    """
+
+    _POLL_INTERVAL_SEC = 0.1
 
     def __init__(self, timeout_sec=3):
         super().__init__()
         self.timeout_sec = timeout_sec
         self.signals = _ImageTopicsWorkerSignals()
+        self._cancel_event = threading.Event()
+
+    def cancel(self):
+        """Ask run() to stop early; the ros2 subprocess is killed."""
+        self._cancel_event.set()
 
     def run(self):
-        topics = []
         try:
-            result = subprocess.run(
+            self._run()
+        finally:
+            self.signals.finished.emit()
+
+    def _run(self):
+        try:
+            process = subprocess.Popen(
                 ['ros2', 'topic', 'list', '-t'],
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=self.timeout_sec)
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True)
         except FileNotFoundError:
             self.signals.error.emit('Unable to refresh topics: ros2 command not found.')
-            self.signals.finished.emit()
-            return
-        except subprocess.TimeoutExpired:
-            self.signals.error.emit('Topic refresh timed out. Keeping current topic list.')
-            self.signals.finished.emit()
             return
         except Exception as exc:
             self.signals.error.emit(f'Unable to refresh topics: {exc}')
-            self.signals.finished.emit()
             return
 
-        if result.returncode != 0:
-            stderr = result.stderr.strip()
+        deadline = time.monotonic() + self.timeout_sec
+        while True:
+            if self._cancel_event.is_set():
+                process.kill()
+                process.communicate()
+                return
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                process.kill()
+                process.communicate()
+                self.signals.error.emit(
+                    'Topic refresh timed out. Keeping current topic list.')
+                return
+            try:
+                stdout, stderr = process.communicate(
+                    timeout=min(self._POLL_INTERVAL_SEC, remaining))
+                break
+            except subprocess.TimeoutExpired:
+                continue
+
+        if process.returncode != 0:
+            stderr = stderr.strip()
             detail = f' ({stderr})' if stderr else ''
             self.signals.error.emit(
                 f'Unable to refresh topics from ROS2{detail}. Keeping current topic list.')
-            self.signals.finished.emit()
             return
 
-        for line in result.stdout.splitlines():
+        topics = []
+        for line in stdout.splitlines():
             stripped = line.strip()
             if not stripped or 'sensor_msgs/msg/Image' not in stripped:
                 continue
-            topic_name = stripped.split()[0]
-            topics.append(topic_name)
-
+            topics.append(stripped.split()[0])
         self.signals.success.emit(topics)
-        self.signals.finished.emit()
+
+
+# Topic-discovery QThread -> ImageTopicsWorker, for every thread that may
+# still be running. A DeployWindow can be garbage-collected without a
+# closeEvent (e.g. when it is only weakly referenced), and PySide holds a
+# QObject-method slot such as worker.run weakly. Without this registry the
+# worker could be freed while run() executes, and destroying a running
+# QThread aborts the process. Finished entries are pruned on the next start.
+_LIVE_TOPIC_THREADS = {}
+
+
+def _prune_finished_topic_threads():
+    for thread in list(_LIVE_TOPIC_THREADS):
+        if thread.isFinished():
+            thread.wait()
+            _LIVE_TOPIC_THREADS.pop(thread, None)
+
+
+@atexit.register
+def _stop_live_topic_threads():
+    for thread, worker in list(_LIVE_TOPIC_THREADS.items()):
+        worker.cancel()
+        thread.wait()
+    _LIVE_TOPIC_THREADS.clear()
 
 
 class FPSMonitorThread:
@@ -341,6 +395,9 @@ class DeployWindow(QWidget):
         self._image_topics_cache_ttl_sec = 3.0
         self._topics_worker_thread = None
         self._topics_worker = None
+        self._topics_selection = None
+        self._topics_success_handler = None
+        self._topics_error_handler = None
 
         self._path_to_session_config = str(self._config_path('session_config.json'))
         self._path_to_usecase_config = str(self._config_path('usecase_config.json'))
@@ -414,7 +471,7 @@ class DeployWindow(QWidget):
                 self.useCPU = True
             else:
                 self.useCPU = False
-        except (KeyError, TypeError) as e:
+        except (KeyError, TypeError):
             self.deploy_logger.exception("[ session_config.json ] - " +
                                          "KeyError or TypeError detected" +
                                          "Assigning default values")
@@ -441,6 +498,10 @@ class DeployWindow(QWidget):
                 "Assigning default Use Case MODE : " +
                 "[CLASSIFICATION] ")
             self.usecase_mode = 0
+        # Localization/Tracking target objects ("class_list"); empty = all classes.
+        self._target_classes = (
+            list(usecase_config.get('class_list') or [])
+            if self.usecase_mode in (3, 4) else [])
 
         image_topic_data = self._load_json_config(
             self._path_to_input_image_json_file,
@@ -529,6 +590,9 @@ class DeployWindow(QWidget):
         else:
             self.list_button.setStyleSheet(
                 'background-color: rgba(200,10,0,255);')
+
+        self.target_objects_button = QPushButton(self)
+        self._update_target_objects_button()
 
         # UseCase Config Dropdown to select usecase mode
         self.usecase_config_button = QComboBox(self)
@@ -659,6 +723,7 @@ class DeployWindow(QWidget):
         self.model_button.clicked.connect(self.setModel)
         self.list_button.clicked.connect(self.setLabelList)
         self.usecase_config_button.activated.connect(self.setUseCase)
+        self.target_objects_button.clicked.connect(self.chooseTargetObjects)
         self.run_button.clicked.connect(self.deployPackage)
 #         self.register_topic_button.clicked.connect(self.setImageInput)
         self.transport_combo.activated.connect(self.setImageTransport)
@@ -686,22 +751,82 @@ class DeployWindow(QWidget):
 
         self.refresh_topics_button.setEnabled(False)
         self.validation_label.setText('Refreshing topics...')
+        self._start_topics_worker(
+            timeout_sec=3,
+            current_topic=current_topic,
+            on_success=self._on_topics_refresh_success,
+            on_error=self._on_topics_refresh_error)
 
-        self._topics_worker = ImageTopicsWorker(timeout_sec=3)
-        self._topics_worker_thread = QThread(self)
-        self._topics_worker.moveToThread(self._topics_worker_thread)
+    def _start_topics_worker(self, timeout_sec, current_topic, on_success, on_error):
+        """Start async topic discovery with an explicit object lifetime.
 
-        self._topics_worker_thread.started.connect(self._topics_worker.run)
-        self._topics_worker.signals.success.connect(
-            lambda topics, selected=current_topic:
-            self._on_topics_refresh_success(topics, selected))
-        self._topics_worker.signals.error.connect(self._on_topics_refresh_error)
-        self._topics_worker.signals.finished.connect(self._on_topics_refresh_finished)
-        self._topics_worker.signals.finished.connect(self._topics_worker_thread.quit)
-        self._topics_worker_thread.finished.connect(self._topics_worker.deleteLater)
-        self._topics_worker_thread.finished.connect(self._topics_worker_thread.deleteLater)
-        self._topics_worker_thread.finished.connect(self._clear_topics_worker_refs)
-        self._topics_worker_thread.start()
+        Results reach the window only through bound slots of this QObject, so
+        Qt drops them if the window is destroyed first. No lambdas: a lambda
+        has no receiver and would still run against a deleted window.
+        """
+        _prune_finished_topic_threads()
+        self._topics_selection = current_topic
+        self._topics_success_handler = on_success
+        self._topics_error_handler = on_error
+
+        worker = ImageTopicsWorker(timeout_sec=timeout_sec)
+        thread = QThread()
+        # DirectConnection runs worker.run on the new thread without
+        # moveToThread(); worker signals are then queued to this window.
+        thread.started.connect(worker.run, Qt.DirectConnection)
+        worker.signals.success.connect(self._dispatch_topics_success)
+        worker.signals.error.connect(self._dispatch_topics_error)
+        worker.signals.finished.connect(self._on_topics_refresh_finished)
+        worker.signals.finished.connect(thread.quit, Qt.DirectConnection)
+        thread.finished.connect(self._on_topics_worker_finished)
+
+        self._topics_worker = worker
+        self._topics_worker_thread = thread
+        _LIVE_TOPIC_THREADS[thread] = worker
+        thread.start()
+
+    def _stop_topics_worker(self, timeout_ms=5000):
+        """Cancel discovery and join its thread; used on shutdown."""
+        worker = self._topics_worker
+        thread = self._topics_worker_thread
+        self._topics_worker = None
+        self._topics_worker_thread = None
+        # Results still queued from the worker become no-ops.
+        self._topics_success_handler = None
+        self._topics_error_handler = None
+        if worker is None or thread is None:
+            return
+        worker.cancel()
+        if thread.wait(timeout_ms):
+            _LIVE_TOPIC_THREADS.pop(thread, None)
+        else:
+            self.deploy_logger.warning(
+                'Topic discovery thread did not stop within %d ms; '
+                'keeping it alive until it exits.', timeout_ms)
+
+    @Slot(list)
+    def _dispatch_topics_success(self, topics):
+        handler = self._topics_success_handler
+        if handler is not None:
+            handler(topics, self._topics_selection)
+
+    @Slot(str)
+    def _dispatch_topics_error(self, message):
+        handler = self._topics_error_handler
+        if handler is not None:
+            handler(message)
+
+    @Slot()
+    def _on_topics_worker_finished(self):
+        thread = self._topics_worker_thread
+        if thread is None:
+            return
+        # finished is emitted just before the thread exits; join it before
+        # the last reference to the QThread can be dropped.
+        thread.wait()
+        _LIVE_TOPIC_THREADS.pop(thread, None)
+        self._topics_worker = None
+        self._topics_worker_thread = None
 
     def _apply_image_topics(self, topics, current_topic):
         self.topic_button.blockSignals(True)
@@ -739,11 +864,6 @@ class DeployWindow(QWidget):
     @Slot()
     def _on_topics_refresh_finished(self):
         self.refresh_topics_button.setEnabled(True)
-
-    @Slot()
-    def _clear_topics_worker_refs(self):
-        self._topics_worker = None
-        self._topics_worker_thread = None
 
     def _start_fps_monitor(self):
         if os.getenv('EPD_DISABLE_FPS_MONITOR') == '1':
@@ -1057,6 +1177,7 @@ class DeployWindow(QWidget):
 
     def shutdown(self):
         self._stop_fps_monitor()
+        self._stop_topics_worker()
 
         if self._is_shutting_down:
             return
@@ -1248,7 +1369,8 @@ class DeployWindow(QWidget):
             self.counting_window.show()
             self._commit_selected_mode(1)
         elif selected_usecase == 'Localization':
-            dict = {"schema_version": SCHEMA_VERSION, "usecase_mode": 3}
+            dict = self._with_target_classes(
+                {"schema_version": SCHEMA_VERSION, "usecase_mode": 3})
             try:
                 dict = validate_usecase_config(dict, require_mode_specific=True)
             except ConfigSchemaError as exc:
@@ -1258,7 +1380,8 @@ class DeployWindow(QWidget):
             self._write_json_atomic(self._path_to_usecase_config, json_object)
             self._commit_selected_mode(3)
         elif selected_usecase == 'Tracking':
-            self.tracking_window = TrackingWindow(self._path_to_usecase_config)
+            self.tracking_window = TrackingWindow(
+                self._path_to_usecase_config, target_classes=self._target_classes)
             self.tracking_window.show()
             self._commit_selected_mode(4)
         elif selected_usecase == 'Color-Matching':
@@ -1292,10 +1415,13 @@ class DeployWindow(QWidget):
                 return
 
             self.deploy_logger.info('Wrote to ../data/usecase_config.json')
+            # The schema checks file existence relative to the process cwd,
+            # but the stored path is package-root relative (./data/...), so
+            # validate the resolved path and store the normalized one.
             dict = {
                 "schema_version": SCHEMA_VERSION,
                 "usecase_mode": 2,
-                "path_to_color_template": path_to_color_template,
+                "path_to_color_template": resolved_template_path,
                 "color_match_histogram_metric": "Correlation"
                 }
             try:
@@ -1304,12 +1430,100 @@ class DeployWindow(QWidget):
                 self._show_blocking_config_error(str(exc))
                 self._set_usecase_combo_to_mode(previous_usecase_mode)
                 return
+            dict["path_to_color_template"] = path_to_color_template
             json_object = json.dumps(dict, indent=4)
             self._write_json_atomic(self._path_to_usecase_config, json_object)
             self._commit_selected_mode(2)
         else:
             self.deploy_logger.warning('Invalid Use Case')
             sys.exit()
+
+    def _label_names(self):
+        '''Class names from the active label list, or [] if it cannot be read.'''
+        path = self.resolveFilePath(self._path_to_label_list)
+        try:
+            with open(path, encoding='utf-8') as label_file:
+                return [line.strip() for line in label_file if line.strip()]
+        except (OSError, UnicodeDecodeError):
+            return []
+
+    def _update_target_objects_button(self):
+        # The row is labelled "Objects"; the button shows the selection.
+        self.target_objects_button.setText(
+            target_objects_summary(self._target_classes) + '  ▾')
+        self.target_objects_button.setToolTip(
+            'Pick targets for Localization and Tracking, e.g. banana and apple. '
+            'Unselected objects are still detected and shown in readiness '
+            'diagnostics, but are never published as pick targets.')
+
+    def _with_target_classes(self, config):
+        '''Add (or drop) class_list on a Localization/Tracking config.'''
+        if config.get('usecase_mode') in (3, 4):
+            if self._target_classes:
+                config['class_list'] = list(self._target_classes)
+            else:
+                config.pop('class_list', None)
+        return config
+
+    def chooseTargetObjects(self):
+        '''Open the target-object picker for the active label list.'''
+        labels = self._label_names()
+        if not labels:
+            self._show_blocking_config_error(
+                'Cannot list objects: the label list could not be read at '
+                f'{self.resolveFilePath(self._path_to_label_list)}. '
+                'Choose a label list first (Change labels).')
+            return
+        dialog = TargetObjectsDialog(labels, self._target_classes, self)
+        if dialog.exec() == QDialog.Accepted:
+            self.setTargetClasses(dialog.selected())
+
+    def setTargetClasses(self, names):
+        '''Set target objects and persist them if Localization/Tracking is active.'''
+        labels = self._label_names()
+        cleaned = []
+        for name in names:
+            name = str(name).strip()
+            if name and name not in cleaned:
+                cleaned.append(name)
+        unknown = [name for name in cleaned if labels and name not in labels]
+        if unknown:
+            self._show_blocking_config_error(
+                'Not in the active label list: ' + ', '.join(unknown) + '.')
+            return False
+        previous = list(self._target_classes)
+        self._target_classes = cleaned
+        if self.usecase_mode in (3, 4) and not self._rewrite_usecase_targets():
+            self._target_classes = previous
+            return False
+        self._update_target_objects_button()
+        self.deploy_logger.info(
+            'Target objects: ' + target_objects_summary(self._target_classes, limit=10))
+        return True
+
+    def _rewrite_usecase_targets(self):
+        try:
+            with open(self._path_to_usecase_config, encoding='utf-8') as config_file:
+                config = json.load(config_file)
+            config = validate_usecase_config(self._with_target_classes(config))
+        except (OSError, ValueError, ConfigSchemaError) as exc:
+            self._show_blocking_config_error(
+                f'Could not save target objects to usecase_config.json: {exc}')
+            return False
+        self._write_json_atomic(
+            self._path_to_usecase_config, json.dumps(config, indent=4))
+        return True
+
+    def _prune_target_classes(self):
+        '''Drop targets missing from a newly chosen label list (runtime rejects them).'''
+        labels = self._label_names()
+        kept = [name for name in self._target_classes if name in labels]
+        if kept != self._target_classes:
+            removed = [name for name in self._target_classes if name not in labels]
+            self.deploy_logger.warning(
+                'Target objects not in the new label list were removed: ' +
+                ', '.join(removed))
+            self.setTargetClasses(kept)
 
     def setImageTransport(self, index):
         '''A function triggered by the Image Transport dropdown.'''
@@ -1429,6 +1643,7 @@ class DeployWindow(QWidget):
 
         self.list_button.setStyleSheet('background-color: rgba(0,150,10,255);')
         self.updateSessionConfig()
+        self._prune_target_classes()
         self.validateDeployInputs()
 
     def _validate_label_list_file(self, filepath):

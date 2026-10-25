@@ -1,4 +1,17 @@
-// Copyright 2026
+// Copyright 2026 Easy Perception Deployment contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 // Lightweight camera ingress isolation for Easy Perception Deployment.
 
 #include <chrono>
@@ -8,6 +21,7 @@
 #include <string>
 
 #include "diagnostic_msgs/msg/diagnostic_array.hpp"
+#include "epd_utils_lib/log_format.hpp"
 #include "diagnostic_msgs/msg/diagnostic_status.hpp"
 #include "diagnostic_msgs/msg/key_value.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -141,9 +155,9 @@ private:
 
     RCLCPP_DEBUG(
       get_logger(), "Ingress counts: RGB=%llu depth=%llu info=%llu",
-      static_cast<unsigned long long>(rgb_count_),
-      static_cast<unsigned long long>(depth_count_),
-      static_cast<unsigned long long>(info_count_));
+      static_cast<EPD::LogULongLong>(rgb_count_),
+      static_cast<EPD::LogULongLong>(depth_count_),
+      static_cast<EPD::LogULongLong>(info_count_));
   }
 
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr rgb_pub_;

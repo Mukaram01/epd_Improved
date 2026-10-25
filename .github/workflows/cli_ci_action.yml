@@ -29,8 +29,12 @@ jobs:
           pycodestyle --show-source \
             easy_perception_deployment/easy_perception_deployment/scripts/test_config_epd.py \
             easy_perception_deployment/easy_perception_deployment/scripts/cli/config_epd.py \
+            easy_perception_deployment/easy_perception_deployment/scripts/epd_perception_session_export.py \
             --count
-          pycodestyle --show-source --ignore=E501 \
+          # An explicit --ignore replaces pycodestyle's default ignore list,
+          # so the defaults are listed alongside the E501 baseline.
+          pycodestyle --show-source \
+            --ignore=E121,E123,E126,E226,E24,E704,W503,W504,E501 \
             easy_perception_deployment/easy_perception_deployment/scripts/test_workcell_contract_bridge.py \
             easy_perception_deployment/easy_perception_deployment/launch/workcell_contract_bridge.py \
             easy_perception_deployment/easy_perception_deployment/scripts/test_backend_config.py \

@@ -1,0 +1,124 @@
+{
+ "results": [
+  {
+   "scenario": "1 launch without camera",
+   "status": "PASS",
+   "detail": "launcher visible; /dev/video* = none"
+  },
+  {
+   "scenario": "2 open Deploy",
+   "status": "PASS",
+   "detail": "Deploy 1366x768, live mode"
+  },
+  {
+   "scenario": "9 missing readiness (live)",
+   "status": "PASS",
+   "detail": "badge STOPPED; READINESS UNAVAILABLE"
+  },
+  {
+   "scenario": "2 start replay workflow",
+   "status": "PASS",
+   "detail": "opened D435i 12-frame set \u00b7 hybrid tracking (PR #234 node): 12 frames, provenance recorded"
+  },
+  {
+   "scenario": "3 replayed frames displayed",
+   "status": "PASS",
+   "detail": "frame 4/12 shown at 1280x720, badge REPLAY ACTIVE"
+  },
+  {
+   "scenario": "not shown as a live camera",
+   "status": "PASS",
+   "detail": "RECORDED REPLAY \u00b7 NOT A LIVE CAMERA"
+  },
+  {
+   "scenario": "4/7 detections, IDs, stamps preserved",
+   "status": "PASS",
+   "detail": "40 table rows across 12 frames match the recorded reports; mismatches=[]"
+  },
+  {
+   "scenario": "6 inspect while paused",
+   "status": "PASS",
+   "detail": "#0 apple track 1; 3D information: position valid \u00b7 orientation valid"
+  },
+  {
+   "scenario": "6 rejected detection reason",
+   "status": "PASS",
+   "detail": "#1 banana track 7: overlapping_ownership"
+  },
+  {
+   "scenario": "recorded LOCALISED evidence",
+   "status": "PASS",
+   "detail": "4 LOCALISED records with centroid, no axis"
+  },
+  {
+   "scenario": "10 end of replay marked stale",
+   "status": "PASS",
+   "detail": "badge STALE after 8.9 s"
+  },
+  {
+   "scenario": "11 play/pause/restart/stop",
+   "status": "PASS",
+   "detail": "restart\u2192frame 1 playing; stop\u2192cleared, timer idle"
+  },
+  {
+   "scenario": "5 all five readiness states (synthetic fixture)",
+   "status": "PASS",
+   "detail": "GRASP_CANDIDATE, LOCALISED, POSE_VALID, DETECTED, REJECTED"
+  },
+  {
+   "scenario": "9 missing readiness (recorded frame)",
+   "status": "PASS",
+   "detail": "READINESS UNAVAILABLE No readiness report was recorded for this frame."
+  },
+  {
+   "scenario": "8 mismatched association rejected",
+   "status": "PASS",
+   "detail": "Detections not drawn: Image and detections do not belong together: report stamp 1001.000000000 differs from image stamp 1001.500000000."
+  },
+  {
+   "scenario": "10 missing RGB stream",
+   "status": "PASS",
+   "detail": "RGB frame missing for this report."
+  },
+  {
+   "scenario": "ROS topic consumer (recorded messages)",
+   "status": "PASS",
+   "detail": "badge LIVE, 3 rows from /easy_perception_deployment/detection_readiness; ['The publishing EPD node was not started from this window.']"
+  },
+  {
+   "scenario": "10 stale live output",
+   "status": "PASS",
+   "detail": "7 messages published; then badge STALE: ['The last readiness report arrived 5.1 s ago and nothing is publishing now.']"
+  },
+  {
+   "scenario": "12 repeated replay start/stop",
+   "status": "PASS",
+   "detail": "20 cycles; threads 3\u21922 ['EPDReadinessMonitor', 'MainThread']; live subscription in replay: False"
+  },
+  {
+   "scenario": "13 Deploy controls and Profiles/Replay operational",
+   "status": "PASS",
+   "detail": "dialogs [('Profiles && Replay', True), ('3D Inspector', True)]; Run enabled=True (Saved camera topic is configured but not detected in the latest scan: /camera/camera/color/image_raw. Start the camera or Refresh topics.)"
+  },
+  {
+   "scenario": "14 layout 1366x768",
+   "status": "PASS",
+   "detail": "view 904x262, table viewport 131 px, clipped=[]"
+  },
+  {
+   "scenario": "15 Deploy close stops workers",
+   "status": "PASS",
+   "detail": "readiness worker alive=False"
+  },
+  {
+   "scenario": "15 application exit",
+   "status": "PASS",
+   "detail": "event loop returned; non-daemon threads alive: []"
+  }
+ ],
+ "failed": false,
+ "thread_names_before_exit": [
+  "EPD3DInspector",
+  "MainThread"
+ ]
+}

@@ -13,3 +13,5 @@ uint32 frame_height
 sensor_msgs/Image depth_image
 # Time taken to process image in milliseconds
 uint32 process_time
+# Detections whose geometry failed validation (never localized); see RejectedObject.msg.
+RejectedObject[] rejected_objects

@@ -1,4 +1,18 @@
 #!/usr/bin/env python3
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """Publish EPD P3 results as the Workcell Studio normalized perception contract.
 
 This bridge is intentionally one-way and perception-only.  It does not read scene
@@ -104,6 +118,52 @@ def _cloud_point_count(localized_object):
         return 0
 
 
+# EPD GeometryFailure bits (epd_msgs/RejectedObject.failure_reasons).
+GEOMETRY_FAILURES = (
+    (1 << 0, "invalid_intrinsics"), (1 << 1, "invalid_roi"), (1 << 2, "invalid_mask"),
+    (1 << 3, "insufficient_depth"), (1 << 4, "empty_cloud"), (1 << 5, "nonfinite_geometry"),
+    (1 << 6, "invalid_dimensions"), (1 << 7, "invalid_orientation"), (1 << 8, "frame_mismatch"),
+    (1 << 9, "geometry_exception"),
+)
+
+
+def _confidence(item):
+    """Detector score when the EPD message reports one (older messages have none)."""
+    value = getattr(item, "confidence", None)
+    if value is None or not _finite(value) or not 0.0 <= float(value) <= 1.0:
+        return None
+    return float(value)
+
+
+def _depth_support(item):
+    """Measured depth coverage of the object's mask, when reported."""
+    if not hasattr(item, "valid_depth_ratio"):
+        return {}
+    return {
+        "mask_pixel_count": int(getattr(item, "mask_pixel_count", 0)),
+        "valid_depth_pixel_count": int(getattr(item, "valid_depth_pixel_count", 0)),
+        "valid_depth_ratio": float(getattr(item, "valid_depth_ratio", 0.0)),
+    }
+
+
+def _rejected_contract(rejected):
+    """A detection EPD refused to localize, with EPD's own reasons (never given geometry)."""
+    roi = getattr(rejected, "roi", None)
+    reasons = int(getattr(rejected, "failure_reasons", 0))
+    item = {
+        "label": str(getattr(rejected, "name", "") or ""),
+        "quality": "degraded" if int(getattr(rejected, "quality", 2)) == 1 else "invalid",
+        "failure_reasons": [name for bit, name in GEOMETRY_FAILURES if reasons & bit] or ["unspecified"],
+        **_depth_support(rejected),
+    }
+    confidence = _confidence(rejected)
+    if confidence is not None:
+        item["confidence"] = confidence
+    if roi is not None:
+        item["roi_xywh"] = [int(roi.x_offset), int(roi.y_offset), int(roi.width), int(roi.height)]
+    return item
+
+
 def _object_contract(
     localized_object,
     frame_id,
@@ -135,16 +195,20 @@ def _object_contract(
     pose_position = _point(getattr(pose_msg, "position", None))
     pose_quaternion = _quaternion(getattr(pose_msg, "orientation", None))
 
+    confidence = _confidence(localized_object)
     item = {
         "object_id": object_id,
         "label": label,
         "attributes": {
             "identity_scope": identity_scope,
-            "confidence_available": False,
+            "confidence_available": confidence is not None,
             "segmented_cloud_available": _cloud_point_count(localized_object) > 0,
             "segmented_cloud_points": _cloud_point_count(localized_object),
+            **_depth_support(localized_object),
         },
     }
+    if confidence is not None:
+        item["confidence"] = confidence
     if stable_track_id:
         item["track_id"] = stable_track_id
 
@@ -352,8 +416,11 @@ def build_snapshot(
             "source_message_type": message_type,
             "source_stamp_ns": source_stamp_ns,
             "process_time_ms": int(getattr(message, "process_time", 0) or 0),
-            "confidence_available": False,
+            "confidence_available": bool(normalized) and all(
+                "confidence" in item for item in normalized),
         },
+        "rejected_objects": [
+            _rejected_contract(item) for item in (getattr(message, "rejected_objects", []) or [])],
     }
     if profile_ref:
         snapshot["profile_ref"] = str(profile_ref)
@@ -373,6 +440,13 @@ def build_snapshot(
     return snapshot, errors, warnings
 
 
+def _diagnostic_level(level):
+    """DiagnosticStatus.level: rclpy delivers the uint8 as a 1-byte bytes object."""
+    if isinstance(level, (bytes, bytearray)):
+        return level[0] if level else 0
+    return int(level or 0)
+
+
 def diagnostics_payload(message):
     """Extract EPD inference-worker health without changing backend semantics."""
     for status in getattr(message, "status", []) or []:
@@ -384,7 +458,7 @@ def diagnostics_payload(message):
         }
         return {
             "available": True,
-            "level": int(getattr(status, "level", 0) or 0),
+            "level": _diagnostic_level(getattr(status, "level", 0)),
             "message": str(getattr(status, "message", "") or ""),
             "hardware_id": str(getattr(status, "hardware_id", "") or ""),
             "values": values,
@@ -603,8 +677,10 @@ def main(argv=None):
     node = Node("epd_workcell_contract_bridge")
     bridge = WorkcellContractBridge(node, String, DiagnosticStatus.ERROR, args)
 
-    qos = QoSProfile(depth=10)
-    qos.reliability = ReliabilityPolicy.BEST_EFFORT
+    # Latest result only, delivered whole: results carry the depth image, masks and
+    # clouds, and best-effort readers lost most of them to fragment loss.
+    qos = QoSProfile(depth=1)
+    qos.reliability = ReliabilityPolicy.RELIABLE
     subscriptions = []
     if args.source_mode in ("localization", "auto"):
         subscriptions.append(

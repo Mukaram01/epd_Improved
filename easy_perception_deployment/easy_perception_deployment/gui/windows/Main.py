@@ -175,6 +175,16 @@ class MainWindow(QWidget):
         self.train_window.installEventFilter(self)
         self.deploy_window.installEventFilter(self)
 
+        # Train and Deploy are parentless windows held only by Python
+        # attributes, so without this they are destroyed whenever Python's
+        # cyclic GC next runs: possibly on a worker thread (Deploy's topic
+        # QThread, ROS threads) while their QTimers are active, which
+        # corrupts Qt. Delete them on the GUI thread together with this
+        # window. The callback must not reference self.
+        owned_windows = (self.train_window, self.deploy_window)
+        self.destroyed.connect(
+            lambda *_: [window.deleteLater() for window in owned_windows])
+
         self._WINDOW_HEIGHT = 438
         self._WINDOW_WIDTH = 760
 

@@ -1,12 +1,27 @@
-// Copyright 2026
+// Copyright 2026 Easy Perception Deployment contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 // Lightweight camera ingress isolation for Easy Perception Deployment.
 
 #include <chrono>
 #include <cstdint>
+#include <stdexcept>
 #include <memory>
 #include <string>
 
 #include "diagnostic_msgs/msg/diagnostic_array.hpp"
+#include "epd_utils_lib/log_format.hpp"
 #include "diagnostic_msgs/msg/diagnostic_status.hpp"
 #include "diagnostic_msgs/msg/key_value.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -33,10 +48,22 @@ public:
       "camera_info_output_topic", "/easy_perception_deployment/ingress/color/camera_info");
 
     // Camera-facing readers match the proven RealSense RELIABLE KEEP_LAST(1)
-    // publisher. Internal delivery is latest-only and must never backpressure
-    // the lightweight ingress process.
+    // publisher. Internal delivery is latest-only (KEEP_LAST(1): a slow reader
+    // never backpressures the ingress). It is RELIABLE by default: best-effort
+    // delivery of ~1 MB images loses UDP fragments, which on LENLEG (WSL2,
+    // FastDDS, localhost) delivered ~1.5 of 14 camera frames per second.
+    const auto internal_reliability = declare_parameter<std::string>(
+      "internal_qos_reliability", "reliable");
+    if (internal_reliability != "reliable" && internal_reliability != "best_effort") {
+      throw std::invalid_argument("internal_qos_reliability must be 'reliable' or 'best_effort'");
+    }
     auto camera_qos = rclcpp::QoS(rclcpp::KeepLast(1)).reliable().durability_volatile();
-    auto internal_qos = rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile();
+    auto internal_qos = rclcpp::QoS(rclcpp::KeepLast(1)).durability_volatile();
+    if (internal_reliability == "reliable") {
+      internal_qos.reliable();
+    } else {
+      internal_qos.best_effort();
+    }
 
     rgb_pub_ = create_publisher<sensor_msgs::msg::Image>(rgb_out, internal_qos);
     depth_pub_ = create_publisher<sensor_msgs::msg::Image>(depth_out, internal_qos);
@@ -75,7 +102,7 @@ public:
     RCLCPP_INFO(
       get_logger(),
       "Isolated sensor ingress active: RELIABLE KEEP_LAST(1) camera readers, "
-      "BEST_EFFORT KEEP_LAST(1) internal publishers");
+      "%s KEEP_LAST(1) internal publishers", internal_reliability.c_str());
   }
 
 private:
@@ -128,9 +155,9 @@ private:
 
     RCLCPP_DEBUG(
       get_logger(), "Ingress counts: RGB=%llu depth=%llu info=%llu",
-      static_cast<unsigned long long>(rgb_count_),
-      static_cast<unsigned long long>(depth_count_),
-      static_cast<unsigned long long>(info_count_));
+      static_cast<EPD::LogULongLong>(rgb_count_),
+      static_cast<EPD::LogULongLong>(depth_count_),
+      static_cast<EPD::LogULongLong>(info_count_));
   }
 
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr rgb_pub_;

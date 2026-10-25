@@ -282,6 +282,16 @@ See `EPD_3D_PERCEPTION_TOOLS.md`.
 
 ---
 
+# Perception Monitor (Deploy workspace)
+
+Deploy opens on a preview-first workspace with a per-detection readiness table, an Inspector and a Health panel. **Replay recording** plays a recorded perception session without a camera, GPU or inference.
+
+Detection boxes are drawn only when the image and the readiness report share the same source stamp. `GRASP_CANDIDATE` means published for downstream planning, not a guaranteed grasp.
+
+See `EPD_PERCEPTION_MONITOR.md`.
+
+---
+
 # EPD-7 — Workcell Studio / EMD Contract
 
 EPD can publish a normalized perception contract while keeping repository ownership separate.

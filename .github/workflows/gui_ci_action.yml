@@ -20,28 +20,48 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install Qt runtime libraries
+        run: |
+          # PySide6 QtGui links libEGL even with the offscreen platform.
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libxkbcommon0 libfontconfig1 libdbus-1-3
       - name: Install dependencies
         run: |
+          # Pinned so lint rules and Qt/pytest behaviour only change on
+          # purpose. pytest 6.0.x cannot run on Python 3.10.
           python -m pip install --upgrade pip
-          python -m pip install pycodestyle
-          python -m pip install ruff
-          python -m pip install PySide6
+          python -m pip install pycodestyle==2.15.0
+          python -m pip install ruff==0.17.1
+          # PySide6 6.12.0 on Python 3.10 drops a reference to None on every
+          # void Qt call (QLabel.setText, processEvents, ...) and aborts with
+          # "none_dealloc: deallocating None" once enough calls are made.
+          # 6.11.2 is the newest release without it.
+          python -m pip install PySide6==6.11.2
           python -m pip install dateutils==0.6.12
           python -m pip install pycocotools==2.0.7
           python -m pip install labelme==5.0.1
-          python -m pip install pytest==6.0.1
-          python -m pip install pytest-qt==3.3.0
+          python -m pip install pytest==7.4.4
+          python -m pip install pytest-qt==4.4.0
+          python -m pip install pytest-timeout==2.3.1
           python -m pip install "pyyaml>=6.0"
       - name: Static Analysis (pycodestyle)
         run: |
           # Keep new EPD-2 code strict. The second pass retains the existing
-          # repository E501 baseline while preserving pycodestyle default ignores.
+          # repository E501 baseline while preserving pycodestyle default
+          # ignores (pycodestyle has no --extend-ignore, and an explicit
+          # --ignore replaces the defaults, so they are listed here).
           pycodestyle --show-source \
             easy_perception_deployment/easy_perception_deployment/gui/main.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_live_perception_view.py \
             easy_perception_deployment/easy_perception_deployment/gui/windows/epd2_productization.py \
+            easy_perception_deployment/easy_perception_deployment/gui/windows/perception_monitor.py \
+            easy_perception_deployment/easy_perception_deployment/gui/windows/perception_readiness.py \
+            easy_perception_deployment/easy_perception_deployment/gui/test_perception_monitor.py \
+            easy_perception_deployment/easy_perception_deployment/gui/perception_monitor_acceptance.py \
+            easy_perception_deployment/easy_perception_deployment/fixtures/perception_sessions/make_synthetic_sessions.py \
             --count
-          pycodestyle --show-source --extend-ignore=E501 \
+          pycodestyle --show-source \
+            --ignore=E121,E123,E126,E226,E24,E704,W503,W504,E501 \
             easy_perception_deployment/easy_perception_deployment/gui/test_gui.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_gui_gpu_local_only.py \
             easy_perception_deployment/easy_perception_deployment/gui/test_camera_assistant.py \
@@ -61,11 +81,13 @@ jobs:
             easy_perception_deployment/easy_perception_deployment/gui/windows/ \
             easy_perception_deployment/easy_perception_deployment/gui/trainer/ \
             --select E,W,F \
-            --ignore E501,W503
+            --ignore E501
       - name: Dynamic Analysis
         run: |
           cd easy_perception_deployment/easy_perception_deployment/gui
-          pytest --capture=no -vv \
+          # A hung test (e.g. a modal dialog) fails after 60 s instead of
+          # stalling the job until the runner times out.
+          pytest --capture=no -vv --timeout 60 \
             test_gui.py \
             test_camera_assistant.py \
             test_live_perception_view.py \
@@ -74,4 +96,5 @@ jobs:
             test_profiles_replay.py \
             test_3d_diagnostics.py \
             test_performance_backends.py \
-            test_acceptance_stability.py
+            test_acceptance_stability.py \
+            test_perception_monitor.py

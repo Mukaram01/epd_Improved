@@ -18,6 +18,7 @@ import json
 import yaml
 import pytest
 import shutil
+import subprocess
 from pathlib import Path
 
 from trainer.P2Trainer import P2Trainer
@@ -29,29 +30,30 @@ from windows.Main import MainWindow
 from windows.Train import TrainWindow
 
 from datetime import date
+import shiboken6
 from PySide6 import QtCore
 from PySide6.QtWidgets import QMessageBox
 
-# Clear all stored session_config.json usecase_config.json
-if (os.path.exists('../config/session_config.json') and
-   os.path.exists('../config/usecase_config.json')):
-    Path('../config/session_config.json').unlink(missing_ok=True)
-    Path('../config/usecase_config.json').unlink(missing_ok=True)
 
+@pytest.fixture(autouse=True)
+def baseline_deploy_config(epd_package_root):
+    """Start every test from the default model/label list and Classification.
+
+    conftest.py runs each test in a throwaway copy of the package, so these
+    writes never reach the tracked config/ files.
+    """
     session_config = {
         "path_to_model": './data/model/MaskRCNN-10.onnx',
         "path_to_label_list": './data/label_list/coco_classes.txt',
         "visualizeFlag": 'visualize',
         "useCPU": 'CPU'
         }
-    json_object = json.dumps(session_config, indent=4)
     with open('../config/session_config.json', 'w') as outfile:
-        outfile.write(json_object)
+        outfile.write(json.dumps(session_config, indent=4))
 
     usecase_config = {"usecase_mode": 0}
-    json_object = json.dumps(usecase_config, indent=4)
     with open('../config/usecase_config.json', 'w') as outfile:
-        outfile.write(json_object)
+        outfile.write(json.dumps(usecase_config, indent=4))
 
 
 def test_init_MainWindow(qtbot):
@@ -65,6 +67,9 @@ def test_init_MainWindow(qtbot):
 
 
 def test_openTrain_MainWindow(qtbot):
+    # The launcher cards are "Open" actions, not toggles: clicking the card of
+    # an already-open window brings it to the front instead of hiding it.
+    # Closing the window itself is what clears isTrainOpen.
 
     widget = MainWindow()
     qtbot.addWidget(widget)
@@ -76,11 +81,17 @@ def test_openTrain_MainWindow(qtbot):
 
     qtbot.mouseClick(widget.train_button, QtCore.Qt.LeftButton)
 
+    assert widget.train_window.isVisible() is True
+    assert widget.isTrainOpen is True
+
+    widget.train_window.close()
+
     assert widget.train_window.isVisible() is False
     assert widget.isTrainOpen is False
 
 
 def test_openDeploy_MainWindow(qtbot):
+    # Same "Open, never toggle" contract as the Train card.
 
     widget = MainWindow()
     qtbot.addWidget(widget)
@@ -91,6 +102,11 @@ def test_openDeploy_MainWindow(qtbot):
     assert widget.isDeployOpen is True
 
     qtbot.mouseClick(widget.deploy_button, QtCore.Qt.LeftButton)
+
+    assert widget.deploy_window.isVisible() is True
+    assert widget.isDeployOpen is True
+
+    widget.deploy_window.close()
 
     assert widget.deploy_window.isVisible() is False
     assert widget.isDeployOpen is False
@@ -108,6 +124,25 @@ def test_closeAll_MainWindow(qtbot):
     assert widget.deploy_window.isVisible() is False
 
 
+def test_MainWindow_deletes_Train_and_Deploy_windows(qtbot):
+    """Train/Deploy are parentless windows held by MainWindow attributes.
+
+    They must be deleted on the GUI thread with MainWindow. Left to Python's
+    cyclic GC they could be destroyed on a worker thread with live timers,
+    which crashed GUI CI ("Timers cannot be stopped from another thread").
+    """
+    widget = MainWindow()
+    train_window = widget.train_window
+    deploy_window = widget.deploy_window
+    widget.deleteLater()
+    for _ in range(3):
+        QtCore.QCoreApplication.sendPostedEvents(
+            None, QtCore.QEvent.DeferredDelete)
+
+    assert not shiboken6.isValid(train_window)
+    assert not shiboken6.isValid(deploy_window)
+
+
 def test_emptySession_emptyUseCase_DeployWindow(qtbot):
 
     if (os.path.exists('../config/session_config.json') and
@@ -123,7 +158,11 @@ def test_emptySession_emptyUseCase_DeployWindow(qtbot):
     assert widget.usecase_mode == 0
 
 
-def test_invalidSession_invalidUseCase_DeployWindow(qtbot):
+def test_invalidSession_invalidUseCase_DeployWindow(qtbot, message_boxes):
+    # An out-of-range usecase_mode fails closed: the user gets a blocking
+    # Configuration Error, the window refuses to start, and the file is left
+    # untouched. It is not silently replaced by Classification, which would
+    # deploy a pipeline the user did not configure.
 
     session_config = {
         "path_to_model": 'test_filepath_to_model',
@@ -140,12 +179,40 @@ def test_invalidSession_invalidUseCase_DeployWindow(qtbot):
     with open('../config/usecase_config.json', 'w') as outfile:
         outfile.write(json_object)
 
+    with pytest.raises(RuntimeError, match='usecase_mode'):
+        DeployWindow()
+
+    assert len(message_boxes) == 1
+    assert message_boxes[0]['title'] == 'Configuration Error'
+    assert 'usecase_mode' in message_boxes[0]['text']
+    with open('../config/usecase_config.json') as f:
+        assert json.load(f) == usecase_config
+
+
+def test_invalidSession_missingKey_DeployWindow(qtbot, message_boxes):
+    # A session_config.json missing a required key (useCPU) is repaired from
+    # defaults while the user's model and label list paths are kept.
+
+    session_config = {
+        "path_to_model": 'test_filepath_to_model',
+        "path_to_label_list": 'test_filepath_to_label_list',
+        "visualizeFlag": 'visualize',
+        "throwCPU": 'GPU'
+        }
+    json_object = json.dumps(session_config, indent=4)
+    with open('../config/session_config.json', 'w') as outfile:
+        outfile.write(json_object)
+
     widget = DeployWindow()
     qtbot.addWidget(widget)
 
-    assert widget._path_to_model == 'filepath/to/onnx/model'
-    assert widget._path_to_label_list == 'filepath/to/classes/list/txt'
+    assert widget._path_to_model == 'test_filepath_to_model'
+    assert widget._path_to_label_list == 'test_filepath_to_label_list'
+    assert widget.useCPU is True
     assert widget.usecase_mode == 0
+    assert message_boxes == []
+    with open('../config/session_config.json') as f:
+        assert json.load(f)['useCPU'] == 'CPU'
 
 
 def test_validSession_validUseCase_DeployWindow(qtbot):
@@ -284,27 +351,56 @@ def test_load_json_config_empty_file(
     assert data == defaults
 
 
-def test_deployPackage_DeployWindow(qtbot):
+def _write_script(path, body):
+    path.write_text('#!/usr/bin/env bash\n' + body, encoding='utf-8')
+    path.chmod(0o755)
+
+
+def test_deployPackage_DeployWindow(qtbot, epd_package_root):
+    # Run starts scripts/deploy.sh non-interactively and the job is RUNNING
+    # while it lives. Run again (now "Stop") runs scripts/kill.sh and the job
+    # returns to IDLE. Stub scripts stand in for the Docker/ROS 2 runtime.
+    from windows.job_controller import JobState
+
+    scripts_dir = epd_package_root / 'gui' / 'scripts'
+    _write_script(
+        scripts_dir / 'deploy.sh',
+        'echo "$@" > deploy_args.txt\necho $$ > deploy.pid\nexec sleep 30\n')
+    _write_script(
+        scripts_dir / 'kill.sh',
+        'kill "$(cat deploy.pid)"\necho "STATUS: STOPPED"\n')
+    model = epd_package_root / 'data' / 'model' / 'MaskRCNN-10.onnx'
+    model.write_bytes(b'stub onnx')
 
     widget = DeployWindow()
     qtbot.addWidget(widget)
+    assert widget.run_button.isEnabled() is True
 
     qtbot.mouseClick(widget.run_button, QtCore.Qt.LeftButton)
+    qtbot.waitUntil(
+        lambda: widget._job_controller.state == JobState.RUNNING, timeout=5000)
 
-    isDeployScriptRunning = widget._deploy_process.poll()
-    assert isDeployScriptRunning is None
-    assert widget._is_running is True
-
-    widget._deploy_process.kill()
+    deploy_process = widget._deploy_process
+    assert deploy_process.poll() is None
+    qtbot.waitUntil(
+        lambda: (scripts_dir / 'deploy_args.txt').exists(), timeout=5000)
+    assert ((scripts_dir / 'deploy_args.txt').read_text().split() ==
+            ['True', 'True', '--non-interactive'])
+    assert widget.run_button.text() == 'Stop'
 
     qtbot.mouseClick(widget.run_button, QtCore.Qt.LeftButton)
+    qtbot.waitUntil(
+        lambda: widget._job_controller.state == JobState.IDLE, timeout=5000)
 
-    isKillScriptRunning = widget._kill_process.poll()
-    assert isKillScriptRunning is None
-    assert widget._is_running is False
+    assert widget._job_controller.message == 'Stopped'
+    assert widget._kill_process.returncode == 0
+    assert deploy_process.wait(timeout=5) != 0
+    assert widget.run_button.text() == 'Run'
 
 
-def test_setUseCase_DeployWindow(qtbot):
+def test_setUseCase_DeployWindow(qtbot, monkeypatch, epd_package_root):
+    # Color-Matching is only committed with a reference image that exists.
+    # The template is stored relative to the package data/ directory.
 
     widget = DeployWindow(True)
     qtbot.addWidget(widget)
@@ -324,11 +420,36 @@ def test_setUseCase_DeployWindow(qtbot):
     usecase_mode = data['usecase_mode']
     assert usecase_mode == 0
 
+    template = epd_package_root / 'data' / 'color_template.png'
+    template.write_bytes(b'png')
+    widget.debug = False
+    monkeypatch.setattr(
+        'windows.Deploy.QFileDialog.getOpenFileName',
+        lambda *args, **kwargs: (str(template), 'Image Files'))
+
     widget.setUseCase(color_matching_index)
     f = open('../config/usecase_config.json')
     data = json.load(f)
     usecase_mode = data['usecase_mode']
     assert usecase_mode == 2
+    assert data['path_to_color_template'] == 'data/color_template.png'
+    assert widget.usecase_mode == 2
+
+
+def test_setUseCase_color_matching_missing_template_keeps_previous_mode(qtbot):
+    # Debug mode supplies a placeholder template path that does not exist on
+    # disk; it must not be written as the active Color-Matching config.
+
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+
+    widget.setUseCase(widget.usecase_list.index('Classification'))
+    widget.setUseCase(widget.usecase_list.index('Color-Matching'))
+
+    with open('../config/usecase_config.json') as f:
+        data = json.load(f)
+    assert data['usecase_mode'] == 0
+    assert widget.usecase_mode == 0
 
 
 def test_setUseCase_color_matching_cancel_keeps_previous_mode(qtbot, monkeypatch):
@@ -416,32 +537,36 @@ def test_validateTraining_TrainWindow(qtbot):
     widget = TrainWindow()
     qtbot.addWidget(widget)
 
-    widget._precision_level = 2
+    # Training readiness is reported through the job controller (the legacy
+    # buttonConnected flag no longer exists): validation fails, naming what is
+    # missing, until model, dataset, label list and labelled dataset are set.
+    from windows.job_controller import JobState
 
-    widget.validateTraining()
-    assert widget.buttonConnected is False
+    def assert_not_ready(missing):
+        widget.validateTraining()
+        assert widget._job_controller.state == JobState.FAILED
+        assert widget._job_controller.message == (
+            'Validation failed: missing ' + ', '.join(missing) + '.')
+        assert widget.train_button.isEnabled() is False
+
+    widget._precision_level = 2
+    assert_not_ready(['model', 'dataset', 'label list', 'labelled dataset'])
 
     widget._is_model_ready = True
-    widget.validateTraining()
-    assert widget.buttonConnected is False
+    assert_not_ready(['dataset', 'label list', 'labelled dataset'])
 
     widget._is_dataset_linked = True
-    widget.validateTraining()
-    assert widget.buttonConnected is False
+    assert_not_ready(['label list', 'labelled dataset'])
 
     widget._is_labellist_linked = True
-    widget.validateTraining()
-    assert widget.buttonConnected is False
+    assert_not_ready(['labelled dataset'])
 
-    widget._precision_level = 1
-    widget.validateTraining()
-    assert widget.buttonConnected is False
-
-    widget.buttonConnected = False
-    widget._precision_level = 2
     widget._is_dataset_labelled = True
     widget.validateTraining()
-    assert widget.buttonConnected is True
+    assert widget._job_controller.state == JobState.IDLE
+    assert widget._job_controller.message == (
+        'Validation successful. Ready to train.')
+    assert widget.train_button.isEnabled() is True
 
 
 def test_validateDataset_TrainWindow(qtbot):
@@ -782,7 +907,19 @@ def _prepare_annotated_dataset(tmp_path):
     return labelled
 
 
-def test_conform_dataset_overwrite_permission_denied(qtbot, tmp_path, monkeypatch):
+def _select_dataset_and_confirm_overwrite(widget, monkeypatch, labelled):
+    # Drive the real flow: debug mode skips the folder picker entirely, so the
+    # user's directory choice and "Overwrite? Yes" answer are stubbed instead.
+    widget.debug = False
+    monkeypatch.setattr(
+        'windows.Train.QFileDialog.getExistingDirectory',
+        lambda *args, **kwargs: str(labelled))
+    monkeypatch.setattr(
+        QMessageBox, 'question', lambda *args, **kwargs: QMessageBox.Yes)
+
+
+def test_conform_dataset_overwrite_permission_denied(
+        qtbot, tmp_path, monkeypatch, message_boxes):
     widget = TrainWindow(True)
     qtbot.addWidget(widget)
 
@@ -796,9 +933,8 @@ def test_conform_dataset_overwrite_permission_denied(qtbot, tmp_path, monkeypatc
     widget._path_to_label_list = str(label_list)
     widget._path_to_dataset = str(labelled)
     monkeypatch.setattr(widget, '_data_dir', lambda: data_dir)
+    _select_dataset_and_confirm_overwrite(widget, monkeypatch, labelled)
 
-    warnings = []
-    monkeypatch.setattr(QMessageBox, 'warning', lambda *args: warnings.append(args))
     monkeypatch.setattr(
         shutil,
         'rmtree',
@@ -809,8 +945,10 @@ def test_conform_dataset_overwrite_permission_denied(qtbot, tmp_path, monkeypatc
 
     widget.conformDatasetToCOCO()
 
+    warnings = [box for box in message_boxes if box['kind'] == 'warning']
     assert len(warnings) == 1
-    assert 'Failed to remove existing custom_dataset folder.' in warnings[0][3]
+    assert warnings[0]['title'] == 'Dataset Generation Failed'
+    assert 'Failed to remove existing custom_dataset folder.' in warnings[0]['text']
     assert run_calls == []
 
 
@@ -829,6 +967,7 @@ def test_conform_dataset_overwrite_missing_directory_continues(
     widget._path_to_label_list = str(label_list)
     widget._path_to_dataset = str(labelled)
     monkeypatch.setattr(widget, '_data_dir', lambda: data_dir)
+    _select_dataset_and_confirm_overwrite(widget, monkeypatch, labelled)
     monkeypatch.setattr(QMessageBox, 'warning', lambda *args: None)
 
     def _raise_missing(*args, **kwargs):
@@ -853,3 +992,100 @@ def test_conform_dataset_overwrite_missing_directory_continues(
     assert len(run_calls) == 2
     for call_args, _ in run_calls:
         assert call_args[0][0] == os.sys.executable
+
+
+# ---------------------------------------------------------------------------
+# Target objects (class_list) for Localization / Tracking
+# ---------------------------------------------------------------------------
+
+def _usecase_file():
+    with open('../config/usecase_config.json') as f:
+        return json.load(f)
+
+
+def test_target_objects_saved_and_reopened_for_localization(qtbot):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+
+    assert widget.target_objects_button.text().startswith('All classes')
+    assert widget.setTargetClasses(['banana', 'apple', 'banana']) is True
+    assert _usecase_file()['class_list'] == ['banana', 'apple']
+    assert widget.target_objects_button.text().startswith('banana, apple')
+
+    reopened = DeployWindow(True)
+    qtbot.addWidget(reopened)
+    assert reopened.usecase_mode == 3
+    assert reopened._target_classes == ['banana', 'apple']
+
+    # Clearing the selection publishes every class again.
+    assert reopened.setTargetClasses([]) is True
+    assert 'class_list' not in _usecase_file()
+
+
+def test_target_objects_survive_mode_switches(qtbot):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    # Chosen before a 3D mode is active: kept in memory, not written yet.
+    assert widget.setTargetClasses(['banana', 'apple']) is True
+    assert 'class_list' not in _usecase_file()
+
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+    assert _usecase_file()['class_list'] == ['banana', 'apple']
+
+    widget.setUseCase(widget.usecase_list.index('Classification'))
+    assert 'class_list' not in _usecase_file()
+
+    widget.setUseCase(widget.usecase_list.index('Tracking'))
+    qtbot.addWidget(widget.tracking_window)
+    widget.tracking_window.writeToUseCaseConfig()
+    data = _usecase_file()
+    assert data['usecase_mode'] == 4
+    assert data['class_list'] == ['banana', 'apple']
+
+
+def test_unknown_target_object_is_rejected_with_message(qtbot, message_boxes):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+
+    assert widget.setTargetClasses(['bannana']) is False
+    assert widget._target_classes == []
+    assert 'class_list' not in _usecase_file()
+
+
+def test_label_list_change_prunes_missing_targets(qtbot, monkeypatch, tmp_path):
+    widget = DeployWindow(True)
+    qtbot.addWidget(widget)
+    widget.setUseCase(widget.usecase_list.index('Localization'))
+    assert widget.setTargetClasses(['banana', 'apple']) is True
+
+    fruit = tmp_path / 'fruit.txt'
+    fruit.write_text('banana\npear\n', encoding='utf-8')
+    monkeypatch.setattr(
+        'windows.Deploy.QFileDialog.getOpenFileName',
+        lambda *args, **kwargs: (str(fruit), 'Text'))
+    widget.debug = False
+    widget.setLabelList()
+
+    assert widget._target_classes == ['banana']
+    assert _usecase_file()['class_list'] == ['banana']
+
+
+def test_gui_starts_without_ros(monkeypatch):
+    # A beginner launching EPD without sourcing ROS 2 must get the window,
+    # not an ImportError from the executor patch.
+    import builtins
+    from windows import acceptance_stability
+
+    real_import = builtins.__import__
+
+    def no_rclpy(name, *args, **kwargs):
+        if name == 'rclpy' or name.startswith('rclpy.'):
+            raise ImportError('No module named rclpy')
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, '__import__', no_rclpy)
+    monkeypatch.setattr(acceptance_stability, '_PATCHED', False)
+    acceptance_stability.install_ros_executor_stability()
+    assert acceptance_stability._PATCHED is False

@@ -14,13 +14,15 @@
 // limitations under the License.
 
 #include <jsoncpp/json/json.h>
+
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <memory>
 #include <set>
-#include "gtest/gtest.h"
 #include <filesystem>
+
+#include "gtest/gtest.h"
 #include "epd_utils_lib/epd_container.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
 
@@ -40,10 +42,10 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Action)
 
   // Reset session_config.json
   std::filesystem::remove(PATH_TO_SESSION_CONFIG);
-  { std::ofstream tmp(PATH_TO_SESSION_CONFIG); }
+  {std::ofstream tmp(PATH_TO_SESSION_CONFIG);}
   // Reset usecase_config.json
   std::filesystem::remove(PATH_TO_USECASE_CONFIG);
-  { std::ofstream tmp(PATH_TO_USECASE_CONFIG); }
+  {std::ofstream tmp(PATH_TO_USECASE_CONFIG);}
 
   Json::Value session_config_json;
   session_config_json["path_to_model"] = PATH_TO_ONNX_MODEL;
@@ -120,7 +122,8 @@ TEST(EPD_TestSuite, Test_P3Model_Tracking_Action)
   ASSERT_EQ(result.object_ids.size(), result_second.object_ids.size());
 
   std::set<std::string> first_ids(result.object_ids.begin(), result.object_ids.end());
-  std::set<std::string> second_ids(result_second.object_ids.begin(), result_second.object_ids.end());
+  std::set<std::string> second_ids(result_second.object_ids.begin(),
+    result_second.object_ids.end());
 
   ASSERT_EQ(first_ids.size(), result.object_ids.size());
   ASSERT_EQ(second_ids.size(), result_second.object_ids.size());

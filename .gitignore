@@ -27,3 +27,8 @@ data/model/
 **/*.onnx
 easy_perception_deployment/easy_perception_deployment/gui/data/
 easy_perception_deployment/easy_perception_deployment/data/model/
+
+# Runtime output and tool caches
+easy_perception_deployment/easy_perception_deployment/gui/scripts/logs/
+.pytest_cache/
+.ruff_cache/

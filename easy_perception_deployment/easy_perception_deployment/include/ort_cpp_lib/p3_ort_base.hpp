@@ -16,14 +16,14 @@
 #ifndef ORT_CPP_LIB__P3_ORT_BASE_HPP_
 #define ORT_CPP_LIB__P3_ORT_BASE_HPP_
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/tracking.hpp>
-#include <opencv2/core/ocl.hpp>
 #include <optional>
 #include <string>
 #include <mutex>
 #include <vector>
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/tracking.hpp>
+#include <opencv2/core/ocl.hpp>
 #include "ort_cpp_lib/ort_base.hpp"
 #include "epd_utils_lib/message_utils.hpp"
 #include "sensor_msgs/msg/camera_info.hpp"
@@ -90,6 +90,15 @@ public:
 
   /*! \brief A Getter function that gets the number of object names used for an
   ongoing session.*/
+  /*! rief Wall-clock stages of the most recent RGB inference, in milliseconds.*/
+  struct InferenceTiming
+  {
+    double preprocess_ms{0.0};
+    double session_ms{0.0};
+    double postprocess_ms{0.0};
+  };
+  InferenceTiming lastInferenceTiming() const {return last_timing_;}
+
   uint16_t getNumClasses() const {return m_numClasses;}
   /*! \brief A Getter function that gets the list of object text labels which
   will be used for outputting visualized inference result or for specific use-case
@@ -118,6 +127,7 @@ private:
    * might introduce concurrent callers. */
   mutable std::mutex preprocess_buffer_mutex_;
   InputTensorLayout input_tensor_layout_{InputTensorLayout::CHW};
+  InferenceTiming last_timing_;
 
   /*! \brief A Mutator function that converts a 3-layered 2D RGB input image
   into a 1D input data tensor to be passed to the Ort Session for processing.\n

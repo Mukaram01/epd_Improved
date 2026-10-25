@@ -1,9 +1,22 @@
+# Copyright 2026 Easy Perception Deployment contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """EPD-4 Training Studio: observable, recoverable model training."""
 
 from __future__ import annotations
 
 import json
-import os
 import queue
 import re
 import shutil
@@ -37,7 +50,10 @@ _ITER_RE = re.compile(r"\biter(?:ation)?\s*:\s*(\d+)", re.IGNORECASE)
 _LOSS_RE = re.compile(r"\bloss\s*:\s*([0-9.eE+\-]+)", re.IGNORECASE)
 _LR_RE = re.compile(r"\blr\s*:\s*([0-9.eE+\-]+)", re.IGNORECASE)
 _ETA_RE = re.compile(r"\beta\s*:\s*([^\s]+)", re.IGNORECASE)
-_AP_RE = re.compile(r"Average Precision.*?=\s*([0-9.]+)", re.IGNORECASE)
+# The value follows the closing bracket of the COCO summary, e.g.
+# "Average Precision (AP) @[ IoU=0.50:0.95 | area= all | maxDets=100 ] = 0.372";
+# matching the first "=" would report the IoU threshold instead.
+_AP_RE = re.compile(r"Average Precision.*\]\s*=\s*([0-9.]+)", re.IGNORECASE)
 _ITER_FROM_CHECKPOINT_RE = re.compile(r"model_(\d+)\.pth$")
 
 
@@ -191,7 +207,7 @@ def training_guidance(history, max_iteration=0):
         )
 
     first = sum(losses[: min(5, len(losses))]) / min(5, len(losses))
-    last = sum(losses[-min(5, len(losses)) :]) / min(5, len(losses))
+    last = sum(losses[-min(5, len(losses)):]) / min(5, len(losses))
     iteration = max(
         (item.get("iteration", 0) for item in history),
         default=0,

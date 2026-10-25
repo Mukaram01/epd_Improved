@@ -18,6 +18,12 @@ endif()
 # -----------------------------
 # Dependencies
 # -----------------------------
+# EPD's own pre/post-processing and RGB-D geometry ran unoptimised when no build type
+# was given. Default to Release; an explicit -DCMAKE_BUILD_TYPE still wins.
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
 find_package(ament_cmake REQUIRED)
 
 find_package(epd_onnxruntime_vendor REQUIRED)
@@ -270,6 +276,12 @@ if(BUILD_TESTING)
   ament_target_dependencies(epd_hybrid_rgbd_replay geometry_msgs sensor_msgs)
   target_link_libraries(epd_hybrid_rgbd_replay ${OpenCV_LIBRARIES} ${PCL_LIBRARIES} jsoncpp::jsoncpp)
 
+  ament_add_gtest(epd_test_thread_policy test/test_thread_policy.cpp)
+  target_include_directories(epd_test_thread_policy PRIVATE include)
+
+  ament_add_gtest(epd_test_class_selection test/test_class_selection.cpp)
+  target_include_directories(epd_test_class_selection PRIVATE include)
+
   ament_add_gtest(epd_test_hybrid_rgbd test/test_hybrid_rgbd.cpp src/hybrid_rgbd.cpp)
   target_include_directories(epd_test_hybrid_rgbd PRIVATE include ${PCL_INCLUDE_DIRS})
   ament_target_dependencies(epd_test_hybrid_rgbd geometry_msgs sensor_msgs)
@@ -394,6 +406,8 @@ target_compile_definitions(easy_perception_deployment PRIVATE PATH_TO_PACKAGE="$
 add_executable(epd_sensor_ingress src/sensor_ingress.cpp)
 add_executable(epd_model_inspector src/model_inspector.cpp)
 add_executable(epd_backend_probe src/backend_probe.cpp)
+# Offline real-frame benchmark of the production P3 detector (no ROS graph needed).
+add_executable(epd_inference_benchmark test/inference_benchmark.cpp src/p3_ort_base.cpp src/ort_base.cpp)
 
 target_link_libraries(epd_model_inspector epd_onnxruntime_vendor::onnxruntime)
 
@@ -421,6 +435,13 @@ ament_target_dependencies(
   tf2
 )
 
+ament_target_dependencies(
+  epd_inference_benchmark
+  epd_onnxruntime_vendor rclcpp std_msgs sensor_msgs image_transport geometry_msgs epd_msgs
+  OpenCV cv_bridge message_filters diagnostic_msgs pcl_conversions tf2)
+target_include_directories(epd_inference_benchmark PRIVATE include ${PCL_INCLUDE_DIRS})
+target_link_libraries(epd_inference_benchmark ${PCL_LIBRARIES} jsoncpp::jsoncpp)
+
 target_include_directories(easy_perception_deployment PRIVATE ${PCL_INCLUDE_DIRS})
 target_link_libraries(easy_perception_deployment ${PCL_LIBRARIES} jsoncpp::jsoncpp)
 
@@ -435,6 +456,7 @@ install(TARGETS
 install(PROGRAMS
   scripts/epd_soak_probe.py
   scripts/epd_replay.py
+  scripts/epd_perception_session_export.py
   scripts/epd_backend_benchmark.py
   scripts/build_accelerated_backend.sh
   scripts/epd_diagnostics_bundle.py

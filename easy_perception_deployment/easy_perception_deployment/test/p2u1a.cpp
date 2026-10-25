@@ -37,10 +37,10 @@ TEST(EPD_TestSuite, Test_P2Model_Counting_Action)
 
   // Reset session_config.json
   std::filesystem::remove(PATH_TO_SESSION_CONFIG);
-  { std::ofstream tmp(PATH_TO_SESSION_CONFIG); }
+  {std::ofstream tmp(PATH_TO_SESSION_CONFIG);}
   // Reset usecase_config.json
   std::filesystem::remove(PATH_TO_USECASE_CONFIG);
-  { std::ofstream tmp(PATH_TO_USECASE_CONFIG); }
+  {std::ofstream tmp(PATH_TO_USECASE_CONFIG);}
 
   Json::Value session_config_json;
   session_config_json["path_to_model"] = PATH_TO_ONNX_MODEL;

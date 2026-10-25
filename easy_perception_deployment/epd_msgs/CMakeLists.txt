@@ -28,6 +28,7 @@ rosidl_generate_interfaces( ${PROJECT_NAME}
   "msg/EPDObjectLocalization.msg"
   "msg/EPDObjectTracking.msg"
   "msg/LocalizedObject.msg"
+  "msg/RejectedObject.msg"
   "srv/Perception.srv"
   DEPENDENCIES
   std_msgs

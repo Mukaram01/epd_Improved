@@ -223,3 +223,29 @@ def test_backend_error_is_reported_without_rewriting_snapshot():
     )
     assert status["state"] == "FAILED"
     assert status["backend"]["values"]["inference_failed"] == "1"
+
+
+def test_reported_confidence_depth_support_and_rejections_are_carried_not_invented():
+    obj = _object(name="cup")
+    obj.confidence, obj.mask_pixel_count, obj.valid_depth_pixel_count, obj.valid_depth_ratio = 0.91, 400, 380, 0.95
+    message = _localization_message(obj)
+    message.rejected_objects = [SimpleNamespace(
+        name="bottle", confidence=0.64, roi=SimpleNamespace(x_offset=1, y_offset=2, width=3, height=4),
+        quality=2, failure_reasons=(1 << 3) | (1 << 4), mask_pixel_count=200, valid_depth_pixel_count=10,
+        valid_depth_ratio=0.05)]
+    snapshot, errors, _ = BRIDGE.build_snapshot(
+        message, source_kind="localization", scene_id="cell", camera_id="d435i")
+    assert errors == []
+    item = snapshot["objects"][0]
+    assert item["confidence"] == 0.91 and item["attributes"]["confidence_available"] is True
+    assert item["attributes"]["valid_depth_ratio"] == 0.95
+    assert snapshot["provenance"]["confidence_available"] is True
+    rejected = snapshot["rejected_objects"][0]
+    assert rejected["label"] == "bottle" and rejected["quality"] == "invalid"
+    assert rejected["failure_reasons"] == ["insufficient_depth", "empty_cloud"]
+    assert "pose" not in rejected and "centroid" not in rejected               # no geometry for a rejected detection
+    # A message without the new fields keeps the old truthful defaults.
+    legacy, errors, _ = BRIDGE.build_snapshot(
+        _localization_message(), source_kind="localization", scene_id="cell", camera_id="d435i")
+    assert "confidence" not in legacy["objects"][0] and legacy["rejected_objects"] == []
+    assert legacy["provenance"]["confidence_available"] is False

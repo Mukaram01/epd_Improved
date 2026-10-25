@@ -68,6 +68,7 @@
 #include "epd_msgs/msg/epd_object_localization.hpp"
 #include "epd_msgs/msg/epd_object_tracking.hpp"
 #include "epd_msgs/msg/localized_object.hpp"
+#include "epd_msgs/msg/rejected_object.hpp"
 #include "epd_msgs/srv/perception.hpp"
 #include "epd_utils_lib/usecase_config.hpp"
 #include "epd_utils_lib/message_utils.hpp"
@@ -80,6 +81,25 @@
 #include "pcl_conversions/pcl_conversions.h"
 #include "pcl/common/centroid.h"
 #include "pcl/common/eigen.h"
+
+namespace EPD
+{
+/*! \brief A detection whose geometry failed validation, published with its reason instead of silently dropped. */
+inline epd_msgs::msg::RejectedObject toRejectedObject(const LocalizedObject & object, GeometryQuality quality)
+{
+  epd_msgs::msg::RejectedObject rejected;
+  rejected.name = object.name;
+  rejected.confidence = object.confidence;
+  rejected.roi = object.roi;
+  rejected.quality = quality == GeometryQuality::DEGRADED ? epd_msgs::msg::RejectedObject::DEGRADED :
+    epd_msgs::msg::RejectedObject::INVALID;
+  rejected.failure_reasons = object.failure_reasons;
+  rejected.mask_pixel_count = static_cast<uint32_t>(object.mask_pixel_count);
+  rejected.valid_depth_pixel_count = static_cast<uint32_t>(object.valid_depth_pixel_count);
+  rejected.valid_depth_ratio = object.valid_depth_ratio;
+  return rejected;
+}
+}  // namespace EPD
 
 /*! \class EasyPerceptionDeployment
     \brief An EasyPerceptionDeployment class object.
@@ -138,6 +158,8 @@ private:
   int64_t localize_last_rgb_key_{0};
   int64_t localize_last_depth_key_{0};
   int64_t localize_last_info_key_{0};
+  bool localize_input_qos_reliable_{true};
+  int localize_input_qos_depth_{2};
 
   static int64_t stampKey(const builtin_interfaces::msg::Time & stamp)
   {
@@ -335,6 +357,8 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   this->declare_parameter<std::string>("image_transport", ortAgent_.image_transport);
   this->declare_parameter<std::string>("image_output_qos_reliability", "best_effort");
   this->declare_parameter<int>("image_output_qos_depth", 1);
+  this->declare_parameter<std::string>("input_qos_reliability", "reliable");
+  this->declare_parameter<int>("input_qos_depth", 2);
   this->declare_parameter<bool>("use_depth", true);
   this->declare_parameter<double>("service_timeout_s", 10.0);
   this->declare_parameter<double>("rgb_input_watchdog_timeout_s", 5.0);
@@ -372,6 +396,12 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   std::string image_output_qos_reliability =
     this->get_parameter("image_output_qos_reliability").as_string();
   int image_output_qos_depth = this->get_parameter("image_output_qos_depth").as_int();
+  const auto input_qos_reliability = this->get_parameter("input_qos_reliability").as_string();
+  if (input_qos_reliability != "reliable" && input_qos_reliability != "best_effort") {
+    throw std::invalid_argument("input_qos_reliability must be 'reliable' or 'best_effort'");
+  }
+  localize_input_qos_reliable_ = input_qos_reliability == "reliable";
+  localize_input_qos_depth_ = std::max<int>(1, static_cast<int>(this->get_parameter("input_qos_depth").as_int()));
   use_depth_ = this->get_parameter("use_depth").as_bool();
   rgb_input_watchdog_timeout_s_ = this->get_parameter("rgb_input_watchdog_timeout_s").as_double();
   slow_frame_warn_ms_ = this->get_parameter("slow_frame_warn_ms").as_int();
@@ -518,15 +548,18 @@ EasyPerceptionDeployment::EasyPerceptionDeployment(void)
   auto object_publisher_options = publisher_options;
   object_publisher_options.qos_overriding_options =
     rclcpp::QosOverridingOptions::with_default_policies();
+  // Results carry the depth image, masks and clouds (several MB): RELIABLE
+  // KEEP_LAST(1) delivers the latest result whole; best-effort lost ~95% of them.
+  // Still overridable through the standard qos_overrides parameters.
   localize_pub = this->create_publisher<epd_msgs::msg::EPDObjectLocalization>(
     "/easy_perception_deployment/epd_localize_output",
-    rclcpp::SensorDataQoS(),
+    rclcpp::QoS(rclcpp::KeepLast(1)).reliable(),
     object_publisher_options);
 
   // Creating Publisher to output Action P3 and Tracking Detection Results.
   tracking_pub = this->create_publisher<epd_msgs::msg::EPDObjectTracking>(
     "/easy_perception_deployment/epd_tracking_output",
-    rclcpp::SensorDataQoS(),
+    rclcpp::QoS(rclcpp::KeepLast(1)).reliable(),
     object_publisher_options);
 
   // Creating Publisher to output 3D poses of localized/tracked objects.
@@ -835,7 +868,15 @@ void EasyPerceptionDeployment::tryDispatchLocalizedTriplet(const int64_t key)
 
 void EasyPerceptionDeployment::subscribeLocalizeInputs()
 {
-  const auto qos = rclcpp::SensorDataQoS().keep_last(10);
+  // Latest-only exact-stamp triplets. RELIABLE by default: best-effort readers of
+  // ~1 MB RGB/depth images lose most frames to UDP fragment loss, and a triplet
+  // needs all three streams of the same frame (input_qos_reliability).
+  auto qos = rclcpp::QoS(rclcpp::KeepLast(static_cast<size_t>(localize_input_qos_depth_)));
+  if (localize_input_qos_reliable_) {
+    qos.reliable();
+  } else {
+    qos.best_effort();
+  }
 
   rclcpp::SubscriptionOptions options;
   options.callback_group = localize_input_callback_group_;
@@ -1579,6 +1620,7 @@ void EasyPerceptionDeployment::process_localize_work(
 
   detections_total_.fetch_add(result.size());
   std::vector<EPD::LocalizedObject> valid_objects;
+  std::vector<epd_msgs::msg::RejectedObject> rejected_objects;
   valid_objects.reserve(result.size());
   for (auto & object : result.objects) {
     object.source_observation_id = observation->observation_id();
@@ -1600,6 +1642,7 @@ void EasyPerceptionDeployment::process_localize_work(
     } else {
       geometry_invalid_total_.fetch_add(1);
     }
+    rejected_objects.push_back(EPD::toRejectedObject(object, quality));
   }
   result.objects = std::move(valid_objects);
 
@@ -1631,6 +1674,7 @@ void EasyPerceptionDeployment::process_localize_work(
   visual_pub.publish(*image_output_msg);
 
   epd_msgs::msg::EPDObjectLocalization output_msg;
+  output_msg.rejected_objects = std::move(rejected_objects);
 
   EPD::preserve_observation_header(output_msg, *observation);
   output_msg.frame_width = img.cols;
@@ -1667,6 +1711,10 @@ void EasyPerceptionDeployment::process_localize_work(
     object.breadth  = result.objects[i].breadth;
     object.height   = result.objects[i].height;
     object.axis     = result.objects[i].axis;
+    object.confidence = result.objects[i].confidence;
+    object.mask_pixel_count = static_cast<uint32_t>(result.objects[i].mask_pixel_count);
+    object.valid_depth_pixel_count = static_cast<uint32_t>(result.objects[i].valid_depth_pixel_count);
+    object.valid_depth_ratio = result.objects[i].valid_depth_ratio;
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);
@@ -1781,6 +1829,7 @@ void EasyPerceptionDeployment::process_tracking_work(
 
   detections_total_.fetch_add(result.size());
   std::vector<EPD::TrackingDetection> tracking_detections;
+  std::vector<epd_msgs::msg::RejectedObject> tracking_rejected_objects;
   tracking_detections.reserve(result.size());
   for (auto & object : result.objects) {
     object.source_observation_id = observation->observation_id();
@@ -1804,6 +1853,9 @@ void EasyPerceptionDeployment::process_tracking_work(
       geometry_degraded_total_.fetch_add(1);
     } else {
       geometry_invalid_total_.fetch_add(1);
+    }
+    if (quality != EPD::GeometryQuality::VALID) {
+      tracking_rejected_objects.push_back(EPD::toRejectedObject(object, quality));
     }
     report_geometry(object, depth_img);
   }
@@ -1853,6 +1905,7 @@ void EasyPerceptionDeployment::process_tracking_work(
   visual_pub.publish(*image_output_msg);
 
   epd_msgs::msg::EPDObjectTracking output_msg;
+  output_msg.rejected_objects = std::move(tracking_rejected_objects);
 
   EPD::preserve_observation_header(output_msg, *observation);
   output_msg.frame_width = img.cols;
@@ -1894,6 +1947,10 @@ void EasyPerceptionDeployment::process_tracking_work(
     object.breadth  = result.objects[i].breadth;
     object.height   = result.objects[i].height;
     object.axis     = result.objects[i].axis;
+    object.confidence = result.objects[i].confidence;
+    object.mask_pixel_count = static_cast<uint32_t>(result.objects[i].mask_pixel_count);
+    object.valid_depth_pixel_count = static_cast<uint32_t>(result.objects[i].valid_depth_pixel_count);
+    object.valid_depth_ratio = result.objects[i].valid_depth_ratio;
 
     sensor_msgs::msg::PointCloud2 output_segmented_pcl;
     pcl::toROSMsg(result.objects[i].segmented_pcl, output_segmented_pcl);

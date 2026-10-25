@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <stdexcept>
 #include <memory>
 #include <string>
 
@@ -33,10 +34,22 @@ public:
       "camera_info_output_topic", "/easy_perception_deployment/ingress/color/camera_info");
 
     // Camera-facing readers match the proven RealSense RELIABLE KEEP_LAST(1)
-    // publisher. Internal delivery is latest-only and must never backpressure
-    // the lightweight ingress process.
+    // publisher. Internal delivery is latest-only (KEEP_LAST(1): a slow reader
+    // never backpressures the ingress). It is RELIABLE by default: best-effort
+    // delivery of ~1 MB images loses UDP fragments, which on LENLEG (WSL2,
+    // FastDDS, localhost) delivered ~1.5 of 14 camera frames per second.
+    const auto internal_reliability = declare_parameter<std::string>(
+      "internal_qos_reliability", "reliable");
+    if (internal_reliability != "reliable" && internal_reliability != "best_effort") {
+      throw std::invalid_argument("internal_qos_reliability must be 'reliable' or 'best_effort'");
+    }
     auto camera_qos = rclcpp::QoS(rclcpp::KeepLast(1)).reliable().durability_volatile();
-    auto internal_qos = rclcpp::QoS(rclcpp::KeepLast(1)).best_effort().durability_volatile();
+    auto internal_qos = rclcpp::QoS(rclcpp::KeepLast(1)).durability_volatile();
+    if (internal_reliability == "reliable") {
+      internal_qos.reliable();
+    } else {
+      internal_qos.best_effort();
+    }
 
     rgb_pub_ = create_publisher<sensor_msgs::msg::Image>(rgb_out, internal_qos);
     depth_pub_ = create_publisher<sensor_msgs::msg::Image>(depth_out, internal_qos);
@@ -75,7 +88,7 @@ public:
     RCLCPP_INFO(
       get_logger(),
       "Isolated sensor ingress active: RELIABLE KEEP_LAST(1) camera readers, "
-      "BEST_EFFORT KEEP_LAST(1) internal publishers");
+      "%s KEEP_LAST(1) internal publishers", internal_reliability.c_str());
   }
 
 private:

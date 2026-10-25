@@ -17,3 +17,5 @@ sensor_msgs/Image depth_image
 uint32 process_time
 # Stable track IDs that transitioned to LOST during this observation.
 string[] lost_track_ids
+# Detections whose geometry failed validation (never localized); see RejectedObject.msg.
+RejectedObject[] rejected_objects

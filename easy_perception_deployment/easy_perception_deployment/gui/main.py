@@ -37,12 +37,14 @@ from windows.epd8_productization import apply_epd8_productization
 from windows.epd9_productization import apply_epd9_productization
 from windows.model_output_contract import apply_model_output_contract
 from windows.perception_monitor import apply_perception_monitor
+from windows.studio_design import apply_studio_design
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 myapp = QApplication(sys.argv)
 
 
-def main():
+def build_main_window():
+    """The fully composed launcher (shared by main() and scripts/ui_tour_capture.py)."""
 
     # Install the ROS worker patch before MainWindow constructs the Deploy FPS
     # monitor. This keeps all GUI ROS subscribers off rclpy's global executor.
@@ -72,6 +74,13 @@ def main():
     # Last: reorganises the finished Deploy UI into the monitor workspace.
     apply_perception_monitor(window1)
     window1.help_window.setWindowFlag(Qt.Window, True)
+    # Last of all: the shared studio design layer (see windows/studio_design.py).
+    window1._studio_layout_memory = apply_studio_design(window1)
+    return window1
+
+
+def main():
+    window1 = build_main_window()
     window1.show()
 
     myapp.exec()

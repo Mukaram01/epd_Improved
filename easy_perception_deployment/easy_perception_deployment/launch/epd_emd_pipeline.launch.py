@@ -17,7 +17,8 @@ import sys
 
 from launch import LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction)
+    DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction,
+    SetEnvironmentVariable)
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -30,6 +31,7 @@ _LAUNCH_DIR = Path(__file__).resolve().parent
 if str(_LAUNCH_DIR) not in sys.path:
     sys.path.insert(0, str(_LAUNCH_DIR))
 
+from backend_launch_config import resolve_backend_launch_defaults  # noqa: E402
 from live_source_config import (  # noqa: E402
     DEFAULT_LIVE_SOURCE, LIVE_SOURCES, ingress_parameters, resolve_live_source)
 
@@ -72,6 +74,8 @@ def generate_launch_description():
         "contract_require_tracking_ids")
 
     pkg_share = get_package_share_directory("easy_perception_deployment")
+    backend_default, gpu_index_default = resolve_backend_launch_defaults(
+        Path(pkg_share) / "config" / "session_config.json")
     ingress_rgb = "/easy_perception_deployment/ingress/color/image_raw"
     ingress_depth = "/easy_perception_deployment/ingress/aligned_depth/image_raw"
     ingress_info = "/easy_perception_deployment/ingress/color/camera_info"
@@ -210,6 +214,30 @@ def generate_launch_description():
                 "Reject contract objects without stable Tracking IDs. Set false "
                 "only for localization-only workflows."
             ),
+        ),
+
+        DeclareLaunchArgument(
+            "execution_backend",
+            default_value=backend_default,
+            description=(
+                "ONNX Runtime backend: auto, cpu, cuda, or tensorrt. Defaults "
+                "to the Deploy selection saved in session_config.json."
+            )
+        ),
+        DeclareLaunchArgument(
+            "execution_backend_gpu_index",
+            default_value=gpu_index_default,
+            description="GPU index for CUDA/TensorRT. Defaults to the Deploy selection."
+        ),
+        # Without these OrtBase takes the legacy gpuIdx path and requests CUDA even on a
+        # CPU-only build, as run.launch.py already documents.
+        SetEnvironmentVariable(
+            name="EPD_EXECUTION_BACKEND",
+            value=LaunchConfiguration("execution_backend"),
+        ),
+        SetEnvironmentVariable(
+            name="EPD_GPU_INDEX",
+            value=LaunchConfiguration("execution_backend_gpu_index"),
         ),
 
         LogInfo(

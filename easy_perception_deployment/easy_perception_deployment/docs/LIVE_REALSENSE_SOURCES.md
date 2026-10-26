@@ -33,9 +33,24 @@ Explicit `rgb_topic`, `camera_info_topic`, `depth_topic` and
 
 Poses stay in the colour optical frame. Camera-to-world calibration is outside EPD.
 
+## CPU profile and backend
+
+On CPU, inference cost follows the colour resolution, so lower colour to 640x480. Keep
+depth at 848x480, the D435i's recommended depth-accuracy mode. Registration reprojects
+through both cameras' own intrinsics, so unequal sizes are expected and lose no accuracy.
+At 15 fps, MaskRCNN-10 measured about 430 ms per frame on LENLEG, against about 880 ms
+with 1280x720 colour.
+
+`epd_emd_pipeline.launch.py` takes `execution_backend` and
+`execution_backend_gpu_index`, the same as `run.launch.py`. They default to the Deploy
+selection in `session_config.json`, and `EPD_EXECUTION_BACKEND` / `EPD_GPU_INDEX` still
+override that selection. CPU therefore needs no environment variable, and a GPU is
+still chosen explicitly, e.g. `execution_backend:=cuda`.
+
 ```bash
-ros2 launch realsense2_camera rs_launch.py enable_color:=true enable_depth:=true
-EPD_EXECUTION_BACKEND=cpu ros2 launch easy_perception_deployment epd_emd_pipeline.launch.py \
+ros2 launch realsense2_camera rs_launch.py enable_color:=true enable_depth:=true \
+  rgb_camera.color_profile:=640x480x15 depth_module.depth_profile:=848x480x15
+ros2 launch easy_perception_deployment epd_emd_pipeline.launch.py \
   camera_source:=realsense_unaligned usecase_mode_override:=3 \
   publish_workcell_contract:=true contract_source_mode:=localization \
   contract_require_tracking_ids:=false workcell_scene_id:=<scene id>

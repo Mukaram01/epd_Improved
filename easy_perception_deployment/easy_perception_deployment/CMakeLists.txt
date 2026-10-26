@@ -44,6 +44,7 @@ find_package(pcl_conversions REQUIRED)
 
 # Quaternion header comes from tf2
 find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
 
 # JsonCPP libraries - use system jsoncpp directly via pkg-config
 find_package(PkgConfig REQUIRED)
@@ -305,6 +306,10 @@ if(BUILD_TESTING)
     epd_test_ros_message_transport cv_bridge sensor_msgs std_msgs)
   target_link_libraries(epd_test_ros_message_transport ${OpenCV_LIBRARIES})
 
+  ament_add_gtest(epd_test_depth_registration test/test_depth_registration.cpp)
+  target_include_directories(epd_test_depth_registration PRIVATE include)
+  ament_target_dependencies(epd_test_depth_registration sensor_msgs)
+
   ament_add_gtest(epd_test_time_utils test/test_time_utils.cpp)
   target_include_directories(epd_test_time_utils PRIVATE include)
   ament_target_dependencies(epd_test_time_utils rclcpp builtin_interfaces)
@@ -411,11 +416,14 @@ add_executable(epd_inference_benchmark test/inference_benchmark.cpp src/p3_ort_b
 
 target_link_libraries(epd_model_inspector epd_onnxruntime_vendor::onnxruntime)
 
+target_include_directories(epd_sensor_ingress PRIVATE include)
 ament_target_dependencies(
   epd_sensor_ingress
   rclcpp
   sensor_msgs
   diagnostic_msgs
+  tf2
+  tf2_ros
 )
 
 ament_target_dependencies(

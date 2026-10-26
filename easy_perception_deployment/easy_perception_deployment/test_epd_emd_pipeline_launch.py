@@ -15,7 +15,7 @@
 import importlib.util
 from pathlib import Path
 
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, SetEnvironmentVariable
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
@@ -44,11 +44,11 @@ def test_mode_override_defaults_preserve_persistent_configuration():
     assert _default_text(arguments["usecase_mode_override"]) == "-1"
     assert _default_text(arguments["tracker_type_override"]) == ""
     assert _default_text(arguments["tracking_maximum_missed_observations"]) == "30"
-    assert _default_text(arguments["rgb_topic"]) == "/camera/camera/color/image_raw"
-    assert _default_text(arguments["depth_topic"]) == (
-        "/camera/camera/aligned_depth_to_color/image_raw")
-    assert _default_text(arguments["camera_info_topic"]) == (
-        "/camera/camera/color/camera_info")
+    # Camera topics now come from the camera_source preset; the default preset keeps the
+    # driver-aligned topics (see launch/test_live_source_config.py).
+    assert _default_text(arguments["camera_source"]) == "realsense_aligned"
+    for topic in ("rgb_topic", "depth_topic", "camera_info_topic"):
+        assert _default_text(arguments[topic]) == ""
 
 
 def test_mode_overrides_are_typed_epd_node_parameters():
@@ -75,3 +75,16 @@ def test_mode_overrides_are_typed_epd_node_parameters():
     assert "".join(
         part.text for part in missed_observations.value[0].variable_name
     ) == "tracking_maximum_missed_observations"
+
+
+def test_backend_follows_the_saved_deploy_selection_instead_of_the_legacy_gpu_path():
+    entities = _description().entities
+    arguments = {e.name: e for e in entities if isinstance(e, DeclareLaunchArgument)}
+    # The package's saved session_config.json selects auto (CPU on a CPU-only build).
+    assert _default_text(arguments["execution_backend"]) in ("auto", "cpu", "cuda", "tensorrt")
+    assert _default_text(arguments["execution_backend_gpu_index"]).isdigit()
+    exported = {
+        "".join(part.text for part in e.name): e.value
+        for e in entities if isinstance(e, SetEnvironmentVariable)
+    }
+    assert set(exported) == {"EPD_EXECUTION_BACKEND", "EPD_GPU_INDEX"}

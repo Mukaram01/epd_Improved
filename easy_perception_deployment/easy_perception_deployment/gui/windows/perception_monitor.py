@@ -705,6 +705,10 @@ class HealthPanel(QScrollArea):
                 "<br>".join(f"• {message}" for message in health.messages))
         else:
             self.messages.setText("No problems reported.")
+        # Amber only when there is something to read; "no problems" is not a warning.
+        self.messages.setProperty("state", "warn" if health.messages else "ok")
+        self.messages.style().unpolish(self.messages)
+        self.messages.style().polish(self.messages)
 
     def set_value(self, key, text):
         self.values[key].setText(text)
@@ -1847,7 +1851,8 @@ class PerceptionMonitorController(QObject):
             QLabel#monitorHint, QLabel#monitorHeadline {
                 color: #9aa7b8; font-size: 11px;
             }
-            QLabel#monitorMessages { color: #e8c98f; font-size: 11px; }
+            QLabel#monitorMessages { color: #9aa7b8; font-size: 11px; }
+            QLabel#monitorMessages[state="warn"] { color: #e8c98f; }
             QTabWidget#monitorSideTabs::pane {
                 border: 1px solid #263140; border-radius: 8px;
             }

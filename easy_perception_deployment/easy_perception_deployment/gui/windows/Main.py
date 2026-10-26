@@ -25,6 +25,8 @@ from PySide6.QtWidgets import (
 )
 
 import logging
+
+import shiboken6
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -183,7 +185,8 @@ class MainWindow(QWidget):
         # window. The callback must not reference self.
         owned_windows = (self.train_window, self.deploy_window)
         self.destroyed.connect(
-            lambda *_: [window.deleteLater() for window in owned_windows])
+            lambda *_: [window.deleteLater() for window in owned_windows
+                        if shiboken6.isValid(window)])  # Qt may have deleted it already at quit
 
         self._WINDOW_HEIGHT = 438
         self._WINDOW_WIDTH = 760

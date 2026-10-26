@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
+import sys
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
+from launch.actions import (
+    DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction)
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
@@ -22,11 +26,36 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 from ament_index_python.packages import get_package_share_directory
 
+_LAUNCH_DIR = Path(__file__).resolve().parent
+if str(_LAUNCH_DIR) not in sys.path:
+    sys.path.insert(0, str(_LAUNCH_DIR))
+
+from live_source_config import (  # noqa: E402
+    DEFAULT_LIVE_SOURCE, LIVE_SOURCES, ingress_parameters, resolve_live_source)
+
+
+def _sensor_ingress(context, rgb_out, depth_out, info_out):
+    def arg(name):
+        return LaunchConfiguration(name).perform(context)
+
+    source = resolve_live_source(arg("camera_source"), {
+        "rgb_topic": arg("rgb_topic"),
+        "camera_info_topic": arg("camera_info_topic"),
+        "depth_topic": arg("depth_topic"),
+        "depth_camera_info_topic": arg("depth_camera_info_topic"),
+    })
+    parameters = ingress_parameters(source, rgb_out, depth_out, info_out)
+    parameters["max_rgbd_pair_skew_s"] = float(arg("max_rgbd_pair_skew_s"))
+    return [Node(
+        package="easy_perception_deployment",
+        executable="epd_sensor_ingress",
+        name="epd_sensor_ingress",
+        output="screen",
+        parameters=[parameters],
+    )]
+
 
 def generate_launch_description():
-    rgb_topic = LaunchConfiguration("rgb_topic")
-    camera_info_topic = LaunchConfiguration("camera_info_topic")
-    depth_topic = LaunchConfiguration("depth_topic")
     use_depth = LaunchConfiguration("use_depth")
     service_timeout_s = LaunchConfiguration("service_timeout_s")
     log_level = LaunchConfiguration("log_level")
@@ -63,19 +92,42 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument(
+            "camera_source",
+            default_value=DEFAULT_LIVE_SOURCE,
+            choices=sorted(LIVE_SOURCES),
+            description=(
+                "Live camera source: realsense_aligned forwards the driver's "
+                "aligned depth; realsense_unaligned registers depth/image_rect_raw "
+                "into the colour frame inside the EPD ingress."
+            )
+        ),
+        DeclareLaunchArgument(
+            "depth_camera_info_topic",
+            default_value="",
+            description="Depth camera info topic (register mode); empty uses the preset"
+        ),
+        DeclareLaunchArgument(
+            "max_rgbd_pair_skew_s",
+            default_value="0.020",
+            description="Register mode: maximum colour/depth sensor-stamp skew to pair"
+        ),
+        DeclareLaunchArgument(
             "rgb_topic",
-            default_value="/camera/camera/color/image_raw",
-            description="RGB image topic (RealSense D435i default)"
+            default_value="",
+            description="RGB image topic; empty uses the camera_source preset"
         ),
         DeclareLaunchArgument(
             "camera_info_topic",
-            default_value="/camera/camera/color/camera_info",
-            description="Camera info topic (RealSense D435i default)"
+            default_value="",
+            description="Colour camera info topic; empty uses the camera_source preset"
         ),
         DeclareLaunchArgument(
             "depth_topic",
-            default_value="/camera/camera/aligned_depth_to_color/image_raw",
-            description="Aligned depth topic (RealSense D435i default)"
+            default_value="",
+            description=(
+                "Depth topic (aligned, or raw when the source registers depth); "
+                "empty uses the camera_source preset"
+            )
         ),
         DeclareLaunchArgument(
             "use_depth",
@@ -176,19 +228,9 @@ def generate_launch_description():
             ]
         ),
 
-        Node(
-            package="easy_perception_deployment",
-            executable="epd_sensor_ingress",
-            name="epd_sensor_ingress",
-            output="screen",
-            parameters=[{
-                "rgb_input_topic": rgb_topic,
-                "depth_input_topic": depth_topic,
-                "camera_info_input_topic": camera_info_topic,
-                "rgb_output_topic": ingress_rgb,
-                "depth_output_topic": ingress_depth,
-                "camera_info_output_topic": ingress_info,
-            }],
+        OpaqueFunction(
+            function=_sensor_ingress,
+            args=[ingress_rgb, ingress_depth, ingress_info],
         ),
 
         Node(
